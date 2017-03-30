@@ -77,6 +77,8 @@ void KGStackBufferAllocator::Deallocate(void* pBuffer, uint32_t nSize)
         nAlign += m_nAlignment;
 #endif // _DEBUG
 
+     assert(m_nAlloc >= nAlign);
+
 #ifdef _DEBUG
     CheckBits((uint8_t*)pBuffer + nSize, nAlign - nSize);
 #endif // _DEBUG
