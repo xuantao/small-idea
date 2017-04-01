@@ -8,11 +8,11 @@
     <Filter Include="src\scoped">
       <UniqueIdentifier>{e54b6d2d-75f1-479f-974c-150c89c7ec70}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\container">
+      <UniqueIdentifier>{4d6b9021-34d3-47ef-8dda-855e9a96a993}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\KGRefCountSet.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\scoped_buffer.h">
       <Filter>src\scoped</Filter>
     </ClInclude>
@@ -24,6 +24,9 @@
     </ClInclude>
     <ClInclude Include="src\allocator_base.h">
       <Filter>src\scoped</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ref_count_set.h">
+      <Filter>src\container</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
