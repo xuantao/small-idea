@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <iostream>
 #include <functional>
+#include <cassert>
 
 extern void TestStackBufferAllocatoer();
 
@@ -28,6 +29,11 @@ struct TestObj
     {
         printf("Operator = \n");
     }
+
+    bool operator () (int i)
+    {
+        return true;
+    }
 };
 
 struct A { int i; };            // C-struct (POD)
@@ -37,24 +43,29 @@ struct D : C { D() {} };         // no POD (custom default constructor)
 struct E
 {
     E(int i) : j(i)
-    {}
+    {
+    }
     E(const TestObj& cd)
-    {}
+    {
+    }
     int j;
 };
 
 template <class Ty, bool isPod>
 struct Constructor
-{};
+{
+};
 
 template <class Ty>
 struct Constructor<Ty, true>
 {
     static void Custruct(void* pBuffer, uint32_t nCount)
-    {}
+    {
+    }
 
     static void Destruct(void* pBuffer, uint32_t nCount)
-    {}
+    {
+    }
 };
 
 template <class Ty>
@@ -101,9 +112,32 @@ void alloc(int n, Args&& ...args)
     delete p;
 }
 
-int main() {
+template <class Func>
+bool Traverse(Func&& Visitor)
+{
+    printf("bool Traverse(Func&& Visitor)\n");
+    std::function<bool(int)> fn = std::ref(Visitor);
+    return Traverse(fn);
+}
 
-    TestStackBufferAllocatoer();
+//template <>
+bool Traverse(std::function<bool(int)>& Visitor)
+{
+    printf("bool Traverse(std::function<bool(int)>& Visitor)\n");
+    return true;
+}
 
-    return 0;
+#include <valarray>
+#include <array>
+#include "scoped_buffer_allocator.h"
+
+using namespace zh;
+
+int main()
+{
+    scoped_buffer_allocator<1024, 8> allocator;
+    scoped_obj_buffer<int> buffer0 = allocator.allocate<int>(10);
+    scoped_obj_buffer<int> buffer1 = allocator.allocate<int>(10, 1);
+    std::unique_ptr
+        return 0;
 }
