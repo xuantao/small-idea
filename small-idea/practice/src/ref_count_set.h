@@ -7,9 +7,9 @@
 #include <map>
 #include <functional>
 
-/*
- * 使用Map简单包装一个带引用计数的Set
- */
+ /*
+  * 使用Map简单包装一个带引用计数的Set
+  */
 template <class Ty>
 class KGRefCountSet
 {
@@ -23,7 +23,7 @@ public:
         if (it == m_Vals.end())
             it = m_Vals.insert(std::make_pair(val, 0)).first;
 
-        ++ it->second;
+        ++it->second;
         return it->second;
     }
 
@@ -38,7 +38,7 @@ public:
         if (it == m_Vals.end())
             return 0;
 
-        -- it->second;
+        --it->second;
         if (it->second > 0)
             return it->second;
 
@@ -92,4 +92,3 @@ private:
 
     KGVALUE_MAP m_Vals;
 };
-
