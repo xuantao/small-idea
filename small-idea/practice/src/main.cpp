@@ -6,9 +6,11 @@
 #include <cassert>
 
 extern void TestStackBufferAllocatoer();
+extern void TestRefCount();
 
 int main(int argc, char* argv[])
 {
     TestStackBufferAllocatoer();
+    TestRefCount();
     return 0;
 }
