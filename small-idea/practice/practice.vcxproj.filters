@@ -28,6 +28,9 @@
     <ClInclude Include="src\ref_count_set.h">
       <Filter>src\container</Filter>
     </ClInclude>
+    <ClInclude Include="src\fixed_allocator.h">
+      <Filter>src\container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

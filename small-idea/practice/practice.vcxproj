@@ -147,6 +147,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\allocator_base.h" />
+    <ClInclude Include="src\fixed_allocator.h" />
     <ClInclude Include="src\ref_count_set.h" />
     <ClInclude Include="src\scoped_buffer.h" />
     <ClInclude Include="src\scoped_buffer_allocator.h" />
