@@ -1,94 +1,93 @@
 ﻿/*
  * reference count set
- * xuantao, Seasun Game 2017
- */
+ * xuantao, 2017
+*/
 #pragma once
 
 #include <map>
 #include <functional>
 
- /*
-  * 使用Map简单包装一个带引用计数的Set
-  */
-template <class Ty>
-class KGRefCountSet
+namespace zh
 {
-public:
-    typedef Ty value_type;
-    typedef typename std::remove_reference<Ty>::type _Ty;
-public:
-    int Insert(const _Ty& val)
+    /*
+     * 使用Map简单包装一个带引用计数的Set
+    */
+    template <class Ty>
+    class ref_count_set
     {
-        auto it = m_Vals.find(val);
-        if (it == m_Vals.end())
-            it = m_Vals.insert(std::make_pair(val, 0)).first;
+    public:
+        typedef typename std::remove_reference<Ty>::type _Ty;
 
-        ++it->second;
-        return it->second;
-    }
-
-    inline int Insert(const _Ty&& value)
-    {
-        return Insert(value);
-    }
-
-    int Remove(const value_type& value)
-    {
-        auto it = m_Vals.find(value);
-        if (it == m_Vals.end())
-            return 0;
-
-        --it->second;
-        if (it->second > 0)
-            return it->second;
-
-        m_Vals.erase(it);
-        return 0;
-    }
-
-    int GetSize() const
-    {
-        return (int)m_Vals.size();
-    }
-
-    void Clear()
-    {
-        m_Vals.clear();
-    }
-
-    int GetRefCount(const value_type& value) const
-    {
-        auto it = m_Vals.find(value);
-        if (it == m_Vals.cend())
-            return 0;
-        return it->second;
-    }
-
-    bool Contain(const value_type& value) const
-    {
-        return GetRefCount(value) > 0;
-    }
-
-    template <class Func>
-    bool Traverse(Func&& Visitor) const
-    {
-        bool bResult = true;
-        for (auto it = m_Vals.cbegin(); it != m_Vals.cend();)
+    public:
+        size_t insert(const _Ty& val)
         {
-            const value_type& v = it->first;
-            ++it;
+            auto it = _Vals.find(val);
+            if (it == _Vals.end())
+                it = _Vals.insert(std::make_pair(val, 0)).first;
 
-            if (!Visitor(v))
-            {
-                bResult = false;
-                break;
-            }
+            ++it->second;
+            return it->second;
         }
-        return bResult;
-    }
 
-private:
-    typedef std::map<value_type, int> KGVALUE_MAP;
+        size_t erase(const _Ty& val)
+        {
+            auto it = _Vals.find(val);
+            if (it == _Vals.end())
+                return 0;
 
-    KGVALUE_MAP m_Vals;
-};
+            --it->second;
+            if (it->second > 0)
+                return it->second;
+
+            _Vals.erase(it);
+            return 0;
+        }
+
+        void clear()
+        {
+            _Vals.clear();
+        }
+
+        size_t size() const
+        {
+            return _Vals.size();
+        }
+
+        size_t ref_count(const _Ty& val) const
+        {
+            auto it = _Vals.find(val);
+            if (it == _Vals.cend())
+                return 0;
+            return it->second;
+        }
+
+        bool contain(const _Ty& val) const
+        {
+            return ref_count(val) > 0;
+        }
+
+        template <class Func>
+        bool traverse(Func&& Visitor) const
+        {
+            bool bResult = true;
+            for (auto it = _Vals.cbegin(); it != _Vals.cend();)
+            {
+                const _Ty& v = it->first;
+                size_t c = it->second;
+                ++it;
+
+                if (!Visitor(v, c))
+                {
+                    bResult = false;
+                    break;
+                }
+            }
+            return bResult;
+        }
+
+    private:
+        typedef std::map<_Ty, size_t> REF_MAP;
+
+        REF_MAP _Vals;
+    };
+}

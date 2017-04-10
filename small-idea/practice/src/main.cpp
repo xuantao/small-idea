@@ -6,6 +6,7 @@
 #include <cassert>
 
 //extern void TestStackBufferAllocatoer();
+extern void TestRefCount();
 
 struct Test
 {
@@ -86,5 +87,6 @@ int main(int argc, char* argv[])
     c_a.allocate(1);
     test_out(Test());
 
+    TestRefCount();
     return 0;
 }

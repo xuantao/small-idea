@@ -39,6 +39,14 @@ public:
     fixed_allocator(fixed_allocator&& other)
         : _size(other._size), _root(other._root)
     {
+        other._size = 0;
+        other._root = nullptr;
+    }
+
+    template <class Other>
+    fixed_allocator(Other&& other)
+        : _size(0), _root(nullptr)
+    {
     }
 
     fixed_allocator(const fixed_allocator&)
@@ -119,24 +127,25 @@ public:
     }
 
     custom_allocator_adapter(custom_allocator_adapter&& other)
-        : fixed_allocator(std::forward<my_base>(other))
+        : fixed_allocator(std::move(other))
     {
     }
 
-    //custom_allocator_adapter(custom_allocator_adapter& other)
-    //    : fixed_allocator(nullptr, 0)
-    //{
-    //}
+    template <class Other>
+    custom_allocator_adapter(Other&& other)
+        : fixed_allocator(std::forward<Other>(other))
+    {
+    }
 
     custom_allocator_adapter(const custom_allocator_adapter&)
         : fixed_allocator(nullptr, 0)
     {
-        //static_assert(false, "this allocator can not been copy");
+        static_assert(false, "this allocator can not been copy");
     }
 
     custom_allocator_adapter& operator = (const custom_allocator_adapter&)
     {
-        //static_assert(false, "this allocator can not been assigned");
+        static_assert(false, "this allocator can not been assigned");
     }
 
 public:
