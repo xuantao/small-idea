@@ -34,6 +34,9 @@
     <ClInclude Include="src\fixed_allocator.h">
       <Filter>src\container</Filter>
     </ClInclude>
+    <ClInclude Include="src\scoped_vector.h">
+      <Filter>src\scoped</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
