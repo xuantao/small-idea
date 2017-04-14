@@ -1,6 +1,7 @@
 
 # release, debug, obj folders
 x64
+.vs
 
 *.orig
 *.db
