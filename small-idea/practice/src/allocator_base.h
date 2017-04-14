@@ -1,17 +1,18 @@
 /*
- *
+ * allocator base, for hide the implement
 */
-
-#include <cstdint>
-
 #pragma once
 
-namespace zh
+#include <cstdint>
+#include "def.h"
+
+NAMESPACE_ZH_BEGIN
+
+class allocator_base
 {
-    class allocator_base
-    {
-    public:
-        virtual void* allocate(size_t size) = 0;
-        virtual void deallocate(void* buff, size_t size) = 0;
-    };
-}
+public:
+    virtual void* allocate(size_t size) = 0;
+    virtual void deallocate(void* buff, size_t size) = 0;
+};
+
+NAMESPACE_ZH_END

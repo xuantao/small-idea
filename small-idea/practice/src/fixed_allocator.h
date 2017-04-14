@@ -2,7 +2,6 @@
  * fixed buffer allocator
  * xuantao, 2017
 */
-
 #pragma once
 
 #include <cstdint>

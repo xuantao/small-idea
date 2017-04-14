@@ -37,6 +37,12 @@
     <ClInclude Include="src\scoped_vector.h">
       <Filter>src\scoped</Filter>
     </ClInclude>
+    <ClInclude Include="src\scoped_test_base.h">
+      <Filter>src\test</Filter>
+    </ClInclude>
+    <ClInclude Include="src\def.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -46,6 +52,12 @@
       <Filter>src\test</Filter>
     </ClCompile>
     <ClCompile Include="src\ref_count_set_test.cpp">
+      <Filter>src\test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scoped_vector_test.cpp">
+      <Filter>src\test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scoped_test_base.cpp">
       <Filter>src\test</Filter>
     </ClCompile>
   </ItemGroup>

@@ -51,27 +51,25 @@ bool Traverse(const std::vector<Ty>& vec, Func&& func)
     return true;
 }
 
+struct test_const
+{
+    int get()
+    {
+        return 1;
+    }
+
+    int get() const
+    {
+        return const_cast<test_const*>(this)->get();
+    }
+};
+
 int main(int argc, char* argv[])
 {
-    std::map<int, int> map;
-    map.insert(std::make_pair(1, 1));
-    Traverse(map, [ ](int i) {
-        printf("1  %d\n", i);
-        return true;
-    });
+    test_const ts;
+    const test_const cts;
+    ts.get();
+    cts.get();
 
-    std::set<int> set;
-    set.insert(2);
-    Traverse(set, [ ](int i) {
-        printf("2  %d\n", i);
-        return true;
-    });
-
-    std::vector<int> vec;
-    vec.push_back(3);
-    Traverse(vec, [ ](int i) {
-        printf("3  %d\n", i);
-        return true;
-    });
     return 0;
 }

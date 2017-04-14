@@ -147,17 +147,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\allocator_base.h" />
+    <ClInclude Include="src\def.h" />
     <ClInclude Include="src\fixed_allocator.h" />
     <ClInclude Include="src\ref_count_set.h" />
     <ClInclude Include="src\scoped_buffer.h" />
     <ClInclude Include="src\scoped_buffer_allocator.h" />
     <ClInclude Include="src\scoped_obj_buffer.h" />
+    <ClInclude Include="src\scoped_test_base.h" />
     <ClInclude Include="src\scoped_vector.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ref_count_set_test.cpp" />
     <ClCompile Include="src\scoped_buffer_test.cpp" />
+    <ClCompile Include="src\scoped_test_base.cpp" />
+    <ClCompile Include="src\scoped_vector_test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

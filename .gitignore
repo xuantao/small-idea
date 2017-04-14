@@ -1,0 +1,7 @@
+
+# release, debug, obj folders
+x64
+
+*.orig
+*.db
+
