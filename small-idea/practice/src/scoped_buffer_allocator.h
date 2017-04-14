@@ -82,7 +82,7 @@ public:
 
     size_t size() const
     {
-        return capacity_size - _alloced;
+        return _alloced;
     }
 
     size_t capacity() const

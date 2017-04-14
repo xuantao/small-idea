@@ -9,7 +9,7 @@ typedef scoped_buffer_allocator<1024, 8> scoped_allocator;
 
 scoped_buffer allocate(size_t size)
 {
-    static std::vector<scoped_allocator*> s_Allocator(1, new scoped_allocator());
+    static std::vector<scoped_allocator*> s_Allocator;
 
     for (auto it = s_Allocator.begin(); it != s_Allocator.end(); ++it)
     {

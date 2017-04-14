@@ -11,44 +11,37 @@
 
 NAMESPACE_ZH_BEGIN
 
+template <class Ty>
+class scoped_vector;
+
 namespace detail
 {
     template <class Ty>
     class _scoped_vecoter_iter : public std::iterator<std::random_access_iterator_tag, Ty>
     {
     public:
-        _scoped_vecoter_iter(Ty* base, size_t size, size_t idx)
-            : _base(base), _size(size), _idx(idx)
+        typedef scoped_vector<Ty> scoped_vector;
+    public:
+        _scoped_vecoter_iter(scoped_vector* src, size_t idx)
+            : _src(src), _idx(idx)
         {
         }
     public:
         Ty& operator* ()
         {
-            return _base[_idx];
-        }
-
-        _scoped_vecoter_iter operator + (size_t n)
-        {
-            assert(_idx + n <= _size);
-            return _scoped_vecoter_iter(_base, _size, _idx + n);
-        }
-
-        _scoped_vecoter_iter operator - (size_t n)
-        {
-            assert(_idx >= n);
-            return _scoped_vecoter_iter(_base, _size, _idx - n);
+            return _src->operator[](_idx);
         }
 
         _scoped_vecoter_iter& operator ++ ()
         {
-            assert(_idx < _size);
+            assert(_idx < _src->size());
             ++_idx;
             return *this;
         }
 
         _scoped_vecoter_iter operator ++ (int)
         {
-            assert(_idx < _size);
+            assert(_idx < _src->size());
             _scoped_vecoter_iter temp(*this);
             ++_idx;
             return temp;
@@ -69,64 +62,91 @@ namespace detail
             return temp;
         }
 
+        //_scoped_vecoter_iter operator += (int n)
+        //{
+
+        //}
+
+
+        //_scoped_vecoter_iter operator -= (int n)
+        //{
+
+        //}
+
+        _scoped_vecoter_iter operator + (size_t n) const
+        {
+            assert(_idx + n <= _src->size());
+            return _scoped_vecoter_iter(_src, _idx + n);
+        }
+
+        _scoped_vecoter_iter operator - (size_t n) const
+        {
+            assert(_idx >= n);
+            return _scoped_vecoter_iter(_src, _idx - n);
+        }
+
+        size_t operator - (const _scoped_vecoter_iter& prev) const
+        {
+            assert(_src == prev._src);
+            assert(_idx >= prev._idx);
+            return _idx - prev._idx;
+        }
+
         bool operator == (const _scoped_vecoter_iter& other) const
         {
-            assert(_base == other->_base);
-            return _idx == other->_idx;
+            assert(_src == other._src);
+            return _idx == other._idx;
         }
-    public:
-        friend size_t operator - (const _scoped_vecoter_iter& last, const _scoped_vecoter_iter& first);
+
+        bool operator != (const _scoped_vecoter_iter& other) const
+        {
+            return !this->operator == (other);
+        }
 
     protected:
-        Ty* _base;
-        size_t _size;
+        scoped_vector* _src;
         size_t _idx;
     };
 
-    template <class Ty>
-    size_t operator - (const _scoped_vecoter_iter<Ty>& last, const _scoped_vecoter_iter<Ty>& first)
-    {
-        assert(last._base == first._base);
-        assert(last._idx >= first._idx);
-        return last._idx = first._idx;
-    }
 
     template <class Ty>
     class _const_scoped_vecoter_iter : public std::iterator<std::random_access_iterator_tag, Ty>
     {
     public:
-        _const_scoped_vecoter_iter(Ty* base, size_t size, size_t idx)
-            : _base(base), _size(size), _idx(idx)
+        typedef scoped_vector<Ty> scoped_vector;
+    public:
+        _const_scoped_vecoter_iter(const scoped_vector* src, size_t idx)
+            : _src(src), _idx(idx)
         {
         }
     public:
         const Ty& operator* () const
         {
-            return _base[_idx];
+            return _src->operator[](_idx);
         }
 
-        _const_scoped_vecoter_iter operator + (size_t n)
+        _const_scoped_vecoter_iter operator + (size_t n) const
         {
-            assert(_idx + n <= _size);
-            return _scoped_vecoter_iter(_base, _size, _idx + n);
+            assert(_idx + n <= _src->size());
+            return _scoped_vecoter_iter(_src, _idx + n);
         }
 
-        _const_scoped_vecoter_iter operator - (size_t n)
+        _const_scoped_vecoter_iter operator - (size_t n) const
         {
             assert(_idx >= n);
-            return _const_scoped_vecoter_iter(_base, _size, _idx - n);
+            return _const_scoped_vecoter_iter(_src, _idx - n);
         }
 
         _const_scoped_vecoter_iter& operator ++ ()
         {
-            assert(_idx < _size);
+            assert(_idx < _src->size());
             ++_idx;
             return *this;
         }
 
         _const_scoped_vecoter_iter operator ++ (int)
         {
-            assert(_idx < _size);
+            assert(_idx < _src->size());
             _scoped_vecoter_iter temp(*this);
             ++_idx;
             return temp;
@@ -149,23 +169,27 @@ namespace detail
 
         bool operator == (const _const_scoped_vecoter_iter& other) const
         {
-            assert(_base == other->_base);
-            return _idx == other->_idx;
+            assert(_src == other._src);
+            return _idx == other._idx;
+        }
+
+        bool operator != (const _const_scoped_vecoter_iter& other) const
+        {
+            return !this->operator==(other);
         }
 
     public:
         friend size_t operator - (const _const_scoped_vecoter_iter& last, const _const_scoped_vecoter_iter& first);
 
     protected:
-        Ty* _base;
-        size_t _size;
+        const scoped_vector* _src;
         size_t _idx;
     };
 
     template <class Ty>
     size_t operator - (const _const_scoped_vecoter_iter<Ty>& last, const _const_scoped_vecoter_iter<Ty>& first)
     {
-        assert(last._base == first._base);
+        assert(last._src == first._src);
         assert(last._idx >= first._idx);
         return last._idx = first._idx;
     }
@@ -177,6 +201,8 @@ class scoped_vector
 public:
     typedef detail::_scoped_vecoter_iter<Ty>        iterator;
     typedef detail::_const_scoped_vecoter_iter<Ty>  const_iterator;
+
+    static const size_t element_size = sizeof(Ty);
 public:
     scoped_vector(scoped_buffer&& buffer)
         : _buff(std::forward<scoped_buffer>(buffer))
@@ -235,22 +261,22 @@ public:
 
     iterator begin()
     {
-        return iterator(get_base(), size(), 0);
+        return iterator(this, 0);
     }
 
     iterator end()
     {
-        return iterator(get_base(), size(), _idx);
+        return iterator(this, _idx);
     }
 
     const_iterator cbegin() const
     {
-        return const_iterator(get_base(), size(), 0);
+        return const_iterator(this, 0);
     }
 
     const_iterator cend() const
     {
-        return const_iterator(get_base(), size(), _idx);
+        return const_iterator(this, _idx);
     }
 public:
     void push_back(const Ty& val)
@@ -296,7 +322,7 @@ public:
         }
 
         _idx += n;
-        return iterator(get_base(), size(), idx);
+        return iterator(this, idx);
     }
 
     iterator erase(const_iterator position)
@@ -326,7 +352,7 @@ public:
         }
 
         _idx -= endIdx - begIdx;
-        return iterator(get_base(), size(), begIdx);
+        return iterator(this, begIdx);
     }
 
     bool empty() const
