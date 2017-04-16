@@ -4,6 +4,7 @@
 */
 #pragma once
 
+#include <type_traits>
 #include "allocator_base.h"
 
 NAMESPACE_ZH_BEGIN
@@ -13,7 +14,7 @@ class scoped_buffer
 public:
     scoped_buffer(scoped_buffer&& other)
     {
-        capture(other);
+        capture(std::forward<scoped_buffer>(other));
     }
 
     scoped_buffer(allocator_base* allocator, void* buffer, size_t size)
@@ -28,14 +29,7 @@ public:
     }
 
 protected:
-    /*
-     * ‘ –Ì±ªºÃ≥–¿©’π
-    */
-    scoped_buffer(scoped_buffer& other)
-    {
-        capture(other);
-    }
-
+    scoped_buffer(const scoped_buffer& other);
     scoped_buffer& operator = (const scoped_buffer&);
 
 public:
@@ -43,7 +37,7 @@ public:
     inline size_t size() const { return _size; }
 
 protected:
-    void capture(scoped_buffer& other)
+    void capture(scoped_buffer&& other)
     {
         _allocator = other._allocator;
         _buffer = other._buffer;

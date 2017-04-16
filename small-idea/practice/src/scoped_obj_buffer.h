@@ -4,7 +4,6 @@
 */
 #pragma once
 
-#include <type_traits>
 #include "scoped_buffer.h"
 
 NAMESPACE_ZH_BEGIN
@@ -15,51 +14,52 @@ template <class Ty>
 class scoped_obj_buffer : public scoped_buffer
 {
 public:
+    typedef std::ptrdiff_t difference_type;
+public:
     scoped_obj_buffer(scoped_obj_buffer&& other)
-        : scoped_buffer(other)
+        : scoped_buffer(std::forward<scoped_buffer>(other))
     {
     }
 
     scoped_obj_buffer(scoped_buffer&& buffer, size_t count)
-        : scoped_buffer(buffer)
+        : scoped_buffer(std::forward<scoped_buffer>(buffer))
     {
-        construct(std::conditional<std::is_pod<Ty>::value, std::true_type, std::false_type>::type());
+        construct();
     }
 
     template <typename ...Args>
     scoped_obj_buffer(scoped_buffer&& buffer, size_t count, Args&& ...args)
-        : scoped_buffer(buffer)
+        : scoped_buffer(std::forward<scoped_buffer>(buffer))
     {
         construct(args...);
     }
 
     ~scoped_obj_buffer()
     {
-        destruct(std::conditional< std::is_pod<Ty>::value, std::true_type, std::false_type>::type());
+        destruct();
     }
+
+private:
+    scoped_obj_buffer(const scoped_obj_buffer&) { static_assert(false, "not allow copy"); }
+    scoped_obj_buffer& operator = (const scoped_obj_buffer&) { static_assert(false, "not allow copy"); }
 
 public:
     Ty* get() const { return (Ty*)scoped_buffer::get(); }
     size_t count() const { return size() / sizeof(Ty); }
 
-    const Ty& operator [] (int idx) const
+    const Ty& operator [] (difference_type idx) const
     {
-        assert(idx > 0 && count() > idx);
-        return get()[idx];
+        return const_cast<scoped_obj_buffer*>(this)->operator[] (idx);
     }
 
-    Ty& operator [] (int idx)
+    Ty& operator [] (difference_type idx)
     {
-        assert(idx > 0 && count() > idx);
+        assert(idx > 0 && count() > (size_t)idx);
         return get()[idx];
     }
 
 protected:
-    scoped_obj_buffer(const scoped_obj_buffer&);
-    scoped_obj_buffer& operator = (const scoped_obj_buffer&);
-
-protected:
-    void construct(std::false_type)
+    void construct()
     {
         size_t c = count();
         for (size_t i = 0; i < c; ++i)
@@ -74,14 +74,11 @@ protected:
             new (&get()[i]) Ty(args...);
     }
 
-    void destruct(std::false_type)
+    void destruct()
     {
         size_t idx = count();
         while (idx)
             (&get()[--idx])->~Ty();
     }
-
-    void construct(std::true_type) {}
-    void destruct(std::true_type) {}
 };
 NAMESPACE_ZH_END

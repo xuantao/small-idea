@@ -1,11 +1,11 @@
+#include "util.h"
 #include "scoped_vector.h"
-#include "scoped_test_base.h"
 
-using namespace zh;
+USING_NAMESPACE_ZH;
 
 static void test_normal()
 {
-    scoped_vector<int> vec(test::allocate(5 * sizeof(int)));
+    scoped_vector<int> vec(util::allocate(5 * sizeof(int)));
     vec.push_back(1);
     vec.push_back(2);
     vec.push_back(3);
@@ -16,7 +16,7 @@ static void test_normal()
 
 static void test_iterator()
 {
-    scoped_vector<int> vec(test::allocate(5 * sizeof(int)));
+    scoped_vector<int> vec(util::allocate(5 * sizeof(int)));
     vec.push_back(1);
     vec.push_back(3);
     vec.push_back(4);
@@ -36,10 +36,24 @@ static void test_iterator()
     it_2--;
     assert(it_1 - it_2 == 2);
 
-    //it_1 -= 1;
-    //it_2 += 1;
-    //assert(it_1 == it_2);
+    it_1 -= 1;
+    it_2 += 1;
+    assert(it_1 == it_2);
+}
 
+static void test_build_by_vector()
+{
+    std::vector<int> vi;
+    vi.push_back(1);
+    vi.push_back(2);
+    vi.push_back(3);
+    vi.push_back(4);
+
+    auto dst = util::build_vector(vi, 2);
+    for (size_t i = 0; i < dst.size(); ++i)
+    {
+        printf("idx=%d val=%d\n", (int)i, dst[i]);
+    }
 }
 
 void test_scoped_vector()

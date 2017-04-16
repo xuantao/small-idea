@@ -2,6 +2,8 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <iterator>
+#include <allocators>
 
 extern void test_scoped_vector();
 

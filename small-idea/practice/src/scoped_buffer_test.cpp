@@ -1,25 +1,17 @@
 #include <memory>
 #include "scoped_buffer_allocator.h"
+#include "util.h"
 
-using namespace zh;
-
-typedef scoped_buffer_allocator<1024, 8> scoped_allocator;
-
-static scoped_allocator& GetAllocator()
-{
-    // 1M size, 8 bytes alignment
-    static scoped_allocator s_Allocator;
-    return s_Allocator;
-}
+USING_NAMESPACE_ZH;
 
 static void Test_FullAllocate()
 {
-    scoped_buffer buff1 = GetAllocator().allocate(512);
-    scoped_buffer buff2 = GetAllocator().allocate(256);
+    scoped_buffer buff1 = util::allocate(512);
+    scoped_buffer buff2 = util::allocate(256);
     // this must be allocate by system pool in debug mode
-    scoped_buffer buff3 = GetAllocator().allocate(256);
+    scoped_buffer buff3 = util::allocate(256);
     // 
-    scoped_buffer buff4 = GetAllocator().allocate(128);
+    scoped_buffer buff4 = util::allocate(128);
 
     memset(buff1.get(), 0, buff1.size());
     memset(buff2.get(), 1, buff2.size());
@@ -30,21 +22,21 @@ static void Test_FullAllocate()
 static void Test_StackBuffer_1()
 {
     // test align
-    scoped_buffer buff0 = GetAllocator().allocate(0);
-    scoped_buffer buff1 = GetAllocator().allocate(7);
-    scoped_buffer buff2 = GetAllocator().allocate(9);
+    scoped_buffer buff0 = util::allocate(0);
+    scoped_buffer buff1 = util::allocate(7);
+    scoped_buffer buff2 = util::allocate(9);
 }
 
 static void Test_StackBuffer()
 {
-    scoped_buffer buff1(GetAllocator().allocate(4));
+    scoped_buffer buff1(util::allocate(4));
     Test_StackBuffer_1();
-    scoped_buffer buff2 = GetAllocator().allocate(14);
+    scoped_buffer buff2 = util::allocate(14);
 }
 
 static void Test_Overwrite()
 {
-    scoped_buffer buff1(GetAllocator().allocate(4));
+    scoped_buffer buff1(util::allocate(4));
     memset(buff1.get(), 0, buff1.size() + 2);
 }
 
@@ -117,9 +109,9 @@ namespace
 
 void Test_StackObj()
 {
-    scoped_obj_buffer<TestObj> pObjs1 = GetAllocator().allocate<TestObj>(10, 1);
-    auto pObjs2 = GetAllocator().allocate<TestObj>(10, Param());
-    auto pObjs3 = GetAllocator().allocate<int>(100, 0);
+    scoped_obj_buffer<TestObj> pObjs1 = util::allocate<TestObj>(10, 1);
+    auto pObjs2 = util::allocate<TestObj>(10, Param());
+    auto pObjs3 = util::allocate<int>(100, 0);
 
     int* pInt = pObjs3.get();
 
@@ -128,7 +120,9 @@ void Test_StackObj()
 
     printf("Test_StackObj completed\n");
 
-    // scoped_bufferObj<TestObj> Obj3 = pObjs1;
+    // not allow copy
+    //pObjs2 = pObjs1;
+    //scoped_obj_buffer<TestObj> pboj4 = pObjs1;
 }
 
 void TestStackBufferAllocatoer()

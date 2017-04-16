@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "ref_count_set.h"
 
-using namespace zh;
+USING_NAMESPACE_ZH;
 
 void TestRefCount()
 {

@@ -6,6 +6,6 @@
 
 #define NAMESPACE_ZH_BEGIN namespace zh {
 #define NAMESPACE_ZH_END }
+#define USING_NAMESPACE_ZH using namespace zh
 
-#define NAMESPACE_TEST_BEGIN namespace test {
-#define NAMESPACE_TEST_END }
+#define ALLOCATOR_MULTI_THREAD 0
