@@ -30,6 +30,12 @@ namespace util
     }
 
     template <class Ty>
+    scoped_vector<Ty> build_vector(std::size_t count)
+    {
+        return scoped_vector<Ty>(allocate(scoped_vector<Ty>::element_size * count));
+    }
+
+    template <class Ty>
     scoped_vector<Ty> build_vector(const std::vector<Ty>& src, std::size_t ext = 0)
     {
         scoped_vector<Ty> dst(allocate(scoped_vector<Ty>::element_size * (src.size() + ext)));

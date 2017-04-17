@@ -155,6 +155,7 @@
     <ClInclude Include="src\scoped_obj_buffer.h" />
     <ClInclude Include="src\scoped_vector.h" />
     <ClInclude Include="src\util.h" />
+    <ClInclude Include="src\_tree.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />

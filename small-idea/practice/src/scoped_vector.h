@@ -294,6 +294,7 @@ public:
     {
         return const_iterator(*this, _idx);
     }
+
 public:
     void push_back(const Ty& val)
     {
@@ -381,7 +382,7 @@ public:
 
     size_type capacity() const
     {
-        return _buff.size() / sizeof(Ty);
+        return _buff.size() / element_size;
     }
 
     size_type max_size() const
@@ -404,7 +405,7 @@ protected:
         return (Ty*)_buff.get();
     }
 protected:
-    scoped_buffer   _buff;
+    scoped_buffer _buff;
     difference_type _idx;
 };
 

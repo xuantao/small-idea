@@ -17,6 +17,9 @@
     <Filter Include="src\util">
       <UniqueIdentifier>{95af1806-edc2-40f8-bcd0-48edf630fe34}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\scoped\detail">
+      <UniqueIdentifier>{3d480500-ff79-4fb6-b2ed-880f9c5f7ed4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\scoped_buffer.h">
@@ -45,6 +48,9 @@
     </ClInclude>
     <ClInclude Include="src\deallocator.h">
       <Filter>src\scoped</Filter>
+    </ClInclude>
+    <ClInclude Include="src\_tree.h">
+      <Filter>src\scoped\detail</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
