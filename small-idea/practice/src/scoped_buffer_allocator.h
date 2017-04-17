@@ -5,24 +5,23 @@
 #pragma once
 
 #include <cassert>
-#include "scoped_obj_buffer.h"
+#include "scoped_buffer.h"
 
 NAMESPACE_ZH_BEGIN
 
 template <size_t N, size_t A>
 class scoped_buffer_allocator
 {
-    static const uint8_t _CHECK_VALUE = 0xAA;
 public:
     static const size_t capacity_size = N;
     static const size_t align_size = A;
+
 protected:
-    class adaptor : public allocator_base
+    class adaptor : public deallocator
     {
     public:
         adaptor(scoped_buffer_allocator& allocator) : _allocator(allocator) {}
     public:
-        void* allocate(size_t size) { return nullptr; }
         void deallocate(void* buffer, size_t size) { _allocator.deallocate(buffer, size); }
     protected:
         scoped_buffer_allocator& _allocator;
@@ -40,8 +39,8 @@ public:
     }
 
 protected:
-    scoped_buffer_allocator(const scoped_buffer_allocator&);
-    scoped_buffer_allocator& operator = (const scoped_buffer_allocator&);
+    scoped_buffer_allocator(const scoped_buffer_allocator&) { static_assert(false, "allocator not allow copy"); }
+    scoped_buffer_allocator& operator = (const scoped_buffer_allocator&) { static_assert(false, "allocator not allow copy"); }
 
 public:
     scoped_buffer allocate(size_t size)
@@ -49,35 +48,23 @@ public:
         uint8_t* buffer = nullptr;
         size_t align_size = align(size);
 
-#ifdef _DEBUG
+#if SCOPED_ALLOCATOR_BOUNDARY_CHECK
         if (size && align_size == size)
             align_size += A;
-#endif // _DEBUG
+#endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
 
         if (align_size > N - _alloced)
             return scoped_buffer(&_adaptor, new uint8_t[size], size);
 
         buffer = &_pool[_alloced];
 
-#ifdef _DEBUG
+#if SCOPED_ALLOCATOR_BOUNDARY_CHECK
         write_bytes(buffer + size, align_size - size);
-#endif // _DEBUG
+#endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
 
         _alloced += align_size;
 
         return scoped_buffer(&_adaptor, buffer, size);
-    }
-
-    template<class Ty>
-    scoped_obj_buffer<Ty> allocate(size_t count)
-    {
-        return scoped_obj_buffer<Ty>(allocate(sizeof(Ty) * count), count);
-    }
-
-    template<class Ty, typename ...Args>
-    scoped_obj_buffer<Ty> allocate(size_t count, Args&& ...args)
-    {
-        return scoped_obj_buffer<Ty>(allocate(sizeof(Ty) * count), count, args...);
     }
 
     size_t size() const
@@ -94,10 +81,10 @@ protected:
     {
         size_t align_size = align(size);
         uint8_t* addres = (uint8_t*)buffer;
-#ifdef _DEBUG
+#if SCOPED_ALLOCATOR_BOUNDARY_CHECK
         if (size && align_size == size)
             align_size += A;
-#endif // _DEBUG
+#endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
 
         if (addres < _pool || (addres - _pool) > N)
         {
@@ -107,18 +94,18 @@ protected:
         {
             assert(addres - _pool == _alloced - align_size);
             _alloced -= align_size;
-#ifdef _DEBUG
+#if SCOPED_ALLOCATOR_BOUNDARY_CHECK
             check_bytes(&_pool[_alloced] + size, align_size - size);
-#endif // _DEBUG
+#endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
         }
     }
 
 private:
-#ifdef _DEBUG
+#if SCOPED_ALLOCATOR_BOUNDARY_CHECK
+    static const uint8_t _CHECK_VALUE = 0xAA;
     /*
     * 通过在每段Buff的后面写入一些特定字节, 当释放Buff的时候判断是否被修改来检测是否被写越界了.
     */
-#define _CHECK_VALUE 0xAA
     void write_bytes(uint8_t* buffer, size_t size)
     {
         for (size_t i = 0; i < size; ++i)
@@ -133,7 +120,7 @@ private:
         // over write bytes
         assert(over == 0);
     }
-#endif
+#endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
     size_t align(size_t size)
     {
         size_t rem = size % A;

@@ -5,7 +5,7 @@
 #pragma once
 
 #include <type_traits>
-#include "allocator_base.h"
+#include "deallocator.h"
 
 NAMESPACE_ZH_BEGIN
 
@@ -17,15 +17,15 @@ public:
         capture(std::forward<scoped_buffer>(other));
     }
 
-    scoped_buffer(allocator_base* allocator, void* buffer, size_t size)
-        : _allocator(allocator), _buffer(buffer), _size(size)
+    scoped_buffer(deallocator* dealloc, void* buffer, size_t size)
+        : _deallocator(dealloc), _buffer(buffer), _size(size)
     {
     }
 
     ~scoped_buffer()
     {
-        if (_allocator)
-            _allocator->deallocate(_buffer, _size);
+        if (_deallocator)
+            _deallocator->deallocate(_buffer, _size);
     }
 
 protected:
@@ -39,17 +39,17 @@ public:
 protected:
     void capture(scoped_buffer&& other)
     {
-        _allocator = other._allocator;
+        _deallocator = other._deallocator;
         _buffer = other._buffer;
         _size = other._size;
 
-        other._allocator = nullptr;
+        other._deallocator = nullptr;
         other._buffer = nullptr;
         other._size = 0;
     }
 
 protected:
-    allocator_base* _allocator;
+    deallocator* _deallocator;
     void* _buffer;
     size_t _size;
 };

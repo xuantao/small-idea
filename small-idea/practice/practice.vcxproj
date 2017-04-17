@@ -146,7 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\allocator_base.h" />
+    <ClInclude Include="src\deallocator.h" />
     <ClInclude Include="src\def.h" />
     <ClInclude Include="src\fixed_allocator.h" />
     <ClInclude Include="src\ref_count_set.h" />

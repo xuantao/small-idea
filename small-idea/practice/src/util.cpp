@@ -6,11 +6,15 @@ NAMESPACE_ZH_BEGIN
 
 namespace util
 {
-    typedef scoped_buffer_allocator<1024, 8> scoped_allocator;
+    typedef scoped_buffer_allocator<
+        SCOPED_ALLOCATOR_BLOCK_SIZE,
+        SCOPED_ALLOCATOR_ALIGN_SIZE> scoped_allocator;
 
     scoped_buffer allocate(size_t size)
     {
+#if SCOPED_ALLOCATOR_MULTITHREAD
         //TODO: 在这里添加多线程支持
+#endif // SCOPED_ALLOCATOR_MULTITHREAD
 
         static std::vector<scoped_allocator*> s_alloc;
 

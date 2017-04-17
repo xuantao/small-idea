@@ -8,10 +8,9 @@
 
 NAMESPACE_ZH_BEGIN
 
-class allocator_base
+class deallocator
 {
 public:
-    virtual void* allocate(size_t size) = 0;
     virtual void deallocate(void* buff, size_t size) = 0;
 };
 

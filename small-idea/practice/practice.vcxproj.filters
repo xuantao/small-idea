@@ -28,9 +28,6 @@
     <ClInclude Include="src\scoped_obj_buffer.h">
       <Filter>src\scoped</Filter>
     </ClInclude>
-    <ClInclude Include="src\allocator_base.h">
-      <Filter>src\scoped</Filter>
-    </ClInclude>
     <ClInclude Include="src\ref_count_set.h">
       <Filter>src\container</Filter>
     </ClInclude>
@@ -45,6 +42,9 @@
     </ClInclude>
     <ClInclude Include="src\def.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\deallocator.h">
+      <Filter>src\scoped</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
