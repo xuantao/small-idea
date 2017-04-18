@@ -5,6 +5,9 @@
 #pragma once
 
 #include <cstdint>
+#include "def.h"
+
+NAMESPACE_ZH_BEGIN
 
 template <class Ty>
 class fixed_allocator
@@ -165,3 +168,5 @@ public:
         my_base::deallocate(ptr);
     }
 };
+
+NAMESPACE_ZH_END

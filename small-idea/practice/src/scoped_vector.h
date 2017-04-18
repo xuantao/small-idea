@@ -218,7 +218,9 @@ public:
     typedef size_t size_type;
     typedef std::ptrdiff_t difference_type;
 
-    static const size_type element_size = sizeof(Ty);
+public:
+    static size_type buffer_size(size_type c) { return sizeof(Ty) * c; }
+
 public:
     scoped_vector(scoped_buffer&& buffer)
         : _buff(std::forward<scoped_buffer>(buffer))
@@ -296,11 +298,12 @@ public:
     }
 
 public:
-    void push_back(const Ty& val)
+    template <class _Ty>
+    void push_back(_Ty&& val)
     {
         assert(capacity() > size());
 
-        construct(&base()[_idx], val);
+        construct(&base()[_idx], std::forward<_Ty>(val));
         ++_idx;
     }
 
@@ -312,12 +315,14 @@ public:
         destruct(&base()[_idx]);
     }
 
-    iterator insert(const_iterator position, const Ty& val)
+    template <class _Ty>
+    iterator insert(const_iterator position, _Ty&& val)
     {
-        return insert(position, 1, val);
+        return insert(position, 1, std::forward<_Ty>(val));
     }
 
-    iterator insert(const_iterator position, size_type n, const Ty& val)
+    template <class _Ty>
+    iterator insert(const_iterator position, size_type n, _Ty&& val)
     {
         difference_type idx = position - begin();
 
@@ -334,7 +339,7 @@ public:
         // copy construct
         for (size_type i = 0; i < n; ++i)
         {
-            construct(base()[idx + i], val);
+            construct(base()[idx + i], std::forward<_Ty>(val));
         }
 
         _idx += (difference_type)n;
@@ -382,7 +387,7 @@ public:
 
     size_type capacity() const
     {
-        return _buff.size() / element_size;
+        return _buff.size() / sizeof(Ty);
     }
 
     size_type max_size() const
@@ -390,9 +395,10 @@ public:
         return capacity();
     }
 protected:
-    void construct(Ty* pTy, const Ty& ty)
+    template <class _Ty>
+    void construct(Ty* pTy, _Ty&& ty)
     {
-        ::new (pTy) Ty(ty);
+        ::new (pTy) Ty(std::forward<_Ty>(ty));
     }
 
     void destruct(Ty* pTy)

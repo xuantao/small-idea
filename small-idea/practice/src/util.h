@@ -30,33 +30,33 @@ namespace util
     }
 
     template <class Ty>
-    scoped_vector<Ty> build_vector(std::size_t count)
+    scoped_vector<Ty> vector(std::size_t count)
     {
-        return scoped_vector<Ty>(allocate(scoped_vector<Ty>::element_size * count));
+        return scoped_vector<Ty>(allocate(scoped_vector<Ty>::buffer_size(count)));
     }
 
     template <class Ty>
-    scoped_vector<Ty> build_vector(const std::vector<Ty>& src, std::size_t ext = 0)
+    scoped_vector<Ty> vector(const std::vector<Ty>& src, std::size_t ext = 0)
     {
-        scoped_vector<Ty> dst(allocate(scoped_vector<Ty>::element_size * (src.size() + ext)));
+        scoped_vector<Ty> dst(allocate(scoped_vector<Ty>::buffer_size(src.size() + ext)));
         for (auto it = src.cbegin(); it != src.cend(); ++it)
             dst.push_back(*it);
         return dst;
     }
 
     template <class Ty>
-    scoped_vector<Ty> build_vector(const std::set<Ty>& src, std::size_t ext = 0)
+    scoped_vector<Ty> vector(const std::set<Ty>& src, std::size_t ext = 0)
     {
-        scoped_vector<Ty> dst(allocate(scoped_vector<Ty>::element_size * (src.size() + ext)));
+        scoped_vector<Ty> dst(allocate(scoped_vector<Ty>::buffer_size(src.size() + ext)));
         for (auto it = src.cbegin(); it != src.cend(); ++it)
             dst.push_back(*it);
         return dst;
     }
 
     template <class Ky, class Ty>
-    scoped_vector<Ty> build_vector(const std::map<Ky, Ty>& src, std::size_t ext = 0)
+    scoped_vector<Ty> vector(const std::map<Ky, Ty>& src, std::size_t ext = 0)
     {
-        scoped_vector<Ty> dst(allocate(scoped_vector<Ty>::element_size * (src.size() + ext)));
+        scoped_vector<Ty> dst(allocate(scoped_vector<Ty>::buffer_size(src.size() + ext)));
         for (auto it = src.cbegin(); it != src.cend(); ++it)
             dst.push_back(it->second);
         return dst;

@@ -49,7 +49,7 @@ static void test_build_by_vector()
     vi.push_back(3);
     vi.push_back(4);
 
-    auto dst = util::build_vector(vi, 2);
+    auto dst = util::vector(vi, 2);
     for (size_t i = 0; i < dst.size(); ++i)
     {
         printf("idx=%d val=%d\n", (int)i, dst[i]);
