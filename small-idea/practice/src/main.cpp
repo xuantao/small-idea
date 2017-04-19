@@ -15,9 +15,11 @@ void test_i()
 
 int main(int argc, char* argv[])
 {
-    test_scoped_vector();
+    //test_scoped_vector();
 
-    test_i<std::vector<int>::difference_type>();
+    //test_i<std::vector<int>::difference_type>();
+    int a = 1;
+    int b = a << 8;
 
     return 0;
 }
