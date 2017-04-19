@@ -186,12 +186,15 @@ namespace detail
         {
             return iterator(Lmost());
         }
-        iterator end();
+        iterator end()
+        {
+            return iterator(Head());
+        }
 
 
     public:
         // capacity
-        bool empty() const { return _size == 0 };
+        bool empty() const { return size() == 0 };
         bool size() const { return _size; }
         bool max_size() const { return _alloc.max_size(); }
 
@@ -206,8 +209,212 @@ namespace detail
             return Insert(false, std::forward<value_type>(val), _tree_nil())
         }
 
+        iterator erase(const_iterator it)
+        {
+            //TODO: check it is valid
+            _node_ptr eraseMode = it._node;
+            ++it;
 
+            _node_ptr fixNode = nullptr;
+            _node_ptr fixParent = nullptr;
+            _node_ptr node = eraseMode;
 
+            if (node->left->nil)
+            {
+                fixNode = node->right;
+            }
+            else if (node->right->nil)
+            {
+                fixNode = node->left;
+            }
+            else
+            {
+                node = it._node;
+                fixNode = node->right;
+            }
+
+            if (node == eraseMode)
+            {
+                fixParent = eraseMode->parent;
+                if (fixNode->nil)
+                    fixNode->parent = fixParent;
+
+                if (Root() == eraseMode)
+                    Root() = fixeNode;
+                else if (fixParent->left == eraseMode)
+                    fixParent->left = fixNode;
+                else
+                    fixParent->right = fixNode;
+
+                if (Lmost() == eraseMode)
+                    Lmost() = fixNode->nil ? fixParent : Min(fixNode);
+                if (Rmost() == eraseMode)
+                    Rmost() = fixNode->nil ? fixParent : Max(fixNode);
+            }
+            else
+            {
+                eraseMode->left->parent = node;
+                node->left = eraseMode->left;
+
+                if (node == eraseMode->right)
+                {
+                    fixParent = node;
+                }
+                else
+                {
+                    fixParent = node->parent;
+                    if (!fixNode->nil)
+                        fixNode->parent = fixParent;
+                    fixParent->left = fixNode;
+                    node->right = eraseNode->right;
+                    eraseNode->right->parent = node;
+                }
+
+                if (Root() == eraseNode)
+                    Root() = node;
+                else if (eraseNode->parent->left == eraseNode)
+                    eraseNode->parent->left = node;
+                else
+                    eraseMode->parent->right = node;
+
+                node->parent = eraseNode->parent;
+                std::swap(node->color, eraseNode->color);
+            }
+
+            // balance
+            if (eraseMode->color == _rb_color::black)
+            {
+                for (; fixNode != Root() && fixNode->color == _rb_color::black;
+                    fixParent = fixNode->parent)
+                {
+                    if (fixNode == fixParent->left)
+                    {
+                        node = fixParent->right;
+                        if (node->color == _rb_color::red)
+                        {
+                            node->color = _rb_color::black;
+                            fixParent->color = _rb_color::red;
+                            Lrotate(fixParent);
+                            node = fixParent->right;
+                        }
+
+                        if (node->nil)
+                        {
+                            fixNode = fixParent;
+                        }
+                        else if (node->left->color == _rb_color::black)
+                        {
+                            node->color = _rb_color::red;
+                            fixNode = fixParent;
+                        }
+                        else
+                        {
+                            if (node->right->color == _rb_color::black)
+                            {
+                                node->left->color = _rb_color::black;
+                                node->color = _rb_color::red;
+                                Rrotate(node);
+                                node = fixParent->right;
+                            }
+
+                            node->color = fixParent->color;
+                            fixParent->color = _rb_color::black;
+                            node->right->color = _rb_color::black;
+                            Lrotate(fixParent);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        node = fixParent->left;
+                        if (node->color == _rb_color::red)
+                        {
+                            node->color = _rb_color::black;
+                            fixParent->color = _rb_color::red;
+                            Rrotate(fixParent);
+                            node = fixParent->left;
+                        }
+
+                        if (node->nil)
+                        {
+                            fixNode = fixParent;
+                        }
+                        else if (node->right->color == _rb_color::black &&
+                            node->left->color == _rb_color::black)
+                        {
+                            node->color = _rb_color::red;
+                            fixNode = fixParent;
+                        }
+                        else
+                        {
+                            if (node->left->color == _rb_color::black)
+                            {
+                                node->right->color = _rb_color::black;
+                                node->color = _rb_color::red;
+                                Lrotate(node);
+                                node = fixParent->left;
+                            }
+
+                            node->color = fixParent->color;
+                            fixParent->color = _rb_color::black;
+                            node->left->color = _rb_color::black;
+                            Rrotate(fixParent);
+
+                            break;
+                        }
+                    }
+                }
+
+                fixNode->color = _rb_color::black;
+            }
+
+            _alloc.destroy(&eraseMode->val);
+            _alloc.deallocate(eraseMode);
+
+            assert(_val._size);
+            --_val._size;
+
+            return iterator(it._node);
+        }
+
+        iterator erase(const_iterator first, const_iterator last)
+        {
+            if (first == begin() && last == end())
+            {
+                clear();
+                return begin();
+            }
+            else
+            {
+                while (first != last)
+                    erase(first++);
+                return iterator(first._node);
+            }
+        }
+
+        size_type erase(const key_type& key)
+        {
+            iterator it = find(key);
+            if (it == end())
+                return 0;
+
+            erase(it);
+            return 1;
+        }
+
+        void clear()
+        {
+            Erase(Root());
+            Root() = Head();
+            Lmost() = Head();
+            Rmost() = Head();
+            _val._size = 0;
+        }
+
+        iterator find(const key_type& key)
+        {
+
+        }
     protected:
         template <class _Ty, class _Node>
         pairib Insert(bool leftish, _Ty&& val, _Node newNode)
@@ -418,6 +625,19 @@ namespace detail
             return node;
         }
 
+        _node_ptr Min(_node_ptr node)
+        {
+            while (!node->nil)
+                node = node->left;
+            return node;
+        }
+
+        _node_ptr Max(_node_ptr node)
+        {
+            while (!node->nil)
+                node = node->right;
+            return node;
+        }
     protected:
         scoped_buffer _buffer;
         allocator _alloc;
