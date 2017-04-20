@@ -22,7 +22,7 @@ namespace detail
 
         enum { _multi = Mfl };
 
-        static cosnt key_type& kfn(const value_type& val) { return val; }
+        static const key_type& kfn(const value_type& val) { return val; }
     };
 
     template <class Kty, class Ty, class Pr, bool Mfl>
@@ -41,15 +41,15 @@ namespace detail
         public:
             bool operator()(const value_type& _Left, const value_type& _Right) const
             {
-                return (comp(_Left.first, _Right.first));
+                return (_cmp(_Left.first, _Right.first));
             }
 
-            value_compare(key_compare _Pred) : comp(_Pred)
+            value_compare(key_compare _Pred) : _cmp(_Pred)
             {
             }
 
         protected:
-            key_compare comp;
+            key_compare _cmp;
         };
 
         template<class Ty1, class Ty2>
@@ -90,16 +90,16 @@ namespace detail
         typedef size_t size_type;
         typedef std::ptrdiff_t difference_type;
 
-        static _node_ptr _max(_node_ptr node)
+        static _node_ptr Max(_node_ptr node)
         {
-            while (!node->right->isNil)
+            while (!node->right->nil)
                 node = node->right;
             return node;
         }
 
-        static _node_ptr _min(_node_ptr node)
+        static _node_ptr Min(_node_ptr node)
         {
-            while (!node->left->isNil)
+            while (!node->left->nil)
                 node = node->left;
             return node;
         }
@@ -191,7 +191,15 @@ namespace detail
             return iterator(Head());
         }
 
+        const_iterator cbegin() const
+        {
+            return const_iterator();
+        }
 
+        const_iterator cend() const
+        {
+            return const_iterator();
+        }
     public:
         // capacity
         bool empty() const { return size() == 0 };
@@ -212,12 +220,12 @@ namespace detail
         iterator erase(const_iterator it)
         {
             //TODO: check it is valid
-            _node_ptr eraseMode = it._node;
+            _node_ptr eraseNode = it._node;
             ++it;
 
             _node_ptr fixNode = nullptr;
             _node_ptr fixParent = nullptr;
-            _node_ptr node = eraseMode;
+            _node_ptr node = eraseNode;
 
             if (node->left->nil)
             {
@@ -233,30 +241,30 @@ namespace detail
                 fixNode = node->right;
             }
 
-            if (node == eraseMode)
+            if (node == eraseNode)
             {
-                fixParent = eraseMode->parent;
+                fixParent = eraseNode->parent;
                 if (fixNode->nil)
                     fixNode->parent = fixParent;
 
-                if (Root() == eraseMode)
-                    Root() = fixeNode;
-                else if (fixParent->left == eraseMode)
+                if (Root() == eraseNode)
+                    Root() = fixNode;
+                else if (fixParent->left == eraseNode)
                     fixParent->left = fixNode;
                 else
                     fixParent->right = fixNode;
 
-                if (Lmost() == eraseMode)
+                if (Lmost() == eraseNode)
                     Lmost() = fixNode->nil ? fixParent : Min(fixNode);
-                if (Rmost() == eraseMode)
+                if (Rmost() == eraseNode)
                     Rmost() = fixNode->nil ? fixParent : Max(fixNode);
             }
             else
             {
-                eraseMode->left->parent = node;
-                node->left = eraseMode->left;
+                eraseNode->left->parent = node;
+                node->left = eraseNode->left;
 
-                if (node == eraseMode->right)
+                if (node == eraseNode->right)
                 {
                     fixParent = node;
                 }
@@ -275,14 +283,14 @@ namespace detail
                 else if (eraseNode->parent->left == eraseNode)
                     eraseNode->parent->left = node;
                 else
-                    eraseMode->parent->right = node;
+                    eraseNode->parent->right = node;
 
                 node->parent = eraseNode->parent;
                 std::swap(node->color, eraseNode->color);
             }
 
             // balance
-            if (eraseMode->color == _rb_color::black)
+            if (eraseNode->color == _rb_color::black)
             {
                 for (; fixNode != Root() && fixNode->color == _rb_color::black;
                     fixParent = fixNode->parent)
@@ -368,8 +376,8 @@ namespace detail
                 fixNode->color = _rb_color::black;
             }
 
-            _alloc.destroy(&eraseMode->val);
-            _alloc.deallocate(eraseMode);
+            _alloc.destroy(&eraseNode->val);
+            _alloc.deallocate(eraseNode);
 
             assert(_val._size);
             --_val._size;
@@ -413,7 +421,16 @@ namespace detail
 
         iterator find(const key_type& key)
         {
+            iterator it(Lbound(key));
+            return (it == end()) || _camp(key, Key(it._node)) ?
+                end() : it;
+        }
 
+        const_iterator find(const key_type& key) const
+        {
+            const_iterator it(Lbound(key));
+            return (it == cend()) || _camp(key, Key(it._node)) ?
+                cend() : it;
         }
     protected:
         template <class _Ty, class _Node>
@@ -483,16 +500,16 @@ namespace detail
             }
 
             //balance
-            for (_node_ptr balance = node; balance->parent->color == _rb_color.red;)
+            for (_node_ptr balance = node; balance->parent->color == _rb_color::red;)
             {
                 if (balance->parent == balance->parent->parent->left)
                 {
                     _node_ptr n_parent = balance->parent->parent->right;
-                    if (n_parent->color == _rb_color.red)
+                    if (n_parent->color == _rb_color::red)
                     {
-                        n_parent->color = _rb_color.black;
-                        balance->parent->color = _rb_color.black;
-                        balance->parent->parent->color = _rb_color.red;
+                        n_parent->color = _rb_color::black;
+                        balance->parent->color = _rb_color::black;
+                        balance->parent->parent->color = _rb_color::red;
                         balance = balance->parent->parent;
                     }
                     else
@@ -503,19 +520,19 @@ namespace detail
                             Lrotate(balance);
                         }
 
-                        balance->parent->color = _rb_color.black;
-                        balance->parent->parent->color = _rb_color.red;
+                        balance->parent->color = _rb_color::black;
+                        balance->parent->parent->color = _rb_color::red;
                         Rrotate(balance->parent->parent);
                     }
                 }
                 else
                 {
                     _node_ptr n_parent = balance->parent->parent->left;
-                    if (n_parent->color == _rb_color.red)
+                    if (n_parent->color == _rb_color::red)
                     {
                         n_parent->color = _rb_color::black;
-                        balance->parent->color = _rb_color.black;
-                        balance->parent->parent->color = _rb_color.red;
+                        balance->parent->color = _rb_color::black;
+                        balance->parent->parent->color = _rb_color::red;
                         balance = balance->parent->parent;
                     }
                     else
@@ -526,14 +543,14 @@ namespace detail
                             Rrotate(balance);
                         }
 
-                        balance->parent->color = _rb_color.black;
-                        balance->parent->parent->color = _rb_color.red;
+                        balance->parent->color = _rb_color::black;
+                        balance->parent->parent->color = _rb_color::red;
                         Lrotate(balance->parent->parent);
                     }
                 }
             }
 
-            Root()->color = _rb_color.black;
+            Root()->color = _rb_color::black;
             return iterator(node);
         }
     protected:
@@ -594,10 +611,7 @@ namespace detail
         void Destroy_if_not_nil(_tree_nil) {}
 
         template<class _Ty>
-        _node_ptr Buynode_if_nil(_node_ptr node, _Ty&&)
-        {
-            return node;
-        }
+        _node_ptr Buynode_if_nil(_node_ptr node, _Ty&&) { return node; }
 
         template<class _Ty>
         _node_ptr Buynode_if_nil(_tree_nil, _Ty&& val)
@@ -618,25 +632,54 @@ namespace detail
         _node_ptr Buynode(_Ty&&... val)
         {
             _node_ptr node = Buynode0();
-            node->color = _rb_color.red;
+            node->color = _rb_color::red;
             node->nil = false;
 
             _alloc.construct(&node->val, std::forward<_Ty>(val)...);
             return node;
         }
 
-        _node_ptr Min(_node_ptr node)
-        {
-            while (!node->nil)
-                node = node->left;
-            return node;
-        }
-
         _node_ptr Max(_node_ptr node)
         {
+            return _tree_val::Max(node);
+        }
+
+        _node_ptr Min(_node_ptr node)
+        {
+            return _tree_val::Min(node);
+        }
+
+        void Erase(_node_ptr root)
+        {
+            for (_node_ptr node = root; !node->nil; root = node)
+            {
+                Erase(node->right);
+                node = node->left;
+
+                _alloc.destroy(&root->val);
+                _alloc.deallocate(root);
+            }
+        }
+
+        template <class _Key>
+        _node_ptr Lbound(const _Key& key) const
+        {
+            _node_ptr node = Root();
+            _node_ptr head = Head();
+
             while (!node->nil)
-                node = node->right;
-            return node;
+            {
+                if (_camp(Key(node), key))
+                {
+                    node = node->right;
+                }
+                else
+                {
+                    head = node;
+                    node = node->left;
+                }
+            }
+            return head;
         }
     protected:
         scoped_buffer _buffer;

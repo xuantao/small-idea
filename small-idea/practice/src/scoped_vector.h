@@ -16,6 +16,50 @@ class scoped_vector;
 namespace detail
 {
     template <class Ty>
+    class _vector_val
+    {
+    public:
+        typedef Ty value_type;
+        typedef size_t size_type;
+        typedef std::ptrdiff_t difference_type;
+
+        _vector_val(value_type* base, difference_type idx)
+            : _base(base), _idx(idx)
+        {
+        }
+
+        _vector_val(_vector_val other)
+            : _base(other._base), _idx(other._idx)
+        {
+        }
+
+        size_type size() const { return _idx; }
+        bool empty() const { return size() == 0; }
+
+    public:
+        value_type* _base;
+        difference_type _idx;
+    };
+
+    template <class Ty>
+    class _vector_iterator_base : public std::iterator<std::random_access_iterator_tag, Ty>
+    {
+    public:
+        typedef std::iterator<std::random_access_iterator_tag, Ty> _base_type;
+        typedef typename _MyBase::difference_type difference_type;
+        typedef size_t size_type;
+
+        typedef Ty value_type;
+        typedef value_type& reference;
+        typedef value_type* pointer;
+
+        typedef _vector_val<value_type> _val_type;
+
+
+        _val_type _val;
+    };
+
+    template <class Ty>
     class _scoped_vecoter_iter : public std::iterator<std::random_access_iterator_tag, Ty>
     {
     public:
@@ -212,6 +256,7 @@ template <class Ty>
 class scoped_vector
 {
 public:
+    typedef Ty value_type;
     typedef detail::_scoped_vecoter_iter<Ty> iterator;
     typedef detail::_const_scoped_vecoter_iter<Ty> const_iterator;
 
@@ -224,30 +269,27 @@ public:
 public:
     scoped_vector(scoped_buffer&& buffer)
         : _buff(std::forward<scoped_buffer>(buffer))
-        , _idx(0)
+        , _val(static_cast<value_type*>(buffer.get()), 0)
     {
     }
 
     scoped_vector(scoped_vector&& other)
         : _buff(std::forward<scoped_buffer>(other._buff))
-        , _idx(other._idx)
+        , _val(other._val)
     {
     }
 
     ~scoped_vector()
     {
-        while (_idx > 0)
-        {
-            --_idx;
-            destruct(&base()[_idx]);
-        }
+        while (!empty())
+            pop_back();
     }
 
 public:
     Ty& operator [] (difference_type idx)
     {
         assert((size_type)idx < size() && idx >= 0);
-        return base()[idx];
+        return Base()[idx];
     }
 
     const Ty& operator [] (difference_type idx) const
@@ -258,7 +300,7 @@ public:
     Ty& front()
     {
         assert(!empty());
-        return base()[0];
+        return Base()[0];
     }
 
     const Ty& front() const
@@ -269,7 +311,7 @@ public:
     Ty& back()
     {
         assert(!empty());
-        return base()[_idx - 1];
+        return Base()[Idx() - 1];
     }
 
     const Ty& back() const
@@ -284,7 +326,7 @@ public:
 
     iterator end()
     {
-        return iterator(*this, _idx);
+        return iterator(*this, Idx());
     }
 
     const_iterator cbegin() const
@@ -294,7 +336,7 @@ public:
 
     const_iterator cend() const
     {
-        return const_iterator(*this, _idx);
+        return const_iterator(*this, Idx());
     }
 
 public:
@@ -303,16 +345,16 @@ public:
     {
         assert(capacity() > size());
 
-        construct(&base()[_idx], std::forward<_Ty>(val));
-        ++_idx;
+        construct(&Base()[Idx()], std::forward<_Ty>(val));
+        ++Idx();
     }
 
     void pop_back()
     {
         assert(!empty());
 
-        --idx;
-        destruct(&base()[_idx]);
+        --Idx();
+        destruct(&Base()[Idx()]);
     }
 
     template <class _Ty>
@@ -327,22 +369,22 @@ public:
         difference_type idx = position - begin();
 
         assert(n < capacity() - size());
-        assert(idx >= 0 && idx <= _idx);
+        assert(idx >= 0 && idx <= Idx());
 
         // move
-        for (size_type i = _idx - idx + n; i > 0; --i)
+        for (size_type i = Idx() - idx + n; i > 0; --i)
         {
-            construct(base()[idx + i], base()[idx + i]);
-            destruct(&base()[idx + i]);
+            construct(Base()[idx + i], Base()[idx + i]);
+            destruct(&Base()[idx + i]);
         }
 
         // copy construct
         for (size_type i = 0; i < n; ++i)
         {
-            construct(base()[idx + i], std::forward<_Ty>(val));
+            construct(Base()[idx + i], std::forward<_Ty>(val));
         }
 
-        _idx += (difference_type)n;
+        Idx() += (difference_type)n;
         return iterator(*this, idx);
     }
 
@@ -355,34 +397,34 @@ public:
     {
         difference_type begIdx = first - begin();
         difference_type endIdx = last - begin();
-        assert(begIdx <= _idx);
-        assert(endIdx >= begIdx && endIdx <= _idx);
+        assert(begIdx <= Idx());
+        assert(endIdx >= begIdx && endIdx <= Idx());
 
         // destruct
         for (size_t i = begIdx; i < endIdx; i++)
         {
-            destruct(&base()[i]);
+            destruct(&Base()[i]);
         }
 
         // move
-        for (size_t i = 0; i < _idx - endIdx; ++i)
+        for (size_t i = 0; i < Idx() - endIdx; ++i)
         {
-            construct(&base()[begIdx + i], base()[endIdx + i]);
-            destruct(&base()[endIdx + i])
+            construct(&Base()[begIdx + i], Base()[endIdx + i]);
+            destruct(&Base()[endIdx + i])
         }
 
-        _idx -= (endIdx - begIdx);
+        Idx() -= (endIdx - begIdx);
         return iterator(*this, begIdx);
     }
 
     bool empty() const
     {
-        return _idx == 0;
+        return _val.empty();
     }
 
     size_type size() const
     {
-        return _idx;
+        return _val.empty();
     }
 
     size_type capacity() const
@@ -396,23 +438,21 @@ public:
     }
 protected:
     template <class _Ty>
-    void construct(Ty* pTy, _Ty&& ty)
+    inline void construct(Ty* pTy, _Ty&& ty)
     {
         ::new (pTy) Ty(std::forward<_Ty>(ty));
     }
 
-    void destruct(Ty* pTy)
+    inline void destruct(Ty* pTy)
     {
         pTy->~Ty();
     }
 
-    Ty* base() const
-    {
-        return (Ty*)_buff.get();
-    }
+    inline Ty* Base() { return _val._base; }
+    inline difference_type& Idx() { return _val._idx; }
 protected:
     scoped_buffer _buff;
-    difference_type _idx;
+    detail::_vector_val _val;
 };
 
 NAMESPACE_ZH_END
