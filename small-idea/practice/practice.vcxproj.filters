@@ -49,7 +49,10 @@
     <ClInclude Include="src\deallocator.h">
       <Filter>src\scoped</Filter>
     </ClInclude>
-    <ClInclude Include="src\_tree.h">
+    <ClInclude Include="src\detail\_vector.h">
+      <Filter>src\scoped\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="src\detail\_tree.h">
       <Filter>src\scoped\detail</Filter>
     </ClInclude>
   </ItemGroup>

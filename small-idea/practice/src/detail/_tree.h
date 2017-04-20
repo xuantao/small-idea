@@ -5,7 +5,9 @@
 #pragma once
 
 #include <utility>
-#include "fixed_allocator.h"
+#include <iterator>
+#include <cassert>
+#include "../fixed_allocator.h"
 
 NAMESPACE_ZH_BEGIN
 
@@ -85,6 +87,10 @@ namespace detail
     public:
         typedef _tree_val<Ty> _my_type;
         typedef Ty value_type;
+        typedef Ty* pointer;
+        typedef const Ty* const_pointer;
+        typedef Ty& reference;
+        typedef const Ty& const_reference;
         typedef _tree_node<Ty> _node;
         typedef _node* _node_ptr;
         typedef size_t size_type;
@@ -108,56 +114,195 @@ namespace detail
         size_type _size;
     };
 
-    template <class TreeVal>
-    class _tree_iterator
+    template <class Val>
+    class _tree_const_iterator
+        : public std::iterator<std::bidirectional_iterator_tag, typename Val::value_type>
     {
     public:
-        typedef TreeVal* _val_ptr;
-        typedef typename _tree_node <TreeVal::value_type> _node;
-        typedef _node* _node_ptr;
+        typedef _tree_const_iterator<Val> _my_iter;
+        typedef Val* _val_ptr;
+        typedef typename Val::_node_ptr _node_ptr;
+        typedef typename Val::const_pointer pointer;
+        typedef typename Val::const_reference reference;
+
     public:
-        _tree_iterator(_node_ptr node)
+        _tree_const_iterator() : _val(nullptr), _node(nullptr) {}
+        _tree_const_iterator(const _val_ptr val, const _node_ptr node) : _val(val), _node(node)
         {
         }
 
-        _node_ptr _node;
+        reference operator * () const
+        {
+            assert(_val && _node && _node->nil);
+            return _node->val;
+        }
+
+        pointer operator -> () const
+        {
+            return &(**this);
+        }
+
+        _my_iter& operator ++ ()
+        {
+            assert(_val && _node);
+
+            if (_node->nil)
+                return *this;
+
+            if (!_node->right->nil)
+            {
+                _node = Val::Min(_node->right);
+            }
+            else
+            {
+                _node_ptr tmp = _node->parent;
+                while (!tmp->nil && _node == tmp->right)
+                {
+                    _node = tmp;
+                    tmp = _node->parent;
+                }
+
+                _node = tmp;
+            }
+            return *this;
+        }
+
+        _my_iter operator ++ (int)
+        {
+            _my_iter tmp = *this;
+            ++*this;
+            return tmp;
+        }
+
+        _my_iter& operator -- ()
+        {
+            assert(_val && _node);
+
+            if (_node->nil)
+            {
+                _node = _node->right;
+            }
+            else if (!_node->left->nil)
+            {
+                _node = Val::Max(_node->left);
+            }
+            else
+            {
+                _node_ptr tmp = _node->parent;
+                while (!tmp->nil && _node == tmp->left)
+                {
+                    _node = tmp;
+                    tmp = _node->parent;
+                }
+
+                if (!_node->nil)
+                    _node = tmp;
+            }
+            return *this;
+        }
+
+        _my_iter operator -- (int)
+        {
+            _my_iter tmp = *this;
+            --*this;
+            return tmp;
+        }
+
+        bool operator == (const _my_iter& other) const
+        {
+            assert(_val == other._val && _node && othor._node);
+            return _node == other._node;
+        }
+
+        bool operator != (const _my_iter& other) const
+        {
+            return !(*this == other);
+        }
+
+    public:
+        const _val_ptr _Val() const { return _val; }
+
+    protected:
+        const _val_ptr _val;
+        const _node_ptr _node;
     };
 
-    template <class TreeVal>
-    class _tree_const_iterator
+    template <class Val>
+    class _tree_iterator : public _tree_const_iterator<Val>
     {
     public:
-        typedef TreeVal* _val_ptr;
-        typedef typename _tree_node <TreeVal::value_type> _node;
-        typedef _node* _node_ptr;
+        typedef _tree_iterator<Val> _my_iter;
+        typedef _tree_const_iterator<Val> _my_base;
+        typedef _my_base::_val_ptr _val_ptr;
+        typedef _my_base::_node_ptr _node_ptr;
+
+        typedef typename Val::pointer pointer;
+        typedef typename Val::reference reference;
+
     public:
-        _tree_const_iterator(_node_ptr node)
+        _tree_iterator() {}
+        _tree_iterator(const _val_ptr val, const _node_ptr node) : _my_base(val, node) {}
+
+        reference operator*() const
         {
+            return ((reference)**(_my_base *)this);
         }
 
-        const _node_ptr _node;
+        pointer operator->() const
+        {
+            return (pointer_traits<pointer>::pointer_to(**this));
+        }
+
+        _my_iter& operator++()
+        {
+            ++static_cast<_my_base&>(*this);
+            return (*this);
+        }
+
+        _my_iter operator++(int)
+        {
+            _my_iter tmp = *this;
+            ++*this;
+            return tmp;
+        }
+
+        _my_iter& operator--()
+        {
+            --static_cast<_my_base&>(*this);
+            return (*this);
+        }
+
+        _my_iter operator--(int)
+        {
+            _my_iter tmp = *this;
+            --*this;
+            return tmp;
+        }
     };
 
     template <class Traits>
     class _tree
     {
     public:
-        typedef _tree<Traits> _MyTy;
+        typedef _tree<Traits> _my_tree;
 
         typedef typename Traits::value_type value_type;
         typedef typename Traits::key_compare key_compare;
         typedef typename Traits::value_compare value_compare;
 
-        typedef _tree_val<value_type> _tree_val;
-        typedef _tree_val::_node _node;
-        typedef _tree_val::_node_ptr _node_ptr;
+        typedef _tree_val<value_type> _val_type;
+        typedef _val_type::_node _node;
+        typedef _val_type::_node_ptr _node_ptr;
+        typedef _val_type::pointer pointer;
+        typedef _val_type::const_pointer const_pointer;
+        typedef _val_type::reference reference;
+        typedef _val_type::const_reference const_reference;
+        typedef _val_type::size_type size_type;
+        typedef _val_type::difference_type difference_type;
 
-        typedef size_t size_type;
-        typedef std::ptrdiff_t difference_type;
         typedef fixed_allocator<_node> allocator;
-
-        typedef _tree_iterator<_tree_val> iterator;
-        typedef _tree_const_iterator<_tree_val> const_iterator;
+        typedef _tree_iterator<_val_type> iterator;
+        typedef _tree_const_iterator<_val_type> const_iterator;
         typedef std::pair<iterator, bool> pairib;
 
     public:
@@ -173,16 +318,18 @@ namespace detail
         {
         }
 
-        _tree(_MyTy&& other)
+        _tree(_my_tree&& other)
             : _buffer(std::forward<scoped_buffer>(other._buffer))
             , _alloc(std::forward<allocator>(other._alloc))
-            , Root(other._root)
-            , _size(other._size)
+            , _val(other._val)
         {
-            other._root = nullptr;
-            other._size = 0;
         }
 
+        ~_tree()
+        {
+            if (_val._head)
+                erase(begin(), end());
+        }
     public:
         iterator begin()
         {
@@ -206,7 +353,7 @@ namespace detail
         // capacity
         bool empty() const { return size() == 0 };
         bool size() const { return _size; }
-        bool max_size() const { return _alloc.max_size(); }
+        bool max_size() const { return _alloc.max_size() - 1; }
 
     public:
         pairib insert(const value_type& val)
