@@ -13,29 +13,37 @@ template <class Ty>
 class fixed_allocator
 {
 protected:
-    union node
+    union _node
     {
-        node* next;
+        _node* next;
         uint8_t _[sizeof(Ty)];
     };
+    typedef _node* _node_ptr;
 public:
     typedef Ty value_type;
+    typedef Ty* pointer;
+    typedef Ty& reference;
+    typedef const Ty* const_pointer;
+    typedef const Ty& const_reference;
+    typedef size_t size_type;
+
+public:
+    static const size_type element_size = sizeof(_node);
+
 public:
     fixed_allocator(void* pool, size_t size)
-        : _size(size), _root(static_cast<node*>(pool))
+        : _size(size), _root(static_cast<_node_ptr>(pool))
     {
-        node* pnode = _root;
-        size_t step = sizeof(node);
+        _node_ptr node = _root;
 
-        for (size_t pos = step; pos < _size; pos += step)
+        // build single node list
+        for (size_type i = 1; i < max_size(); ++i)
         {
-            void* p = &static_cast<uint8_t*>(pool)[pos];
-            pnode->next = static_cast<node*>(p);
-            pnode = pnode->next;
+            node = &_root[i - 1];
+            node->next = &_root[i]
         }
 
-        if (pnode)
-            pnode->next = nullptr;
+        if (node) node->next = nullptr;
     }
 
     fixed_allocator(fixed_allocator&& other)
@@ -45,128 +53,68 @@ public:
         other._root = nullptr;
     }
 
-    template <class Other>
-    fixed_allocator(Other&& other)
-        : _size(0), _root(nullptr)
-    {
-    }
-
     fixed_allocator(const fixed_allocator&)
     {
         static_assert(false, "this allocator can not been copy");
     }
 
-    ~fixed_allocator()
-    {
-    }
+    ~fixed_allocator() {}
 
     fixed_allocator& operator = (const fixed_allocator&)
     {
-        static_assert(false, "this allocator can not been assigned");
+        static_assert(false, "this allocator can not been assign copy");
         return *this;
     }
 
 public:
-    Ty* address(Ty& ref) const
+    pointer address(reference ref) const
     {
         return (std::addressof(ref));
     }
 
-    const Ty* address(const Ty& ref) const
+    const_pointer address(const_reference ref) const
     {
         return (std::addressof(ref));
     }
 
-    Ty* allocate()
+    pointer allocate()
     {
         if (_root == nullptr)
             return nullptr;
 
-        Ty* alloc = reinterpret_cast<Ty*>(_root);
+        pointer node = reinterpret_cast<pointer>(_root);
         _root = _root->next;
 
-        return alloc;
+        return node;
     }
 
     void deallocate(Ty* ptr)
     {
-        node* pnode = reinterpret_cast<node*>(ptr);
-        pnode->next = _root;
-        _root = pnode;
+        _node_ptr node = reinterpret_cast<_node_ptr>(ptr);
+        node->next = _root;
+        _root = node;
     }
 
     size_t max_size() const
     {
-        return _size / sizeof(node);
+        return _size / element_size;
     }
 
-    template<class Obj, class... Args>
-    void construct(Obj *ptr, Args&&... args)
+    template<class _Ty, class... Args>
+    void construct(_Ty* ptr, Args&&... args)
     {
-        ::new ((void *)ptr) Obj(std::forward<Args>(args)...);
+        ::new ((void *)ptr) _Ty(std::forward<Args>(args)...);
     }
 
-    template<class Obj>
-    void destroy(Obj* ptr)
+    template<class _Ty>
+    void destroy(_Ty* ptr)
     {
-        ptr->~Obj();
+        ptr->~_Ty();
     }
 
 protected:
-    size_t  _size;
-    node*   _root;
-};
-
-template <class Ty>
-class custom_allocator_adapter : public fixed_allocator<Ty>
-{
-public:
-    typedef fixed_allocator<Ty> my_base;
-public:
-    custom_allocator_adapter(void* pool, size_t size)
-        : fixed_allocator(pool, size)
-    {
-    }
-
-    custom_allocator_adapter(custom_allocator_adapter&& other)
-        : fixed_allocator(std::move(other))
-    {
-    }
-
-    template <class Other>
-    custom_allocator_adapter(Other&& other)
-        : fixed_allocator(std::forward<Other>(other))
-    {
-    }
-
-    custom_allocator_adapter(const custom_allocator_adapter&)
-        : fixed_allocator(nullptr, 0)
-    {
-        static_assert(false, "this allocator can not been copy");
-    }
-
-    custom_allocator_adapter& operator = (const custom_allocator_adapter&)
-    {
-        static_assert(false, "this allocator can not been assigned");
-    }
-
-public:
-    Ty* allocate(size_t count)
-    {
-        assert(count == 1);
-        return my_base::allocate();
-    }
-
-    Ty* allocate(size_t count, const void*)
-    {
-        return allocate(count);
-    }
-
-    void deallocate(Ty* ptr, size_t count)
-    {
-        assert(count == 1);
-        my_base::deallocate(ptr);
-    }
+    _node* _root;
+    size_type _size;
 };
 
 NAMESPACE_ZH_END

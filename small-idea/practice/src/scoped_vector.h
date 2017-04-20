@@ -28,7 +28,7 @@ namespace detail
         {
         }
 
-        _vector_val(_vector_val other)
+        _vector_val(const _vector_val& other)
             : _base(other._base), _idx(other._idx)
         {
         }
@@ -46,7 +46,7 @@ namespace detail
     {
     public:
         typedef std::iterator<std::random_access_iterator_tag, Ty> _base_type;
-        typedef typename _MyBase::difference_type difference_type;
+        typedef typename _base_type::difference_type difference_type;
         typedef size_t size_type;
 
         typedef Ty value_type;
@@ -257,9 +257,13 @@ class scoped_vector
 {
 public:
     typedef Ty value_type;
+    typedef Ty* pointer;
+    typedef Ty& reference;
+    typedef const Ty* const_pointer;
+    typedef const Ty& const_reference;
     typedef detail::_scoped_vecoter_iter<Ty> iterator;
     typedef detail::_const_scoped_vecoter_iter<Ty> const_iterator;
-
+    typedef detail::_vector_val<value_type> _val_type;
     typedef size_t size_type;
     typedef std::ptrdiff_t difference_type;
 
@@ -269,7 +273,7 @@ public:
 public:
     scoped_vector(scoped_buffer&& buffer)
         : _buff(std::forward<scoped_buffer>(buffer))
-        , _val(static_cast<value_type*>(buffer.get()), 0)
+        , _val(static_cast<pointer>(buffer.get()), 0)
     {
     }
 
@@ -286,35 +290,35 @@ public:
     }
 
 public:
-    Ty& operator [] (difference_type idx)
+    reference operator [] (difference_type idx)
     {
         assert((size_type)idx < size() && idx >= 0);
         return Base()[idx];
     }
 
-    const Ty& operator [] (difference_type idx) const
+    const_reference operator [] (difference_type idx) const
     {
         return const_cast<scoped_vector*>(this)->operator [](idx);
     }
 
-    Ty& front()
+    reference front()
     {
         assert(!empty());
         return Base()[0];
     }
 
-    const Ty& front() const
+    const_reference front() const
     {
         return const_cast<scoped_vector*>(this)->front();
     }
 
-    Ty& back()
+    reference back()
     {
         assert(!empty());
         return Base()[Idx() - 1];
     }
 
-    const Ty& back() const
+    const_reference back() const
     {
         return const_cast<scoped_vector*>(this)->back();
     }
@@ -380,9 +384,7 @@ public:
 
         // copy construct
         for (size_type i = 0; i < n; ++i)
-        {
             construct(Base()[idx + i], std::forward<_Ty>(val));
-        }
 
         Idx() += (difference_type)n;
         return iterator(*this, idx);
@@ -402,9 +404,7 @@ public:
 
         // destruct
         for (size_t i = begIdx; i < endIdx; i++)
-        {
             destruct(&Base()[i]);
-        }
 
         // move
         for (size_t i = 0; i < Idx() - endIdx; ++i)
@@ -452,7 +452,7 @@ protected:
     inline difference_type& Idx() { return _val._idx; }
 protected:
     scoped_buffer _buff;
-    detail::_vector_val _val;
+    _val_type _val;
 };
 
 NAMESPACE_ZH_END

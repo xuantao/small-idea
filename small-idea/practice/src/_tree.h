@@ -159,8 +159,10 @@ namespace detail
         typedef _tree_iterator<_tree_val> iterator;
         typedef _tree_const_iterator<_tree_val> const_iterator;
         typedef std::pair<iterator, bool> pairib;
+
     public:
-        static size_type buffer_size(size_type count) { return sizeof(_node) * (count + 1); }
+        static const size_type element_size = sizeof(_node);
+        static size_type buffer_size(size_type count) { return allocator::element_size * (count + 1); }
 
     public:
         _tree(scoped_buffer&& buffer)
