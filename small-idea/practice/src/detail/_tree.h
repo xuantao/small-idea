@@ -13,62 +13,12 @@ NAMESPACE_ZH_BEGIN
 
 namespace detail
 {
-    template <class Ty, class Pr, bool Mfl>
-    class _set_traits
-    {
-    public:
-        typedef Ty key_type;
-        typedef Ty value_type;
-        typedef Pr key_compare;
-        typedef key_compare value_compare;
-
-        enum { _multi = Mfl };
-
-        static const key_type& kfn(const value_type& val) { return val; }
-    };
-
-    template <class Kty, class Ty, class Pr, bool Mfl>
-    class _map_traits
-    {
-    public:
-        typedef Kty key_type;
-        typedef std::pair<const Kty, Ty> value_type;
-        typedef Pr key_compare;
-
-        enum { multi = Mfl };
-
-        class value_compare
-        {
-            friend class _map_traits<Kty, Ty, Pr, Mfl>;
-        public:
-            bool operator()(const value_type& _Left, const value_type& _Right) const
-            {
-                return (_cmp(_Left.first, _Right.first));
-            }
-
-            value_compare(key_compare _Pred) : _cmp(_Pred)
-            {
-            }
-
-        protected:
-            key_compare _cmp;
-        };
-
-        template<class Ty1, class Ty2>
-        static const Kty& kfn(const std::pair<Ty1, Ty2>& Val)
-        {
-            return (Val.first);
-        }
-    };
-
     enum class _rb_color : bool
     {
         red, black,
     };
 
-    struct _tree_nil
-    {
-    };
+    struct _tree_nil {};
 
     template <class Ty>
     struct _tree_node
@@ -95,6 +45,17 @@ namespace detail
         typedef _node* _node_ptr;
         typedef size_t size_type;
         typedef std::ptrdiff_t difference_type;
+
+    public:
+        _tree_val() : _head(nullptr), _size(0)
+        {
+        }
+
+        _tree_val(_my_type&& other) : _head(other._head), _size(other._size)
+        {
+            other._head = nullptr;
+            other._size = 0;
+        }
 
         static _node_ptr Max(_node_ptr node)
         {
@@ -286,6 +247,7 @@ namespace detail
     public:
         typedef _tree<Traits> _my_tree;
 
+        typedef typename Traits::key_type key_type;
         typedef typename Traits::value_type value_type;
         typedef typename Traits::key_compare key_compare;
         typedef typename Traits::value_compare value_compare;
@@ -312,16 +274,25 @@ namespace detail
     public:
         _tree(scoped_buffer&& buffer)
             : _buffer(std::forward<scoped_buffer>(buffer))
-            , _alloc(buffer.get(), buffer.size())
-            , Root(nullptr)
-            , _size(0)
+            , _alloc(_buffer.get(), _buffer.size())
         {
+            _node_ptr node = _alloc.allocate();
+            if (node)
+            {
+                node->left = node;
+                node->right = node;
+                node->parent = node;
+                node->color = _rb_color::black;
+                node->nil = true;
+            }
+
+            Head() = node;
         }
 
         _tree(_my_tree&& other)
-            : _buffer(std::forward<scoped_buffer>(other._buffer))
-            , _alloc(std::forward<allocator>(other._alloc))
-            , _val(other._val)
+            : _buffer(std::move(other._buffer))
+            , _alloc(std::move(other._alloc))
+            , _val(std::move(other._val))
         {
         }
 
@@ -330,6 +301,18 @@ namespace detail
             if (_val._head)
                 erase(begin(), end());
         }
+
+    protected:
+        _tree(const _my_tree& other)
+        {
+            static_assert(false, "not allow copy");
+        }
+
+        _my_tree& operator = (const _my_tree& other)
+        {
+            static_assert(false, "not allow copy");
+        }
+
     public:
         iterator begin()
         {
@@ -581,6 +564,7 @@ namespace detail
             return (it == cend()) || _camp(key, Key(it._node)) ?
                 cend() : it;
         }
+
     protected:
         template <class _Ty, class _Node>
         pairib Insert(bool leftish, _Ty&& val, _Node newNode)
@@ -703,7 +687,7 @@ namespace detail
             return iterator(node);
         }
     protected:
-        const key_type& Kfn(const value_type& _Val) const { return (Traits::_kfn(_Val)); }
+        const key_type& Kfn(const value_type& _Val) const { return (Traits::Kfn(_Val)); }
         const key_type& Key(_node_ptr node) const { return (const key_type&)Kfn(node->val); }
 
         _node_ptr& Root() { return _val._head->parent; }
@@ -768,19 +752,13 @@ namespace detail
             return (Buynode(std::forward<_Ty>(val)));
         }
 
-        _node_ptr Buynode0()
+        template<class... _Ty>
+        _node_ptr Buynode(_Ty&&... val)
         {
             _node_ptr node = _alloc.allocate();
             node->left = Head();
             node->right = Head();
             node->parent = Head();
-            return node;
-        }
-
-        template<class... _Ty>
-        _node_ptr Buynode(_Ty&&... val)
-        {
-            _node_ptr node = Buynode0();
             node->color = _rb_color::red;
             node->nil = false;
 
@@ -833,7 +811,7 @@ namespace detail
     protected:
         scoped_buffer _buffer;
         allocator _alloc;
-        _tree_val _val;
+        _val_type _val;
         key_compare _camp;
     };
 }

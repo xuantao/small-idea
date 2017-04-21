@@ -5,7 +5,7 @@ USING_NAMESPACE_ZH;
 
 static void test_normal()
 {
-    scoped_vector<int> vec(util::allocate(5 * sizeof(int)));
+    scoped_vector<int> vec = util::vector<int>(5);
     vec.push_back(1);
     vec.push_back(2);
     vec.push_back(3);
@@ -16,16 +16,28 @@ static void test_normal()
 
 static void test_iterator()
 {
-    scoped_vector<int> vec(util::allocate(5 * sizeof(int)));
+    scoped_vector<int> vec = util::vector<int>(5);
     vec.push_back(1);
     vec.push_back(3);
     vec.push_back(4);
 
-    auto it_1 = vec.begin();
+    scoped_vector<int>::iterator it_1;
+
+    //assert(*it_1 == 0);  // assert(false) empty it;
+
+    it_1 = vec.begin();
     auto it_2 = vec.begin() + 2;
 
+    *it_1 = 1;
+    //it_2 += 1;  // assert(false); end() can not add
+
+    assert(*it_1 == 1);
+    assert(it_1[1] == 3);
+    assert(it_1 < it_2);
+    assert(it_2 >= it_1);
+
     assert(it_2 - it_1 == 2);
-    //size_t c = it_1 - it_2; // assert(false)
+    assert(it_1 - it_2 == -2);
 
     it_1++;
     assert(it_2 - it_1 == 1);
@@ -39,6 +51,30 @@ static void test_iterator()
     it_1 -= 1;
     it_2 += 1;
     assert(it_1 == it_2);
+    assert(it_1 >= it_2);
+    assert(it_1 <= it_2);
+}
+
+static void test_const_iterator()
+{
+    scoped_vector<int> vec = util::vector<int>(5);
+    vec.push_back(1);
+    vec.push_back(3);
+    vec.push_back(4);
+
+    scoped_vector<int>::iterator cIt0;
+    scoped_vector<int>::const_iterator cIt1;
+    scoped_vector<int>::const_iterator cIt2;
+
+    cIt0 = vec.begin();
+    cIt1 = vec.begin();
+    cIt2 = vec.cbegin();
+
+    assert(cIt0 == cIt1);
+    assert(cIt1 == cIt0);
+    assert(cIt1 == cIt2);
+
+    //*cIt1 = 2; static_assert(false, "const l value reference")
 }
 
 static void test_build_by_vector()
@@ -60,4 +96,5 @@ void test_scoped_vector()
 {
     test_normal();
     test_iterator();
+    test_const_iterator();
 }

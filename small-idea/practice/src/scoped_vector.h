@@ -13,6 +13,7 @@ template <class Ty>
 class scoped_vector
 {
 public:
+    typedef scoped_vector<Ty> _my_type;
     typedef Ty value_type;
     typedef Ty* pointer;
     typedef Ty& reference;
@@ -21,9 +22,9 @@ public:
     typedef size_t size_type;
     typedef std::ptrdiff_t difference_type;
 
-    typedef detail::_vector_val<value_type> _val_type;
     typedef detail::_vector_iterator<Ty> iterator;
     typedef detail::_vector_const_iterator<Ty> const_iterator;
+    typedef typename iterator::_val_type _val_type;
 
 public:
     static const size_type element_size = sizeof(Ty);
@@ -32,20 +33,33 @@ public:
 public:
     scoped_vector(scoped_buffer&& buffer)
         : _buff(std::forward<scoped_buffer>(buffer))
-        , _val(static_cast<pointer>(buffer.get()), 0)
+        , _val(static_cast<pointer>(_buff.get()))
     {
     }
 
-    scoped_vector(scoped_vector&& other)
-        : _buff(std::forward<scoped_buffer>(other._buff))
-        , _val(other._val)
+    scoped_vector(_my_type&& other)
+        : _buff(std::move(other._buff))
+        , _val(std::move(other._val))
     {
     }
 
     ~scoped_vector()
     {
-        while (!empty())
-            pop_back();
+        difference_type idx = Next();
+        while (idx-- > 0)
+            destruct(&Base()[idx]);
+        Next() = 0;
+    }
+
+protected:
+    _my_type(const _my_type& other)
+    {
+        static_assert(false, "not allow copy");
+    }
+
+    _my_type& operator = (const _my_type& other)
+    {
+        static_assert(false, "not allow copy");
     }
 
 public:

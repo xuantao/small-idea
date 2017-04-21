@@ -26,14 +26,16 @@ namespace detail
         typedef size_t size_type;
         typedef std::ptrdiff_t difference_type;
 
-        _vector_val(value_type* base, difference_type next)
-            : _base(base), _next(next)
+        _vector_val(value_type* base)
+            : _base(base), _next(0)
         {
         }
 
-        _vector_val(const _vector_val& other)
+        _vector_val(_vector_val&& other)
             : _base(other._base), _next(other._next)
         {
+            other._base = nullptr;;
+            other._next = 0;
         }
 
         size_type size() const { return _next; }
@@ -45,7 +47,7 @@ namespace detail
     };
 
     /*
-     * vector const interator
+     * vector const iterator
     */
     template <class Ty>
     class _vector_const_iterator : public std::iterator<std::random_access_iterator_tag, Ty>
@@ -61,13 +63,11 @@ namespace detail
         typedef const Ty& reference;
 
         typedef _vector_val<value_type> _val_type;
-        typedef _val_type* _val_ptr;
+        typedef const _val_type* _val_ptr;
     public:
-        _vector_const_iterator() : _idx(0), _val(nullptr)
-        {
-        }
+        _vector_const_iterator() : _idx(0), _val(nullptr) {}
 
-        _vector_const_iterator(difference_type idx, const _val_ptr val) : _idx(idx), _val(val)
+        _vector_const_iterator(difference_type idx, _val_ptr val) : _idx(idx), _val(val)
         {
         }
 
@@ -178,7 +178,7 @@ namespace detail
 
     protected:
         difference_type _idx;
-        const _val_ptr _val;
+        _val_ptr _val;
     };
 
     /*

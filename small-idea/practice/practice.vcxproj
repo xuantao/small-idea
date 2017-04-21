@@ -154,7 +154,9 @@
     <ClInclude Include="src\ref_count_set.h" />
     <ClInclude Include="src\scoped_buffer.h" />
     <ClInclude Include="src\scoped_buffer_allocator.h" />
+    <ClInclude Include="src\scoped_map.h" />
     <ClInclude Include="src\scoped_obj_buffer.h" />
+    <ClInclude Include="src\scoped_set.h" />
     <ClInclude Include="src\scoped_vector.h" />
     <ClInclude Include="src\util.h" />
   </ItemGroup>
