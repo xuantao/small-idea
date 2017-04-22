@@ -82,20 +82,20 @@ namespace detail
     {
     public:
         typedef _tree_const_iterator<Val> _my_iter;
-        typedef Val* _val_ptr;
+        typedef const Val* _val_ptr;
         typedef typename Val::_node_ptr _node_ptr;
         typedef typename Val::const_pointer pointer;
         typedef typename Val::const_reference reference;
 
     public:
         _tree_const_iterator() : _val(nullptr), _node(nullptr) {}
-        _tree_const_iterator(const _val_ptr val, const _node_ptr node) : _val(val), _node(node)
+        _tree_const_iterator(_val_ptr val, _node_ptr node) : _val(val), _node(node)
         {
         }
 
         reference operator * () const
         {
-            assert(_val && _node && _node->nil);
+            assert(_val && _node && !_node->nil);
             return _node->val;
         }
 
@@ -203,7 +203,7 @@ namespace detail
 
     public:
         _tree_iterator() {}
-        _tree_iterator(const _val_ptr val, const _node_ptr node) : _my_base(val, node) {}
+        _tree_iterator(_val_ptr val, _node_ptr node) : _my_base(val, node) {}
 
         reference operator*() const
         {
@@ -326,12 +326,12 @@ namespace detail
 
         const_iterator cbegin() const
         {
-            return const_iterator(&_val, _val._head->left);
+            return const_iterator(&_val, Lmost());
         }
 
         const_iterator cend() const
         {
-            return const_iterator(&_val, _val._head);
+            return const_iterator(&_val, Head());
         }
     public:
         // capacity
@@ -354,6 +354,7 @@ namespace detail
         {
             assert(it._Val() == &_val);
             assert(it._Node());
+            assert(it != end());
 
             _node_ptr eraseNode = it._Node();
             ++it;
@@ -379,7 +380,7 @@ namespace detail
             if (node == eraseNode)
             {
                 fixParent = eraseNode->parent;
-                if (fixNode->nil)
+                if (!fixNode->nil)
                     fixNode->parent = fixParent;
 
                 if (Root() == eraseNode)
@@ -445,7 +446,8 @@ namespace detail
                         {
                             fixNode = fixParent;
                         }
-                        else if (node->left->color == _rb_color::black)
+                        else if (node->left->color == _rb_color::black &&
+                            node->right->color == _rb_color::black)
                         {
                             node->color = _rb_color::red;
                             fixNode = fixParent;
@@ -514,8 +516,8 @@ namespace detail
             _alloc.destroy(&eraseNode->val);
             _alloc.deallocate(eraseNode);
 
-            assert(_val._size);
-            --_val._size;
+            if (_val._size)
+                --_val._size;
 
             return iterator(&_val, it._Node());
         }
@@ -557,14 +559,14 @@ namespace detail
         iterator find(const key_type& key)
         {
             iterator it(&_val, Lbound(key));
-            return (it == end()) || _camp(key, Key(it._node)) ?
+            return (it == end()) || _camp(key, Key(it._Node())) ?
                 end() : it;
         }
 
         const_iterator find(const key_type& key) const
         {
             const_iterator it(&_val, Lbound(key));
-            return (it == cend()) || _camp(key, Key(it._node)) ?
+            return (it == cend()) || _camp(key, Key(it._Node())) ?
                 cend() : it;
         }
 
@@ -694,9 +696,13 @@ namespace detail
         const key_type& Key(_node_ptr node) const { return (const key_type&)Kfn(node->val); }
 
         _node_ptr& Root() { return _val._head->parent; }
+        const _node_ptr& Root() const { return _val._head->parent; }
         _node_ptr& Head() { return _val._head; }
+        const _node_ptr& Head() const { return _val._head; }
         _node_ptr& Lmost() { return _val._head->left; }
+        const _node_ptr& Lmost() const { return _val._head->left; }
         _node_ptr& Rmost() { return _val._head->right; }
+        const _node_ptr& Rmost() const { return _val._head->right; }
 
         void Lrotate(_node_ptr node)
         {

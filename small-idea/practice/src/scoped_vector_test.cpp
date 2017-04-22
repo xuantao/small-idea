@@ -151,7 +151,9 @@ static void test_const_iterator()
 
 void scoped_vector_test()
 {
+    test::log(test::Tab::tab++, "scoped_vector_test begin");
     test_normal();
     //test_iterator();
     test_obj_move();
+    test::log(--test::Tab::tab, "scoped_vector_test end");
 }
