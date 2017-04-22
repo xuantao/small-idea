@@ -10,6 +10,7 @@
 #include "scoped_buffer.h"
 #include "scoped_obj_buffer.h"
 #include "scoped_vector.h"
+#include "scoped_set.h"
 
 NAMESPACE_ZH_BEGIN
 
@@ -60,6 +61,12 @@ namespace util
         for (auto it = src.cbegin(); it != src.cend(); ++it)
             dst.push_back(it->second);
         return dst;
+    }
+
+    template <class Ty>
+    scoped_set<Ty> set(std::size_t size)
+    {
+        return scoped_set<Ty>(allocate(scoped_set<Ty>::buffer_size(size)));
     }
 }
 

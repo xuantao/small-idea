@@ -34,16 +34,12 @@ public:
     fixed_allocator(void* pool, size_t size)
         : _size(size), _root(static_cast<_node_ptr>(pool))
     {
-        _node_ptr node = _root;
+        // build single direction list
+        for (size_type i = 0; i < max_size(); ++i)
+            _root[i].next = &_root[i + 1];
 
-        // build single node list
-        for (size_type i = 1; i < max_size(); ++i)
-        {
-            node = &_root[i - 1];
-            node->next = &_root[i]
-        }
-
-        if (node) node->next = nullptr;
+        if (max_size())
+            _root[max_size()-1].next = nullptr;
     }
 
     fixed_allocator(fixed_allocator&& other)

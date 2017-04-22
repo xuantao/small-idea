@@ -61,6 +61,9 @@
     <ClInclude Include="src\scoped_map.h">
       <Filter>src\scoped</Filter>
     </ClInclude>
+    <ClInclude Include="src\test_util.h">
+      <Filter>src\test</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -77,6 +80,12 @@
     </ClCompile>
     <ClCompile Include="src\util.cpp">
       <Filter>src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test_util.cpp">
+      <Filter>src\scoped</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scope_set_test.cpp">
+      <Filter>src\test</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

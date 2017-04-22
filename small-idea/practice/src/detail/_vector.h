@@ -65,9 +65,9 @@ namespace detail
         typedef _vector_val<value_type> _val_type;
         typedef const _val_type* _val_ptr;
     public:
-        _vector_const_iterator() : _idx(0), _val(nullptr) {}
+        _vector_const_iterator() : _val(nullptr), _idx(0) {}
 
-        _vector_const_iterator(difference_type idx, _val_ptr val) : _idx(idx), _val(val)
+        _vector_const_iterator(_val_ptr val, difference_type idx) : _val(val), _idx(idx)
         {
         }
 
@@ -84,7 +84,7 @@ namespace detail
 
         _my_iter& operator ++ ()
         {
-            if (_val && _idx + 1 < _val->_next)
+            if (_val && _idx < _val->_next)
                 ++_idx;
             return *this;
         }
@@ -182,7 +182,7 @@ namespace detail
     };
 
     /*
-    * vector interator
+    * vector iterator
     */
     template <class Ty>
     class _vector_iterator : public _vector_const_iterator<Ty>
@@ -199,7 +199,7 @@ namespace detail
     public:
         _vector_iterator() {}
 
-        _vector_iterator(difference_type idx, _val_ptr val) : _my_base(idx, val)
+        _vector_iterator(_val_ptr val, difference_type idx) : _my_base(val, idx)
         {
         }
 

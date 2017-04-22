@@ -1,5 +1,6 @@
+#include <algorithm>
 #include "util.h"
-#include "scoped_vector.h"
+#include "test_util.h"
 
 USING_NAMESPACE_ZH;
 
@@ -12,6 +13,77 @@ static void test_normal()
     vec.push_back(4);
     vec.push_back(5);
     //vec.push_back(6);   // assert, max_size
+
+    std::for_each(vec.cbegin(), vec.cend(), [](int v) {
+        test::log("test for_each v:%d", v);
+    });
+
+    std::for_each(vec.begin(), vec.end(), [](int v) {
+        test::log("test for_each v:%d", v);
+    });
+
+    // test pop back
+    vec.pop_back();
+    assert(vec.size() == 4);
+
+    // test erase iterator
+    vec.erase(vec.begin() + 1);
+    assert(vec[1] == 3);
+    assert(vec.size() == 3);
+
+    // test erase const_iterator
+    vec.erase(vec.cbegin());
+    assert(vec.front() == 3);
+    assert(vec.size() == 2);
+
+    // test_insert
+    vec.insert(vec.cbegin() + 1, 10);
+    assert(vec[1] == 10);
+    assert(vec.size() == 3);
+    assert(vec.back() == 4);
+}
+
+static void test_obj_move()
+{
+    test::log(test::Tab::tab++, "init startup data");
+    test::Obj obj;                  // test::Obj()
+    scoped_vector<test::Obj> vec = util::vector<test::Obj>(3);
+
+    vec.push_back(obj);             // test::Obj(const test::Obj&)
+    vec.push_back(1);               // test::Obj(int)
+    vec.push_back(test::Obj(2));    // test::Obj(int)
+                                    // test::Obj(test::Obj&&)
+                                    // ~test::Obj()
+    test::log(--test::Tab::tab, "init complete");
+
+    assert(vec[0] == 0);
+    assert(vec[1] == 1);
+    assert(vec[2] == 2);
+
+
+    test::log(test::Tab::tab++, "test erase begin");
+    vec.erase(vec.begin() + 1);     // ~Test()
+                                    // Test(const test::Obj&)
+                                    // ~Test()
+    assert(vec[0] == 0);
+    assert(vec[1] == 2);
+    test::log(--test::Tab::tab, "test erase end");
+
+    test::log(test::Tab::tab++, "test insert begin");
+    vec.insert(vec.begin() + 1, test::Obj(1));          // test::Obj(int)
+                                                        // test::Obj(const test::Obj&)
+                                                        // ~test::Obj()
+                                                        // test::Obj(test::Obj&&)
+                                                        // ~test::Obj()
+
+    assert(vec[0] == 0);
+    assert(vec[1] == 1);
+    assert(vec[2] == 2);
+    test::log(--test::Tab::tab, "test insert end");
+    // ~test::Obj()
+    // ~test::Obj()
+    // ~test::Obj()
+    // ~test::Obj()
 }
 
 static void test_iterator()
@@ -77,24 +149,9 @@ static void test_const_iterator()
     //*cIt1 = 2; static_assert(false, "const l value reference")
 }
 
-static void test_build_by_vector()
-{
-    std::vector<int> vi;
-    vi.push_back(1);
-    vi.push_back(2);
-    vi.push_back(3);
-    vi.push_back(4);
-
-    auto dst = util::vector(vi, 2);
-    for (size_t i = 0; i < dst.size(); ++i)
-    {
-        printf("idx=%d val=%d\n", (int)i, dst[i]);
-    }
-}
-
-void test_scoped_vector()
+void scoped_vector_test()
 {
     test_normal();
-    test_iterator();
-    test_const_iterator();
+    //test_iterator();
+    test_obj_move();
 }

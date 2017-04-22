@@ -25,11 +25,11 @@ namespace detail
 }
 
 template <class Ty, class Pr = std::less<Ty> >
-class scoped_set : public detail::_tree <_set_traits<Ty, Pr> >
+class scoped_set : public detail::_tree<detail::_set_traits<Ty, Pr> >
 {
 public:
     typedef scoped_set<Ty, Pr> _my_type;
-    typedef detail::_tree <_set_traits<Ty, Pr> > _my_base;
+    typedef detail::_tree<detail::_set_traits<Ty, Pr> > _my_base;
     typedef typename _my_base::size_type size_type;
     typedef typename _my_base::difference_type difference_type;
     typedef typename _my_base::pointer pointer;
@@ -44,7 +44,7 @@ public:
     {
     }
 
-    scoped_set(scoped_set&& other) : _my_base(std::forward<_my_type>(other))
+    scoped_set(_my_type&& other) : _my_base(std::forward<_my_type>(other))
     {
     }
 };

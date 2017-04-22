@@ -8,6 +8,7 @@
 #include <iterator>
 #include <cassert>
 #include "../fixed_allocator.h"
+#include "../scoped_buffer.h"
 
 NAMESPACE_ZH_BEGIN
 
@@ -171,7 +172,7 @@ namespace detail
 
         bool operator == (const _my_iter& other) const
         {
-            assert(_val == other._val && _node && othor._node);
+            assert(_val == other._val && _node && other._node);
             return _node == other._node;
         }
 
@@ -182,10 +183,10 @@ namespace detail
 
     public:
         const _val_ptr _Val() const { return _val; }
-
+        const _node_ptr _Node() const { return _node; }
     protected:
         const _val_ptr _val;
-        const _node_ptr _node;
+        _node_ptr _node;
     };
 
     template <class Val>
@@ -194,8 +195,8 @@ namespace detail
     public:
         typedef _tree_iterator<Val> _my_iter;
         typedef _tree_const_iterator<Val> _my_base;
-        typedef _my_base::_val_ptr _val_ptr;
-        typedef _my_base::_node_ptr _node_ptr;
+        typedef typename _my_base::_val_ptr _val_ptr;
+        typedef typename _my_base::_node_ptr _node_ptr;
 
         typedef typename Val::pointer pointer;
         typedef typename Val::reference reference;
@@ -253,14 +254,14 @@ namespace detail
         typedef typename Traits::value_compare value_compare;
 
         typedef _tree_val<value_type> _val_type;
-        typedef _val_type::_node _node;
-        typedef _val_type::_node_ptr _node_ptr;
-        typedef _val_type::pointer pointer;
-        typedef _val_type::const_pointer const_pointer;
-        typedef _val_type::reference reference;
-        typedef _val_type::const_reference const_reference;
-        typedef _val_type::size_type size_type;
-        typedef _val_type::difference_type difference_type;
+        typedef typename _val_type::_node _node;
+        typedef typename _val_type::_node_ptr _node_ptr;
+        typedef typename _val_type::pointer pointer;
+        typedef typename _val_type::const_pointer const_pointer;
+        typedef typename _val_type::reference reference;
+        typedef typename _val_type::const_reference const_reference;
+        typedef typename _val_type::size_type size_type;
+        typedef typename _val_type::difference_type difference_type;
 
         typedef fixed_allocator<_node> allocator;
         typedef _tree_iterator<_val_type> iterator;
@@ -316,43 +317,45 @@ namespace detail
     public:
         iterator begin()
         {
-            return iterator(Lmost());
+            return iterator(&_val, Lmost());
         }
         iterator end()
         {
-            return iterator(Head());
+            return iterator(&_val, Head());
         }
 
         const_iterator cbegin() const
         {
-            return const_iterator();
+            return const_iterator(&_val, _val._head->left);
         }
 
         const_iterator cend() const
         {
-            return const_iterator();
+            return const_iterator(&_val, _val._head);
         }
     public:
         // capacity
         bool empty() const { return size() == 0 };
-        bool size() const { return _size; }
-        bool max_size() const { return _alloc.max_size() - 1; }
+        size_type size() const { return _val._size; }
+        size_type max_size() const { return _alloc.max_size() - 1; }
 
     public:
         pairib insert(const value_type& val)
         {
-            return Insert(false, val, _tree_nil())
+            return Insert(false, val, _tree_nil());
         }
 
         pairib insert(value_type&& val)
         {
-            return Insert(false, std::forward<value_type>(val), _tree_nil())
+            return Insert(false, std::forward<value_type>(val), _tree_nil());
         }
 
         iterator erase(const_iterator it)
         {
-            //TODO: check it is valid
-            _node_ptr eraseNode = it._node;
+            assert(it._Val() == &_val);
+            assert(it._Node());
+
+            _node_ptr eraseNode = it._Node();
             ++it;
 
             _node_ptr fixNode = nullptr;
@@ -369,7 +372,7 @@ namespace detail
             }
             else
             {
-                node = it._node;
+                node = it._Node();
                 fixNode = node->right;
             }
 
@@ -514,7 +517,7 @@ namespace detail
             assert(_val._size);
             --_val._size;
 
-            return iterator(it._node);
+            return iterator(&_val, it._Node());
         }
 
         iterator erase(const_iterator first, const_iterator last)
@@ -528,7 +531,7 @@ namespace detail
             {
                 while (first != last)
                     erase(first++);
-                return iterator(first._node);
+                return iterator(&_val, first._Node());
             }
         }
 
@@ -553,14 +556,14 @@ namespace detail
 
         iterator find(const key_type& key)
         {
-            iterator it(Lbound(key));
+            iterator it(&_val, Lbound(key));
             return (it == end()) || _camp(key, Key(it._node)) ?
                 end() : it;
         }
 
         const_iterator find(const key_type& key) const
         {
-            const_iterator it(Lbound(key));
+            const_iterator it(&_val, Lbound(key));
             return (it == cend()) || _camp(key, Key(it._node)) ?
                 cend() : it;
         }
@@ -584,7 +587,7 @@ namespace detail
                 root = addLeft ? root->left : root->right;
             }
 
-            iterator it = iterator(node);
+            iterator it = iterator(&_val, node);
             if (!addLeft)
                 ;
             else if (it == begin())
@@ -592,7 +595,7 @@ namespace detail
             else
                 --it;
 
-            if (_camp(Key(it._node), Kfn(val)))
+            if (_camp(Key(it._Node()), Kfn(val)))
             {
                 return pairib(Insert_at(addLeft, node, std::forward<_Ty>(val), newNode), true);
             }
@@ -606,7 +609,7 @@ namespace detail
         template <class _Ty, class _Node>
         iterator Insert_at(bool addLeft, _node_ptr parent, _Ty&& val, _Node newNode)
         {
-            assert(max_size() - 1 > size());
+            assert(max_size() - 1 >= size());
 
             _node_ptr node = Buynode_if_nil(newNode, std::forward<_Ty>(val));
 
@@ -684,7 +687,7 @@ namespace detail
             }
 
             Root()->color = _rb_color::black;
-            return iterator(node);
+            return iterator(&_val, node);
         }
     protected:
         const key_type& Kfn(const value_type& _Val) const { return (Traits::Kfn(_Val)); }
@@ -768,12 +771,12 @@ namespace detail
 
         _node_ptr Max(_node_ptr node)
         {
-            return _tree_val::Max(node);
+            return _val_type::Max(node);
         }
 
         _node_ptr Min(_node_ptr node)
         {
-            return _tree_val::Min(node);
+            return _val_type::Min(node);
         }
 
         void Erase(_node_ptr root)

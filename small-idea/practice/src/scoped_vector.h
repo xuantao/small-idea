@@ -98,22 +98,22 @@ public:
 
     iterator begin()
     {
-        return iterator(0, &_val);
+        return iterator(&_val, 0);
     }
 
     iterator end()
     {
-        return iterator(Next(), &_val);
+        return iterator(&_val, Next());
     }
 
     const_iterator cbegin() const
     {
-        return const_iterator(0, &_val);
+        return const_iterator(&_val, 0);
     }
 
     const_iterator cend() const
     {
-        return const_iterator(Next(), &_val);
+        return const_iterator(&_val, _val._next);
     }
 
 public:
@@ -144,22 +144,22 @@ public:
     iterator insert(const_iterator position, size_type n, _Ty&& val)
     {
         difference_type idx = position - begin();
-        assert(n < capacity() - size() && "not any more space");
+        assert(n <= capacity() - size() && "not any more space");
         assert(idx >= 0 && idx <= Next() && "invalid param in insert");
 
         // move
-        for (size_type i = Next() - idx + n; i > 0; --i)
+        for (difference_type i = Next() - idx - 1; i >= 0; --i)
         {
-            construct(Base()[idx + i], Base()[idx + i]);
+            construct(&Base()[idx + i], Base()[idx + n + i]);
             destruct(&Base()[idx + i]);
         }
 
         // copy construct
         for (size_type i = 0; i < n; ++i)
-            construct(Base()[idx + i], std::forward<_Ty>(val));
+            construct(&Base()[idx + i], std::forward<_Ty>(val));
 
         Next() += (difference_type)n;
-        return iterator(idx, &_val);
+        return iterator(&_val, idx);
     }
 
     iterator erase(const_iterator position)
@@ -175,18 +175,18 @@ public:
         assert(endIdx >= begIdx && endIdx <= Next() && "invalid param");
 
         // destruct
-        for (size_t i = begIdx; i < endIdx; i++)
+        for (difference_type i = begIdx; i < endIdx; i++)
             destruct(&Base()[i]);
 
         // move
-        for (size_t i = 0; i < Next() - endIdx; ++i)
+        for (difference_type i = 0; i < Next() - endIdx; ++i)
         {
             construct(&Base()[begIdx + i], Base()[endIdx + i]);
-            destruct(&Base()[endIdx + i])
+            destruct(&Base()[endIdx + i]);
         }
 
         Next() -= (endIdx - begIdx);
-        return iterator(begIdx, &_val);
+        return iterator(&_val, begIdx);
     }
 
     bool empty() const
@@ -196,7 +196,7 @@ public:
 
     size_type size() const
     {
-        return _val.empty();
+        return _val.size();
     }
 
     size_type capacity() const
