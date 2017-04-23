@@ -8,7 +8,6 @@
 #include <set>
 #include <map>
 #include "scoped_buffer.h"
-#include "scoped_obj_buffer.h"
 #include "scoped_vector.h"
 #include "scoped_set.h"
 #include "scoped_map.h"
@@ -17,13 +16,11 @@ NAMESPACE_ZH_BEGIN
 
 namespace util
 {
+    /*
+     * 分配一段域范围内有效缓存
+     * 缓存要求分配与释放必须严格保证顺序关系
+    */
     scoped_buffer allocate(size_t size);
-
-    template<class Ty, typename ...Args>
-    scoped_obj_buffer<Ty> allocate(size_t size, Args&& ...args)
-    {
-        return scoped_obj_buffer<Ty>(allocate(sizeof(Ty) * size), size, std::forward<Args>(args)...);
-    }
 
     template <class Ty>
     scoped_vector<Ty> vector(std::size_t size)
