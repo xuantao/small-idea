@@ -1,5 +1,5 @@
 #include <algorithm>
-#include "util.h"
+#include "../util.h"
 #include "test_util.h"
 
 USING_NAMESPACE_ZH;

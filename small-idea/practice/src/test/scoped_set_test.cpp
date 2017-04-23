@@ -2,8 +2,8 @@
 #include <vector>
 #include <functional>
 #include <time.h>
-#include "util.h"
-#include "scoped_set.h"
+#include "../util.h"
+#include "../scoped_set.h"
 #include "test_util.h"
 
 USING_NAMESPACE_ZH;
@@ -211,7 +211,7 @@ static void test_insert_erase()
     }
 }
 
-void test_iterator()
+static void test_iterator()
 {
     int count = 10;
     scoped_set<int> mySet = util::set<int>(count);
@@ -225,22 +225,46 @@ void test_iterator()
     auto it1 = mySet.begin();
     auto it2 = mySet.begin();
     for (; it1 != mySet.end(); ++it1, ++it2)
-    {
         assert(*it1 == *it2);
-    }
+}
+
+static void test_obj()
+{
+    scoped_set<test::Obj> set = util::set<test::Obj>(10);
+    test::Obj obj(0);           // Obj(int)
+
+    set.insert(obj);            // Obj(const Obj&)
+
+    set.insert(test::Obj(1));   // Obj(int)
+                                // Obj(Obj&& obj)
+                                // ~Obj()
+
+    set.insert(2);              // Obj(int)
+                                // Obj(Obj&& obj)
+                                // ~Obj()
+
+    set.erase(obj);             // ~Obj()
+
+    // ~Obj()
+    // ~Obj()
+    // ~Obj()
 }
 
 void scoped_set_test()
 {
     test::log(test::Tab::tab++, "scoped_set_test begin");
-
     srand((unsigned)time(nullptr));
+
     //scoped_set<int> mySet = util::set<int>(1);
     //mySet.erase(mySet.begin());   // assert(false)
     //mySet.erase(mySet.end());     // assert(false)
 
     test_insert_erase();
     test_iterator();
+
+    test::log(test::Tab::tab++, "scoped set test obj begin");
+    test_obj();
+    test::log(--test::Tab::tab, "scoped set test obj end");
 
     test::log(--test::Tab::tab, "scoped_set_test end");
 }

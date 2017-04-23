@@ -31,7 +31,7 @@ public:
     scoped_obj_buffer(scoped_buffer&& buffer, size_t count, Args&& ...args)
         : scoped_buffer(std::forward<scoped_buffer>(buffer))
     {
-        construct(args...);
+        construct(std::forward<Args>(args)...);
     }
 
     ~scoped_obj_buffer()
@@ -71,7 +71,7 @@ protected:
     {
         size_t c = count();
         for (size_t i = 0; i < c; ++i)
-            new (&get()[i]) Ty(args...);
+            new (&get()[i]) Ty(std::forward<Args>(args)...);
     }
 
     void destruct()

@@ -158,16 +158,17 @@
     <ClInclude Include="src\scoped_obj_buffer.h" />
     <ClInclude Include="src\scoped_set.h" />
     <ClInclude Include="src\scoped_vector.h" />
-    <ClInclude Include="src\test_util.h" />
+    <ClInclude Include="src\test\test_util.h" />
     <ClInclude Include="src\util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\ref_count_set_test.cpp" />
-    <ClCompile Include="src\scoped_buffer_test.cpp" />
-    <ClCompile Include="src\scoped_vector_test.cpp" />
-    <ClCompile Include="src\scope_set_test.cpp" />
-    <ClCompile Include="src\test_util.cpp" />
+    <ClCompile Include="src\test\ref_count_set_test.cpp" />
+    <ClCompile Include="src\test\scoped_buffer_test.cpp" />
+    <ClCompile Include="src\test\scoped_map_test.cpp" />
+    <ClCompile Include="src\test\scoped_set_test.cpp" />
+    <ClCompile Include="src\test\scoped_vector_test.cpp" />
+    <ClCompile Include="src\test\test_util.cpp" />
     <ClCompile Include="src\util.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

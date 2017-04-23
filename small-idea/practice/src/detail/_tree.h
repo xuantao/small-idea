@@ -184,8 +184,9 @@ namespace detail
     public:
         const _val_ptr _Val() const { return _val; }
         const _node_ptr _Node() const { return _node; }
+
     protected:
-        const _val_ptr _val;
+        _val_ptr _val;
         _node_ptr _node;
     };
 
@@ -212,7 +213,7 @@ namespace detail
 
         pointer operator->() const
         {
-            return (pointer_traits<pointer>::pointer_to(**this));
+            return (std::pointer_traits<pointer>::pointer_to(**this));
         }
 
         _my_iter& operator++()
@@ -335,19 +336,19 @@ namespace detail
         }
     public:
         // capacity
-        bool empty() const { return size() == 0 };
+        bool empty() const { return size() == 0; }
         size_type size() const { return _val._size; }
         size_type max_size() const { return _alloc.max_size() - 1; }
 
     public:
         pairib insert(const value_type& val)
         {
-            return Insert(false, val, _tree_nil());
+            return Insert_Nohint(false, val, _tree_nil());
         }
 
         pairib insert(value_type&& val)
         {
-            return Insert(false, std::forward<value_type>(val), _tree_nil());
+            return Insert_Nohint(false, std::forward<value_type>(val), _tree_nil());
         }
 
         iterator erase(const_iterator it)
@@ -572,7 +573,7 @@ namespace detail
 
     protected:
         template <class _Ty, class _Node>
-        pairib Insert(bool leftish, _Ty&& val, _Node newNode)
+        pairib Insert_Nohint(bool leftish, _Ty&& val, _Node newNode)
         {
             _node_ptr root = Root();
             _node_ptr node = Head();
@@ -606,6 +607,46 @@ namespace detail
                 Destroy_if_not_nil(newNode);
                 return pairib(it, false);
             }
+        }
+
+        template <class _Ty, class _Node>
+        iterator Insert_Hint(const_iterator it, _Ty&& val, _Node newNode)
+        {
+            const_iterator next;
+            bool leftish = false;
+            assert(it._Val() == &_val);
+
+            if (empty())
+                return Insert_at(true, Head(), std::forward<_Ty>(val), newNode);
+
+            if (it == begin())
+            {
+                if (_camp(Kfn(val), Key(it._Node())))
+                    return Insert_at(true, it._Node(), std::forward<_Ty>(val), newNode);
+            }
+            else if (it == end())
+            {
+                if (_camp(Key(Rmost()), Kfn(val)))
+                    return Insert_at(false, Rmost(), std::forward<_Ty>(val), newNode);
+            }
+            else if (_camp(Kfn(val), Key(it._Node())) &&
+                _camp(Key((--(next = it))._Node()), Kfn(val)))
+            {
+                if (next._Node()->right->nil)
+                    return Insert_at(false, next._Node(), std::forward<_Ty>(val), newNode);
+                else
+                    return Insert_at(true, it._Node(), std::forward<_Ty>(val), newNode);
+            }
+            else if (_camp(Key(it._Node()), Kfn(val)) &&
+                ((++(next = it)) == end() || _camp(Kfn(val), Key(next._Node()))))
+            {
+                if (it._Node()->right->nil)
+                    return Insert_at(false, it._Node(), std::forward<_Ty>(val), newNode);
+                else
+                    return Insert_at(true, next._Node(), std::forward<_Ty>(val), newNode);
+            }
+
+            return Insert_Nohint(leftish, std::forward<_Ty>(val), newNode).first;
         }
 
         template <class _Ty, class _Node>
@@ -691,6 +732,14 @@ namespace detail
             Root()->color = _rb_color::black;
             return iterator(&_val, node);
         }
+
+        template <class... _Ty>
+        iterator Emplace_Hint(const_iterator it, _Ty&&... val)
+        {
+            _node_ptr node = Buynode(std::forward<_Ty>(val)...);
+            return Insert_Hint(it, node->val, node);
+        }
+
     protected:
         const key_type& Kfn(const value_type& _Val) const { return (Traits::Kfn(_Val)); }
         const key_type& Key(_node_ptr node) const { return (const key_type&)Kfn(node->val); }

@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include <type_traits>
-#include "def.h"
+#include "../def.h"
 
 NAMESPACE_ZH_BEGIN
 
@@ -71,11 +71,15 @@ namespace test
             return *this;
         }
 
-        bool operator == (int d)
+        bool operator == (int d) const
         {
             return d == _d;
         }
 
+        bool operator < (const Obj& other) const
+        {
+            return _d < other._d;
+        }
     protected:
         int _d;
         int _idx;

@@ -49,5 +49,4 @@ public:
     }
 };
 
-
 NAMESPACE_ZH_END

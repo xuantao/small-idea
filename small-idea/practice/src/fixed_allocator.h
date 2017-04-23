@@ -31,7 +31,7 @@ public:
     static const size_type element_size = sizeof(_node);
 
 public:
-    fixed_allocator(void* pool, size_t size)
+    fixed_allocator(void* pool, size_type size)
         : _size(size), _root(static_cast<_node_ptr>(pool))
     {
         // build single direction list
@@ -91,7 +91,7 @@ public:
         _root = node;
     }
 
-    size_t max_size() const
+    size_type max_size() const
     {
         return _size / element_size;
     }

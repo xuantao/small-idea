@@ -68,21 +68,23 @@ public:
     }
 
 public:
-    //map_value& operator [] (const key_type& key)
-    //{
+    map_value& operator [] (const key_type& key)
+    {
+        return Try_emplace(key).first->second;
+    }
 
-    //}
-
-    //map_value& at(const key_type& key)
-    //{
-
-    //}
-
-    //const map_value& at(const key_type& key)
-    //{
-
-    //}
-
+protected:
+    template <class _Kty, class..._Ty>
+    pairib Try_emplace(_Kty&& key, _Ty&&... val)
+    {
+        iterator it = iterator(&_val, Lbound(key));
+        if (it == end() || _camp(key, Key(it._Node())))
+            return pairib(Emplace_Hint(it, std::piecewise_construct,
+                std::forward_as_tuple(std::forward<_Kty>(key)),
+                std::forward_as_tuple(std::forward<_Ty>(val)...)),
+                true);
+        return pairib(it, false);
+    }
 };
 
 NAMESPACE_ZH_END
