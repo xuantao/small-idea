@@ -1,12 +1,12 @@
 #include "../scoped_map.h"
-#include "../util.h"
+#include "../scoped.h"
 #include "test_util.h"
 
 USING_NAMESPACE_ZH;
 
 static void test_normal()
 {
-    scoped_map<int, int> map = util::map<int, int>(10);
+    scoped_map<int, int> map = scoped::map<int, int>(10);
 
     map.insert(std::make_pair(1, 1));
     map.insert(std::make_pair(2, 2));
@@ -24,7 +24,7 @@ static void test_normal()
 static void test_reference()
 {
     int count = 1000;
-    scoped_map<int, int> map = util::map<int, int>(count);
+    scoped_map<int, int> map = scoped::map<int, int>(count);
     std::map<int, int> stdMap;
     for (int i = 0; i < count; ++i)
     {

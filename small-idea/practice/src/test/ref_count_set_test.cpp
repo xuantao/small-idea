@@ -19,14 +19,14 @@ void TestRefCount()
     rfs.insert(13);
 
     printf("first visit\n");
-    rfs.traverse([](const int& v, size_t c) {
+    rfs.traverse([ ](const int& v, size_t c) {
         printf("\ton vistor v:%d, c:%lld\n", v, c);
         return true;
     });
 
     rfs.clear();
     printf("second visit\n");
-    rfs.traverse([](const int& v, size_t c) {
+    rfs.traverse([ ](const int& v, size_t c) {
         printf("\ton vistor v:%d, c:%lld\n", v, c);
         return true;
     });

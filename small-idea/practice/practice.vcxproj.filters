@@ -34,9 +34,6 @@
     <ClInclude Include="src\scoped_vector.h">
       <Filter>src\scoped</Filter>
     </ClInclude>
-    <ClInclude Include="src\util.h">
-      <Filter>src\util</Filter>
-    </ClInclude>
     <ClInclude Include="src\def.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -64,13 +61,13 @@
     <ClInclude Include="src\ref_count_set.h">
       <Filter>src\container</Filter>
     </ClInclude>
+    <ClInclude Include="src\scoped.h">
+      <Filter>src\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\util.cpp">
-      <Filter>src\util</Filter>
     </ClCompile>
     <ClCompile Include="src\test\ref_count_set_test.cpp">
       <Filter>src\test</Filter>
@@ -89,6 +86,9 @@
     </ClCompile>
     <ClCompile Include="src\test\scoped_map_test.cpp">
       <Filter>src\test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scoped.cpp">
+      <Filter>src\util</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -2,7 +2,7 @@
 #include <vector>
 #include <functional>
 #include <time.h>
-#include "../util.h"
+#include "../scoped.h"
 #include "../scoped_set.h"
 #include "test_util.h"
 
@@ -165,7 +165,7 @@ static void test_insert_erase()
     for (int i = 0; i < 20; ++i)
     {
         int count = 10 + rand() % 1000;
-        scoped_set<int> mySet = util::set<int>(count);
+        scoped_set<int> mySet = scoped::set<int>(count);
         std::set<int> stdSet;
 
         assert(mySet.max_size() == count);
@@ -214,7 +214,7 @@ static void test_insert_erase()
 static void test_iterator()
 {
     int count = 10;
-    scoped_set<int> mySet = util::set<int>(count);
+    scoped_set<int> mySet = scoped::set<int>(count);
     std::set<int> stdSet;
     for (int i = 0; i < count; ++i)
     {
@@ -230,7 +230,7 @@ static void test_iterator()
 
 static void test_obj()
 {
-    scoped_set<test::Obj> set = util::set<test::Obj>(10);
+    scoped_set<test::Obj> set = scoped::set<test::Obj>(10);
     test::Obj obj(0);           // Obj(int)
 
     set.insert(obj);            // Obj(const Obj&)

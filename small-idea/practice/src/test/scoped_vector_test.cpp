@@ -1,12 +1,12 @@
 #include <algorithm>
-#include "../util.h"
+#include "../scoped.h"
 #include "test_util.h"
 
 USING_NAMESPACE_ZH;
 
 static void test_normal()
 {
-    scoped_vector<int> vec = util::vector<int>(5);
+    scoped_vector<int> vec = scoped::vector<int>(5);
     vec.push_back(1);
     vec.push_back(2);
     vec.push_back(3);
@@ -14,11 +14,11 @@ static void test_normal()
     vec.push_back(5);
     //vec.push_back(6);   // assert, max_size
 
-    std::for_each(vec.cbegin(), vec.cend(), [](int v) {
+    std::for_each(vec.cbegin(), vec.cend(), [ ](int v) {
         test::log("test for_each v:%d", v);
     });
 
-    std::for_each(vec.begin(), vec.end(), [](int v) {
+    std::for_each(vec.begin(), vec.end(), [ ](int v) {
         test::log("test for_each v:%d", v);
     });
 
@@ -47,7 +47,7 @@ static void test_obj_move()
 {
     test::log(test::Tab::tab++, "init startup data");
     test::Obj obj;                  // test::Obj()
-    scoped_vector<test::Obj> vec = util::vector<test::Obj>(3);
+    scoped_vector<test::Obj> vec = scoped::vector<test::Obj>(3);
 
     vec.push_back(obj);             // test::Obj(const test::Obj&)
     vec.push_back(1);               // test::Obj(int)
@@ -88,7 +88,7 @@ static void test_obj_move()
 
 static void test_iterator()
 {
-    scoped_vector<int> vec = util::vector<int>(5);
+    scoped_vector<int> vec = scoped::vector<int>(5);
     vec.push_back(1);
     vec.push_back(3);
     vec.push_back(4);
@@ -129,7 +129,7 @@ static void test_iterator()
 
 static void test_const_iterator()
 {
-    scoped_vector<int> vec = util::vector<int>(5);
+    scoped_vector<int> vec = scoped::vector<int>(5);
     vec.push_back(1);
     vec.push_back(3);
     vec.push_back(4);

@@ -14,7 +14,7 @@
 
 NAMESPACE_ZH_BEGIN
 
-namespace util
+namespace scoped
 {
     /*
      * 分配一段域范围内有效缓存

@@ -118,7 +118,7 @@ private:
         for (size_t i = 0; i < size; ++i)
             over += (buffer[i] != _CHECK_VALUE) ? 1 : 0;
         // over write bytes
-        assert(over == 0);
+        assert(over == 0 && "buffer has been overrides");
     }
 #endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
     size_t align(size_t size)
@@ -129,9 +129,9 @@ private:
     }
 
 protected:
-    uint8_t _pool[N];
     size_t _alloced;
     adaptor _adaptor;
+    uint8_t _pool[N];
 };
 
 NAMESPACE_ZH_END
