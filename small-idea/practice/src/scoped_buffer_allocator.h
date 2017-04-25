@@ -61,7 +61,7 @@ public:
         if (align_size > N - _alloced)
             return scoped_buffer(nullptr, nullptr, 0);
 
-        buffer = &_pool[_alloced];
+        buffer = _pool + _alloced;
 
 #if SCOPED_ALLOCATOR_BOUNDARY_CHECK
         write_bytes(buffer + size, align_size - size);
@@ -96,7 +96,7 @@ protected:
 
         _alloced -= align_size;
 #if SCOPED_ALLOCATOR_BOUNDARY_CHECK
-        check_bytes(&_pool[_alloced] + size, align_size - size);
+        check_bytes(_pool + _alloced + size, align_size - size);
 #endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
     }
 

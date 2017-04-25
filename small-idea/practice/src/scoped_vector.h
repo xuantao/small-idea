@@ -52,7 +52,7 @@ public:
     {
         difference_type idx = Next();
         while (idx-- > 0)
-            destruct(&Base()[idx]);
+            destruct(Base() + idx);
         Next() = 0;
     }
 
@@ -76,7 +76,7 @@ public:
 
     const_reference operator [] (difference_type idx) const
     {
-        return const_cast<scoped_vector*>(this)->operator [](idx);
+        return const_cast<_my_type*>(this)->operator [](idx);
     }
 
     reference front()
@@ -87,7 +87,7 @@ public:
 
     const_reference front() const
     {
-        return const_cast<scoped_vector*>(this)->front();
+        return const_cast<_my_type*>(this)->front();
     }
 
     reference back()
@@ -98,7 +98,7 @@ public:
 
     const_reference back() const
     {
-        return const_cast<scoped_vector*>(this)->back();
+        return const_cast<_my_type*>(this)->back();
     }
 
     iterator begin()
@@ -127,7 +127,7 @@ public:
     {
         assert(capacity() > size() && "not any more space");
 
-        construct(&Base()[Next()], std::forward<_Ty>(val));
+        construct(Base() + Next(), std::forward<_Ty>(val));
         ++Next();
     }
 
@@ -136,7 +136,7 @@ public:
         assert(!empty() && "vector is empty");
 
         --Next();
-        destruct(&Base()[Next()]);
+        destruct(Base() + Next());
     }
 
     template <class _Ty>
@@ -155,13 +155,13 @@ public:
         // move
         for (difference_type i = Next() - idx - 1; i >= 0; --i)
         {
-            construct(&Base()[idx + i], Base()[idx + n + i]);
-            destruct(&Base()[idx + i]);
+            construct(Base() + idx + i, Base()[idx + n + i]);
+            destruct(Base() + idx + i);
         }
 
         // copy construct
         for (size_type i = 0; i < n; ++i)
-            construct(&Base()[idx + i], std::forward<_Ty>(val));
+            construct(Base() + idx + i, std::forward<_Ty>(val));
 
         Next() += (difference_type)n;
         return iterator(&_val, idx);
@@ -181,13 +181,13 @@ public:
 
         // destruct
         for (difference_type i = begIdx; i < endIdx; i++)
-            destruct(&Base()[i]);
+            destruct(Base() + i);
 
         // move
         for (difference_type i = 0; i < Next() - endIdx; ++i)
         {
-            construct(&Base()[begIdx + i], Base()[endIdx + i]);
-            destruct(&Base()[endIdx + i]);
+            construct(Base() + begIdx + i, Base()[endIdx + i]);
+            destruct(Base() + endIdx + i);
         }
 
         Next() -= (endIdx - begIdx);
