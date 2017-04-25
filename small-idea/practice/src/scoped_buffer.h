@@ -9,6 +9,11 @@
 
 NAMESPACE_ZH_BEGIN
 
+/*
+ * scoped buffer, 作用域范围内有效的Buffer
+ * scoped_buffer 对象用来管理和控制缓存的生命期
+ * scoped_buffer 不可以被复制/持有
+*/
 class scoped_buffer
 {
 public:
@@ -35,6 +40,7 @@ protected:
 public:
     inline void* get() const { return _buffer; }
     inline size_t size() const { return _size; }
+    inline bool empty() const { return get() == nullptr; }
 
 protected:
     void capture(scoped_buffer&& other)

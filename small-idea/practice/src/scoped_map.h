@@ -40,6 +40,11 @@ namespace detail
     };
 }
 
+/*
+ * 域范围内有效的map容器
+ * 1. 容器的大小固定不可更改, 需要在初始化是确定
+ * 2. 容器不可以被复制和持有
+*/
 template <class Kty, class Ty, class Pr = std::less<Kty> >
 class scoped_map : public detail::_tree<detail::_map_traits<Kty, Ty, Pr> >
 {

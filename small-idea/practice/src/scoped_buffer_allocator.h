@@ -13,7 +13,12 @@ template <size_t N, size_t A>
 class scoped_buffer_allocator
 {
 public:
+#if SCOPED_ALLOCATOR_BOUNDARY_CHECK
+    static const size_t capacity_size = N - A;
+#else
     static const size_t capacity_size = N;
+#endif SCOPED_ALLOCATOR_BOUNDARY_CHECK
+
     static const size_t align_size = A;
 
 protected:
@@ -54,7 +59,7 @@ public:
 #endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
 
         if (align_size > N - _alloced)
-            return scoped_buffer(&_adaptor, new uint8_t[size], size);
+            return scoped_buffer(nullptr, nullptr, 0);
 
         buffer = &_pool[_alloced];
 
@@ -86,18 +91,13 @@ protected:
             align_size += A;
 #endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
 
-        if (addres < _pool || (addres - _pool) > N)
-        {
-            delete buffer;
-        }
-        else
-        {
-            assert(addres - _pool == _alloced - align_size);
-            _alloced -= align_size;
+        assert((addres >= _pool && (addres - _pool) <= N) && "not allocate from this obj");
+        assert((addres - _pool == _alloced - align_size) && "deallocate order not as allocated");
+
+        _alloced -= align_size;
 #if SCOPED_ALLOCATOR_BOUNDARY_CHECK
-            check_bytes(&_pool[_alloced] + size, align_size - size);
+        check_bytes(&_pool[_alloced] + size, align_size - size);
 #endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
-        }
     }
 
 private:

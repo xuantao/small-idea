@@ -16,7 +16,7 @@ static char* getPointer()
     return (char*)((void*)&_allocator);
 }
 
-static void Test_FullAllocate()
+static void test_fullallocate()
 {
     scoped_buffer buff1 = _allocator.allocate(32);
     scoped_buffer buff2 = _allocator.allocate(8);
@@ -26,7 +26,7 @@ static void Test_FullAllocate()
     assert((char*)buff1.get() > getPointer() && buff1.get() < getPointer() + sizeof(_allocator));
     assert((char*)buff2.get() > getPointer() && buff2.get() < getPointer() + sizeof(_allocator));
     // system pool
-    assert(!((char*)buff3.get() > getPointer() && buff3.get() < getPointer() + sizeof(_allocator)));
+    assert(buff3.empty());
 }
 
 static void Test_StackBuffer_1()
@@ -37,22 +37,32 @@ static void Test_StackBuffer_1()
     scoped_buffer buff2 = _allocator.allocate(9);
 }
 
-static void Test_StackBuffer()
+static void test_stackbuffer()
 {
     scoped_buffer buff1(_allocator.allocate(4));
     Test_StackBuffer_1();
     scoped_buffer buff2 = _allocator.allocate(14);
 }
 
-static void Test_Overwrite()
+static void test_overwrite()
 {
     scoped_buffer buff1(_allocator.allocate(4));
     //memset(buff1.get(), 0, buff1.size() + 2);
 }
 
+static void test_order()
+{
+    /*
+    scoped_buffer* pBuff1 = new scoped_buffer(_allocator.allocate(10));
+    scoped_buffer buff2 = _allocator.allocate(10);
+    delete pBuff1;  // assert(false), deallocate order is wrong
+    */
+}
+
 void scoped_buffer_test()
 {
-    Test_FullAllocate();
-    Test_StackBuffer();
-    Test_Overwrite();
+    test_fullallocate();
+    test_stackbuffer();
+    test_overwrite();
+    test_order();
 }

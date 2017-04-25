@@ -1,5 +1,5 @@
 /*
- * scoped vector, copy from std::vector
+ * scoped vector, implement like std::vector
  * xuantao, 2017
 */
 #pragma once
@@ -9,6 +9,11 @@
 
 NAMESPACE_ZH_BEGIN
 
+/*
+ * 域范围内有效的vector容器
+ * 1. 容器的大小固定不可更改, 需要在初始化是确定
+ * 2. 容器不可以被复制和持有
+*/
 template <class Ty>
 class scoped_vector
 {

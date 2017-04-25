@@ -24,6 +24,11 @@ namespace detail
     };
 }
 
+/*
+ * 域范围内有效的set容器
+ * 1. 容器的大小固定不可更改, 需要在初始化是确定
+ * 2. 容器不可以被复制和持有
+*/
 template <class Ty, class Pr = std::less<Ty> >
 class scoped_set : public detail::_tree<detail::_set_traits<Ty, Pr> >
 {

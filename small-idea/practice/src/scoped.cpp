@@ -7,6 +7,15 @@ NAMESPACE_ZH_BEGIN
 
 namespace scoped
 {
+    class default_deallocator : public deallocator
+    {
+    public:
+        virtual void deallocate(void* buff, size_t size)
+        {
+            delete buff;
+        }
+    };
+
     typedef scoped_buffer_allocator<
         SCOPED_ALLOCATOR_BLOCK_SIZE,
         SCOPED_ALLOCATOR_ALIGN_SIZE> scoped_allocator;
@@ -21,7 +30,7 @@ namespace scoped
 
         for (auto it = s_alloc.begin(); it != s_alloc.end(); ++it)
         {
-            scoped_allocator_ptr allocator = *it;
+            scoped_allocator_ptr& allocator = *it;
             if (allocator->capacity() - allocator->size() > size)
                 return allocator->allocate(size);
         }
@@ -33,6 +42,13 @@ namespace scoped
 
     scoped_buffer allocate(size_t size)
     {
+        static default_deallocator s_default;
+        /*
+         * 超出容器最大范围, 则直接从堆里面分配
+        */
+        if (size > scoped_allocator::capacity_size)
+            return scoped_buffer(&s_default, new char[size], size);
+
         return allocate_impl(size);
     }
 }

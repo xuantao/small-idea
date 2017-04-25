@@ -1,5 +1,5 @@
 /*
- * utilities functions
+ * scoped utilities functions
  * xuantao, 2017
 */
 #pragma once

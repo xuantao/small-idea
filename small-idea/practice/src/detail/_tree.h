@@ -33,9 +33,8 @@ namespace detail
     };
 
     template <class Ty>
-    class _tree_val
+    struct _tree_val
     {
-    public:
         typedef _tree_val<Ty> _my_type;
         typedef Ty value_type;
         typedef Ty* pointer;
@@ -47,12 +46,11 @@ namespace detail
         typedef size_t size_type;
         typedef std::ptrdiff_t difference_type;
 
-    public:
-        _tree_val() : _head(nullptr), _size(0)
+        _tree_val() : head(nullptr), size(0)
         {
         }
 
-        _tree_val(_my_type&& other) : _head(other._head), _size(other._size)
+        _tree_val(_my_type&& other) : head(other._head), size(other._size)
         {
             other._head = nullptr;
             other._size = 0;
@@ -72,8 +70,8 @@ namespace detail
             return node;
         }
 
-        _node_ptr _head;
-        size_type _size;
+        _node_ptr head;
+        size_type size;
     };
 
     template <class Val>
@@ -300,7 +298,7 @@ namespace detail
 
         ~_tree()
         {
-            if (_val._head)
+            if (_val.head)
                 erase(begin(), end());
         }
 
@@ -337,7 +335,7 @@ namespace detail
     public:
         // capacity
         bool empty() const { return size() == 0; }
-        size_type size() const { return _val._size; }
+        size_type size() const { return _val.size; }
         size_type max_size() const { return _alloc.max_size() - 1; }
 
     public:
@@ -517,8 +515,8 @@ namespace detail
             _alloc.destroy(&eraseNode->val);
             _alloc.deallocate(eraseNode);
 
-            if (_val._size)
-                --_val._size;
+            if (_val.size)
+                --_val.size;
 
             return iterator(&_val, it._Node());
         }
@@ -554,7 +552,7 @@ namespace detail
             Root() = Head();
             Lmost() = Head();
             Rmost() = Head();
-            _val._size = 0;
+            _val.size = 0;
         }
 
         iterator find(const key_type& key)
@@ -656,7 +654,7 @@ namespace detail
 
             _node_ptr node = Buynode_if_nil(newNode, std::forward<_Ty>(val));
 
-            ++_val._size;
+            ++_val.size;
             node->parent = parent;
 
             if (parent == Head())
@@ -744,14 +742,14 @@ namespace detail
         const key_type& Kfn(const value_type& _Val) const { return (Traits::Kfn(_Val)); }
         const key_type& Key(_node_ptr node) const { return (const key_type&)Kfn(node->val); }
 
-        _node_ptr& Root() { return _val._head->parent; }
-        const _node_ptr& Root() const { return _val._head->parent; }
-        _node_ptr& Head() { return _val._head; }
-        const _node_ptr& Head() const { return _val._head; }
-        _node_ptr& Lmost() { return _val._head->left; }
-        const _node_ptr& Lmost() const { return _val._head->left; }
-        _node_ptr& Rmost() { return _val._head->right; }
-        const _node_ptr& Rmost() const { return _val._head->right; }
+        _node_ptr& Root() { return _val.head->parent; }
+        const _node_ptr& Root() const { return _val.head->parent; }
+        _node_ptr& Head() { return _val.head; }
+        const _node_ptr& Head() const { return _val.head; }
+        _node_ptr& Lmost() { return _val.head->left; }
+        const _node_ptr& Lmost() const { return _val.head->left; }
+        _node_ptr& Rmost() { return _val.head->right; }
+        const _node_ptr& Rmost() const { return _val.head->right; }
 
         void Lrotate(_node_ptr node)
         {
@@ -869,8 +867,8 @@ namespace detail
     protected:
         scoped_buffer _buffer;
         allocator _alloc;
-        _val_type _val;
         key_compare _camp;
+        _val_type _val;
     };
 }
 
