@@ -8,6 +8,8 @@
 
 USING_NAMESPACE_ZH;
 
+#ifdef _WINDOWS
+
 struct TreeNode
 {
     typedef const detail::_tree_node<int>* NodePtr;
@@ -249,9 +251,11 @@ static void test_obj()
     // ~Obj()
     // ~Obj()
 }
+#endif // _WINDOWS
 
 void scoped_set_test()
 {
+#ifdef _WINDOWS
     test::log(test::Tab::tab++, "scoped_set_test begin");
     srand((unsigned)time(nullptr));
 
@@ -267,4 +271,5 @@ void scoped_set_test()
     test::log(--test::Tab::tab, "scoped set test obj end");
 
     test::log(--test::Tab::tab, "scoped_set_test end");
+#endif // _WINDOWS
 }

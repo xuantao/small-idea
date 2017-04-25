@@ -10,6 +10,19 @@
 NAMESPACE_ZH_BEGIN
 
 /*
+ * 指定内存大小的对象
+*/
+template <class Ty>
+struct block_size_type
+{
+    int8_t _[sizeof(Ty)];
+};
+
+template <>
+struct block_size_type<void>
+{};
+
+/*
  * 固定大小对象内存分配器
  * 分配器持有一块内存, 将这块大的内存分割为固定大小的小块
  * 一次分配一个块内存, 当没有空间分配时返回nullptr
@@ -22,7 +35,7 @@ protected:
     union _node
     {
         _node* next;
-        uint8_t _[sizeof(Ty)];
+        block_size_type<Ty> _;
     };
     typedef _node* _node_ptr;
 public:
