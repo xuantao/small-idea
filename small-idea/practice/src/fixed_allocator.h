@@ -9,6 +9,12 @@
 
 NAMESPACE_ZH_BEGIN
 
+/*
+ * 固定大小对象内存分配器
+ * 分配器持有一块内存, 将这块大的内存分割为固定大小的小块
+ * 一次分配一个块内存, 当没有空间分配时返回nullptr
+ * 分配和释放的时间复杂度都是O(1)
+*/
 template <class Ty>
 class fixed_allocator
 {
@@ -39,7 +45,7 @@ public:
             _root[i].next = &_root[i + 1];
 
         if (max_size())
-            _root[max_size()-1].next = nullptr;
+            _root[max_size() - 1].next = nullptr;
     }
 
     fixed_allocator(fixed_allocator&& other)
