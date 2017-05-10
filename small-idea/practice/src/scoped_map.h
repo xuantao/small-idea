@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * scoped map
  * xuantao, 2017
 */
@@ -41,9 +41,9 @@ namespace detail
 }
 
 /*
- * Óò·¶Î§ÄÚÓĞĞ§µÄmapÈİÆ÷
- * 1. ÈİÆ÷µÄ´óĞ¡¹Ì¶¨²»¿É¸ü¸Ä, ĞèÒªÔÚ³õÊ¼»¯ÊÇÈ·¶¨
- * 2. ÈİÆ÷²»¿ÉÒÔ±»¸´ÖÆºÍ³ÖÓĞ
+ * åŸŸèŒƒå›´å†…æœ‰æ•ˆçš„mapå®¹å™¨
+ * 1. å®¹å™¨çš„å¤§å°å›ºå®šä¸å¯æ›´æ”¹, éœ€è¦åœ¨åˆå§‹åŒ–æ˜¯ç¡®å®š
+ * 2. å®¹å™¨ä¸å¯ä»¥è¢«å¤åˆ¶å’ŒæŒæœ‰
 */
 template <class Kty, class Ty, class Pr = std::less<Kty> >
 class scoped_map : public detail::_tree<detail::_map_traits<Kty, Ty, Pr> >

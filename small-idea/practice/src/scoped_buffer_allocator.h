@@ -1,4 +1,4 @@
-/*
+﻿/*
  * scoped buffer allocator
  * xuantao, 2017
 */
@@ -104,7 +104,7 @@ private:
 #if SCOPED_ALLOCATOR_BOUNDARY_CHECK
     static const uint8_t _CHECK_VALUE = 0xAA;
     /*
-    * ͨ����ÿ��Buff�ĺ���д��һЩ�ض��ֽ�, ���ͷ�Buff��ʱ���ж��Ƿ��޸�������Ƿ�дԽ����.
+    * 通过在每段Buff的后面写入一些特定字节, 当释放Buff的时候判断是否被修改来检测是否被写越界了.
     */
     void write_bytes(uint8_t* buffer, size_t size)
     {

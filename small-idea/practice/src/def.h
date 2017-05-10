@@ -1,4 +1,4 @@
-/*
+﻿/*
  * common type predef
  * xuantao, 2017
 */

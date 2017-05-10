@@ -1,4 +1,4 @@
-/*
+﻿/*
  * scoped vector, implement like std::vector
  * xuantao, 2017
 */
@@ -10,9 +10,9 @@
 NAMESPACE_ZH_BEGIN
 
 /*
- * ��Χ����Ч��vector����
- * 1. �����Ĵ�С�̶����ɸ���, ��Ҫ�ڳ�ʼ����ȷ��
- * 2. ���������Ա����ƺͳ���
+ * 域范围内有效的vector容器
+ * 1. 容器的大小固定不可更改, 需要在初始化是确定
+ * 2. 容器不可以被复制和持有
 */
 template <class Ty>
 class scoped_vector

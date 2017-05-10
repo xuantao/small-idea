@@ -1,4 +1,4 @@
-/*
+﻿/*
  * allocator base, for hide the implement
 */
 #pragma once

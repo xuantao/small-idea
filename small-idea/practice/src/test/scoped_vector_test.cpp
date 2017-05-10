@@ -1,4 +1,4 @@
-#include <algorithm>
+﻿#include <algorithm>
 #include "../scoped.h"
 #include "test_util.h"
 

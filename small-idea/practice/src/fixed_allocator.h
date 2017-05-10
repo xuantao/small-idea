@@ -1,4 +1,4 @@
-/*
+﻿/*
  * fixed buffer allocator
  * xuantao, 2017
 */
@@ -10,7 +10,7 @@
 NAMESPACE_ZH_BEGIN
 
 /*
- * ָ���ڴ��С�Ķ���
+ * 指定内存大小的对象
 */
 template <class Ty>
 struct block_size_type
@@ -23,10 +23,10 @@ struct block_size_type<void>
 {};
 
 /*
- * �̶���С�����ڴ������
- * ����������һ���ڴ�, ��������ڴ�ָ�Ϊ�̶���С��С��
- * һ�η���һ�����ڴ�, ��û�пռ����ʱ����nullptr
- * ������ͷŵ�ʱ�临�Ӷȶ���O(1)
+ * 固定大小对象内存分配器
+ * 分配器持有一块内存, 将这块大的内存分割为固定大小的小块
+ * 一次分配一个块内存, 当没有空间分配时返回nullptr
+ * 分配和释放的时间复杂度都是O(1)
 */
 template <class Ty>
 class fixed_allocator

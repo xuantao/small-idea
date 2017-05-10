@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * scoped buffer
  * xuantao, 2017
 */
@@ -10,9 +10,9 @@
 NAMESPACE_ZH_BEGIN
 
 /*
- * scoped buffer, ×÷ÓÃÓò·¶Î§ÄÚÓĞĞ§µÄBuffer
- * scoped_buffer ¶ÔÏóÓÃÀ´¹ÜÀíºÍ¿ØÖÆ»º´æµÄÉúÃüÆÚ
- * scoped_buffer ²»¿ÉÒÔ±»¸´ÖÆ/³ÖÓĞ
+ * scoped buffer, ä½œç”¨åŸŸèŒƒå›´å†…æœ‰æ•ˆçš„Buffer
+ * scoped_buffer å¯¹è±¡ç”¨æ¥ç®¡ç†å’Œæ§åˆ¶ç¼“å­˜çš„ç”Ÿå‘½æœŸ
+ * scoped_buffer ä¸å¯ä»¥è¢«å¤åˆ¶/æŒæœ‰
 */
 class scoped_buffer
 {

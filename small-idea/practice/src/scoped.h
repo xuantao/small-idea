@@ -1,4 +1,4 @@
-/*
+﻿/*
  * scoped utilities functions
  * xuantao, 2017
 */
@@ -17,8 +17,8 @@ NAMESPACE_ZH_BEGIN
 namespace scoped
 {
     /*
-     * ����һ����Χ����Ч����
-     * ����Ҫ��������ͷű����ϸ�֤˳���ϵ
+     * 分配一段域范围内有效缓存
+     * 缓存要求分配与释放必须严格保证顺序关系
     */
     scoped_buffer allocate(size_t size);
 

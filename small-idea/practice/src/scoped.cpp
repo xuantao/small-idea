@@ -1,4 +1,4 @@
-#include <vector>
+ï»¿#include <vector>
 #include <memory>
 #include "scoped.h"
 #include "scoped_buffer_allocator.h"
@@ -22,7 +22,7 @@ namespace scoped
     typedef std::auto_ptr<scoped_allocator> scoped_allocator_ptr;
 
 #if SCOPED_ALLOCATOR_MULTITHREAD
-    //TODO: ÔÚÕâÀïÌí¼Ó¶àÏß³ÌÖ§³Ö
+    //TODO: åœ¨è¿™é‡Œæ·»åŠ å¤šçº¿ç¨‹æ”¯æŒ
 #else
     scoped_buffer allocate_impl(size_t size)
     {
@@ -44,7 +44,7 @@ namespace scoped
     {
         static default_deallocator s_default;
         /*
-         * ³¬³öÈÝÆ÷×î´ó·¶Î§, ÔòÖ±½Ó´Ó¶ÑÀïÃæ·ÖÅä
+         * è¶…å‡ºå®¹å™¨æœ€å¤§èŒƒå›´, åˆ™ç›´æŽ¥ä»Žå †é‡Œé¢åˆ†é…
         */
         if (size > scoped_allocator::capacity_size)
             return scoped_buffer(&s_default, new char[size], size);

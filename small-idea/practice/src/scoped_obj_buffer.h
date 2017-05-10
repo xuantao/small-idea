@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * scoped objects buffer
  * xuantao, 2017
 */
@@ -8,7 +8,7 @@
 
 NAMESPACE_ZH_BEGIN
 /*
-* ÓÃscoped_buffer¹¹ÔìµÄObjÊý×é
+* ç”¨scoped_bufferæž„é€ çš„Objæ•°ç»„
 */
 template <class Ty>
 class scoped_obj_buffer : public scoped_buffer
