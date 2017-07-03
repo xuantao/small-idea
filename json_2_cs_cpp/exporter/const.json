@@ -1,0 +1,67 @@
+﻿{
+  "nomal": "xuntao",
+
+  "objNrmal": {
+    "a": 1,
+    "b": 2,
+    "c": [
+      [ 1 ],
+      [ 2 ]
+    ]
+  },
+
+  "objComplex": {
+    "mem1": {
+      "a": 1,
+      "b": 2
+    },
+    "mem2": {
+      "a": 1,
+      "b": 2
+    }
+  },
+
+  "arrayEmpty": [
+
+  ],
+
+  "arrayNormal": [
+    1,
+    2,
+    3
+  ],
+
+  "arrayObj": [
+    {
+      "a": 1,
+      "b": 2
+    },
+    {
+      "a": 1,
+      "b": 2
+    }
+  ],
+
+  "arrayObjComplex": [
+    {
+      "a": 1,
+      "b": 2
+    },
+    {
+      "a": 1,
+      "b": 2,
+      "c": false
+    },
+    {
+      "d": {
+        "d1": 0.1,
+        "d2": "xuantao"
+      }
+    }
+  ],
+
+  "arrayDouble": [
+    [ 1, 2, 3 ],
+    [ 2, 3 ]
+  ]
+}
