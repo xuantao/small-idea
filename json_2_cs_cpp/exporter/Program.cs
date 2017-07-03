@@ -37,7 +37,16 @@ namespace test_cs_idea
             if (report == null)
                 return;
 
+            StringBuilder builderHelder = new StringBuilder();
+            StringWriter header = new StringWriter(builderHelder);
+            StringBuilder builderCpp = new StringBuilder();
+            StringWriter cpp = new StringWriter(builderCpp);
+
             CppExporter.Export(Console.Out, Console.Out, "Config", report);
+            CppExporter.Export(header, cpp, "Config", report);
+
+            File.WriteAllText("Config.h", builderHelder.ToString(), Encoding.UTF8);
+            File.WriteAllText("Config.cpp", builderCpp.ToString(), Encoding.UTF8);
         }
 
         static void Main(string[] args)

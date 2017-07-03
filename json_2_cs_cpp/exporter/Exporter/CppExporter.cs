@@ -66,7 +66,17 @@ public class CppExporter
                 WriteTab(1);
                 _writer.WriteLine("{");
 
-                DefineMember(declear, 2);
+                if (declear.Members.Length > 0)
+                {
+                    WriteTab(2);
+                    _writer.WriteLine("{0}()", declear.Type);
+                    WriteConstructor(declear, 3);
+                    WriteTab(2);
+                    _writer.WriteLine("{}");
+                    _writer.WriteLine();
+
+                    DefineMember(declear, 2);
+                }
 
                 WriteTab(1);
                 _writer.WriteLine("};");
@@ -85,7 +95,7 @@ public class CppExporter
         _writer.WriteLine();
         _writer.WriteLine("public:");
         WriteTab(1);
-        _writer.WriteLine("bool LoadJson(const char* lpData, int nSize);");
+        _writer.WriteLine("bool LoadJson(const char* lpJson, int nSize);");
 
         // define member data
         if (_root.Members.Length > 0)
@@ -97,7 +107,6 @@ public class CppExporter
         }
 
         _writer.WriteLine("};");
-        _writer.WriteLine();
     }
 
     void DefineMember(IDeclear declear, int tab)
@@ -112,17 +121,17 @@ public class CppExporter
     void ExportCpp()
     {
         _writer.WriteLine("#include \"{0}.h\"", _name);
-        _writer.WriteLine("#include <libjson.h>");
+        _writer.WriteLine("#include <json/reader.h>");
         _writer.WriteLine();
 
         foreach (var declear in _manuals)
         {
-            _writer.WriteLine("static bool sLoad(const JSONNode& node, {0}::{1}& ret);", _name, declear.Type);
+            _writer.WriteLine("static bool sLoad(const Json::Value& node, {0}::{1}& ret);", _name, declear.Type);
         }
 
         foreach (var pair in _cppArrays)
         {
-            _writer.WriteLine("static bool sLoad(const JSONNode& node, {1}& ret);", _name, pair.Type);
+            _writer.WriteLine("static bool sLoad(const Json::Value& node, {1}& ret);", _name, pair.Type);
         }
 
         foreach (var declear in _manuals)
@@ -136,13 +145,18 @@ public class CppExporter
             _writer.WriteLine();
             WriteArrayLoader(pair.Declear, pair.Type, 0);
         }
-
         _writer.WriteLine();
 
+        WriteLoader();
     }
 
     void WriteLoader()
     {
+        _writer.WriteLine("{0}::{0}()", _name);
+        WriteConstructor(_root, 1);
+        _writer.WriteLine("{}");
+        _writer.WriteLine();
+
         _writer.WriteLine("bool {0}::LoadJson(const char* lpJson, int nSize)", _name);
         _writer.WriteLine("{");
 
@@ -150,8 +164,20 @@ public class CppExporter
         _writer.WriteLine("if (lpJson == null)");
         WriteTab(2);
         _writer.WriteLine("return false;");
+        _writer.WriteLine();
 
+        WriteTab(1);
+        _writer.WriteLine("Json:Value root;");
+        WriteTab(1);
+        _writer.WriteLine("Json:Reader reader;");
 
+        WriteTab(1);
+        _writer.WriteLine("if (!reader.parse(std::string(lpJson, nSize), root, false))");
+        WriteTab(2);
+        _writer.WriteLine("return false;");
+        _writer.WriteLine();
+
+        WriteObjLoaderImpl(_root, "root", 1);
 
         WriteTab(1);
         _writer.WriteLine("return true;");
@@ -161,7 +187,7 @@ public class CppExporter
     void WriteObjLoader(IDeclear declear, int tab)
     {
         WriteTab(tab);
-        _writer.WriteLine("static bool sLoad(const JSONNode& node, {0}::{1}& ret)", _name, declear.Type);
+        _writer.WriteLine("static bool sLoad(const Json::Value& node, {0}::{1}& ret)", _name, declear.Type);
 
         WriteTab(tab);
         _writer.WriteLine("{");
@@ -175,41 +201,7 @@ public class CppExporter
             return;
         }
 
-        WriteTab(tab + 1);
-        _writer.WriteLine("if (node.type() != JSON_NODE)");
-        WriteTab(tab + 2);
-        _writer.WriteLine("return false;");
-        _writer.WriteLine();
-
-        WriteTab(tab + 1);
-        _writer.WriteLine("for (JSONNode::const_iterator it = node.begin(); it != node.end(); ++it)");
-        WriteTab(tab + 1);
-        _writer.WriteLine("{");
-
-        WriteTab(tab + 2);
-        _writer.WriteLine("std::string node_name = it->name();");
-
-        bool bFirst = true;
-        foreach (var mem in declear.Members)
-        {
-            WriteTab(tab + 2);
-            if (!bFirst)
-                _writer.Write("else ");
-            _writer.WriteLine("if (node_name == \"{0}\")", mem.Key);
-            bFirst = false;
-
-            WriteTab(tab + 2);
-            _writer.WriteLine("{");
-            if (mem.DeclearType == DeclearType.Basic)
-                LoadBasic(mem, tab + 3, "(*it)", string.Format("ret.{0}", mem.Key));
-            else
-                LoadObj(mem, tab + 3, "(*it)", string.Format("ret.{0}", mem.Key));
-            WriteTab(tab + 2);
-            _writer.WriteLine("}");
-        }
-
-        WriteTab(tab + 1);
-        _writer.WriteLine("}");
+        WriteObjLoaderImpl(declear, "node", tab + 1);
 
         _writer.WriteLine();
         WriteTab(tab + 1);
@@ -219,16 +211,55 @@ public class CppExporter
         _writer.WriteLine("}");
     }
 
+    void WriteObjLoaderImpl(IDeclear declear, string node, int tab)
+    {
+        WriteTab(tab);
+        _writer.WriteLine("if ({0}.type() != Json::ValueType::objectValue)", node);
+        WriteTab(tab + 1);
+        _writer.WriteLine("return false;");
+        _writer.WriteLine();
+
+        WriteTab(tab);
+        _writer.WriteLine("for (Json::Value::const_iterator it = {0}.begin(); it != {0}.end(); ++it)", node);
+        WriteTab(tab);
+        _writer.WriteLine("{");
+
+        WriteTab(tab + 1);
+        _writer.WriteLine("std::string name = it->name();");
+
+        bool bFirst = true;
+        foreach (var mem in declear.Members)
+        {
+            WriteTab(tab + 1);
+            if (!bFirst)
+                _writer.Write("else ");
+            _writer.WriteLine("if (name == \"{0}\")", mem.Key);
+            bFirst = false;
+
+            WriteTab(tab + 1);
+            _writer.WriteLine("{");
+            if (mem.DeclearType == DeclearType.Basic)
+                LoadBasic(mem, tab + 2, "(*it)", string.Format("ret.{0}", mem.Key));
+            else
+                LoadObj(mem, tab + 2, "(*it)", string.Format("ret.{0}", mem.Key));
+            WriteTab(tab + 1);
+            _writer.WriteLine("}");
+        }
+
+        WriteTab(tab);
+        _writer.WriteLine("}");
+    }
+
     void WriteArrayLoader(IDeclear declear, string type, int tab)
     {
         WriteTab(tab);
-        _writer.WriteLine("static bool sLoad(const JSONNode& node, {0}& ret)", type);
+        _writer.WriteLine("static bool sLoad(const Json::Value& node, {0}& ret)", type);
 
         WriteTab(tab);
         _writer.WriteLine("{");
 
         WriteTab(tab + 1);
-        _writer.WriteLine("if (node.type() != JSON_ARRAY)");
+        _writer.WriteLine("if (node.type() != Json::ValueType::arrayValue)");
         WriteTab(tab + 2);
         _writer.WriteLine("return false;");
         _writer.WriteLine();
@@ -240,9 +271,15 @@ public class CppExporter
 
         IDeclear real = declear.Members[0];
         if (real.DeclearType == DeclearType.Basic)
-            LoadBasic(real, tab + 2, "node[i]", "ret[i]");
+        {
+            WriteTab(tab + 2);
+            _writer.WriteLine("const Json::Value& child = node[i];");
+            LoadBasic(real, tab + 2, "child", "ret[i]");
+        }
         else
+        {
             LoadObj(real, tab + 2, "node[i]", "ret[i]");
+        }
 
         WriteTab(tab + 1);
         _writer.WriteLine("}");
@@ -255,35 +292,66 @@ public class CppExporter
         _writer.WriteLine("}");
     }
 
+    void WriteConstructor(IDeclear declear, int tab)
+    {
+        bool bFirst = true;
+        List<IDeclear> basicList = new List<IDeclear>();
+        foreach (var mem in declear.Members)
+        {
+            if (mem.DeclearType != DeclearType.Basic || mem.Type == "string")
+                continue;
+
+            WriteTab(tab);
+            if (bFirst)
+            {
+                bFirst = false;
+                _writer.Write(": ");
+            }
+            else
+            {
+                _writer.Write(", ");
+            }
+
+            _writer.Write("{0}(", mem.Key);
+            if (mem.Type == "int" || mem.Type == "long")
+                _writer.Write("0");
+            else if (mem.Type == "bool")
+                _writer.Write("false");
+            else if (mem.Type == "float")
+                _writer.Write("0.0f");
+            _writer.WriteLine(")");
+        }
+    }
+
     void LoadBasic(IDeclear declear, int tab, string node, string ret)
     {
         if (declear.Type == "int" || declear.Type == "long")
         {
             WriteTab(tab);
-            _writer.WriteLine("if ({0}.type() == JSON_NUMBER)", node);
+            _writer.WriteLine("if ({0}.type() == Json::ValueType::intValue || {0}.type() == Json::ValueType::uintValue)", node);
             WriteTab(tab + 1);
-            _writer.WriteLine("{0} = {1}.as_int();", ret, node);
+            _writer.WriteLine("{0} = {1}.asInt();", ret, node);
         }
         else if (declear.Type == "bool")
         {
             WriteTab(tab);
-            _writer.WriteLine("if ({0}.type() == JSON_BOOL)", node);
+            _writer.WriteLine("if ({0}.type() == Json::ValueType::booleanValue)", node);
             WriteTab(tab + 1);
-            _writer.WriteLine("{0} = {1}.as_bool();", ret, node);
+            _writer.WriteLine("{0} = {1}.asBool();", ret, node);
         }
         else if (declear.Type == "float")
         {
             WriteTab(tab);
-            _writer.WriteLine("if ({0}.type() == JSON_NUMBER)", node);
+            _writer.WriteLine("if ({0}.type() == Json::ValueType::realValue)", node);
             WriteTab(tab + 1);
-            _writer.WriteLine("{0} = {1}.as_float();", ret, node);
+            _writer.WriteLine("{0} = (flaot){1}.asDouble();", ret, node);
         }
         else if (declear.Type == "string")
         {
             WriteTab(tab);
-            _writer.WriteLine("if ({0}.type() == JSON_STRING)", node);
+            _writer.WriteLine("if ({0}.type() == Json::ValueType::stringValue)", node);
             WriteTab(tab + 1);
-            _writer.WriteLine("{0} = {1}.as_string();", ret, node);
+            _writer.WriteLine("{0} = {1}.asString();", ret, node);
         }
     }
 
@@ -364,7 +432,7 @@ public class CppExporter
         AnalysisCppTypes();
 
         _writer = _header;
-        //ExportHeader();
+        ExportHeader();
 
         _writer = _cpp;
         ExportCpp();
