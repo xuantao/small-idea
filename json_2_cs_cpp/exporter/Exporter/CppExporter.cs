@@ -85,11 +85,10 @@ public class CppExporter
             //_writer.WriteLine();
         }
 
-        // define constructer
+        // define constructor
         _writer.WriteLine("public:");
         WriteTab(1);
         _writer.WriteLine("{0}();", _name);
-        //_writer.WriteLine("~{0}() {}", _name);
 
         // define loader member function
         _writer.WriteLine();
@@ -131,7 +130,7 @@ public class CppExporter
 
         foreach (var pair in _cppArrays)
         {
-            _writer.WriteLine("static bool sLoad(const Json::Value& node, {1}& ret);", _name, pair.Type);
+            _writer.WriteLine("static bool sLoad(const Json::Value& node, {0}& ret);", pair.Type);
         }
 
         foreach (var declear in _manuals)
@@ -161,15 +160,15 @@ public class CppExporter
         _writer.WriteLine("{");
 
         WriteTab(1);
-        _writer.WriteLine("if (lpJson == null)");
+        _writer.WriteLine("if (lpJson == nullptr)");
         WriteTab(2);
         _writer.WriteLine("return false;");
         _writer.WriteLine();
 
         WriteTab(1);
-        _writer.WriteLine("Json:Value root;");
+        _writer.WriteLine("Json::Value root;");
         WriteTab(1);
-        _writer.WriteLine("Json:Reader reader;");
+        _writer.WriteLine("Json::Reader reader;");
 
         WriteTab(1);
         _writer.WriteLine("if (!reader.parse(std::string(lpJson, nSize), root, false))");
@@ -177,7 +176,7 @@ public class CppExporter
         _writer.WriteLine("return false;");
         _writer.WriteLine();
 
-        WriteObjLoaderImpl(_root, "root", 1);
+        WriteObjLoaderImpl(_root, "root", "", 1);
 
         WriteTab(1);
         _writer.WriteLine("return true;");
@@ -201,7 +200,7 @@ public class CppExporter
             return;
         }
 
-        WriteObjLoaderImpl(declear, "node", tab + 1);
+        WriteObjLoaderImpl(declear, "node", "ret", tab + 1);
 
         _writer.WriteLine();
         WriteTab(tab + 1);
@@ -211,43 +210,35 @@ public class CppExporter
         _writer.WriteLine("}");
     }
 
-    void WriteObjLoaderImpl(IDeclear declear, string node, int tab)
+    void WriteObjLoaderImpl(IDeclear declear, string node, string ret, int tab)
     {
         WriteTab(tab);
         _writer.WriteLine("if ({0}.type() != Json::ValueType::objectValue)", node);
         WriteTab(tab + 1);
         _writer.WriteLine("return false;");
-        _writer.WriteLine();
 
-        WriteTab(tab);
-        _writer.WriteLine("for (Json::Value::const_iterator it = {0}.begin(); it != {0}.end(); ++it)", node);
-        WriteTab(tab);
-        _writer.WriteLine("{");
+        if (!string.IsNullOrEmpty(ret))
+            ret += ".";
 
-        WriteTab(tab + 1);
-        _writer.WriteLine("std::string name = it->name();");
-
-        bool bFirst = true;
         foreach (var mem in declear.Members)
         {
-            WriteTab(tab + 1);
-            if (!bFirst)
-                _writer.Write("else ");
-            _writer.WriteLine("if (name == \"{0}\")", mem.Key);
-            bFirst = false;
+            _writer.WriteLine();
+            WriteTab(tab);
+            _writer.WriteLine("if ({0}.isMember(\"{1}\"))", node, mem.Key);
+            WriteTab(tab);
+            _writer.WriteLine("{");
 
             WriteTab(tab + 1);
-            _writer.WriteLine("{");
+            _writer.WriteLine("const Json::Value& mem = {0}[\"{1}\"];", node, mem.Key);
+
             if (mem.DeclearType == DeclearType.Basic)
-                LoadBasic(mem, tab + 2, "(*it)", string.Format("ret.{0}", mem.Key));
+                LoadBasic(mem, tab + 1, "mem", string.Format("{0}{1}", ret, mem.Key));
             else
-                LoadObj(mem, tab + 2, "(*it)", string.Format("ret.{0}", mem.Key));
-            WriteTab(tab + 1);
+                LoadObj(mem, tab + 1, "mem", string.Format("{0}{1}", ret, mem.Key));
+            WriteTab(tab);
+
             _writer.WriteLine("}");
         }
-
-        WriteTab(tab);
-        _writer.WriteLine("}");
     }
 
     void WriteArrayLoader(IDeclear declear, string type, int tab)
@@ -265,7 +256,9 @@ public class CppExporter
         _writer.WriteLine();
 
         WriteTab(tab + 1);
-        _writer.WriteLine("for (int i = 0; i < node.size(); ++i)");
+        _writer.WriteLine("ret.resize(node.size());");
+        WriteTab(tab + 1);
+        _writer.WriteLine("for (int i = 0; i < (int)node.size(); ++i)");
         WriteTab(tab + 1);
         _writer.WriteLine("{");
 
@@ -344,7 +337,7 @@ public class CppExporter
             WriteTab(tab);
             _writer.WriteLine("if ({0}.type() == Json::ValueType::realValue)", node);
             WriteTab(tab + 1);
-            _writer.WriteLine("{0} = (flaot){1}.asDouble();", ret, node);
+            _writer.WriteLine("{0} = (float){1}.asDouble();", ret, node);
         }
         else if (declear.Type == "string")
         {
@@ -422,8 +415,19 @@ public class CppExporter
         }
         else
         {
+            
             _dicVector.Add(declear.Type, string.Format("std::vector<{0}>", real));
-            _cppArrays.Add(new ArrayType(declear, string.Format("std::vector<{0}::{1}>", _name, real)));
+            if (declear.Members[0].DeclearType == DeclearType.Basic)
+            {
+                if (declear.Members[0].Type == "string")
+                    _cppArrays.Add(new ArrayType(declear, string.Format("std::vector<std::string>")));
+                else
+                    _cppArrays.Add(new ArrayType(declear, string.Format("std::vector<{0}>",real)));
+            }
+            else
+            {
+                _cppArrays.Add(new ArrayType(declear, string.Format("std::vector<{0}::{1}>", _name, real)));
+            }
         }
     }
 
@@ -439,12 +443,12 @@ public class CppExporter
         return true;
     }
 
-    public static bool Export(TextWriter header, TextWriter cpp, string name, JsonReport report)
+    public static bool Export(TextWriter header, TextWriter cpp, string className, JsonReport report)
     {
         if (report == null || report.Root == null)
             return false;
 
-        CppExporter exportor = new CppExporter(header, cpp, name, report);
+        CppExporter exportor = new CppExporter(header, cpp, className, report);
         return exportor.Export();
     }
 }
