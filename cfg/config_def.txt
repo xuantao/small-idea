@@ -1,0 +1,43 @@
+struct Type1
+{
+	int	a = 1;
+	int	b = 2;
+};
+
+struct Typ2 : Type1
+{
+	float	c = 0.1;
+	server string	d = "xuantao";
+};
+
+enum Def
+{
+	emBool,
+	emInt,
+	emFloat,
+	emLong,
+	emString,
+};
+
+json JsCfg
+{
+	
+};
+
+tab TabCfg
+{
+	/*
+	 * 注释
+	 * 定义
+	 * 名称
+	 * 作用域
+	 * 默认值
+	*/
+	//[域]	 	[键]	[类]	[定义]	[默认值]	[注释]
+	client		key 	int 	ID = 	0;			<模板ID>
+};
+
+ini IniCfg
+{
+	
+};
