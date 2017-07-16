@@ -9,7 +9,7 @@ void unrecognized_char(char c);
 
 /* note \042 is '"' */
 
-OPERATOR     ([-/+*()=,;{}])
+OPERATOR     ([-/+*()=,:;{}\[\]])
 INTEGER      ([0-9]+)
 STRING       (\042[^\042\n]*\042)
 IDENTIFIER   ([_a-zA-Z][_a-zA-Z0-9]*)

@@ -1,0 +1,16 @@
+
+Identifier      : T_IDENTIFIER      { printf("%s", $1); }
+                ;
+
+BoolValue       : T_CONSTANT_FALSE  { printf("bool value:false\n"); }
+                | T_CONSTANT_TRUE   { printf("bool value:true\n"); }
+                ;
+
+IntValue        : T_CONSTANT_INT    { printf("int value:%s\n", $1); }
+                ;
+
+FloatValue      : T_CONSTANT_INT    { printf("float value:%s\n", $1); }
+                ;
+
+StringValue     : T_CONSTANT_STRING { printf("string value:%s\n", $1); }
+                ;
