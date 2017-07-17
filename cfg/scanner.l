@@ -7,13 +7,12 @@ void unrecognized_char(char c);
 #define _DUPTEXT { yylval = strdup(yytext); }
 %}
 
-/* note \042 is '"' */
-
-OPERATOR     ([-/+*()=,:;{}\[\]])
+OPERATOR     ([-/+*()=,:;{}\[\]\.])
 INTEGER      ([0-9]+)
-STRING       (\042[^\042\n]*\042)
+FLOAT        ([0-9]*\.?[0-9]+[fF]?)
+STRING       (\"[^\"\n]*\")
 IDENTIFIER   ([_a-zA-Z][_a-zA-Z0-9]*)
-WHITESPACE   ([ \t]*)
+WHITESPACE   ([ \t\r\a]*)
 
 %%
 {OPERATOR}    { return yytext[0]; }
@@ -27,6 +26,7 @@ WHITESPACE   ([ \t]*)
 "false"       { return T_CONSTANT_FALSE;  }
 
 {INTEGER}     { _DUPTEXT; return T_CONSTANT_INT;       }
+{FLOAT}       { _DUPTEXT; return T_CONSTANT_FLOAT;     }
 {STRING}      { _DUPTEXT; return T_CONSTANT_STRING;    }
 {IDENTIFIER}  { _DUPTEXT; return T_IDENTIFIER;         }
 
