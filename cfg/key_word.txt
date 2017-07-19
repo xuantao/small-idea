@@ -1,0 +1,31 @@
+-basic types:
+bool    -CPP: bool          C#: bool
+int     -CPP: int32_t       C#: int
+float   -CPP: float         C#: float
+string  -CPP: std::string   C#: string
+
+-user define:
+struct  -CPP: struct        C#: class
+enum    -CPP: enum          C#: enum
+
+-scope types:
+shared  - all
+client  - client only
+server  - server only
+
+-key words:
+key     - only for tab file, the key of the element
+
+-symbol:
+:       - type inherit, only struct can inherit from other struct
+<>      - comment
+[]      - array define
+
+-comments:
+//      -- like C style
+/**/    -- like C style
+
+-config define:
+tab
+ini
+json
