@@ -1,14 +1,18 @@
 /* for test c++ scanner */
 
-%{ /* top code define */
-
+%top{
+#include <stdint.h>
 #include <iostream>
 #include <string>
-
 #define YY_NO_UNISTD_H
+}
+
+%{
+
+#include "scanner.h"
 
 int line = 0;
-void unrecognized_char(char c)
+void unrecognized_char(char c);
 
 %}
 
@@ -22,23 +26,42 @@ void unrecognized_char(char c)
 %option batch
 %option debug
 %option stack
+%option yylineno
 
 %x INCL
+%x COMMENT
+%x COMMENT_LINES
 
-IDENTIFIER   ([_a-zA-Z][_a-zA-Z0-9]*)
+FILE   ([_a-zA-Z/]\.*[_a-zA-Z0-9]*\.?[_a-zA-Z0-9])
 
 %%
-include         { BEGIN(INCL); }
+^[ \t]*#[ \t]*include         { BEGIN(INCL); }
 
 <INCL>{
-    "<"{IDENTIFIER}">"  { printf("include %s\n", yytext); }
-    \"{IDENTIFIER}\"    { printf("include %s\n", yytext); }
+    "<"{FILE}">"  { printf("include %s\n", yytext); }
+    \"{FILE}\"    { printf("include %s\n", yytext); }
     [ \r\t]             { }
-    \n                  { ++line; BEGIN(INITIAL);  printf("Start include file\n"); }
+    \n                  { ++line; BEGIN(INITIAL); }
     .                   { unrecognized_char(yytext[0]); }
 }
 
-\n              { ++ line; }
+ /* 多行注释 */
+"/*"            { BEGIN(COMMENT_LINES); printf("多行注释开始\n"); }
+<COMMENT_LINES>{
+    "*/"        { BEGIN(INITIAL); printf("多行注释结束\n"); }
+    \n          { ++line; }
+    .           { }
+    <<EOF>>     { /* error */ return 0; }
+}
+
+ /* 单行注释 */
+[/]{2,}         { BEGIN(COMMENT); printf("单行注释开始\n");  }
+<COMMENT>{
+    \n          { BEGIN(INITIAL); printf("单行注释结束\n");  }
+    .           { }
+}
+
+\n              { ++line; }
 .               { }
 <<EOF>>         { return 0; }
 %%
@@ -67,6 +90,10 @@ namespace zh {
     }
 }
 */
+int zhFlexLexer::yylex()
+{
+    return 0;
+}
 int zhFlexLexer::yywrap()
 {
     return 1;

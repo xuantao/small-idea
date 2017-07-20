@@ -4,7 +4,7 @@
 
 int main(int argc, char** argv)
 {
-    zhFlexLexer* pScanner = nullptr;
+    zh::Scanner* pScanner = nullptr;
     std::ostream* out = &std::cout;
     std::istream* in = &std::cin;
     std::ifstream file;
@@ -21,8 +21,10 @@ int main(int argc, char** argv)
         in = &file;
     }
 
-    pScanner = new zhFlexLexer(in, out);
-    pScanner->yylex();
+    pScanner = new zh::Scanner(in, out);
+    pScanner->lex();
+
+    system("pause");
 
     return 1;
 }

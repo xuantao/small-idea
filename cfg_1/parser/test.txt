@@ -1,0 +1,12 @@
+﻿
+# a	include    <stdint.h>
+b#   include "scanner.h"
+
+/**
+ * zouhi
+*/ xuantao
+
+////// xuantai
+/
+// xxxxxxxxxx
+/*
