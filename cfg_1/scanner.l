@@ -2,61 +2,72 @@
 
 %{ /* top code define */
 
+#include <iostream>
 #include <string>
-#include "scanner.h"
+
+#define YY_NO_UNISTD_H
+
+int line = 0;
+void unrecognized_char(char c)
 
 %}
 
 /* flex options */
 %option c++
-/* %option prefix="zh" */
+
+/* zhFlexLexer */
+%option prefix="zh"
+
+/* optimize */
 %option batch
 %option debug
 %option stack
 
-/* note \042 is '"' */
+%x INCL
 
-OPERATOR     ([-/+*()=,:;{}\[\]])
-INTEGER      ([0-9]+)
-STRING       (\042[^\042\n]*\042)
 IDENTIFIER   ([_a-zA-Z][_a-zA-Z0-9]*)
-WHITESPACE   ([ \t]*)
 
 %%
-{OPERATOR}    { return yytext[0]; }
-"enum"        { return T_ENUM;    }
-"struct"      { return T_STRUCT;  }
-"int"         { return T_INT;     }
-"string"      { return T_STRING;  }
-"bool"        { return T_BOOL;    }
-"float"       { return T_FLOAT;   }
-"true"        { return T_CONSTANT_TRUE;   }
-"false"       { return T_CONSTANT_FALSE;  }
+include         { BEGIN(INCL); }
 
-{INTEGER}     { _DUPTEXT; return T_CONSTANT_INT;       }
-{STRING}      { _DUPTEXT; return T_CONSTANT_STRING;    }
-{IDENTIFIER}  { _DUPTEXT; return T_IDENTIFIER;         }
-
-{WHITESPACE}  { /* ignore every white space */         }
-\n            { ++ line; }
-.             { unrecognized_char(yytext[0]);          }
-%%
-
-int yywrap(void)
-{
-    return 1;
+<INCL>{
+    "<"{IDENTIFIER}">"  { printf("include %s\n", yytext); }
+    \"{IDENTIFIER}\"    { printf("include %s\n", yytext); }
+    [ \r\t]             { }
+    \n                  { ++line; BEGIN(INITIAL);  printf("Start include file\n"); }
+    .                   { unrecognized_char(yytext[0]); }
 }
+
+\n              { ++ line; }
+.               { }
+<<EOF>>         { return 0; }
+%%
 
 void unrecognized_char(char c)
 {
     char buf[32] = "Unrecognized character: }";
     buf[24] = c;
-    yyerror(buf);
+    printf("error %s\n", buf);
 }
 
-void yyerror(const char* msg)
+/*
+namespace zh {
+    Scanner::Scanner(std::istream* in, std::ostream* out)
+        : zhFlexLexer(in, out)
+    {
+    }
+
+    Scanner::~Scanner()
+    {
+    }
+
+    void Scanner::set_debug(bool b)
+    {
+        yy_flex_debug = b;
+    }
+}
+*/
+int zhFlexLexer::yywrap()
 {
-    printf("error at line:%d\n\t %s\n", line, msg);
-    exit(-1);
+    return 1;
 }
-
