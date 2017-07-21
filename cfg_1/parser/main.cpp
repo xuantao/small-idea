@@ -11,7 +11,6 @@ int main(int argc, char** argv)
     }
 
     Cfg::Scanner* pScanner = new Cfg::Scanner();
-
     if (!pScanner->Init(argv[1]))
     {
         std::cerr << "initialize scanner failed" << std::endl;

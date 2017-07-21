@@ -52,3 +52,4 @@ namespace Cfg
         FileStack  m_fileStack;
     };
 }
+

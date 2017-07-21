@@ -10,10 +10,7 @@
  /* top code define */
 %{
 #include "Scanner.h"
-
-/* #define */
-
-%}
+}
 
 /* flex options */
 %option c++
@@ -28,6 +25,7 @@
 %option yylineno
 %option noyywrap
 %option outfile="CfgFlexLexer.cpp"
+
 
 %x INCL
 %x COMMENT
@@ -76,7 +74,6 @@ REG_IDENTIFIER          ([_a-zA-Z][_a-zA-Z0-9]*)
 .               { printf("%s", yytext); }
 <<EOF>>         { if (!EndOfFile()) yyterminate(); }
 %%
-
 
 int CfgFlexLexer::yylex()
 {

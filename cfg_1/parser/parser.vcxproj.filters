@@ -16,6 +16,9 @@
     <ClCompile Include="Scanner.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="scanner_lex.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FlexLexer.h">
