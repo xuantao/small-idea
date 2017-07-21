@@ -1,28 +1,26 @@
 ﻿#include <iostream>
 #include <fstream>
-#include "scanner.h"
+#include "Scanner.h"
 
 int main(int argc, char** argv)
 {
-    zhFlexLexer* pScanner = nullptr;
-    std::ostream* out = &std::cout;
-    std::istream* in = &std::cin;
-    std::ifstream file;
-
-    if (argc > 1)
+    if (argc < 2)
     {
-        file.open(argv[1], std::ios::in);
-        if (!file.is_open())
-        {
-            printf("can not open file %s\n", argv[1]);
-            return 0;
-        }
-
-        in = &file;
+        std::cerr << "please set parser file" << std::endl;
+        return 0;
     }
 
-    pScanner = new zhFlexLexer(in, out);
-    pScanner->yylex();
+    Cfg::Scanner* pScanner = new Cfg::Scanner();
 
+    if (!pScanner->Init(argv[1]))
+    {
+        std::cerr << "initialize scanner failed" << std::endl;
+        return 0;
+    }
+
+    while (0 != pScanner->Lex())
+        ;
+
+    system("pause");
     return 1;
 }

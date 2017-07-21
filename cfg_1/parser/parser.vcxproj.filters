@@ -10,7 +10,10 @@
     <ClCompile Include="main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="scanner.cpp">
+    <ClCompile Include="CfgFlexLexer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Scanner.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -18,7 +21,7 @@
     <ClInclude Include="FlexLexer.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="scanner.h">
+    <ClInclude Include="Scanner.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
