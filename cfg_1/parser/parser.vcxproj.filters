@@ -5,6 +5,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="fb">
+      <UniqueIdentifier>{aecb4e16-1b29-43a6-96ad-b99fdd66f7ec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -54,5 +57,16 @@
     <ClInclude Include="stack.hh">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="IVariate.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="fb\parser.y">
+      <Filter>fb</Filter>
+    </None>
+    <None Include="fb\scanner.l">
+      <Filter>fb</Filter>
+    </None>
   </ItemGroup>
 </Project>
