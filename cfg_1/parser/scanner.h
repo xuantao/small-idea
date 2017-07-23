@@ -4,7 +4,6 @@
 #include <stack>
 
 #define YY_BUF_SIZE 16384
-
 #ifndef yyFlexLexer
 #define yyFlexLexer CfgFlexLexer
 #include "FlexLexer.h"
@@ -13,9 +12,9 @@
 namespace Cfg
 {
     namespace detail
-    {
-        class ScanningFile;
-    }
+    { class ScanningFile; }
+    class location;
+    class Driver;
 
     /*
      * token scanner
@@ -23,7 +22,7 @@ namespace Cfg
     class Scanner : protected CfgFlexLexer
     {
     public:
-        Scanner();
+        Scanner(Driver& driver);
         virtual ~Scanner();
 
     public:
@@ -32,14 +31,13 @@ namespace Cfg
 
     public:
         const std::string& File() const;
-        int LineNO() const;
+        location& Location();
 
     public:
         virtual int Lex();
-        virtual int yywrap();
 
     protected:
-        void Include(const std::string& file);
+        bool Include(const std::string& file);
         bool EndOfFile();
 
     protected:
@@ -49,6 +47,8 @@ namespace Cfg
         bool Push(const std::string& file);
         bool Pop();
 
+    private:
+        Driver& m_driver;
         FileStack  m_fileStack;
     };
 }

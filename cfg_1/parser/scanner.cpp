@@ -1,6 +1,8 @@
 ﻿#include "Scanner.h"
 #include <fstream>
 #include <cassert>
+#include "Driver.h"
+#include "location.hh"
 
 namespace Cfg
 {
@@ -9,7 +11,7 @@ namespace Cfg
         class ScanningFile
         {
         public:
-            ScanningFile() : lineno(0)
+            ScanningFile() : loc(nullptr)
             {
             }
 
@@ -20,16 +22,17 @@ namespace Cfg
             }
 
         public:
+            location loc;
             std::string file;
             std::ifstream stream;
-            int lineno;
         };
-
-        static std::string EMPTY;
     }
 
-    Scanner::Scanner()
+    static detail::ScanningFile _DUMMY_FILE;
+
+    Scanner::Scanner(Driver& driver)
         : CfgFlexLexer()
+        , m_driver(driver)
     {
     }
 
@@ -51,23 +54,20 @@ namespace Cfg
     const std::string& Scanner::File() const
     {
         if (m_fileStack.empty())
-            return detail::EMPTY;
+            return _DUMMY_FILE.file;
         return m_fileStack.top()->file;
     }
 
-    int Scanner::LineNO() const
+    location& Scanner::Location()
     {
-        return yylineno;
+        if (m_fileStack.empty())
+            return _DUMMY_FILE.loc;
+        return m_fileStack.top()->loc;
     }
 
-    int Scanner::yywrap()
+    bool Scanner::Include(const std::string& file)
     {
-        return 1;
-    }
-
-    void Scanner::Include(const std::string& file)
-    {
-        Push(file);
+        return Push(file);
     }
 
     bool Scanner::EndOfFile()
@@ -81,6 +81,8 @@ namespace Cfg
         FilePtr ptr = std::make_shared<detail::ScanningFile>();
         ptr->file = file;
         ptr->stream.open(file);
+        ptr->loc.initialize(&ptr->file);
+
         if (!ptr->stream.is_open())
         {
             std::cerr << "open file:" << file << " failed" << std::endl;
@@ -93,8 +95,6 @@ namespace Cfg
         }
         else
         {
-            m_fileStack.top()->lineno = yylineno;
-
             yy_buffer_state* buffer = yy_create_buffer(ptr->stream, YY_BUF_SIZE);
             if (buffer == nullptr)
             {
@@ -118,7 +118,6 @@ namespace Cfg
         if (m_fileStack.empty())
             return false;
 
-        yylineno = m_fileStack.top()->lineno;
         return true;
     }
 }

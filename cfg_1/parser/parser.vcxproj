@@ -144,13 +144,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Context.cpp" />
     <ClCompile Include="CfgFlexLexer.cpp" />
+    <ClCompile Include="Driver.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Context.h" />
+    <ClInclude Include="CfgDef.h" />
+    <ClInclude Include="Driver.h" />
     <ClInclude Include="FlexLexer.h" />
+    <ClInclude Include="location.hh" />
+    <ClInclude Include="Parser.hpp" />
+    <ClInclude Include="position.hh" />
     <ClInclude Include="Scanner.h" />
+    <ClInclude Include="stack.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
