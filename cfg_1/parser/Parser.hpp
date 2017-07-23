@@ -241,7 +241,18 @@ namespace  Cfg  {
 #ifndef YYSTYPE
     /// An auxiliary type to compute the largest semantic type.
     union union_type
-    {};
+    {
+      // "identifier"
+      // "true"
+      // "false"
+      // "0"
+      // "0.0f"
+      // "empty"
+      // BoolValue
+      // IntValue
+      // FloatValue
+      char dummy1[sizeof(std::string)];
+};
 
     /// Symbol semantic values.
     typedef variant<sizeof(union_type)> semantic_type;
@@ -281,16 +292,17 @@ namespace  Cfg  {
         TOK_S_RBRACE = 125,
         TOK_ENUM = 258,
         TOK_STRUCT = 259,
-        TOK_BOOL = 260,
-        TOK_INT = 261,
-        TOK_FLOAT = 262,
-        TOK_STRING = 263,
-        TOK_IDENTIFIER = 264,
-        TOK_VALUE_TRUE = 265,
-        TOK_VALUE_FALSE = 266,
-        TOK_VALUE_INT = 267,
-        TOK_VALUE_FLOAT = 268,
-        TOK_VALUE_STRING = 269
+        TOK_CONST = 260,
+        TOK_BOOL = 261,
+        TOK_INT = 262,
+        TOK_FLOAT = 263,
+        TOK_STRING = 264,
+        TOK_IDENTIFIER = 265,
+        TOK_VALUE_TRUE = 266,
+        TOK_VALUE_FALSE = 267,
+        TOK_VALUE_INT = 268,
+        TOK_VALUE_FLOAT = 269,
+        TOK_VALUE_STRING = 270
       };
     };
 
@@ -324,6 +336,8 @@ namespace  Cfg  {
       /// Constructor for valueless symbols, and symbols from each type.
 
   basic_symbol (typename Base::kind_type t, const location_type& l);
+
+  basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l);
 
 
       /// Constructor for symbols with semantic value.
@@ -457,6 +471,10 @@ namespace  Cfg  {
 
     static inline
     symbol_type
+    make_CONST (const location_type& l);
+
+    static inline
+    symbol_type
     make_BOOL (const location_type& l);
 
     static inline
@@ -473,27 +491,27 @@ namespace  Cfg  {
 
     static inline
     symbol_type
-    make_IDENTIFIER (const location_type& l);
+    make_IDENTIFIER (const std::string& v, const location_type& l);
 
     static inline
     symbol_type
-    make_VALUE_TRUE (const location_type& l);
+    make_VALUE_TRUE (const std::string& v, const location_type& l);
 
     static inline
     symbol_type
-    make_VALUE_FALSE (const location_type& l);
+    make_VALUE_FALSE (const std::string& v, const location_type& l);
 
     static inline
     symbol_type
-    make_VALUE_INT (const location_type& l);
+    make_VALUE_INT (const std::string& v, const location_type& l);
 
     static inline
     symbol_type
-    make_VALUE_FLOAT (const location_type& l);
+    make_VALUE_FLOAT (const std::string& v, const location_type& l);
 
     static inline
     symbol_type
-    make_VALUE_STRING (const location_type& l);
+    make_VALUE_STRING (const std::string& v, const location_type& l);
 
 
     /// Build a parser object.
@@ -580,7 +598,7 @@ namespace  Cfg  {
   // number is the opposite.  If YYTABLE_NINF, syntax error.
   static const unsigned char yytable_[];
 
-  static const unsigned char yycheck_[];
+  static const signed char yycheck_[];
 
   // YYSTOS[STATE-NUM] -- The (internal number of the) accessing
   // symbol of state STATE-NUM.
@@ -695,13 +713,13 @@ namespace  Cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 0,           //< Last index in yytable_.
-      yynnts_ = 2,  //< Number of nonterminal symbols.
+      yylast_ = 88,           //< Last index in yytable_.
+      yynnts_ = 27,  //< Number of nonterminal symbols.
       yyempty_ = -2,
-      yyfinal_ = 2, //< Termination state number.
+      yyfinal_ = 3, //< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
-      yyntokens_ = 30    //< Number of tokens.
+      yyntokens_ = 31    //< Number of tokens.
     };
 
 
@@ -744,9 +762,10 @@ namespace  Cfg  {
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,    18,    19,
-      20,    21,    22,    23,    24,    25,    26,    27,    28,    29
+      20,    21,    22,    23,    24,    25,    26,    27,    28,    29,
+      30
     };
-    const unsigned int user_token_number_max_ = 269;
+    const unsigned int user_token_number_max_ = 270;
     const token_number_type undef_token_ = 2;
 
     if (static_cast<int>(t) <= yyeof_)
@@ -779,6 +798,18 @@ namespace  Cfg  {
   {
       switch (other.type_get ())
     {
+      case 25: // "identifier"
+      case 26: // "true"
+      case 27: // "false"
+      case 28: // "0"
+      case 29: // "0.0f"
+      case 30: // "empty"
+      case 55: // BoolValue
+      case 56: // IntValue
+      case 57: // FloatValue
+        value.copy< std::string > (other.value);
+        break;
+
       default:
         break;
     }
@@ -796,6 +827,18 @@ namespace  Cfg  {
     (void) v;
       switch (this->type_get ())
     {
+      case 25: // "identifier"
+      case 26: // "true"
+      case 27: // "false"
+      case 28: // "0"
+      case 29: // "0.0f"
+      case 30: // "empty"
+      case 55: // BoolValue
+      case 56: // IntValue
+      case 57: // FloatValue
+        value.copy< std::string > (v);
+        break;
+
       default:
         break;
     }
@@ -808,6 +851,13 @@ namespace  Cfg  {
    Parser ::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const location_type& l)
     : Base (t)
     , value ()
+    , location (l)
+  {}
+
+  template <typename Base>
+   Parser ::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l)
+    : Base (t)
+    , value (v)
     , location (l)
   {}
 
@@ -827,6 +877,18 @@ namespace  Cfg  {
     // Type destructor.
     switch (yytype)
     {
+      case 25: // "identifier"
+      case 26: // "true"
+      case 27: // "false"
+      case 28: // "0"
+      case 29: // "0.0f"
+      case 30: // "empty"
+      case 55: // BoolValue
+      case 56: // IntValue
+      case 57: // FloatValue
+        value.template destroy< std::string > ();
+        break;
+
       default:
         break;
     }
@@ -841,6 +903,18 @@ namespace  Cfg  {
     super_type::move(s);
       switch (this->type_get ())
     {
+      case 25: // "identifier"
+      case 26: // "true"
+      case 27: // "false"
+      case 28: // "0"
+      case 29: // "0.0f"
+      case 30: // "empty"
+      case 55: // BoolValue
+      case 56: // IntValue
+      case 57: // FloatValue
+        value.move< std::string > (s.value);
+        break;
+
       default:
         break;
     }
@@ -891,7 +965,8 @@ namespace  Cfg  {
     {
        0,   256,   257,    40,    41,    42,    43,    44,    45,    46,
       47,    58,    59,    61,    91,    93,   123,   125,   258,   259,
-     260,   261,   262,   263,   264,   265,   266,   267,   268,   269
+     260,   261,   262,   263,   264,   265,   266,   267,   268,   269,
+     270
     };
     return static_cast<token_type> (yytoken_number_[type]);
   }
@@ -1023,6 +1098,13 @@ namespace  Cfg  {
   }
 
    Parser ::symbol_type
+   Parser ::make_CONST (const location_type& l)
+  {
+    return symbol_type (token::TOK_CONST, l);
+
+  }
+
+   Parser ::symbol_type
    Parser ::make_BOOL (const location_type& l)
   {
     return symbol_type (token::TOK_BOOL, l);
@@ -1051,51 +1133,51 @@ namespace  Cfg  {
   }
 
    Parser ::symbol_type
-   Parser ::make_IDENTIFIER (const location_type& l)
+   Parser ::make_IDENTIFIER (const std::string& v, const location_type& l)
   {
-    return symbol_type (token::TOK_IDENTIFIER, l);
+    return symbol_type (token::TOK_IDENTIFIER, v, l);
 
   }
 
    Parser ::symbol_type
-   Parser ::make_VALUE_TRUE (const location_type& l)
+   Parser ::make_VALUE_TRUE (const std::string& v, const location_type& l)
   {
-    return symbol_type (token::TOK_VALUE_TRUE, l);
+    return symbol_type (token::TOK_VALUE_TRUE, v, l);
 
   }
 
    Parser ::symbol_type
-   Parser ::make_VALUE_FALSE (const location_type& l)
+   Parser ::make_VALUE_FALSE (const std::string& v, const location_type& l)
   {
-    return symbol_type (token::TOK_VALUE_FALSE, l);
+    return symbol_type (token::TOK_VALUE_FALSE, v, l);
 
   }
 
    Parser ::symbol_type
-   Parser ::make_VALUE_INT (const location_type& l)
+   Parser ::make_VALUE_INT (const std::string& v, const location_type& l)
   {
-    return symbol_type (token::TOK_VALUE_INT, l);
+    return symbol_type (token::TOK_VALUE_INT, v, l);
 
   }
 
    Parser ::symbol_type
-   Parser ::make_VALUE_FLOAT (const location_type& l)
+   Parser ::make_VALUE_FLOAT (const std::string& v, const location_type& l)
   {
-    return symbol_type (token::TOK_VALUE_FLOAT, l);
+    return symbol_type (token::TOK_VALUE_FLOAT, v, l);
 
   }
 
    Parser ::symbol_type
-   Parser ::make_VALUE_STRING (const location_type& l)
+   Parser ::make_VALUE_STRING (const std::string& v, const location_type& l)
   {
-    return symbol_type (token::TOK_VALUE_STRING, l);
+    return symbol_type (token::TOK_VALUE_STRING, v, l);
 
   }
 
 
 #line 11 "../parser.y" // lalr1.cc:371
 } //  Cfg 
-#line 1099 "Parser.hpp" // lalr1.cc:371
+#line 1181 "Parser.hpp" // lalr1.cc:371
 
 
 

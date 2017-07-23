@@ -53,3 +53,19 @@ void yyerror(const char* msg)
     exit(-1);
 }
 
+
+"("             { return Parser::make_S_LPAREN(Location()); }
+")"             { return Parser::make_S_LPAREN(Location()); }
+"*"             { return Parser::make_S_RPAREN(Location()); }
+"+"             { return Parser::make_S_PLUS(Location()); }
+","             { return Parser::make_S_COMMA(Location()); }
+"-"             { return Parser::make_S_MINUS(Location()); }
+"."             { return Parser::make_S_DOT(Location()); }
+"/"             { return Parser::make_S_SLASH(Location()); }
+":"             { return Parser::make_S_COLON(Location()); }
+";"             { return Parser::make_S_SEMICOLON(Location()); }
+"="             { return Parser::make_S_ASSIGN(Location()); }
+"["             { return Parser::make_S_LBRACK(Location()); }
+"]"             { return Parser::make_S_RBRACK(Location()); }
+"{"             { return Parser::make_S_LBRACE(Location()); }
+"}"             { return Parser::make_S_RBRACE(Location()); }

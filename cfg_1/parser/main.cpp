@@ -1,6 +1,10 @@
 ﻿#include <iostream>
 #include <fstream>
 #include "Scanner.h"
+#include "Driver.h"
+#include "Context.h"
+
+CFG_NAMESPACE_USING;
 
 int main(int argc, char** argv)
 {
@@ -10,15 +14,14 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    Cfg::Scanner* pScanner = new Cfg::Scanner();
-    if (!pScanner->Init(argv[1]))
+    Driver driver;
+    Context context;
+
+    if (!driver.Parse(argv[1], context))
     {
         std::cerr << "initialize scanner failed" << std::endl;
         return 0;
     }
-
-    while (0 != pScanner->Lex())
-        ;
 
     system("pause");
     return 1;

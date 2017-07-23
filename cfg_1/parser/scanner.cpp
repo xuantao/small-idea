@@ -47,22 +47,21 @@ namespace Cfg
 
     void Scanner::UnInit()
     {
-        while (!m_fileStack.empty())
-            m_fileStack.pop();
+        m_fileStack.clear();
     }
 
     const std::string& Scanner::File() const
     {
         if (m_fileStack.empty())
             return _DUMMY_FILE.file;
-        return m_fileStack.top()->file;
+        return m_fileStack.back()->file;
     }
 
     location& Scanner::Location()
     {
         if (m_fileStack.empty())
             return _DUMMY_FILE.loc;
-        return m_fileStack.top()->loc;
+        return m_fileStack.back()->loc;
     }
 
     bool Scanner::Include(const std::string& file)
@@ -76,8 +75,22 @@ namespace Cfg
         return Pop();
     }
 
+    void Scanner::Unrecognized(char c)
+    {
+        std::cerr << "unknown charcter:" << c << std::endl;
+    }
+
     bool Scanner::Push(const std::string& file)
     {
+        for (auto it = m_fileStack.begin(); it != m_fileStack.end(); ++it)
+        {
+            if ((*it)->file == file)
+            {
+                std::cerr << "include file already include " << file << std::endl;
+                return false;
+            }
+        }
+
         FilePtr ptr = std::make_shared<detail::ScanningFile>();
         ptr->file = file;
         ptr->stream.open(file);
@@ -104,7 +117,7 @@ namespace Cfg
             yypush_buffer_state(buffer);
         }
 
-        m_fileStack.push(ptr);
+        m_fileStack.push_back(ptr);
 
         return true;
     }
@@ -114,7 +127,7 @@ namespace Cfg
         if (m_fileStack.empty())
             return false;
 
-        m_fileStack.pop();
+        m_fileStack.pop_back();
         if (m_fileStack.empty())
             return false;
 

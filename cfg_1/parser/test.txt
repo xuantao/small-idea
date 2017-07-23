@@ -1,6 +1,51 @@
 
-#include <xuantao.txt>
-    # include "zouhui"
+/* test enum */
+
+const int g_1 = 1;
+const float f_1 = 2;
+const string s_1 = "";
+const bool b_1 = true;
+
+enum Enum1 {
+    a,
+    b
+};
+
+enum Enum2
+
+
+{
+    c = 100,
+    d,
+};
+
+struct Struct22;;;;;;;
+;;;
+
+struct Struct0
+{
+ int a[];
+ int b[10][];
+ int c[10][][10];
+}
+
+struct Struct1
+{
+ int a = 1;
+ int b = 2;
+ int c;
+}
+
+struct Struct2 : Struct1, Struct0
+{
+ int a = 1;
+ int b = 2;
+ int c;
+}
+
+
+//#include <xuantao.txt>
+//    # include "zouhui"
 
     %{
      /*
@@ -9,8 +54,8 @@
     %}
 
 ﻿
-# a	include    <stdint.h>
-b#   include "scanner.h"
+//# a	include    <stdint.h>
+//b#   include "scanner.h"
 
 /**
  * zouhi
@@ -20,4 +65,3 @@ b#   include "scanner.h"
 /
 // xxxxxxxxxx
 /*
-

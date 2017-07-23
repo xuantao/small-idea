@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <string>
 #include <memory>
-#include <stack>
+#include <vector>
 
 #define YY_BUF_SIZE 16384
 #ifndef yyFlexLexer
@@ -9,11 +9,12 @@
 #include "FlexLexer.h"
 #endif
 
+#include "Parser.hpp"
+
 namespace Cfg
 {
     namespace detail
     { class ScanningFile; }
-    class location;
     class Driver;
 
     /*
@@ -34,15 +35,16 @@ namespace Cfg
         location& Location();
 
     public:
-        virtual int Lex();
+        virtual Parser::symbol_type Lex();
 
     protected:
         bool Include(const std::string& file);
         bool EndOfFile();
+        void Unrecognized(char c);
 
     protected:
         typedef std::shared_ptr<detail::ScanningFile> FilePtr;
-        typedef std::stack<FilePtr> FileStack;
+        typedef std::vector<FilePtr> FileStack;
 
         bool Push(const std::string& file);
         bool Pop();

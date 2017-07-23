@@ -31,7 +31,7 @@ bool Driver::Parse(const std::string& file, Context& context)
 
 void Driver::Error(const location& loc, const std::string& msg)
 {
-
+    std::cerr << "error: loc:" << loc << "msg:" << msg << std::endl;
 }
 
 CFG_NAMESPACE_END
