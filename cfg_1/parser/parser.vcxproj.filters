@@ -8,81 +8,90 @@
     <Filter Include="fb">
       <UniqueIdentifier>{aecb4e16-1b29-43a6-96ad-b99fdd66f7ec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\fb">
+      <UniqueIdentifier>{7b2e8ade-0bb8-485e-8c67-1fd01ed5b49b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\context">
+      <UniqueIdentifier>{9a4ae8d7-76a7-40bc-a0c9-4e54b55af57a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\util">
+      <UniqueIdentifier>{144d3f3e-71ea-4961-abfa-654a5e3a51c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="CfgFlexLexer.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="Scanner.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="Driver.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="Context.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="CfgFlexLexer.cpp">
+      <Filter>src\fb</Filter>
+    </ClCompile>
+    <ClCompile Include="Scanner.cpp">
+      <Filter>src\fb</Filter>
     </ClCompile>
     <ClCompile Include="Parser.cpp">
-      <Filter>src</Filter>
+      <Filter>src\fb</Filter>
     </ClCompile>
-    <ClCompile Include="TypeDecl.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="Utility.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="Variate.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="Context.cpp">
+      <Filter>src\context</Filter>
     </ClCompile>
     <ClCompile Include="SetDecl.cpp">
-      <Filter>src</Filter>
+      <Filter>src\context</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeDecl.cpp">
+      <Filter>src\context</Filter>
+    </ClCompile>
+    <ClCompile Include="Variate.cpp">
+      <Filter>src\context</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility.cpp">
+      <Filter>src\util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FlexLexer.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="Scanner.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="Driver.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="CfgDef.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="Context.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="location.hh">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="Parser.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="Scanner.h">
+      <Filter>src\fb</Filter>
     </ClInclude>
     <ClInclude Include="position.hh">
-      <Filter>src</Filter>
+      <Filter>src\fb</Filter>
+    </ClInclude>
+    <ClInclude Include="Parser.hpp">
+      <Filter>src\fb</Filter>
+    </ClInclude>
+    <ClInclude Include="location.hh">
+      <Filter>src\fb</Filter>
+    </ClInclude>
+    <ClInclude Include="FlexLexer.h">
+      <Filter>src\fb</Filter>
     </ClInclude>
     <ClInclude Include="stack.hh">
-      <Filter>src</Filter>
+      <Filter>src\fb</Filter>
     </ClInclude>
-    <ClInclude Include="TypeDecl.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="Variate.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="Utility.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="ValueDecl.h">
-      <Filter>src</Filter>
+    <ClInclude Include="Context.h">
+      <Filter>src\context</Filter>
     </ClInclude>
     <ClInclude Include="SetDecl.h">
-      <Filter>src</Filter>
+      <Filter>src\context</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeDecl.h">
+      <Filter>src\context</Filter>
+    </ClInclude>
+    <ClInclude Include="ValueDecl.h">
+      <Filter>src\context</Filter>
+    </ClInclude>
+    <ClInclude Include="Variate.h">
+      <Filter>src\context</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.h">
+      <Filter>src\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -129,8 +129,8 @@ public:
     virtual TypeCategory Category() const { return TypeCategory::Scope; }
     virtual const std::string& Name() const { return _name; }
 
-    virtual ITypeSet* TypeSet() { return nullptr; }
-    virtual IVarSet* VarSet() { return nullptr; }
+    virtual ITypeSet* TypeSet() { return _types; }
+    virtual IVarSet* VarSet() { return _vars; }
 
 protected:
     std::string _name;
