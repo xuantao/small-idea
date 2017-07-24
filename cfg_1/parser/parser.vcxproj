@@ -150,18 +150,26 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Scanner.cpp" />
+    <ClCompile Include="SetDecl.cpp" />
+    <ClCompile Include="TypeDecl.cpp" />
+    <ClCompile Include="Utility.cpp" />
+    <ClCompile Include="Variate.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Context.h" />
     <ClInclude Include="CfgDef.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="FlexLexer.h" />
-    <ClInclude Include="IVariate.h" />
+    <ClInclude Include="SetDecl.h" />
+    <ClInclude Include="Utility.h" />
+    <ClInclude Include="ValueDecl.h" />
+    <ClInclude Include="Variate.h" />
     <ClInclude Include="location.hh" />
     <ClInclude Include="Parser.hpp" />
     <ClInclude Include="position.hh" />
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="stack.hh" />
+    <ClInclude Include="TypeDecl.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fb\parser.y" />

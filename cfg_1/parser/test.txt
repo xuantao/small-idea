@@ -39,8 +39,9 @@ struct Struct1
 struct Struct2 : Struct1, Struct0
 {
  int a = 1;
- int b = 2;
+ int b = Enum2.c;
  int c;
+ string s = s_1;
 }
 
 

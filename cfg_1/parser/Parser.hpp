@@ -32,7 +32,7 @@
 
 /**
  ** \file Parser.hpp
- ** Define the  Cfg ::parser class.
+ ** Define the  cfg ::parser class.
  */
 
 // C++ LALR(1) parser skeleton written by Akim Demaille.
@@ -40,7 +40,7 @@
 #ifndef YY_YY_PARSER_HPP_INCLUDED
 # define YY_YY_PARSER_HPP_INCLUDED
 // //                    "%code requires" blocks.
-#line 14 "../parser.y" // lalr1.cc:371
+#line 14 "./fb/parser.y" // lalr1.cc:371
 
 #include <string>
 #include "CfgDef.h"
@@ -72,8 +72,8 @@ CFG_NAMESPACE_END
 # define YYDEBUG 1
 #endif
 
-#line 11 "../parser.y" // lalr1.cc:371
-namespace  Cfg  {
+#line 11 "./fb/parser.y" // lalr1.cc:371
+namespace  cfg  {
 #line 78 "Parser.hpp" // lalr1.cc:371
 
 
@@ -251,6 +251,7 @@ namespace  Cfg  {
       // BoolValue
       // IntValue
       // FloatValue
+      // ValueRef
       char dummy1[sizeof(std::string)];
 };
 
@@ -713,8 +714,8 @@ namespace  Cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 88,           //< Last index in yytable_.
-      yynnts_ = 27,  //< Number of nonterminal symbols.
+      yylast_ = 100,           //< Last index in yytable_.
+      yynnts_ = 28,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.
       yyterror_ = 1,
@@ -807,6 +808,7 @@ namespace  Cfg  {
       case 55: // BoolValue
       case 56: // IntValue
       case 57: // FloatValue
+      case 58: // ValueRef
         value.copy< std::string > (other.value);
         break;
 
@@ -836,6 +838,7 @@ namespace  Cfg  {
       case 55: // BoolValue
       case 56: // IntValue
       case 57: // FloatValue
+      case 58: // ValueRef
         value.copy< std::string > (v);
         break;
 
@@ -886,6 +889,7 @@ namespace  Cfg  {
       case 55: // BoolValue
       case 56: // IntValue
       case 57: // FloatValue
+      case 58: // ValueRef
         value.template destroy< std::string > ();
         break;
 
@@ -912,6 +916,7 @@ namespace  Cfg  {
       case 55: // BoolValue
       case 56: // IntValue
       case 57: // FloatValue
+      case 58: // ValueRef
         value.move< std::string > (s.value);
         break;
 
@@ -1175,9 +1180,9 @@ namespace  Cfg  {
   }
 
 
-#line 11 "../parser.y" // lalr1.cc:371
-} //  Cfg 
-#line 1181 "Parser.hpp" // lalr1.cc:371
+#line 11 "./fb/parser.y" // lalr1.cc:371
+} //  cfg 
+#line 1186 "Parser.hpp" // lalr1.cc:371
 
 
 

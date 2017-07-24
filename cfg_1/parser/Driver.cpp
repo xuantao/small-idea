@@ -1,6 +1,7 @@
-#include "Driver.h"
+﻿#include "Driver.h"
 #include "Scanner.h"
 #include "Parser.hpp"
+#include "Context.h"
 
 CFG_NAMESPACE_BEGIN
 
@@ -8,10 +9,12 @@ Driver::Driver()
     : m_pScanner(nullptr)
     , m_pParser(nullptr)
     , m_pContext(nullptr)
-{ }
+{
+}
 
 Driver::~Driver()
-{ }
+{
+}
 
 bool Driver::Parse(const std::string& file, Context& context)
 {
@@ -22,7 +25,9 @@ bool Driver::Parse(const std::string& file, Context& context)
     if (!m_pScanner->Init(file))
         return false;
 
+    context.OnParseBegin(*this, file);
     m_pParser->parse();
+    context.OnParseEnd();
 
     m_pScanner = nullptr;
     m_pParser = nullptr;

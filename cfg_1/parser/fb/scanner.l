@@ -15,7 +15,7 @@
 CFG_NAMESPACE_USING;
 
 // declearation lex function
-#define YY_DECL Parser::symbol_type Cfg::Scanner::Lex()
+#define YY_DECL Parser::symbol_type cfg::Scanner::Lex()
 #define YY_USER_ACTION { Location().columns(yyleng); }
 #define yyterminate() Parser::make_END(Location())
 #define _NEW_LINE_ { Location().lines(yyleng); Location().step(); }

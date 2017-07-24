@@ -1,4 +1,4 @@
-/*
+﻿/*
  * cfg file parser driver
  * 2017-07-22
 */
@@ -40,4 +40,3 @@ protected:
 };
 
 CFG_NAMESPACE_END
-

@@ -32,7 +32,7 @@
 
 /**
  ** \file location.hh
- ** Define the  Cfg ::location class.
+ ** Define the  cfg ::location class.
  */
 
 #ifndef YY_YY_LOCATION_HH_INCLUDED
@@ -40,8 +40,8 @@
 
 # include "position.hh"
 
-#line 11 "../parser.y" // location.cc:291
-namespace  Cfg  {
+#line 11 "./fb/parser.y" // location.cc:291
+namespace  cfg  {
 #line 46 "location.hh" // location.cc:291
   /// Abstract a location.
   class location
@@ -181,7 +181,7 @@ namespace  Cfg  {
     return ostr;
   }
 
-#line 11 "../parser.y" // location.cc:291
-} //  Cfg 
+#line 11 "./fb/parser.y" // location.cc:291
+} //  cfg 
 #line 187 "location.hh" // location.cc:291
 #endif // !YY_YY_LOCATION_HH_INCLUDED

@@ -28,6 +28,18 @@
     <ClCompile Include="Parser.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="TypeDecl.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Variate.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="SetDecl.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FlexLexer.h">
@@ -57,7 +69,19 @@
     <ClInclude Include="stack.hh">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="IVariate.h">
+    <ClInclude Include="TypeDecl.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Variate.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="ValueDecl.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="SetDecl.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

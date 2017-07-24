@@ -49,17 +49,17 @@
 
 #line 51 "Parser.cpp" // lalr1.cc:406
 // Unqualified %code blocks.
-#line 38 "../parser.y" // lalr1.cc:407
+#line 38 "./fb/parser.y" // lalr1.cc:407
 
 #include "Driver.h"
 #include "Scanner.h"
 #include "Context.h"
 
-static Cfg::Parser::symbol_type yylex(Cfg::Driver& driver)
+static cfg::Parser::symbol_type yylex(cfg::Driver& driver)
 {
     return driver.GetScanner()->Lex();
 }
- 
+
 #define CONTEXT (*driver.GetContext())
 
 #line 66 "Parser.cpp" // lalr1.cc:407
@@ -146,8 +146,8 @@ static Cfg::Parser::symbol_type yylex(Cfg::Driver& driver)
 #define YYERROR         goto yyerrorlab
 #define YYRECOVERING()  (!!yyerrstatus_)
 
-#line 11 "../parser.y" // lalr1.cc:473
-namespace  Cfg  {
+#line 11 "./fb/parser.y" // lalr1.cc:473
+namespace  cfg  {
 #line 152 "Parser.cpp" // lalr1.cc:473
 
   /* Return YYSTR after stripping away unnecessary quotes and
@@ -259,6 +259,7 @@ namespace  Cfg  {
       case 55: // BoolValue
       case 56: // IntValue
       case 57: // FloatValue
+      case 58: // ValueRef
         value.move< std::string > (that.value);
         break;
 
@@ -286,6 +287,7 @@ namespace  Cfg  {
       case 55: // BoolValue
       case 56: // IntValue
       case 57: // FloatValue
+      case 58: // ValueRef
         value.copy< std::string > (that.value);
         break;
 
@@ -431,12 +433,12 @@ namespace  Cfg  {
 
 
     // User initialization code.
-    #line 30 "../parser.y" // lalr1.cc:726
+    #line 30 "./fb/parser.y" // lalr1.cc:726
 {
     yyla.location.begin.filename = yyla.location.end.filename = const_cast<std::string*>(&driver.GetScanner()->File());
 }
 
-#line 440 "Parser.cpp" // lalr1.cc:726
+#line 442 "Parser.cpp" // lalr1.cc:726
 
     /* Initialize the stack.  The initial state will be set in
        yynewstate, since the latter expects the semantical and the
@@ -537,6 +539,7 @@ namespace  Cfg  {
       case 55: // BoolValue
       case 56: // IntValue
       case 57: // FloatValue
+      case 58: // ValueRef
         yylhs.value.build< std::string > ();
         break;
 
@@ -558,385 +561,421 @@ namespace  Cfg  {
         switch (yyn)
           {
   case 2:
-#line 89 "../parser.y" // lalr1.cc:846
+#line 89 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 564 "Parser.cpp" // lalr1.cc:846
+#line 567 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 3:
-#line 92 "../parser.y" // lalr1.cc:846
+#line 92 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 570 "Parser.cpp" // lalr1.cc:846
+#line 573 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 4:
-#line 93 "../parser.y" // lalr1.cc:846
+#line 93 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 576 "Parser.cpp" // lalr1.cc:846
+#line 579 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 5:
-#line 94 "../parser.y" // lalr1.cc:846
+#line 94 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 582 "Parser.cpp" // lalr1.cc:846
+#line 585 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 6:
-#line 95 "../parser.y" // lalr1.cc:846
+#line 95 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 588 "Parser.cpp" // lalr1.cc:846
+#line 591 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 7:
-#line 96 "../parser.y" // lalr1.cc:846
+#line 96 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 594 "Parser.cpp" // lalr1.cc:846
+#line 597 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 8:
-#line 100 "../parser.y" // lalr1.cc:846
+#line 100 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnVariateEnd(); }
-#line 600 "Parser.cpp" // lalr1.cc:846
+#line 603 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 9:
-#line 103 "../parser.y" // lalr1.cc:846
+#line 103 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnVariateValue(yystack_[0].value.as< std::string > ()); }
-#line 606 "Parser.cpp" // lalr1.cc:846
+#line 609 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 10:
-#line 104 "../parser.y" // lalr1.cc:846
+#line 104 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnVariateValue(yystack_[0].value.as< std::string > ()); }
-#line 612 "Parser.cpp" // lalr1.cc:846
+#line 615 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 11:
-#line 105 "../parser.y" // lalr1.cc:846
+#line 105 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnVariateValue(yystack_[0].value.as< std::string > ()); }
-#line 618 "Parser.cpp" // lalr1.cc:846
+#line 621 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 12:
-#line 106 "../parser.y" // lalr1.cc:846
+#line 106 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnVariateValue(yystack_[0].value.as< std::string > ()); }
-#line 624 "Parser.cpp" // lalr1.cc:846
+#line 627 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 13:
-#line 110 "../parser.y" // lalr1.cc:846
+#line 110 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 630 "Parser.cpp" // lalr1.cc:846
+#line 633 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 14:
-#line 113 "../parser.y" // lalr1.cc:846
+#line 113 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnEnumBegin(yystack_[1].value.as< std::string > ()); }
-#line 636 "Parser.cpp" // lalr1.cc:846
+#line 639 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 15:
-#line 116 "../parser.y" // lalr1.cc:846
+#line 116 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnEnumEnd(); }
-#line 642 "Parser.cpp" // lalr1.cc:846
+#line 645 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 16:
-#line 120 "../parser.y" // lalr1.cc:846
+#line 120 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 648 "Parser.cpp" // lalr1.cc:846
+#line 651 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 17:
-#line 121 "../parser.y" // lalr1.cc:846
+#line 121 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 654 "Parser.cpp" // lalr1.cc:846
+#line 657 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 18:
-#line 122 "../parser.y" // lalr1.cc:846
+#line 122 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 660 "Parser.cpp" // lalr1.cc:846
+#line 663 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 19:
-#line 125 "../parser.y" // lalr1.cc:846
+#line 125 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnEnumMember(yystack_[0].value.as< std::string > ()); }
-#line 666 "Parser.cpp" // lalr1.cc:846
+#line 669 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 20:
-#line 126 "../parser.y" // lalr1.cc:846
+#line 126 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnEnumMember(yystack_[2].value.as< std::string > (), yystack_[0].value.as< std::string > ()); }
-#line 672 "Parser.cpp" // lalr1.cc:846
+#line 675 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 21:
-#line 127 "../parser.y" // lalr1.cc:846
+#line 127 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnEnumMember(yystack_[0].value.as< std::string > ()); }
-#line 678 "Parser.cpp" // lalr1.cc:846
+#line 681 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 22:
-#line 128 "../parser.y" // lalr1.cc:846
+#line 128 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnEnumMember(yystack_[2].value.as< std::string > (), yystack_[0].value.as< std::string > ()); }
-#line 684 "Parser.cpp" // lalr1.cc:846
+#line 687 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 23:
-#line 132 "../parser.y" // lalr1.cc:846
+#line 132 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnPredefine(yystack_[1].value.as< std::string > ()); }
-#line 690 "Parser.cpp" // lalr1.cc:846
+#line 693 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 24:
-#line 133 "../parser.y" // lalr1.cc:846
+#line 133 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 696 "Parser.cpp" // lalr1.cc:846
+#line 699 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 25:
-#line 136 "../parser.y" // lalr1.cc:846
+#line 136 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 702 "Parser.cpp" // lalr1.cc:846
+#line 705 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 26:
-#line 137 "../parser.y" // lalr1.cc:846
+#line 137 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 708 "Parser.cpp" // lalr1.cc:846
+#line 711 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 27:
-#line 139 "../parser.y" // lalr1.cc:846
+#line 139 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnStructBegin(yystack_[0].value.as< std::string > ()); }
-#line 714 "Parser.cpp" // lalr1.cc:846
+#line 717 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 28:
-#line 142 "../parser.y" // lalr1.cc:846
+#line 142 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnStructEnd(); }
-#line 720 "Parser.cpp" // lalr1.cc:846
+#line 723 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 29:
-#line 146 "../parser.y" // lalr1.cc:846
+#line 146 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnInherit(yystack_[0].value.as< std::string > ()); }
-#line 726 "Parser.cpp" // lalr1.cc:846
+#line 729 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 30:
-#line 147 "../parser.y" // lalr1.cc:846
+#line 147 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnInherit(yystack_[0].value.as< std::string > ()); }
-#line 732 "Parser.cpp" // lalr1.cc:846
+#line 735 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 31:
-#line 150 "../parser.y" // lalr1.cc:846
+#line 150 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 738 "Parser.cpp" // lalr1.cc:846
+#line 741 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 32:
-#line 151 "../parser.y" // lalr1.cc:846
+#line 151 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 744 "Parser.cpp" // lalr1.cc:846
+#line 747 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 33:
-#line 153 "../parser.y" // lalr1.cc:846
+#line 153 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 750 "Parser.cpp" // lalr1.cc:846
+#line 753 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 34:
-#line 154 "../parser.y" // lalr1.cc:846
+#line 154 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 756 "Parser.cpp" // lalr1.cc:846
+#line 759 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 35:
-#line 158 "../parser.y" // lalr1.cc:846
+#line 158 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnVariateEnd(); }
-#line 762 "Parser.cpp" // lalr1.cc:846
+#line 765 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 36:
-#line 161 "../parser.y" // lalr1.cc:846
+#line 161 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 768 "Parser.cpp" // lalr1.cc:846
+#line 771 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 37:
-#line 162 "../parser.y" // lalr1.cc:846
+#line 162 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 774 "Parser.cpp" // lalr1.cc:846
+#line 777 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 38:
-#line 163 "../parser.y" // lalr1.cc:846
+#line 163 "./fb/parser.y" // lalr1.cc:846
     { CONTEXT.OnVariateValue(yystack_[0].value.as< std::string > ()); }
-#line 780 "Parser.cpp" // lalr1.cc:846
+#line 783 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 39:
-#line 164 "../parser.y" // lalr1.cc:846
-    { }
-#line 786 "Parser.cpp" // lalr1.cc:846
+#line 164 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateValueRef(yystack_[0].value.as< std::string > ()); }
+#line 789 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 40:
-#line 165 "../parser.y" // lalr1.cc:846
+#line 165 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 792 "Parser.cpp" // lalr1.cc:846
+#line 795 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 41:
-#line 166 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateValue(yystack_[0].value.as< std::string > ()); }
-#line 798 "Parser.cpp" // lalr1.cc:846
+#line 166 "./fb/parser.y" // lalr1.cc:846
+    { }
+#line 801 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 42:
-#line 167 "../parser.y" // lalr1.cc:846
-    { }
-#line 804 "Parser.cpp" // lalr1.cc:846
+#line 167 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateValue(yystack_[0].value.as< std::string > ()); }
+#line 807 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 43:
-#line 168 "../parser.y" // lalr1.cc:846
-    { }
-#line 810 "Parser.cpp" // lalr1.cc:846
+#line 168 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateValueRef(yystack_[0].value.as< std::string > ()); }
+#line 813 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 44:
-#line 169 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateValue(yystack_[0].value.as< std::string > ()); }
-#line 816 "Parser.cpp" // lalr1.cc:846
+#line 169 "./fb/parser.y" // lalr1.cc:846
+    { }
+#line 819 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 45:
-#line 170 "../parser.y" // lalr1.cc:846
+#line 170 "./fb/parser.y" // lalr1.cc:846
     { }
-#line 822 "Parser.cpp" // lalr1.cc:846
+#line 825 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 46:
-#line 171 "../parser.y" // lalr1.cc:846
-    { }
-#line 828 "Parser.cpp" // lalr1.cc:846
+#line 171 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateValue(yystack_[0].value.as< std::string > ()); }
+#line 831 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 47:
-#line 172 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateValue(yystack_[0].value.as< std::string > ()); }
-#line 834 "Parser.cpp" // lalr1.cc:846
+#line 172 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateValueRef(yystack_[0].value.as< std::string > ()); }
+#line 837 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 48:
-#line 173 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateBegin(yystack_[1].value.as< std::string > (), yystack_[0].value.as< std::string > ()); }
-#line 840 "Parser.cpp" // lalr1.cc:846
+#line 173 "./fb/parser.y" // lalr1.cc:846
+    { }
+#line 843 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 49:
-#line 176 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateBegin("bool", yystack_[0].value.as< std::string > ()); }
-#line 846 "Parser.cpp" // lalr1.cc:846
+#line 174 "./fb/parser.y" // lalr1.cc:846
+    { }
+#line 849 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 50:
-#line 178 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateBegin("int", yystack_[0].value.as< std::string > ()); }
-#line 852 "Parser.cpp" // lalr1.cc:846
+#line 175 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateValue(yystack_[0].value.as< std::string > ()); }
+#line 855 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 51:
-#line 180 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateBegin("float", yystack_[0].value.as< std::string > ()); }
-#line 858 "Parser.cpp" // lalr1.cc:846
+#line 176 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateValueRef(yystack_[0].value.as< std::string > ()); }
+#line 861 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 52:
-#line 182 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateBegin("string", yystack_[0].value.as< std::string > ()); }
-#line 864 "Parser.cpp" // lalr1.cc:846
+#line 177 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateBegin(yystack_[1].value.as< std::string > (), yystack_[0].value.as< std::string > ()); }
+#line 867 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 53:
-#line 185 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateArray(); }
-#line 870 "Parser.cpp" // lalr1.cc:846
+#line 180 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateBegin(TYPE_BOOL, yystack_[0].value.as< std::string > ()); }
+#line 873 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 54:
-#line 186 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateArray(yystack_[1].value.as< std::string > ()); }
-#line 876 "Parser.cpp" // lalr1.cc:846
+#line 182 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateBegin(TYPE_INT, yystack_[0].value.as< std::string > ()); }
+#line 879 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 55:
-#line 187 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateArray(); }
-#line 882 "Parser.cpp" // lalr1.cc:846
+#line 184 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateBegin(TYPE_FLOAT, yystack_[0].value.as< std::string > ()); }
+#line 885 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 56:
-#line 188 "../parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariateArray(yystack_[1].value.as< std::string > ()); }
-#line 888 "Parser.cpp" // lalr1.cc:846
+#line 186 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateBegin(TYPE_STRING, yystack_[0].value.as< std::string > ()); }
+#line 891 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 57:
-#line 191 "../parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 894 "Parser.cpp" // lalr1.cc:846
+#line 189 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateArray(); }
+#line 897 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 58:
-#line 192 "../parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 900 "Parser.cpp" // lalr1.cc:846
+#line 190 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateArray(yystack_[1].value.as< std::string > ()); }
+#line 903 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 59:
-#line 195 "../parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 906 "Parser.cpp" // lalr1.cc:846
+#line 191 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateArray(); }
+#line 909 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 60:
-#line 196 "../parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 912 "Parser.cpp" // lalr1.cc:846
+#line 192 "./fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariateArray(yystack_[1].value.as< std::string > ()); }
+#line 915 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 61:
-#line 199 "../parser.y" // lalr1.cc:846
+#line 195 "./fb/parser.y" // lalr1.cc:846
     { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 918 "Parser.cpp" // lalr1.cc:846
+#line 921 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 62:
-#line 200 "../parser.y" // lalr1.cc:846
+#line 196 "./fb/parser.y" // lalr1.cc:846
     { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 924 "Parser.cpp" // lalr1.cc:846
+#line 927 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 63:
-#line 201 "../parser.y" // lalr1.cc:846
+#line 199 "./fb/parser.y" // lalr1.cc:846
     { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 930 "Parser.cpp" // lalr1.cc:846
+#line 933 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 64:
-#line 202 "../parser.y" // lalr1.cc:846
+#line 200 "./fb/parser.y" // lalr1.cc:846
     { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
-#line 936 "Parser.cpp" // lalr1.cc:846
+#line 939 "Parser.cpp" // lalr1.cc:846
+    break;
+
+  case 65:
+#line 203 "./fb/parser.y" // lalr1.cc:846
+    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
+#line 945 "Parser.cpp" // lalr1.cc:846
+    break;
+
+  case 66:
+#line 204 "./fb/parser.y" // lalr1.cc:846
+    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
+#line 951 "Parser.cpp" // lalr1.cc:846
+    break;
+
+  case 67:
+#line 205 "./fb/parser.y" // lalr1.cc:846
+    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
+#line 957 "Parser.cpp" // lalr1.cc:846
+    break;
+
+  case 68:
+#line 206 "./fb/parser.y" // lalr1.cc:846
+    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
+#line 963 "Parser.cpp" // lalr1.cc:846
+    break;
+
+  case 69:
+#line 210 "./fb/parser.y" // lalr1.cc:846
+    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
+#line 969 "Parser.cpp" // lalr1.cc:846
+    break;
+
+  case 70:
+#line 211 "./fb/parser.y" // lalr1.cc:846
+    { yylhs.value.as< std::string > () = yystack_[2].value.as< std::string > () + '.' + yystack_[0].value.as< std::string > (); }
+#line 975 "Parser.cpp" // lalr1.cc:846
     break;
 
 
-#line 940 "Parser.cpp" // lalr1.cc:846
+#line 979 "Parser.cpp" // lalr1.cc:846
           default:
             break;
           }
@@ -1200,17 +1239,17 @@ namespace  Cfg  {
   const signed char
    Parser ::yypact_[] =
   {
-     -51,    16,     6,   -51,   -51,     2,    21,    12,   -51,   -51,
-      22,   -51,     7,    -3,    32,    37,    25,    27,    29,    31,
-      39,    40,    42,    44,    45,    46,    43,    54,    38,    47,
-       7,   -51,    50,    24,    26,    28,    30,    41,   -51,   -51,
-     -51,   -51,   -51,   -51,   -51,   -51,   -20,    -5,    -7,    35,
-      -5,   -51,   -51,    48,   -51,   -51,   -51,   -51,   -51,   -20,
-     -13,    53,    -5,    53,    -7,    53,    49,    53,   -51,    -2,
-     -51,   -51,   -51,    52,   -51,   -51,    -9,   -51,   -51,   -51,
-     -51,   -51,    55,   -51,   -51,    56,   -11,   -51,   -51,   -51,
-      51,   -51,   -51,   -51,   -51,    -5,   -51,   -51,    57,   -51,
-     -51,   -51
+     -51,     5,    15,   -51,   -51,   -18,   -14,    30,   -51,   -51,
+     -12,   -51,    16,    20,     4,    31,    -9,     7,    43,    44,
+      33,    57,    58,    59,    60,    61,    62,    68,    52,    63,
+      16,   -51,    64,    45,    47,    49,    51,    53,   -51,   -51,
+     -51,   -51,   -51,   -51,   -51,   -51,    40,    -2,    -5,    54,
+      -2,   -51,   -51,    56,   -51,   -51,   -51,   -51,   -51,    22,
+     -13,    69,     0,    69,    -7,    69,   -16,    69,   -51,     3,
+     -51,   -51,   -51,    65,   -51,   -51,     1,   -51,   -51,   -51,
+     -51,   -51,    72,   -51,   -51,    73,   -51,    71,   -11,   -51,
+      73,   -51,    73,   -51,    73,    66,   -51,   -51,   -51,   -51,
+      -2,    67,   -51,   -51,    74,   -51,   -51,   -51,   -51
   };
 
   const unsigned char
@@ -1219,22 +1258,22 @@ namespace  Cfg  {
        3,     0,     2,     1,     7,     0,     0,     0,     4,     5,
       16,     6,    31,     0,     0,    27,     0,     0,     0,     0,
        0,     0,     0,     0,     0,    19,     0,    17,     0,     0,
-      32,    33,     0,    36,    39,    42,    45,     0,    25,    14,
-      23,    49,    50,    51,    52,     8,     0,     0,     0,     0,
-       0,    15,    13,    18,    48,    28,    24,    34,    35,     0,
-       0,    37,     0,    40,     0,    43,     0,    46,    29,     0,
-      57,    58,     9,     0,    59,    10,     0,    61,    62,    11,
-      12,    20,    21,    38,    53,     0,     0,    41,    44,    47,
-       0,    26,    60,    63,    64,     0,    54,    55,     0,    30,
-      22,    56
+      32,    33,     0,    36,    40,    44,    48,     0,    25,    14,
+      23,    53,    54,    55,    56,     8,     0,     0,     0,     0,
+       0,    15,    13,    18,    52,    28,    24,    34,    35,     0,
+       0,    37,     0,    41,     0,    45,     0,    49,    29,     0,
+      61,    62,     9,     0,    63,    10,     0,    65,    66,    11,
+      12,    20,    21,    69,    38,    39,    57,     0,     0,    42,
+      43,    46,    47,    50,    51,     0,    26,    64,    67,    68,
+       0,     0,    58,    59,     0,    30,    22,    70,    60
   };
 
   const signed char
    Parser ::yypgoto_[] =
   {
      -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,
-     -51,   -51,   -51,   -51,   -51,   -51,   -51,    58,   -51,    62,
-      63,    67,    68,   -25,    18,   -50,    14
+     -51,   -51,   -51,   -51,   -51,   -51,   -51,    70,   -51,    80,
+      81,    83,    87,    21,    36,   -50,    32,   -20
   };
 
   const signed char
@@ -1242,35 +1281,39 @@ namespace  Cfg  {
   {
       -1,     1,     2,     8,    20,     9,    10,    52,    26,    27,
       11,    12,    13,    56,    69,    29,    30,    31,    32,    33,
-      34,    35,    36,    61,    72,    75,    79
+      34,    35,    36,    61,    72,    75,    79,    85
   };
 
   const unsigned char
    Parser ::yytable_[] =
   {
-      81,    76,    84,    73,    97,    90,    70,    71,    37,    63,
-      65,    67,    87,    38,    91,    85,     3,    98,     4,    93,
-      94,    77,    78,    74,     5,     6,     7,    14,    16,    17,
-      18,    19,    28,    16,    17,    18,    19,    59,    60,    62,
-      60,    64,    60,    66,    60,   100,    15,    25,    39,    40,
-      41,    45,    42,    46,    43,    47,    44,    48,    49,    50,
-      51,    53,    58,    54,    55,    80,    68,    86,    95,    21,
-      22,    96,   101,    82,    23,    24,    99,    83,    88,    89,
-      92,     0,     0,     0,     0,     0,     0,     0,    57
+      81,    76,    86,    76,   103,     3,    73,    14,    73,    83,
+      95,    15,    89,    25,    93,    87,    41,   104,    83,    96,
+      39,    77,    78,    77,    78,    83,    74,     4,    74,    98,
+      99,    37,    42,     5,     6,     7,    38,    16,    17,    18,
+      19,    28,    90,    40,    92,    45,    94,    83,    70,    71,
+     106,    16,    17,    18,    19,    63,    65,    67,    59,    60,
+      62,    60,    64,    60,    66,    60,    70,    71,    43,    44,
+      46,    47,    48,    49,    50,    53,    58,    54,    68,    51,
+      55,    82,   101,    88,    80,   100,   102,    21,    22,   108,
+      23,   105,   107,    97,    24,    84,    91,     0,     0,     0,
+      57
   };
 
   const signed char
    Parser ::yycheck_[] =
   {
-      50,     8,    15,     8,    15,     7,    26,    27,    11,    34,
-      35,    36,    62,    16,    16,    28,     0,    28,    12,    28,
-      29,    28,    29,    28,    18,    19,    20,    25,    21,    22,
-      23,    24,    25,    21,    22,    23,    24,    13,    14,    13,
-      14,    13,    14,    13,    14,    95,    25,    25,    16,    12,
-      25,    12,    25,    13,    25,    13,    25,    13,    13,    13,
-      17,     7,    12,    25,    17,    30,    25,    14,    13,     7,
-       7,    15,    15,    25,     7,     7,    25,    59,    64,    30,
-      28,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    30
+      50,     8,    15,     8,    15,     0,     8,    25,     8,    25,
+       7,    25,    62,    25,    30,    28,    25,    28,    25,    16,
+      16,    28,    29,    28,    29,    25,    28,    12,    28,    28,
+      29,    11,    25,    18,    19,    20,    16,    21,    22,    23,
+      24,    25,    62,    12,    64,    12,    66,    25,    26,    27,
+     100,    21,    22,    23,    24,    34,    35,    36,    13,    14,
+      13,    14,    13,    14,    13,    14,    26,    27,    25,    25,
+      13,    13,    13,    13,    13,     7,    12,    25,    25,    17,
+      17,    25,     9,    14,    30,    13,    15,     7,     7,    15,
+       7,    25,    25,    28,     7,    59,    64,    -1,    -1,    -1,
+      30
   };
 
   const unsigned char
@@ -1284,9 +1327,9 @@ namespace  Cfg  {
       13,    17,    38,     7,    25,    17,    44,    48,    12,    13,
       14,    54,    13,    54,    13,    54,    13,    54,    25,    45,
       26,    27,    55,     8,    28,    56,     8,    28,    29,    57,
-      30,    56,    25,    55,    15,    28,    14,    56,    57,    30,
-       7,    16,    28,    28,    29,    13,    15,    15,    28,    25,
-      56,    15
+      30,    56,    25,    25,    55,    58,    15,    28,    14,    56,
+      58,    57,    58,    30,    58,     7,    16,    28,    28,    29,
+      13,     9,    15,    15,    28,    25,    56,    25,    15
   };
 
   const unsigned char
@@ -1296,9 +1339,10 @@ namespace  Cfg  {
       35,    35,    35,    36,    37,    38,    39,    39,    39,    40,
       40,    40,    40,    41,    41,    42,    42,    43,    44,    45,
       45,    46,    46,    47,    47,    48,    49,    49,    49,    49,
-      49,    49,    49,    49,    49,    49,    49,    49,    49,    50,
-      51,    52,    53,    54,    54,    54,    54,    55,    55,    56,
-      56,    57,    57,    57,    57
+      49,    49,    49,    49,    49,    49,    49,    49,    49,    49,
+      49,    49,    49,    50,    51,    52,    53,    54,    54,    54,
+      54,    55,    55,    56,    56,    57,    57,    57,    57,    58,
+      58
   };
 
   const unsigned char
@@ -1307,10 +1351,11 @@ namespace  Cfg  {
        0,     2,     1,     0,     2,     2,     2,     2,     3,     3,
        3,     3,     3,     3,     3,     1,     0,     1,     2,     1,
        3,     3,     5,     3,     3,     2,     4,     2,     1,     1,
-       3,     0,     1,     1,     2,     2,     1,     2,     3,     1,
-       2,     3,     1,     2,     3,     1,     2,     3,     2,     2,
-       2,     2,     2,     2,     3,     3,     4,     1,     1,     1,
-       2,     1,     1,     2,     2
+       3,     0,     1,     1,     2,     2,     1,     2,     3,     3,
+       1,     2,     3,     3,     1,     2,     3,     3,     1,     2,
+       3,     3,     2,     2,     2,     2,     2,     2,     3,     3,
+       4,     1,     1,     1,     2,     1,     1,     2,     2,     1,
+       3
   };
 
 
@@ -1329,7 +1374,7 @@ namespace  Cfg  {
   "EnumMember", "_EnumMem", "StructDecl", "StructBegin", "_StructBegin",
   "StructEnd", "StructInherit", "StructMember", "_StructMember",
   "VariateDecl", "Variate", "BoolVar", "IntVar", "FloatVar", "StringVar",
-  "Array", "BoolValue", "IntValue", "FloatValue", YY_NULL
+  "Array", "BoolValue", "IntValue", "FloatValue", "ValueRef", YY_NULL
   };
 
 #if YYDEBUG
@@ -1340,9 +1385,10 @@ namespace  Cfg  {
      104,   105,   106,   110,   113,   116,   120,   121,   122,   125,
      126,   127,   128,   132,   133,   136,   137,   139,   142,   146,
      147,   150,   151,   153,   154,   158,   161,   162,   163,   164,
-     165,   166,   167,   168,   169,   170,   171,   172,   173,   176,
-     178,   180,   182,   185,   186,   187,   188,   191,   192,   195,
-     196,   199,   200,   201,   202
+     165,   166,   167,   168,   169,   170,   171,   172,   173,   174,
+     175,   176,   177,   180,   182,   184,   186,   189,   190,   191,
+     192,   195,   196,   199,   200,   203,   204,   205,   206,   210,
+     211
   };
 
   // Print the state stack on the debug stream.
@@ -1375,13 +1421,13 @@ namespace  Cfg  {
 #endif // YYDEBUG
 
 
-#line 11 "../parser.y" // lalr1.cc:1156
-} //  Cfg 
-#line 1381 "Parser.cpp" // lalr1.cc:1156
-#line 205 "../parser.y" // lalr1.cc:1157
+#line 11 "./fb/parser.y" // lalr1.cc:1156
+} //  cfg 
+#line 1427 "Parser.cpp" // lalr1.cc:1156
+#line 214 "./fb/parser.y" // lalr1.cc:1157
 
 
-void Cfg::Parser::error(const location_type& l, const std::string& m)
+void cfg::Parser::error(const location_type& l, const std::string& m)
 {
     driver.Error(l, m);
 }

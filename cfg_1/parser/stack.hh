@@ -32,7 +32,7 @@
 
 /**
  ** \file stack.hh
- ** Define the  Cfg ::stack class.
+ ** Define the  cfg ::stack class.
  */
 
 #ifndef YY_YY_STACK_HH_INCLUDED
@@ -40,8 +40,8 @@
 
 # include <vector>
 
-#line 11 "../parser.y" // stack.hh:133
-namespace  Cfg  {
+#line 11 "./fb/parser.y" // stack.hh:133
+namespace  cfg  {
 #line 46 "stack.hh" // stack.hh:133
   template <class T, class S = std::vector<T> >
   class stack
@@ -151,8 +151,8 @@ namespace  Cfg  {
     unsigned int range_;
   };
 
-#line 11 "../parser.y" // stack.hh:133
-} //  Cfg 
+#line 11 "./fb/parser.y" // stack.hh:133
+} //  cfg 
 #line 157 "stack.hh" // stack.hh:133
 
 #endif // !YY_YY_STACK_HH_INCLUDED

@@ -8,7 +8,7 @@
 %define api.token.constructor
 %define api.value.type variant
 %define parse.assert
-%define api.namespace { Cfg }
+%define api.namespace { cfg }
 
 %code requires
 {
@@ -40,11 +40,11 @@ CFG_NAMESPACE_END
 #include "Scanner.h"
 #include "Context.h"
 
-static Cfg::Parser::symbol_type yylex(Cfg::Driver& driver)
+static cfg::Parser::symbol_type yylex(cfg::Driver& driver)
 {
     return driver.GetScanner()->Lex();
 }
- 
+
 #define CONTEXT (*driver.GetContext())
 }
 
@@ -80,7 +80,7 @@ static Cfg::Parser::symbol_type yylex(Cfg::Driver& driver)
 %token <std::string> VALUE_FLOAT    "0.0f"
 %token <std::string> VALUE_STRING   "empty"
 
-%type <std::string> BoolValue IntValue FloatValue
+%type <std::string> BoolValue IntValue FloatValue ValueRef
 
 //%printer { yyoutput << $$; }
 
@@ -161,25 +161,29 @@ VariateDecl : Variate S_SEMICOLON               { CONTEXT.OnVariateEnd(); }
 Variate     : BoolVar                           { }
             | BoolVar Array                     { }
             | BoolVar S_ASSIGN BoolValue        { CONTEXT.OnVariateValue($3); }
+            | BoolVar S_ASSIGN ValueRef         { CONTEXT.OnVariateValueRef($3); }
             | IntVar                            { }
             | IntVar Array                      { }
             | IntVar S_ASSIGN IntValue          { CONTEXT.OnVariateValue($3); }
+            | IntVar S_ASSIGN ValueRef          { CONTEXT.OnVariateValueRef($3); }
             | FloatVar                          { }
             | FloatVar Array                    { }
             | FloatVar S_ASSIGN FloatValue      { CONTEXT.OnVariateValue($3); }
+            | FloatVar S_ASSIGN ValueRef        { CONTEXT.OnVariateValueRef($3); }
             | StringVar                         { }
             | StringVar Array                   { }
             | StringVar S_ASSIGN VALUE_STRING   { CONTEXT.OnVariateValue($3); }
+            | StringVar S_ASSIGN ValueRef       { CONTEXT.OnVariateValueRef($3); }
             | IDENTIFIER IDENTIFIER             { CONTEXT.OnVariateBegin($1, $2); }
             ;
 
-BoolVar     : BOOL IDENTIFIER                   { CONTEXT.OnVariateBegin("bool", $2); }
+BoolVar     : BOOL IDENTIFIER                   { CONTEXT.OnVariateBegin(TYPE_BOOL, $2); }
             ;
-IntVar      : INT IDENTIFIER                    { CONTEXT.OnVariateBegin("int", $2); }
+IntVar      : INT IDENTIFIER                    { CONTEXT.OnVariateBegin(TYPE_INT, $2); }
             ;
-FloatVar    : FLOAT IDENTIFIER                  { CONTEXT.OnVariateBegin("float", $2); }
+FloatVar    : FLOAT IDENTIFIER                  { CONTEXT.OnVariateBegin(TYPE_FLOAT, $2); }
             ;
-StringVar   : STRING IDENTIFIER                 { CONTEXT.OnVariateBegin("string", $2); }
+StringVar   : STRING IDENTIFIER                 { CONTEXT.OnVariateBegin(TYPE_STRING, $2); }
             ;
 
 Array       : S_LBRACK S_RBRACK                 { CONTEXT.OnVariateArray(); }
@@ -202,9 +206,14 @@ FloatValue  : VALUE_INT             { $$ = $1; }
             | S_MINUS VALUE_FLOAT   { $$ = $2; }
             ;
 
+/* gobal or enum value reference */
+ValueRef    : IDENTIFIER                { $$ = $1; }
+            | ValueRef S_DOT IDENTIFIER { $$ = $1 + '.' + $3; }
+            ;
+
 %%
 
-void Cfg::Parser::error(const location_type& l, const std::string& m)
+void cfg::Parser::error(const location_type& l, const std::string& m)
 {
     driver.Error(l, m);
 }

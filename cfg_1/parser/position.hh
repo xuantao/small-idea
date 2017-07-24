@@ -32,7 +32,7 @@
 
 /**
  ** \file position.hh
- ** Define the  Cfg ::position class.
+ ** Define the  cfg ::position class.
  */
 
 #ifndef YY_YY_POSITION_HH_INCLUDED
@@ -50,8 +50,8 @@
 #  endif
 # endif
 
-#line 11 "../parser.y" // location.cc:291
-namespace  Cfg  {
+#line 11 "./fb/parser.y" // location.cc:291
+namespace  cfg  {
 #line 56 "position.hh" // location.cc:291
   /// Abstract a position.
   class position
@@ -174,7 +174,7 @@ namespace  Cfg  {
     return ostr << pos.line << '.' << pos.column;
   }
 
-#line 11 "../parser.y" // location.cc:291
-} //  Cfg 
+#line 11 "./fb/parser.y" // location.cc:291
+} //  cfg 
 #line 180 "position.hh" // location.cc:291
 #endif // !YY_YY_POSITION_HH_INCLUDED
