@@ -75,7 +75,7 @@ StructType::StructType(const std::string& name, IType* belong)
     , _belong(belong)
     , _vars(nullptr)
 {
-
+    _vars = new StructVarSet(this);
 }
 
 StructType::~StructType()
@@ -86,7 +86,7 @@ StructType::~StructType()
     _inherit = nullptr;
 }
 
-bool StructType::Inherit(const IType* type)
+bool StructType::Inherit(IType* type)
 {
     if (_inherit != nullptr)
         return false;

@@ -79,14 +79,14 @@ public:
     virtual IVarSet* VarSet() { return _vars; }
 
 public:
-    const IType* GetInherited() const { return _inherit; }
-    bool Inherit(const IType* type);
+    IType* GetInherited() const { return _inherit; }
+    bool Inherit(IType* type);
 
 protected:
     std::string _name;
     IType* _belong;
     IVarSet* _vars;
-    const IType* _inherit;
+    IType* _inherit;
 };
 
 /*

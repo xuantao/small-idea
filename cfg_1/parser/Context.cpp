@@ -31,11 +31,14 @@ Context::~Context()
     for (auto it = _rawTypes.begin(); it != _rawTypes.end(); ++it)
         delete it->second;
     _rawTypes.clear();
+
+    delete _var;
+    _var = nullptr;
 }
 
 IType* Context::GetType(const std::string& name) const
 {
-    IType* type = _scope->GetType(name);
+    IType* type = _scope->TypeSet()->Get(name);
     if (type == nullptr)
     {
         auto it = _rawTypes.find(name);
@@ -79,11 +82,11 @@ void Context::OnStructBegin(const std::string& name)
     if (_rawTypes.find(name) != _rawTypes.end())
     {
         printf("struct redefine %s\n", name.c_str());
-        _type = new StructType(GenCrashName(name));
+        _type = new StructType(GenCrashName(name), _scope);
     }
     else
     {
-        _type = new StructType(name);
+        _type = new StructType(name, _scope);
     }
 
     _rawTypes[_type->Name()] = _type;
@@ -99,14 +102,32 @@ void Context::OnInherit(const std::string& name)
         return;
     }
 
-    auto it = _rawTypes.find(name);
-    if (it == _rawTypes.end())
+    IType* herit = GetType(name);
+    if (herit == nullptr)
     {
         printf("inherit struct is not define :%s\n", name.c_str());
         return;
     }
 
-    _struct->Inherit(it->second);
+    if (herit->Category() != TypeCategory::Struct)
+    {
+        printf("inherit struct is not Strut Type :%s\n", name.c_str());
+        return;
+    }
+
+    if (_struct->GetInherited() != nullptr)
+    {
+        printf("inherit struct is not Strut Type :%s\n", name.c_str());
+        return;
+    }
+
+    if (_struct == herit)
+    {
+        printf("inherit struct is not Strut Type :%s\n", name.c_str());
+        return;
+    }
+
+    _struct->Inherit(herit);
 }
 
 void Context::OnStructEnd()
@@ -123,11 +144,11 @@ void Context::OnEnumBegin(const std::string& name)
     if (_rawTypes.find(name) != _rawTypes.end())
     {
         printf("enum redefine %s\n", name.c_str());
-        _type = new EnumType(GenCrashName(name));
+        _type = new EnumType(GenCrashName(name), _scope);
     }
     else
     {
-        _type = new EnumType(name);
+        _type = new EnumType(name, _scope);
     }
 
     _rawTypes[_type->Name()] = _type;
@@ -151,7 +172,7 @@ void Context::OnEnumMember(const std::string& name, const std::string& value/* =
     if (!value.empty() && util::Convert(value, nVar, 0))
         var->BindValue(new IntValue(nVar));
 
-    _enum->AddEnum(var);
+    _enum->VarSet()->Add(var);
 }
 
 void Context::OnEnumMemberRef(const std::string& name, const std::string& value)
@@ -172,7 +193,7 @@ void Context::OnEnumMemberRef(const std::string& name, const std::string& value)
     if (!value.empty() && util::Convert(value, nVar, 0))
         var->BindValue(new IntValue(nVar));
 
-    _enum->AddEnum(var);
+    //_enum->AddEnum(var);
 }
 
 void Context::OnEnumEnd()
@@ -210,14 +231,14 @@ void Context::OnVariateBegin(const std::string& type, const std::string& name)
     }
     else if (_type->Category() == TypeCategory::Struct)
     {
-        if (_struct->Contain(name))
+        //if (_struct->Contain(name))
         {
             printf("struct member already own member:%s\n", name.c_str());
             return;
         }
 
         _var = new Variate(_struct, varType, name);
-        _struct->AddVar(_var);
+        //_struct->AddVar(_var);
     }
     else
     {

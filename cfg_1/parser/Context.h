@@ -7,9 +7,11 @@
 CFG_NAMESPACE_BEGIN
 
 class Driver;
+class Variate;
+class IType;
 class EnumType;
 class StructType;
-class Variate;
+class ScopeType;
 
 class Context
 {
@@ -55,22 +57,19 @@ protected:
     const IVariate* FindVarRef(const IType* scope, const std::string& path) const;
 
 protected:
-    typedef std::map<std::string, IVariate*> MapVariate;
-    typedef std::map<std::string, IType*> MapType;
+    typedef std::map<std::string, IType*> MapRawType;
 
     Driver* _driver;
+    MapRawType _rawTypes;      // raw types
 
-    MapVariate _globalVars;
-    MapType _rawTypes;
     ScopeType* _scope;
-
     Variate* _var;
 
     union
     {
         IType* _type;
-        EnumType* _enum;
-        StructType* _struct;
+        EnumType* _enum;        // easy visit
+        StructType* _struct;    // easy visit
     };
 };
 

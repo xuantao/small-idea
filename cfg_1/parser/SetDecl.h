@@ -114,6 +114,7 @@ private:
     std::vector<IVariate*> _vars;
 };
 
+class StructType;
 class StructVarSet : public IVarSet
 {
 public:
@@ -130,6 +131,7 @@ public:
 
 protected:
     StructType* _belong;
+    std::vector<IVariate*> _vars;
 };
 
 CFG_NAMESPACE_END
