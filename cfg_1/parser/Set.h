@@ -68,20 +68,24 @@ public:
  * struct含有继承
 */
 class StructType;
-class StructVarSet : public VarSetNormal
+class StructVarSet : public IVarSet
 {
 public:
     StructVarSet(StructType* belong);
     ~StructVarSet();
 
 public:
+    virtual IType* Belong() const;
     virtual IVariate* Get(const std::string& name) const;
     virtual IVariate* Get(int index) const;
     virtual int Size() const;
 
     virtual bool Add(IVariate* var);
+public:
+    IVarSet* SelfVars() const { return &_self; }
 
 protected:
+    VarSetNormal _self;
     StructType* _struct;
 };
 

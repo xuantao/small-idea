@@ -115,13 +115,18 @@ bool EnumVarSet::Add(IVariate* var)
 //////////////////////////////////////////////////////////////////////////
 // StructVarSet
 StructVarSet::StructVarSet(StructType* belong)
-    : VarSetNormal(belong), _struct(belong)
+    : _self(belong), _struct(belong)
 {
 }
 
 StructVarSet::~StructVarSet()
 {
     _struct = nullptr;
+}
+
+IType* StructType::Belong() const
+{
+    return _belong;
 }
 
 IVariate* StructVarSet::Get(const std::string& name) const
