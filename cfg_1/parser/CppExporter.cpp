@@ -46,10 +46,12 @@ static std::string TransValue(const IVariate* var)
     const IVariate* ref = value->Var();
     std::stringstream stream;
     if (var->Type() != ref->Type())
-        stream << "(" << var->Type() << ")";
+        stream << "(" << var->Type()->Name() << ")";
 
-    const std::vector<std::string> ralative = util::Relative(var->Belong(), value->Var()->Belong());
+    const std::vector<std::string> ralative = util::Relative(var->Belong(), ref->Type());
     stream << util::Contact(ralative, "::");
+    if (!ralative.empty())
+        stream << "::";
     stream << ref->Name();
     return stream.str();
 }
@@ -84,10 +86,11 @@ bool CppExporter::Export(const EnumType* ty)
     _stream << "enum " << ty->Name() << " {" << std::endl;
     ++_tab;
 
-    for (int i = 0; i < ty->VarSet()->Size(); ++i)
+    const IVarSet* vars = ty->VarSet();
+    for (int i = 0; i < vars->Size(); ++i)
     {
         VarData data;
-        Trans(ty->VarSet()->Get(i), data);
+        Trans(vars->Get(i), data);
 
         Tab();
         _stream << data.name;
@@ -112,10 +115,11 @@ bool CppExporter::Export(const StructType* ty)
 
     ++_tab;
 
-    for (int i = 0; i < ty->VarSet()->Size(); ++i)
+    const IVarSet* vars = ty->OwnVars();
+    for (int i = 0; i < vars->Size(); ++i)
     {
         VarData data;
-        Trans(ty->VarSet()->Get(i), data);
+        Trans(vars->Get(i), data);
 
         Tab();
         _stream << data.type << " " << data.name;
@@ -168,9 +172,21 @@ bool CppExporter::Export(const ScopeType* ty)
 
 void CppExporter::Trans(const IVariate* var, VarData& data)
 {
-    const auto ralative = util::Relative(var->Type(), _scope.top());
+    const IType* type = var->Type();
+    if (type->Category() == TypeCategory::Raw)
+    {
+        data.type = type->Name();
+    }
+    else if (type->Category() == TypeCategory::Array)
+    {
+        data.type = static_cast<const ArrayType*>(type)->Original()->Name();
+    }
+    else
+    {
+        const auto ralative = util::Relative(type, _scope.top());
+        data.type = util::Contact(ralative, "::");
+    }
 
-    data.type = util::Contact(ralative, "::");
     data.name = var->Name();
 
     const IValue* value = var->Value();

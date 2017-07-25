@@ -79,10 +79,11 @@ public:
     virtual IVariate* Get(const std::string& name) const;
     virtual IVariate* Get(int index) const;
     virtual int Size() const;
-
     virtual bool Add(IVariate* var);
+
 public:
-    IVarSet* SelfVars() const { return &_self; }
+    IVarSet* OwnVars() { return &_self; }
+    const IVarSet* OwnVars() const { return &_self; }
 
 protected:
     VarSetNormal _self;

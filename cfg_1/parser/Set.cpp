@@ -124,21 +124,20 @@ StructVarSet::~StructVarSet()
     _struct = nullptr;
 }
 
-IType* StructType::Belong() const
+IType* StructVarSet::Belong() const
 {
-    return _belong;
+    return _struct;
 }
 
 IVariate* StructVarSet::Get(const std::string& name) const
 {
-    IVariate* var = nullptr;
+    IVariate* var = _self.Get(name);
+    if (var)
+        return var;
+
     IType* inherit = _struct->Inherited();
     if (inherit)
         var = inherit->VarSet()->Get(name);
-
-    if (var == nullptr)
-        var = VarSetNormal::Get(name);
-
     return var;
 }
 
@@ -154,7 +153,7 @@ IVariate* StructVarSet::Get(int index) const
             index -= set->Size();
     }
 
-    return VarSetNormal::Get(index);
+    return _self.Get(index);
 }
 
 int StructVarSet::Size() const
@@ -164,16 +163,12 @@ int StructVarSet::Size() const
     if (inherit && inherit->VarSet())
         size = inherit->VarSet()->Size();
 
-    return VarSetNormal::Size() + size;
+    return _self.Size() + size;
 }
 
 bool StructVarSet::Add(IVariate* var)
 {
-    if (var == nullptr || VarSetNormal::Get(var->Name()))
-        return false;
-
-    _vars.push_back(var);
-    return true;
+    return _self.Add(var);
 }
 
 CFG_NAMESPACE_END

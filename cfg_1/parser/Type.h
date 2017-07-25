@@ -25,6 +25,7 @@ public:
     virtual ITypeSet* TypeSet() const { return nullptr; }
     virtual IVarSet* VarSet() const { return nullptr; }
 
+public:
     RawCategory Raw() const { return _raw; }
 
 protected:
@@ -42,7 +43,7 @@ public:
     ~EnumType();
 
 public:
-    virtual IType* Belong() const { return nullptr; }
+    virtual IType* Belong() const { return _belong; }
     virtual TypeCategory Category() const { return TypeCategory::Enum; }
     virtual const std::string& Name() const { return _name; }
 
@@ -79,14 +80,17 @@ public:
     virtual IVarSet* VarSet() const { return _vars; }
 
 public:
-    IType* Inherited() const { return _inherit; }
-    bool Inherit(IType* type);
+    bool IsInherited(const IType* type) const;
+    StructType* Inherited() const { return _inherit; }
+    bool Inherit(StructType* type);
+    IVarSet* OwnVars();
+    const IVarSet* OwnVars() const;
 
 protected:
     std::string _name;
     IType* _belong;
     IVarSet* _vars;
-    IType* _inherit;
+    StructType* _inherit;
 };
 
 /*
@@ -100,13 +104,14 @@ public:
 
 public:
     virtual IType* Belong() const { return nullptr; }
-    virtual TypeCategory Category() const { return TypeCategory::Scope; }
+    virtual TypeCategory Category() const { return TypeCategory::Array; }
     virtual const std::string& Name() const { return _name; }
 
     virtual ITypeSet* TypeSet() const { return nullptr; }
     virtual IVarSet* VarSet() const { return nullptr; }
 
 public:
+    const IType* Original() const;
     const IType* Prev() const { return _prev; }
     int Length() const { return _length; }
 

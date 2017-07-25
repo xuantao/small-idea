@@ -65,7 +65,18 @@ StructType::~StructType()
     _inherit = nullptr;
 }
 
-bool StructType::Inherit(IType* type)
+bool StructType::IsInherited(const IType* type) const
+{
+    if (_inherit == nullptr)
+        return false;
+
+    if (type == _inherit)
+        return true;
+
+    return _inherit->IsInherited(type);
+}
+
+bool StructType::Inherit(StructType* type)
 {
     if (_inherit != nullptr)
         return false;
@@ -73,8 +84,24 @@ bool StructType::Inherit(IType* type)
     if (type->Category() != TypeCategory::Struct)
         return false;
 
+    if (type == this)
+        return false;
+
+    if (IsInherited(type))
+        return false;
+
     _inherit = type;
     return true;
+}
+
+IVarSet* StructType::OwnVars()
+{
+    return static_cast<StructVarSet*>(_vars)->OwnVars();
+}
+
+const IVarSet* StructType::OwnVars() const
+{
+    return static_cast<StructVarSet*>(_vars)->OwnVars();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -94,6 +121,13 @@ ArrayType::~ArrayType()
     if (_prev->Category() == TypeCategory::Array)
         delete _prev;
     _prev = nullptr;
+}
+
+const IType* ArrayType::Original() const
+{
+    if (_prev->Category() == TypeCategory::Array)
+        return static_cast<const ArrayType*>(_prev)->Original();
+    return _prev;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -124,7 +124,13 @@ void Context::OnInherit(const std::string& name)
         return;
     }
 
-    _struct->Inherit(herit);
+    if (_struct->IsInherited(herit))
+    {
+        _driver->Error("struct {0} is alreay inherit from {1}", _struct->Name(), name);
+        return;
+    }
+
+    _struct->Inherit(static_cast<StructType*>(herit));
 }
 
 void Context::OnStructEnd()
