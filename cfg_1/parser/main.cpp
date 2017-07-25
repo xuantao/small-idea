@@ -3,6 +3,7 @@
 #include "Scanner.h"
 #include "Driver.h"
 #include "Context.h"
+#include "CppExporter.h"
 
 CFG_NAMESPACE_USING;
 
@@ -22,6 +23,8 @@ int main(int argc, char** argv)
         std::cerr << "initialize scanner failed" << std::endl;
         return 0;
     }
+
+    CppExporter::Export(context.Global(), std::cout);
 
     system("pause");
     return 1;

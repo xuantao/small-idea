@@ -11,7 +11,9 @@ CFG_NAMESPACE_BEGIN
 class RawType : public IType
 {
 public:
-    RawType(const std::string& name) : _name(name)
+    RawType(const std::string& name, RawCategory raw)
+        : _name(name)
+        , _raw(raw)
     {
     }
 
@@ -20,11 +22,14 @@ public:
     virtual TypeCategory Category() const { return TypeCategory::Raw; }
     virtual const std::string& Name() const { return _name; }
 
-    virtual ITypeSet* TypeSet() { return nullptr; }
-    virtual IVarSet* VarSet() { return nullptr; }
+    virtual ITypeSet* TypeSet() const { return nullptr; }
+    virtual IVarSet* VarSet() const { return nullptr; }
+
+    RawCategory Raw() const { return _raw; }
 
 protected:
     std::string _name;
+    RawCategory _raw;
 };
 
 /*
@@ -41,19 +46,14 @@ public:
     virtual TypeCategory Category() const { return TypeCategory::Enum; }
     virtual const std::string& Name() const { return _name; }
 
-    virtual ITypeSet* TypeSet() { return nullptr; }
-    virtual IVarSet* VarSet() { return _vars; }
+    virtual ITypeSet* TypeSet() const { return nullptr; }
+    virtual IVarSet* VarSet() const { return _vars; }
 public:
     /*
      * 值与名字互转
     */
     int Trans(const std::string& name) const;
     const std::string& Trans(int value) const;
-
-    bool AddEnum(const std::string& name, IVariate* var);
-
-protected:
-    int RawValue(IVariate* var) const;
 
 protected:
     std::string _name;
@@ -75,11 +75,11 @@ public:
     virtual TypeCategory Category() const { return TypeCategory::Struct; }
     virtual const std::string& Name() const { return _name; }
 
-    virtual ITypeSet* TypeSet() { return nullptr; }
-    virtual IVarSet* VarSet() { return _vars; }
+    virtual ITypeSet* TypeSet()  const { return nullptr; }
+    virtual IVarSet* VarSet() const { return _vars; }
 
 public:
-    IType* GetInherited() const { return _inherit; }
+    IType* Inherited() const { return _inherit; }
     bool Inherit(IType* type);
 
 protected:
@@ -95,23 +95,24 @@ protected:
 class ArrayType : public IType
 {
 public:
-    ArrayType(const IType* raw, int length);
+    ArrayType(const IType* prev, int length);
+    ~ArrayType();
 
 public:
     virtual IType* Belong() const { return nullptr; }
     virtual TypeCategory Category() const { return TypeCategory::Scope; }
     virtual const std::string& Name() const { return _name; }
 
-    virtual ITypeSet* TypeSet() { return nullptr; }
-    virtual IVarSet* VarSet() { return nullptr; }
+    virtual ITypeSet* TypeSet() const { return nullptr; }
+    virtual IVarSet* VarSet() const { return nullptr; }
 
 public:
-    const IType* RawType() const { return _raw; }
+    const IType* Prev() const { return _prev; }
     int Length() const { return _length; }
 
 protected:
     std::string _name;
-    const IType* _raw;
+    const IType* _prev;
     int _length;
 };
 
@@ -129,8 +130,8 @@ public:
     virtual TypeCategory Category() const { return TypeCategory::Scope; }
     virtual const std::string& Name() const { return _name; }
 
-    virtual ITypeSet* TypeSet() { return _types; }
-    virtual IVarSet* VarSet() { return _vars; }
+    virtual ITypeSet* TypeSet() const { return _types; }
+    virtual IVarSet* VarSet() const { return _vars; }
 
 protected:
     std::string _name;

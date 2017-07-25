@@ -146,30 +146,37 @@
   <ItemGroup>
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="CfgFlexLexer.cpp" />
+    <ClCompile Include="CppExporter.cpp" />
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Scanner.cpp" />
-    <ClCompile Include="SetDecl.cpp" />
-    <ClCompile Include="TypeDecl.cpp" />
+    <ClCompile Include="Set.cpp" />
+    <ClCompile Include="Type.cpp" />
     <ClCompile Include="Utility.cpp" />
+    <ClCompile Include="Value.cpp" />
+    <ClCompile Include="ValueUtil.cpp" />
     <ClCompile Include="Variate.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Context.h" />
     <ClInclude Include="CfgDef.h" />
+    <ClInclude Include="CppExporter.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="FlexLexer.h" />
-    <ClInclude Include="SetDecl.h" />
+    <ClInclude Include="IExporter.h" />
+    <ClInclude Include="Set.h" />
+    <ClInclude Include="TupleLogger.h" />
     <ClInclude Include="Utility.h" />
-    <ClInclude Include="ValueDecl.h" />
+    <ClInclude Include="Value.h" />
+    <ClInclude Include="ValueUtil.h" />
     <ClInclude Include="Variate.h" />
     <ClInclude Include="location.hh" />
     <ClInclude Include="Parser.hpp" />
     <ClInclude Include="position.hh" />
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="stack.hh" />
-    <ClInclude Include="TypeDecl.h" />
+    <ClInclude Include="Type.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fb\parser.y" />

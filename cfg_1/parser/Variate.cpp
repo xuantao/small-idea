@@ -1,11 +1,25 @@
 ﻿#include "Variate.h"
-#include "TypeDecl.h"
+#include "Type.h"
 
 CFG_NAMESPACE_BEGIN
 
 Variate::Variate(const IType* belong, const IType* type, const std::string& name)
-    : _belong(belong), _type(type), _name(name)
+    : _belong(belong)
+    , _type(type)
+    , _name(name)
+    , _value(nullptr)
+    , _const(false)
 {
+}
+
+Variate::~Variate()
+{
+    delete _value;
+    _value = nullptr;
+
+    if (_type->Category() == TypeCategory::Array)
+        delete _type;
+    _type = nullptr;
 }
 
 void Variate::UpgradeArray(int length /* = -1 */)
@@ -18,4 +32,8 @@ void Variate::BindValue(IValue* value)
     _value = value;
 }
 
+void Variate::SetConst()
+{
+    _const = true;
+}
 CFG_NAMESPACE_END

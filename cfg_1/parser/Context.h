@@ -21,6 +21,7 @@ public:
 
 public:
     IType* GetType(const std::string& name) const;
+    const ScopeType* Global() const { return _scope; }
 
 public:
     void OnParseBegin(Driver& driver, const std::string& file);
@@ -35,32 +36,21 @@ public:
     void OnStructEnd();
 
     void OnEnumBegin(const std::string& name);
-    void OnEnumMember(const std::string& name, const std::string& value = "");
-    void OnEnumMemberRef(const std::string& name, const std::string& value);
+    void OnEnumMember(const std::string& name);
+    void OnEnumMember(const std::string& name, const std::string& value, bool refer);
     void OnEnumEnd();
 
     void OnVariateBegin(const std::string& type, const std::string& name);
-    void OnVariateValue(const std::string& value);
-    void OnVariateValueRef(const std::string& value);
+    void OnVariateValue(RawCategory raw, const std::string& value);
+    void OnVariateValue(const std::string& refer);
     void OnVariateArray(const std::string& length = "");
-    void OnVariateEnd();
+    void OnVariateEnd(bool isConst);
 
 protected:
-    std::string GenCrashName(const std::string& name) const;
-    IValue* CreateValue(const IType* type, const std::string& value) const;
-
-    IValue* CreateValueBool(const IType* type, const std::string& value) const;
-    IValue* CreateValueInt(const IType* type, const std::string& value) const;
-    IValue* CreateValueFloat(const IType* type, const std::string& value) const;
-    IValue* CreateValueString(const IType* type, const std::string& value) const;
-
-    const IVariate* FindVarRef(const IType* scope, const std::string& path) const;
+    std::string MakeSureName(const std::string& name) const;
 
 protected:
-    typedef std::map<std::string, IType*> MapRawType;
-
     Driver* _driver;
-    MapRawType _rawTypes;      // raw types
 
     ScopeType* _scope;
     Variate* _var;

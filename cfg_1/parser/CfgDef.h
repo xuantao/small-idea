@@ -4,7 +4,11 @@
 */
 #pragma once
 
+#include <cassert>
 #include <string>
+#include <vector>
+#include <type_traits>
+#include <algorithm>
 
 #define CFG_NAMESPACE       cfg
 #define CFG_NAMESPACE_BEGIN namespace CFG_NAMESPACE {
@@ -20,6 +24,14 @@ CFG_NAMESPACE_BEGIN
 #define TYPE_FLOAT  "float"
 #define TYPE_STRING "string"
 
+enum class RawCategory
+{
+    Bool,
+    Int,
+    Float,
+    String
+};
+
 enum class TypeCategory
 {
     Raw,
@@ -34,6 +46,7 @@ enum class ValueCategory
     Raw,
     Ref,
 };
+
 
 class IType;
 class ITypeSet;
@@ -53,8 +66,8 @@ public:
     virtual TypeCategory Category() const = 0;
     virtual const std::string& Name() const = 0;
 
-    virtual ITypeSet* TypeSet() = 0;
-    virtual IVarSet* VarSet() = 0;
+    virtual ITypeSet* TypeSet() const = 0;
+    virtual IVarSet* VarSet() const = 0;
 };
 
 class ITypeSet
@@ -91,7 +104,7 @@ class IVariate
 public:
     virtual ~IVariate() {}
 public:
-    virtual bool IsConst() = 0;
+    virtual bool IsConst() const = 0;
     virtual const std::string& Name() const = 0;
     virtual const IType* Belong() const = 0;
     virtual const IType* Type() const = 0;
@@ -108,7 +121,6 @@ public:
     ~IValue() {}
 public:
     virtual ValueCategory Category() const = 0;
-    virtual const IValue* RawValue() const = 0;
 };
 
 CFG_NAMESPACE_END

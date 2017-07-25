@@ -251,7 +251,7 @@ namespace  cfg  {
       // BoolValue
       // IntValue
       // FloatValue
-      // ValueRef
+      // RefValue
       char dummy1[sizeof(std::string)];
 };
 
@@ -714,7 +714,7 @@ namespace  cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 100,           //< Last index in yytable_.
+      yylast_ = 123,           //< Last index in yytable_.
       yynnts_ = 28,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.
@@ -808,7 +808,7 @@ namespace  cfg  {
       case 55: // BoolValue
       case 56: // IntValue
       case 57: // FloatValue
-      case 58: // ValueRef
+      case 58: // RefValue
         value.copy< std::string > (other.value);
         break;
 
@@ -838,7 +838,7 @@ namespace  cfg  {
       case 55: // BoolValue
       case 56: // IntValue
       case 57: // FloatValue
-      case 58: // ValueRef
+      case 58: // RefValue
         value.copy< std::string > (v);
         break;
 
@@ -889,7 +889,7 @@ namespace  cfg  {
       case 55: // BoolValue
       case 56: // IntValue
       case 57: // FloatValue
-      case 58: // ValueRef
+      case 58: // RefValue
         value.template destroy< std::string > ();
         break;
 
@@ -916,7 +916,7 @@ namespace  cfg  {
       case 55: // BoolValue
       case 56: // IntValue
       case 57: // FloatValue
-      case 58: // ValueRef
+      case 58: // RefValue
         value.move< std::string > (s.value);
         break;
 

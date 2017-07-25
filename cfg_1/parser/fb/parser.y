@@ -80,7 +80,7 @@ static cfg::Parser::symbol_type yylex(cfg::Driver& driver)
 %token <std::string> VALUE_FLOAT    "0.0f"
 %token <std::string> VALUE_STRING   "empty"
 
-%type <std::string> BoolValue IntValue FloatValue ValueRef
+%type <std::string> BoolValue IntValue FloatValue RefValue
 
 //%printer { yyoutput << $$; }
 
@@ -97,13 +97,14 @@ Program : /* empty */           { }
         ;
 
 /* const value */
-ConstValue  : CONST _ConstValue S_SEMICOLON     { CONTEXT.OnVariateEnd(); }
+ConstValue  : _ConstValue S_SEMICOLON           { CONTEXT.OnVariateEnd(false); }
+            | CONST _ConstValue S_SEMICOLON     { CONTEXT.OnVariateEnd(true); }
             ;
 
-_ConstValue : BoolVar S_ASSIGN BoolValue        { CONTEXT.OnVariateValue($3); }
-            | IntVar S_ASSIGN IntValue          { CONTEXT.OnVariateValue($3); }
-            | FloatVar S_ASSIGN FloatValue      { CONTEXT.OnVariateValue($3); }
-            | StringVar S_ASSIGN VALUE_STRING   { CONTEXT.OnVariateValue($3); }
+_ConstValue : BoolVar S_ASSIGN BoolValue        { CONTEXT.OnVariateValue(RawCategory::Bool, $3); }
+            | IntVar S_ASSIGN IntValue          { CONTEXT.OnVariateValue(RawCategory::Int, $3); }
+            | FloatVar S_ASSIGN FloatValue      { CONTEXT.OnVariateValue(RawCategory::Float, $3); }
+            | StringVar S_ASSIGN VALUE_STRING   { CONTEXT.OnVariateValue(RawCategory::String, $3); }
             ;
 
 /* enum declear */
@@ -123,9 +124,11 @@ EnumMember  : /* empty */                       { }
             ;
 
 _EnumMem    : IDENTIFIER                        { CONTEXT.OnEnumMember($1); }
-            | IDENTIFIER S_ASSIGN IntValue      { CONTEXT.OnEnumMember($1, $3); }
+            | IDENTIFIER S_ASSIGN IntValue      { CONTEXT.OnEnumMember($1, $3, false); }
+            | IDENTIFIER S_ASSIGN RefValue      { CONTEXT.OnEnumMember($1, $3, true); }
             | _EnumMem S_COMMA IDENTIFIER       { CONTEXT.OnEnumMember($3); }
-            | _EnumMem S_COMMA IDENTIFIER S_ASSIGN IntValue { CONTEXT.OnEnumMember($3, $5); }
+            | _EnumMem S_COMMA IDENTIFIER S_ASSIGN IntValue { CONTEXT.OnEnumMember($3, $5, false); }
+            | _EnumMem S_COMMA IDENTIFIER S_ASSIGN RefValue { CONTEXT.OnEnumMember($3, $5, true); }
             ;
 
 /* structure declear */
@@ -155,25 +158,26 @@ _StructMember   : VariateDecl                   { }
                 ;
 
 /* common detect */
-VariateDecl : Variate S_SEMICOLON               { CONTEXT.OnVariateEnd(); }
+VariateDecl : Variate S_SEMICOLON               { CONTEXT.OnVariateEnd(false); }
+            | CONST Variate S_SEMICOLON         { CONTEXT.OnVariateEnd(true); }
             ;
 
 Variate     : BoolVar                           { }
             | BoolVar Array                     { }
-            | BoolVar S_ASSIGN BoolValue        { CONTEXT.OnVariateValue($3); }
-            | BoolVar S_ASSIGN ValueRef         { CONTEXT.OnVariateValueRef($3); }
+            | BoolVar S_ASSIGN BoolValue        { CONTEXT.OnVariateValue(RawCategory::Bool, $3); }
+            | BoolVar S_ASSIGN RefValue         { CONTEXT.OnVariateValue($3); }
             | IntVar                            { }
             | IntVar Array                      { }
-            | IntVar S_ASSIGN IntValue          { CONTEXT.OnVariateValue($3); }
-            | IntVar S_ASSIGN ValueRef          { CONTEXT.OnVariateValueRef($3); }
+            | IntVar S_ASSIGN IntValue          { CONTEXT.OnVariateValue(RawCategory::Int, $3); }
+            | IntVar S_ASSIGN RefValue          { CONTEXT.OnVariateValue($3); }
             | FloatVar                          { }
             | FloatVar Array                    { }
-            | FloatVar S_ASSIGN FloatValue      { CONTEXT.OnVariateValue($3); }
-            | FloatVar S_ASSIGN ValueRef        { CONTEXT.OnVariateValueRef($3); }
+            | FloatVar S_ASSIGN FloatValue      { CONTEXT.OnVariateValue(RawCategory::Float, $3); }
+            | FloatVar S_ASSIGN RefValue        { CONTEXT.OnVariateValue($3); }
             | StringVar                         { }
             | StringVar Array                   { }
-            | StringVar S_ASSIGN VALUE_STRING   { CONTEXT.OnVariateValue($3); }
-            | StringVar S_ASSIGN ValueRef       { CONTEXT.OnVariateValueRef($3); }
+            | StringVar S_ASSIGN VALUE_STRING   { CONTEXT.OnVariateValue(RawCategory::String, $3); }
+            | StringVar S_ASSIGN RefValue       { CONTEXT.OnVariateValue($3); }
             | IDENTIFIER IDENTIFIER             { CONTEXT.OnVariateBegin($1, $2); }
             ;
 
@@ -207,8 +211,8 @@ FloatValue  : VALUE_INT             { $$ = $1; }
             ;
 
 /* gobal or enum value reference */
-ValueRef    : IDENTIFIER                { $$ = $1; }
-            | ValueRef S_DOT IDENTIFIER { $$ = $1 + '.' + $3; }
+RefValue    : IDENTIFIER                { $$ = $1; }
+            | RefValue S_DOT IDENTIFIER { $$ = $1 + '.' + $3; }
             ;
 
 %%

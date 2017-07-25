@@ -1,17 +1,19 @@
-﻿#include "TypeDecl.h"
+﻿#include "Type.h"
 #include <algorithm>
 #include "Utility.h"
-#include "SetDecl.h"
-#include "ValueDecl.h"
+#include "Set.h"
+#include "Value.h"
+#include "ValueUtil.h"
 
 CFG_NAMESPACE_BEGIN
 
 //////////////////////////////////////////////////////////////////////////
 // Enum Type
 EnumType::EnumType(const std::string& name, IType* belong)
-    : _name(name), _belong(belong)
+    : _name(name)
+    , _belong(belong)
 {
-    _vars = new VarSetDecl(this);
+    _vars = new EnumVarSet(this);
 }
 
 EnumType::~EnumType()
@@ -27,45 +29,21 @@ int EnumType::Trans(const std::string& name) const
     if (var == nullptr)
         return -1;
 
-    return RawValue(var);
+    int val = -1;
+    value_util::Value(var->Value(), val);
+    return val;
 }
 
 const std::string& EnumType::Trans(int value) const
 {
     for (int i = 0; i < _vars->Size(); ++i)
     {
+        int val = -1;
         IVariate* var = _vars->Get(i);
-        if (RawValue(var) == value)
+        if (value_util::Value(var->Value(), val) && val == value)
             return var->Name();
     }
-    return util::STR_EMPTY;
-}
-
-bool EnumType::AddEnum(const std::string& name, IVariate* var)
-{
-    if (_vars->Get(name))
-        return false;
-
-    if (var->Value() == nullptr)
-    {
-        if (_vars->Size() == 0)
-        {
-            var->BindValue(new IntValue(0));
-        }
-        else
-        {
-            IVariate* prev = _vars->Get(_vars->Size() - 1);
-            var->BindValue(new IntValue(RawValue(prev) + 1));
-        }
-    }
-
-    _vars->Add(var);
-    return true;
-}
-
-int EnumType::RawValue(IVariate* var) const
-{
-    return 0;
+    return util::EMPTY_STR;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -74,6 +52,7 @@ StructType::StructType(const std::string& name, IType* belong)
     : _name(name)
     , _belong(belong)
     , _vars(nullptr)
+    , _inherit(nullptr)
 {
     _vars = new StructVarSet(this);
 }
@@ -91,7 +70,7 @@ bool StructType::Inherit(IType* type)
     if (_inherit != nullptr)
         return false;
 
-    if (_inherit->Category() != TypeCategory::Struct)
+    if (type->Category() != TypeCategory::Struct)
         return false;
 
     _inherit = type;
@@ -100,14 +79,21 @@ bool StructType::Inherit(IType* type)
 
 //////////////////////////////////////////////////////////////////////////
 // ArrayType
-ArrayType::ArrayType(const IType* raw, int length)
-    : _raw(raw), _length(length)
+ArrayType::ArrayType(const IType* prev, int length)
+    : _prev(prev)
+    , _length(length)
 {
-    char buff[32] = {0};
     if (length >= 0)
-        _name = raw->Name() + "[" + itoa(length, buff, 32) + "]";
+        _name = prev->Name() + "[" + std::to_string(length) + "]";
     else
-        _name = raw->Name() + "[" + "]";
+        _name = prev->Name() + "[" + "]";
+}
+
+ArrayType::~ArrayType()
+{
+    if (_prev->Category() == TypeCategory::Array)
+        delete _prev;
+    _prev = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,16 +101,17 @@ ArrayType::ArrayType(const IType* raw, int length)
 ScopeType::ScopeType(const std::string& name, ScopeType* belong /* = nullptr */)
     : _name(name), _belong(belong)
 {
-    _types = new TypeSetDecl(this);
-    _vars = new VarSetDecl(this);
+    _types = new TypeSetNormal(this);
+    _vars = new VarSetNormal(this);
 }
 
 ScopeType::~ScopeType()
 {
-    delete _types;
+    // vars dependence types
     delete _vars;
-    _types = nullptr;
+    delete _types;
     _vars = nullptr;
+    _types = nullptr;
     _belong = nullptr;
 }
 

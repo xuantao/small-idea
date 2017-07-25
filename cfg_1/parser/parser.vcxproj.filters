@@ -17,6 +17,12 @@
     <Filter Include="src\util">
       <UniqueIdentifier>{144d3f3e-71ea-4961-abfa-654a5e3a51c0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\export">
+      <UniqueIdentifier>{91122456-8509-4b2c-915d-aba3d502e33d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\export\cpp">
+      <UniqueIdentifier>{474be6da-f9fa-4177-a0d7-2dc77372bade}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -37,17 +43,26 @@
     <ClCompile Include="Context.cpp">
       <Filter>src\context</Filter>
     </ClCompile>
-    <ClCompile Include="SetDecl.cpp">
-      <Filter>src\context</Filter>
-    </ClCompile>
-    <ClCompile Include="TypeDecl.cpp">
-      <Filter>src\context</Filter>
-    </ClCompile>
     <ClCompile Include="Variate.cpp">
       <Filter>src\context</Filter>
     </ClCompile>
     <ClCompile Include="Utility.cpp">
       <Filter>src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="ValueUtil.cpp">
+      <Filter>src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="Type.cpp">
+      <Filter>src\context</Filter>
+    </ClCompile>
+    <ClCompile Include="Set.cpp">
+      <Filter>src\context</Filter>
+    </ClCompile>
+    <ClCompile Include="Value.cpp">
+      <Filter>src\context</Filter>
+    </ClCompile>
+    <ClCompile Include="CppExporter.cpp">
+      <Filter>src\export\cpp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -78,20 +93,32 @@
     <ClInclude Include="Context.h">
       <Filter>src\context</Filter>
     </ClInclude>
-    <ClInclude Include="SetDecl.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
-    <ClInclude Include="TypeDecl.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
-    <ClInclude Include="ValueDecl.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
     <ClInclude Include="Variate.h">
       <Filter>src\context</Filter>
     </ClInclude>
     <ClInclude Include="Utility.h">
       <Filter>src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="ValueUtil.h">
+      <Filter>src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="Value.h">
+      <Filter>src\context</Filter>
+    </ClInclude>
+    <ClInclude Include="Type.h">
+      <Filter>src\context</Filter>
+    </ClInclude>
+    <ClInclude Include="Set.h">
+      <Filter>src\context</Filter>
+    </ClInclude>
+    <ClInclude Include="TupleLogger.h">
+      <Filter>src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="IExporter.h">
+      <Filter>src\export</Filter>
+    </ClInclude>
+    <ClInclude Include="CppExporter.h">
+      <Filter>src\export\cpp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
