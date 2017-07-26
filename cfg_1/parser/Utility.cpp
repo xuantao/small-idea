@@ -23,7 +23,7 @@ namespace util
         path.push_back(type->Name());
     }
 
-    static const IType* FindType(const IType* scope, const std::vector<std::string>& path, int begin = 0, int end = -1)
+    static IType* FindType(IType* scope, const std::vector<std::string>& path, int begin = 0, int end = -1)
     {
         if (end < 0)
             end = (int)path.size();
@@ -41,7 +41,7 @@ namespace util
         */
         while (scope)
         {
-            const IType* temp = scope;
+            IType* temp = scope;
             if (temp->TypeSet())
             {
                 scope = temp->TypeSet()->Get(path[begin]);
@@ -238,7 +238,7 @@ namespace util
         return std::vector<std::string>(op.begin() + beg, op.end());
     }
 
-    const IType* FindType(const IType* scope, const std::string& path)
+    IType* FindType(IType* scope, const std::string& path)
     {
         if (scope == nullptr)
             return nullptr;
@@ -247,9 +247,9 @@ namespace util
         return FindType(scope, util::Split(path, '.'));
     }
 
-    const IVariate* FindVar(const IType* scope, const std::string& path)
+    IVariate* FindVar(IType* scope, const std::string& path)
     {
-        const IVariate* var = nullptr;
+        IVariate* var = nullptr;
         const IType* type = scope;
         std::vector<std::string> vec = util::Split(path, '.');
 

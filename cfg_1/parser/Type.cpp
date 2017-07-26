@@ -23,29 +23,6 @@ EnumType::~EnumType()
     _belong = nullptr;
 }
 
-int EnumType::Trans(const std::string& name) const
-{
-    IVariate* var = _vars->Get(name);
-    if (var == nullptr)
-        return -1;
-
-    int val = -1;
-    value_util::Value(var->Value(), val);
-    return val;
-}
-
-const std::string& EnumType::Trans(int value) const
-{
-    for (int i = 0; i < _vars->Size(); ++i)
-    {
-        int val = -1;
-        IVariate* var = _vars->Get(i);
-        if (value_util::Value(var->Value(), val) && val == value)
-            return var->Name();
-    }
-    return util::EMPTY_STR;
-}
-
 //////////////////////////////////////////////////////////////////////////
 // StructType
 StructType::StructType(const std::string& name, IType* belong)
@@ -94,19 +71,14 @@ bool StructType::Inherit(StructType* type)
     return true;
 }
 
-IVarSet* StructType::OwnVars()
-{
-    return static_cast<StructVarSet*>(_vars)->OwnVars();
-}
-
-const IVarSet* StructType::OwnVars() const
+IVarSet* StructType::OwnVars() const
 {
     return static_cast<StructVarSet*>(_vars)->OwnVars();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // ArrayType
-ArrayType::ArrayType(const IType* prev, int length)
+ArrayType::ArrayType(IType* prev, int length)
     : _prev(prev)
     , _length(length)
 {
@@ -123,7 +95,7 @@ ArrayType::~ArrayType()
     _prev = nullptr;
 }
 
-const IType* ArrayType::Original() const
+IType* ArrayType::Original() const
 {
     if (_prev->Category() == TypeCategory::Array)
         return static_cast<const ArrayType*>(_prev)->Original();

@@ -43,9 +43,9 @@ protected:
     bool TabLoadEnum(const IVariate* var, const std::string& name, int tab);
     bool TabLoadArray(const IVariate* var, const std::string& name, int tab);
 
+    bool EnumStaticData(const EnumType* eType, int tab);
     bool Enum2String(const EnumType* eType, int tab);
     bool String2Enum(const EnumType* eType, int tab);
-
 
     std::ostream& Tab(int tab);
 protected:

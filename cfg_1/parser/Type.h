@@ -7,7 +7,7 @@ CFG_NAMESPACE_BEGIN
 /*
  * 原生类型
 */
-class RawType : public IType
+class RawType : public IRawType
 {
 public:
     RawType(const std::string& name, RawCategory raw)
@@ -23,9 +23,7 @@ public:
 
     virtual ITypeSet* TypeSet() const { return nullptr; }
     virtual IVarSet* VarSet() const { return nullptr; }
-
-public:
-    RawCategory Raw() const { return _raw; }
+    virtual RawCategory Raw() const { return _raw; }
 
 protected:
     std::string _name;
@@ -48,12 +46,6 @@ public:
 
     virtual ITypeSet* TypeSet() const { return nullptr; }
     virtual IVarSet* VarSet() const { return _vars; }
-public:
-    /*
-     * 值与名字互转
-    */
-    int Trans(const std::string& name) const;
-    const std::string& Trans(int value) const;
 
 protected:
     std::string _name;
@@ -64,7 +56,7 @@ protected:
 /*
  * 结构体，兼容C#只能单继承
 */
-class StructType : public IType
+class StructType : public IStructType
 {
 public:
     StructType(const std::string& name, IType* belong);
@@ -78,12 +70,12 @@ public:
     virtual ITypeSet* TypeSet()  const { return nullptr; }
     virtual IVarSet* VarSet() const { return _vars; }
 
+    virtual bool IsInherited(const IType* type) const;
+    virtual IStructType* Inherited() const { return _inherit; }
+    virtual IVarSet* OwnVars() const;
+
 public:
-    bool IsInherited(const IType* type) const;
-    StructType* Inherited() const { return _inherit; }
     bool Inherit(StructType* type);
-    IVarSet* OwnVars();
-    const IVarSet* OwnVars() const;
 
 protected:
     std::string _name;
@@ -95,10 +87,10 @@ protected:
 /*
  * 数组
 */
-class ArrayType : public IType
+class ArrayType : public IArrayType
 {
 public:
-    ArrayType(const IType* prev, int length);
+    ArrayType(IType* prev, int length);
     ~ArrayType();
 
 public:
@@ -109,14 +101,13 @@ public:
     virtual ITypeSet* TypeSet() const { return nullptr; }
     virtual IVarSet* VarSet() const { return nullptr; }
 
-public:
-    const IType* Original() const;
-    const IType* Prev() const { return _prev; }
-    int Length() const { return _length; }
+    virtual IType* Original() const;
+    virtual IType* Prev() const { return _prev; }
+    virtual int Length() const { return _length; }
 
 protected:
     std::string _name;
-    const IType* _prev;
+    IType* _prev;
     int _length;
 };
 

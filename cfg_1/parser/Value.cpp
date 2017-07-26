@@ -61,21 +61,21 @@ bool RawValue::Value(std::string& str) const
 
 //////////////////////////////////////////////////////////////////////////
 // RefValue
-const RawValue* RefValue::GetRaw() const
+IRawValue* RefValue::Original() const
 {
-    const IValue* val = _var->Value();
+    IValue* val = _var->Value();
     while (val)
     {
         if (val->Category() == ValueCategory::Raw)
             break;
 
         if (val->Category() == ValueCategory::Ref)
-            val = static_cast<const RefValue*>(val)->_var->Value();
+            val = static_cast<RefValue*>(val)->_var->Value();
         else
             val = nullptr;
     }
 
-    return static_cast<const RawValue*>(val);
+    return static_cast<IRawValue*>(val);
 }
 
 CFG_NAMESPACE_END

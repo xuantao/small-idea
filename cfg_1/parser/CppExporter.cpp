@@ -233,6 +233,7 @@ void CppExporter::OnType(const IType* type)
     if (type->Category() == TypeCategory::Enum)
     {
         Declare(static_cast<const EnumType*>(type), _tab);
+        EnumStaticData(static_cast<const EnumType*>(type), _tab);
         Enum2String(static_cast<const EnumType*>(type), _tab);
         String2Enum(static_cast<const EnumType*>(type), _tab);
     }
@@ -242,7 +243,10 @@ void CppExporter::OnType(const IType* type)
         TabLoader(static_cast<const StructType*>(type), _tab);
     }
     else
+    {
         std::cerr << "does not support export type:" << type->Name() << std::endl;
+        ERROR_NOT_ALLOW;
+    }
 }
 
 bool CppExporter::TabLoader(const StructType* sType, int tab)
@@ -382,6 +386,54 @@ bool CppExporter::TabLoadArray(const IVariate* var, const std::string& name, int
     return true;
 }
 
+bool CppExporter::EnumStaticData(const EnumType* eType, int tab)
+{
+    std::vector<std::string> path = util::Absolute(eType);
+    std::string base = util::Contact(path, "_");
+    std::string varName = "s_" + base + "_val";
+    std::string strName = "s_" + base + "_str";
+
+    const IVarSet* varSet = eType->VarSet();
+
+    TAB() << "static const int " << varName << "[] = {" << std::endl;
+    ++tab;
+
+    TAB();
+    for (int i = 0; i < varSet->Size(); ++i)
+    {
+        _stream << "" << cpp_util::OrignalValue(varSet->Get(i)->Value()) << ", ";
+        if (i && (i % 8) == 0)
+        {
+            _stream << std::endl;
+            TAB();
+        }
+    }
+    _stream << "-111111";
+
+    --tab;
+    _stream << " }; // end of enum " << eType->Name() << std::endl;
+
+    TAB() << "static const char* const  " << strName << "[] = {" << std::endl;
+    ++tab;
+
+    TAB();
+    for (int i = 0; i < varSet->Size(); ++i)
+    {
+        _stream << "\"" << varSet->Get(i)->Name() << "\", ";
+        if (i && (i % 8) == 0)
+        {
+            _stream << std::endl;
+            TAB();
+        }
+    }
+    _stream << "nullptr";
+
+    --tab;
+    _stream << " }; // end of enum " << eType->Name() << std::endl;
+
+    return true;
+}
+
 bool CppExporter::Enum2String(const EnumType* eType, int tab)
 {
     std::vector<std::string> path = util::Absolute(eType);
@@ -397,7 +449,7 @@ bool CppExporter::Enum2String(const EnumType* eType, int tab)
     TAB() << "{" << std::endl;
     ++tab;
 
-    TAB() << "if (" << varName << "[i] == valeu)" << std::endl;
+    TAB() << "if (" << varName << "[i] == value)" << std::endl;
     Tab(tab + 1) << "return " << strName << "[i];" << std::endl;
 
     --tab;
@@ -416,7 +468,7 @@ bool CppExporter::String2Enum(const EnumType* eType, int tab)
     std::string varName = "s_" + base + "_val";
     std::string strName = "s_" + base + "_str";
 
-    TAB() << "bool ToEnum(const char* name, " << util::Contact(path, "::") << "& value)" << std::endl;
+    TAB() << "bool ToEnum(" << util::Contact(path, "::") << "& out, const char* name)" << std::endl;
     TAB() << "{" << std::endl;
     ++tab;
 
@@ -428,7 +480,7 @@ bool CppExporter::String2Enum(const EnumType* eType, int tab)
     TAB() << "{" << std::endl;
     ++tab;
 
-    TAB() << "value = " << varName << "[i];" << std::endl;
+    TAB() << "out = " << "(" << util::Contact(path, "::") << ")" << varName << "[i];" << std::endl;
     TAB() << "return true;" << std::endl;
 
     --tab;

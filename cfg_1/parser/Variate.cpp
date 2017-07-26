@@ -3,7 +3,7 @@
 
 CFG_NAMESPACE_BEGIN
 
-Variate::Variate(const IType* belong, const IType* type, const std::string& name)
+Variate::Variate(IType* belong, IType* type, const std::string& name)
     : _belong(belong)
     , _type(type)
     , _name(name)

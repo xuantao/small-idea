@@ -216,7 +216,7 @@ void Context::OnEnumMember(const std::string& name, const std::string& value, bo
     Variate* var = new Variate(_enum, _enum, name);
     if (refer)
     {
-        const IVariate* ref = util::FindVar(_enum, value);
+        IVariate* ref = util::FindVar(_enum, value);
         if (ref == nullptr)
         {
             _driver->Error("can not find reference value:{0}", value);
@@ -326,7 +326,7 @@ void Context::OnVariateValue(const std::string& refer)
         return;
     }
 
-    const IVariate* ref = util::FindVar(_type ? _type : _scope, refer);
+    IVariate* ref = util::FindVar(_type ? _type : _scope, refer);
     if (ref == nullptr)
         _driver->Error("can not find reference value:{0}", refer);
     else if (!ref->IsConst())
@@ -354,8 +354,12 @@ void Context::OnVariateEnd(bool isConst)
 {
     if (_var)
     {
+        const IType* varType = _var->Type();
         if (isConst)
             _var->SetConst();
+
+        if (_var->Value() == nullptr && varType->Category() == TypeCategory::Raw)
+            _var->BindValue(value_util::Create(static_cast<const RawType*>(varType)->Raw()));
 
         if (_type)
         {

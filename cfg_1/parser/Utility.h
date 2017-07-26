@@ -42,8 +42,8 @@ namespace util
     std::vector<std::string> Absolute(const IType* type);
     std::vector<std::string> Relative(const IType* self, const IType* other);
 
-    const IType* FindType(const IType* scope, const std::string& path);
-    const IVariate* FindVar(const IType* scope, const std::string& path);
+    IType* FindType(IType* scope, const std::string& path);
+    IVariate* FindVar(IType* scope, const std::string& path);
 
     std::ostream& Tab(std::ostream& stream, int tab);
 

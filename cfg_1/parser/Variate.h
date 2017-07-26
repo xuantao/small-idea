@@ -7,13 +7,13 @@ CFG_NAMESPACE_BEGIN
 class Variate : public IVariate
 {
 public:
-    Variate(const IType* belong, const IType* type, const std::string& name);
+    Variate(IType* belong, IType* type, const std::string& name);
     ~Variate();
 
 public:
     virtual bool IsConst() const { return _const; }
-    virtual const IType* Belong() const { return _belong; }
-    virtual const IType* Type() const { return _type; }
+    virtual IType* Belong() const { return _belong; }
+    virtual IType* Type() const { return _type; }
     virtual const std::string& Name() const { return _name; }
     virtual IValue* Value() const { return _value; }
     virtual void BindValue(IValue* value);
@@ -23,8 +23,8 @@ public:
     void UpgradeArray(int length = -1);
 
 protected:
-    const IType* _belong;
-    const IType* _type;
+    IType* _belong;
+    IType* _type;
     std::string _name;
     IValue* _value;
     bool _const;

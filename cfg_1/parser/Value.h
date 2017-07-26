@@ -4,7 +4,7 @@
 
 CFG_NAMESPACE_BEGIN
 
-class RawValue : public IValue
+class RawValue : public IRawValue
 {
 public:
     RawValue(bool value);
@@ -14,9 +14,9 @@ public:
 
 public:
     virtual ValueCategory Category() const { return ValueCategory::Raw; }
+    virtual RawCategory Raw() const { return _raw; }
 
 public:
-    RawCategory Raw() const { return _raw; }
     bool Value(bool& b) const;
     bool Value(int& i) const;
     bool Value(float& f) const;
@@ -30,21 +30,21 @@ protected:
     std::string _s;
 };
 
-class RefValue : public IValue
+class RefValue : public IRefValue
 {
 public:
-    RefValue(const IVariate* var) : _var(var)
+    RefValue(IVariate* var) : _var(var)
     {
     }
 
 public:
     virtual ValueCategory Category() const { return ValueCategory::Ref; }
 
-    const IVariate* Var() const { return _var; }
-    const RawValue* GetRaw() const;
+    virtual IVariate* Var() const { return _var; }
+    virtual IRawValue* Original() const;
 
 protected:
-    const IVariate* _var;
+    IVariate* _var;
 };
 
 CFG_NAMESPACE_END

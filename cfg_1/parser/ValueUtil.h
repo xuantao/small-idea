@@ -13,6 +13,11 @@ namespace value_util
     bool Value(const IValue* val, std::string& str);
 
     /*
+     * 创建默认值
+    */
+    IValue* Create(RawCategory raw);
+
+    /*
      * 创建原生值
     */
     IValue* Create(RawCategory raw, const std::string& value);
@@ -20,7 +25,7 @@ namespace value_util
     /*
      * 创建引用值
     */
-    IValue* Create(const IVariate* var);
+    IValue* Create(IVariate* var);
 }
 
 CFG_NAMESPACE_END

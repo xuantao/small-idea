@@ -3,6 +3,7 @@
 #include "Value.h"
 #include "Interface.h"
 #include <cassert>
+#include <iostream>
 
 CFG_NAMESPACE_BEGIN
 
@@ -21,7 +22,7 @@ namespace value_util
         else if (val->Category() == ValueCategory::Ref)
         {
             const RefValue* ref = static_cast<const RefValue*>(val);
-            raw = ref->GetRaw();
+            raw = static_cast<const RawValue*>(ref->Original());
         }
         return raw;
     }
@@ -32,7 +33,7 @@ namespace value_util
             return false;
 
         if (ref && val->Category() == ValueCategory::Ref)
-            return IsRaw(static_cast<const RefValue*>(val)->GetRaw(), raw);
+            return IsRaw(static_cast<const RefValue*>(val)->Original(), raw);
         else if (val->Category() == ValueCategory::Raw)
             return static_cast<const RawValue*>(val)->Raw() == raw;
         else
@@ -72,6 +73,22 @@ namespace value_util
         return true;
     }
 
+    IValue* Create(RawCategory raw)
+    {
+        IValue* val = nullptr;
+        if (raw == RawCategory::Bool)
+            val = new RawValue(false);
+        else if (raw == RawCategory::Int)
+                val = new RawValue(0);
+        else if (raw == RawCategory::Float)
+            val = new RawValue(0.0f);
+        else if (raw == RawCategory::String)
+            val = new RawValue("");
+        else
+            ERROR_NOT_ALLOW;
+        return val;
+    }
+
     IValue* Create(RawCategory raw, const std::string& value)
     {
         IValue* val = nullptr;
@@ -100,7 +117,7 @@ namespace value_util
         return val;
     }
 
-    IValue* Create(const IVariate* var)
+    IValue* Create(IVariate* var)
     {
         if (var == nullptr)
             return nullptr;
