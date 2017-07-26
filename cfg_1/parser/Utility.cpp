@@ -1,6 +1,9 @@
 ﻿#include "Utility.h"
+#include "Interface.h"
+#include "Type.h"
 #include <algorithm>
 #include <sstream>
+#include <set>
 
 CFG_NAMESPACE_BEGIN
 
@@ -62,6 +65,58 @@ namespace util
                 scope = scope->TypeSet()->Get(path[i]);
         }
         return scope;
+    }
+
+    static bool sUniqueName(std::vector<UniqueVarName>& outNames, const StructType* sType, const std::string& owner)
+    {
+        std::set<std::string> allVars;
+        std::set<std::string> conficts;
+        const IVarSet* varSet = sType->VarSet();
+
+        /* get name conflict */
+        for (int i = 0; i < varSet->Size(); ++i)
+        {
+            const IVariate* var = varSet->Get(i);
+            if (var->IsConst())
+                continue;
+
+            if (allVars.find(var->Name()) != allVars.end())
+                conficts.insert(var->Name());
+            else
+                allVars.insert(var->Name());
+        }
+
+        for (int i = 0; i < varSet->Size(); ++i)
+        {
+
+            const IVariate* var = varSet->Get(i);
+            if (var->IsConst())
+                continue;
+
+            TypeCategory typeCategory = var->Type()->Category();
+            std::string uniqName;
+            if (conficts.find(var->Name()) != conficts.end())
+            {
+                if (owner.empty())
+                    uniqName = var->Belong()->Name() + "::" + var->Name();
+                else
+                    uniqName = owner + "." + var->Belong()->Name() + "::" + var->Name();
+            }
+            else
+            {
+                if (owner.empty())
+                    uniqName = var->Name();
+                else
+                    uniqName = owner + "." + var->Name();
+            }
+
+            if (var->Type()->Category() == TypeCategory::Struct)
+                sUniqueName(outNames, static_cast<const StructType*>(var->Type()), uniqName);
+            else
+                outNames.push_back(UniqueVarName(var, uniqName));
+        }
+
+        return true;
     }
 
     bool Convert(const std::string& str, bool& out)
@@ -211,6 +266,24 @@ namespace util
             type = type->Belong();
         }
         return var;
+    }
+
+    std::ostream& Tab(std::ostream& stream, int tab)
+    {
+        if (tab <= 0)
+            return stream;
+
+        return stream << std::string(tab * 4, ' ');
+    }
+
+    std::vector<UniqueVarName> UniqueName(const StructType* sType, const std::string& owner/* = EMPTY_STR*/)
+    {
+        std::vector<UniqueVarName> varNames;
+        if (sType = nullptr)
+            return std::move(varNames);
+
+        sUniqueName(varNames, sType, owner);
+        return std::move(varNames);
     }
 }
 

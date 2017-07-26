@@ -2,7 +2,7 @@
 
 #include <string>
 #include <map>
-#include "CfgDef.h"
+#include "Interface.h"
 
 CFG_NAMESPACE_BEGIN
 
@@ -12,6 +12,7 @@ class IType;
 class EnumType;
 class StructType;
 class ScopeType;
+class FileData;
 
 class Context
 {
@@ -22,6 +23,9 @@ public:
 public:
     IType* GetType(const std::string& name) const;
     const ScopeType* Global() const { return _scope; }
+
+    int FileCount() const { return (int)_files.size(); }
+    const IFileData* GetFileData(int index) const;
 
 public:
     void OnParseBegin(Driver& driver, const std::string& file);
@@ -51,6 +55,9 @@ protected:
 
 protected:
     Driver* _driver;
+
+    std::vector<FileData*> _files;
+    std::vector<FileData*> _stackFile;
 
     ScopeType* _scope;
     Variate* _var;

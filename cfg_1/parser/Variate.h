@@ -1,8 +1,6 @@
 ﻿#pragma once
-
 #include "CfgDef.h"
-#include <string>
-#include <vector>
+#include "Interface.h"
 
 CFG_NAMESPACE_BEGIN
 

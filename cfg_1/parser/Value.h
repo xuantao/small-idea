@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CfgDef.h"
+#include "Interface.h"
 
 CFG_NAMESPACE_BEGIN
 

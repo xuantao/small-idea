@@ -7,12 +7,13 @@
 #include "ValueUtil.h"
 #include "Variate.h"
 #include "Utility.h"
+#include "FileData.h"
 
 CFG_NAMESPACE_BEGIN
 
-static void operator << (std::ostream& out, RawCategory raw)
+static std::ostream& operator << (std::ostream& out, RawCategory raw)
 {
-
+    return out;
 }
 
 Context::Context()
@@ -43,23 +44,49 @@ IType* Context::GetType(const std::string& name) const
     return type;
 }
 
+const IFileData* Context::GetFileData(int index) const
+{
+    if (index < 0 || index >= FileCount())
+        return nullptr;
+    return _files[index];
+}
+
 void Context::OnParseBegin(Driver& driver, const std::string& file)
 {
     _driver = &driver;
+
+    FileData* fd = new FileData(file);
+    _files.push_back(fd);
+    _stackFile.push_back(fd);
 }
 
 void Context::OnParseEnd()
 {
     _driver = nullptr;
+    _stackFile.pop_back();
 }
 
 void Context::OnIncludeBegin(const std::string& file)
 {
     _driver->Warning("does not support include file {0};", file);
+
+    auto it = std::find_if(_files.begin(), _files.end(),
+        [&file](IFileData* fd) { return fd->File() == file; });
+
+    if (it != _files.end())
+    {
+        _driver->Error("circle include file {0};", file);
+        return;
+    }
+
+    FileData* fd = new FileData(file);
+    _files.push_back(fd);
+    _stackFile.push_back(fd);
 }
 
 void Context::OnIncludeEnd()
 {
+    _stackFile.pop_back();
 }
 
 void Context::OnPredefine(const std::string& name)
@@ -83,6 +110,7 @@ void Context::OnStructBegin(const std::string& name)
     }
 
     _scope->TypeSet()->Add(_type);
+    _stackFile.back()->Add(_type);
 }
 
 void Context::OnInherit(const std::string& name)
@@ -154,6 +182,7 @@ void Context::OnEnumBegin(const std::string& name)
     }
 
     _scope->TypeSet()->Add(_type);
+    _stackFile.back()->Add(_type);
 }
 
 void Context::OnEnumMember(const std::string& name)
@@ -329,9 +358,14 @@ void Context::OnVariateEnd(bool isConst)
             _var->SetConst();
 
         if (_type)
+        {
             _type->VarSet()->Add(_var);
+        }
         else
+        {
             _scope->VarSet()->Add(_var);
+            _stackFile.back()->Add(_var);
+        }
     }
     else
     {

@@ -4,6 +4,7 @@
 #include "Driver.h"
 #include "Context.h"
 #include "CppExporter.h"
+#include <array>
 
 CFG_NAMESPACE_USING;
 
@@ -24,7 +25,9 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    CppExporter::Export(context.Global(), std::cout);
+    CppExporter::Export(std::cout, context.Global(), context.GetFileData(0));
+
+    std::array<int, 2> ar;
 
     system("pause");
     return 1;

@@ -178,7 +178,11 @@ Variate     : BoolVar                           { }
             | StringVar Array                   { }
             | StringVar S_ASSIGN VALUE_STRING   { CONTEXT.OnVariateValue(RawCategory::String, $3); }
             | StringVar S_ASSIGN RefValue       { CONTEXT.OnVariateValue($3); }
-            | IDENTIFIER IDENTIFIER             { CONTEXT.OnVariateBegin($1, $2); }
+            | VarCustom                         { }
+            | VarCustom Array                   { }
+            ;
+
+VarCustom   : IDENTIFIER IDENTIFIER             { CONTEXT.OnVariateBegin($1, $2); }
             ;
 
 BoolVar     : BOOL IDENTIFIER                   { CONTEXT.OnVariateBegin(TYPE_BOOL, $2); }

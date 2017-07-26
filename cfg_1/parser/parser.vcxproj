@@ -148,7 +148,9 @@
     <ClCompile Include="CfgFlexLexer.cpp" />
     <ClCompile Include="CppExporter.cpp" />
     <ClCompile Include="CppStruct.cpp" />
+    <ClCompile Include="CppUtil.cpp" />
     <ClCompile Include="Driver.cpp" />
+    <ClCompile Include="FileData.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Scanner.cpp" />
@@ -160,15 +162,18 @@
     <ClCompile Include="Variate.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Block.h" />
     <ClInclude Include="Context.h" />
     <ClInclude Include="CfgDef.h" />
     <ClInclude Include="CppExporter.h" />
     <ClInclude Include="CppStruct.h" />
     <ClInclude Include="CppUtil.h" />
     <ClInclude Include="Driver.h" />
+    <ClInclude Include="FileData.h" />
     <ClInclude Include="FlexLexer.h" />
     <ClInclude Include="IExporter.h" />
     <ClInclude Include="IExportObj.h" />
+    <ClInclude Include="Interface.h" />
     <ClInclude Include="Set.h" />
     <ClInclude Include="TupleLogger.h" />
     <ClInclude Include="Utility.h" />

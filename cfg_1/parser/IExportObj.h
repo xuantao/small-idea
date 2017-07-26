@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CfgDef.h"
 
@@ -15,7 +15,8 @@ struct ExportVarData
 class IExportObj
 {
 public:
-    virtual std::ostream& operator << (std::ostream& out) = 0;
+    virtual bool Declare(std::ostream& stream, int tab = 0) = 0;
+    //virtual bool Json(std::ostream& stream, int tab = 0) = 0;
 };
 
 CFG_NAMESPACE_END

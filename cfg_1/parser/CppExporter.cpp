@@ -2,11 +2,15 @@
 #include "Type.h"
 #include "Value.h"
 #include "Utility.h"
+#include "CppStruct.h"
 #include <iostream>
 #include <sstream>
+#include <cassert>
+#include <set>
 
 CFG_NAMESPACE_BEGIN
 
+#define  TAB() Tab(tab)
 
 static std::string TransValue(const RawValue* val)
 {
@@ -56,9 +60,9 @@ static std::string TransValue(const IVariate* var)
     return stream.str();
 }
 
-CppExporter::CppExporter(const ScopeType* global, std::ostream& stream)
-    : _global(global)
-    , _stream(stream)
+CppExporter::CppExporter(std::ostream& stream, const ScopeType* global)
+    : _stream(stream)
+    , _global(global)
     , _tab(0)
 {
 }
@@ -68,141 +72,380 @@ CppExporter::~CppExporter()
 
 }
 
-bool CppExporter::Export()
+bool CppExporter::Export(const IFileData* file)
 {
     std::cout << "begin export c++" << std::endl;
 
     _scope.push(_global);
-    Export(_global);
+    file->Traverse(this);
     _scope.pop();
 
     std::cout << "end export c++" << std::endl;
     return true;
 }
 
-bool CppExporter::Export(const EnumType* ty)
+bool CppExporter::Declare(const EnumType* ty, int tab)
 {
-    Tab();
-    _stream << "enum " << ty->Name() << " {" << std::endl;
-    ++_tab;
+    Tab(tab) << "enum " << ty->Name() << std::endl;
 
+    Tab(tab) << "{" << std::endl;
+
+    ++tab;
     const IVarSet* vars = ty->VarSet();
     for (int i = 0; i < vars->Size(); ++i)
     {
-        VarData data;
-        Trans(vars->Get(i), data);
+        CppVarData data;
+        cpp_util::Convert(vars->Get(i), data);
 
-        Tab();
-        _stream << data.name;
+        Tab(tab) << data.name;
         if (!data.value.empty())
             _stream << " = " << data.value;
         _stream << std::endl;
     }
+    --tab;
 
-    --_tab;
-    Tab();
-    _stream << "};" << std::endl;
+    Tab(tab) << "};" << std::endl;
     return true;
 }
 
-bool CppExporter::Export(const StructType* ty)
+bool CppExporter::Declare(const StructType* sType, int tab)
 {
-    Tab();
-    _stream << "struct " << ty->Name();
-    if (ty->Inherited())
-        _stream << " : " << ty->Inherited()->Name() << " {";
+    const IVarSet* varSet = sType->OwnVars();
+    std::vector<CppVarData> vars;
+    bool constructor = false;
+    int nConst = 0;
+    for (int i = 0; i < varSet->Size(); ++i)
+    {
+        CppVarData data;
+        const IVariate* var = varSet->Get(i);
+        if (cpp_util::Convert(var, data))
+        {
+            vars.push_back(data);
+            if (!constructor && !var->IsConst() && !data.value.empty())
+                constructor = true;
+        }
+        else
+        {
+            std::cerr << "convert var failed" << std::endl;
+        }
+    }
+
+    /* struct define */
+    Tab(tab) << "struct " << sType->Name();
+    if (sType->Inherited())
+        _stream << " : public " << cpp_util::TypeName(sType, sType->Inherited());
     _stream << std::endl;
 
-    ++_tab;
+    Tab(tab) << "{" << std::endl;
+    ++tab;
 
-    const IVarSet* vars = ty->OwnVars();
-    for (int i = 0; i < vars->Size(); ++i)
+    /* const values */
+    for (size_t i = 0; i < vars.size(); i++)
     {
-        VarData data;
-        Trans(vars->Get(i), data);
-
-        Tab();
-        _stream << data.type << " " << data.name;
-        if (!data.value.empty())
-            _stream << " = " << data.value;
-        _stream << std::endl;
+        const CppVarData& data = vars[i];
+        if (!data.var->IsConst())
+            continue;
+        ++nConst;
+        Tab(tab) << "static const " << data.type << " " << data.name << " = " << data.value << ";" << std::endl;
     }
 
-    --_tab;
-    Tab();
-    _stream << "};" << std::endl;
+    if (nConst)
+        _stream << std::endl;
+
+    /* constructor */
+    if (constructor)
+    {
+        Tab(tab) << sType->Name() << "()" << std::endl;
+        ++tab;
+
+        bool first = true;
+        for (size_t i = 0; i < vars.size(); i++)
+        {
+            const CppVarData& data = vars[i];
+            if (data.var->IsConst())
+                continue;
+
+            const IType* type = data.var->Type();
+            if (type->Category() != TypeCategory::Raw && data.value.empty())
+                continue;
+
+            Tab(tab);
+            if (first)
+                _stream << ": ";
+            else
+                _stream << ", ";
+
+            _stream << data.name << "(";
+
+            if (data.value.empty())
+            {
+                assert(type->Category() == TypeCategory::Raw);
+                _stream << cpp_util::DefValue(static_cast<const RawType*>(type)->Raw());
+            }
+            else
+            {
+                _stream << data.value;
+            }
+
+            _stream << ")" << std::endl;
+            first = false;
+        }
+
+        --tab;
+        Tab(tab) << "{ }" << std::endl << std::endl;
+    }
+
+    /* member data */
+    for (size_t i = 0; i < vars.size(); i++)
+    {
+        const CppVarData& data = vars[i];
+        if (data.var->IsConst())
+            continue;
+
+        Tab(tab) << "" << data.type << " " << data.name << ";" << std::endl;
+    }
+
+    --tab;
+    Tab(tab) << "};" << std::endl;
+
     return true;
 }
 
-bool CppExporter::Export(const ScopeType* ty)
+void CppExporter::OnVariate(const IVariate* var)
 {
-    IVarSet* vars = ty->VarSet();
-    for (int i = 0; i < vars->Size(); ++i)
-    {
-        VarData data;
-        Trans(vars->Get(i), data);
-
-        Tab();
-        _stream << data.type << " " << data.name;
-        if (!data.value.empty())
-            _stream << " = " << data.value;
-        _stream << std::endl;
-    }
-
-    ITypeSet* types = ty->TypeSet();
-    for (int i = 0; i < types->Size(); ++i)
-    {
-        const IType* type = types->Get(i);
-        int tab = _tab++;
-        _scope.push(type);
-
-        if (type->Category() == TypeCategory::Enum)
-            Export(static_cast<const EnumType*>(type));
-        else if (type->Category() == TypeCategory::Struct)
-            Export(static_cast<const StructType*>(type));
-        else if (type->Category() == TypeCategory::Scope)
-            Export(static_cast<const ScopeType*>(type));
-
-        _scope.pop();
-        _tab = tab;
-    }
-
-    return true;
-}
-
-void CppExporter::Trans(const IVariate* var, VarData& data)
-{
-    const IType* type = var->Type();
-    if (type->Category() == TypeCategory::Raw)
-    {
-        data.type = type->Name();
-    }
-    else if (type->Category() == TypeCategory::Array)
-    {
-        data.type = static_cast<const ArrayType*>(type)->Original()->Name();
-    }
-    else
-    {
-        const auto ralative = util::Relative(type, _scope.top());
-        data.type = util::Contact(ralative, "::");
-    }
-
-    data.name = var->Name();
-
-    const IValue* value = var->Value();
-    if (value == nullptr)
+    if (var == nullptr)
         return;
 
-    if (value->Category() == ValueCategory::Raw)
-        data.value = TransValue(static_cast<const RawValue*>(value));
-    else if (value->Category() == ValueCategory::Ref)
-        data.value = TransValue(var);
-    else
-        assert(false);
+    CppVarData data;
+    if (!cpp_util::Convert(var, data))
+        return;
+
+    if (var->IsConst())
+        _stream << "const ";
+    _stream << data.type << " " << data.name;
+    if (!data.value.empty())
+        _stream << " = " << data.value;
+    _stream << ";" << std::endl;
 }
 
-void CppExporter::Tab()
+void CppExporter::OnType(const IType* type)
 {
-    _stream << std::string(_tab * 4, ' ');
+    if (type->Category() == TypeCategory::Enum)
+    {
+        Declare(static_cast<const EnumType*>(type), _tab);
+        Enum2String(static_cast<const EnumType*>(type), _tab);
+        String2Enum(static_cast<const EnumType*>(type), _tab);
+    }
+    else if (type->Category() == TypeCategory::Struct)
+    {
+        Declare(static_cast<const StructType*>(type), _tab);
+        TabLoader(static_cast<const StructType*>(type), _tab);
+    }
+    else
+        std::cerr << "does not support export type:" << type->Name() << std::endl;
 }
+
+bool CppExporter::TabLoader(const StructType* sType, int tab)
+{
+    Tab(tab) << "bool Load(ITabFile* pTab, int line, " << sType->Name() << "& data)" << std::endl;
+
+    Tab(tab) << "{" << std::endl;
+    ++tab;
+
+    TabLoadStruct(sType, util::EMPTY_STR, tab);
+
+    --tab;
+    Tab(tab) << "}" << std::endl;
+    return true;
+}
+
+bool CppExporter::TabLoadStruct(const StructType* sType, const std::string& owner, int tab)
+{
+    const IVarSet* varSet = sType->VarSet();
+    for (int i = 0; i < varSet->Size(); ++i)
+    {
+        const IVariate* var = varSet->Get(i);
+        TypeCategory typeCategory = var->Type()->Category();
+        std::string name;
+        if (owner.empty())
+            name = var->Name();
+        else
+            name = owner + '.' + var->Name();
+
+        if (typeCategory == TypeCategory::Raw)
+            TabLoadRaw(var, name, tab);
+        else if (typeCategory == TypeCategory::Enum)
+            TabLoadEnum(var, name, tab);
+        else if (typeCategory == TypeCategory::Array)
+            TabLoadArray(var, name, tab);
+        else if (typeCategory == TypeCategory::Struct)
+            TabLoadStruct(static_cast<const StructType*>(var->Type()), name, tab);
+        else
+            ERROR_NOT_ALLOW;
+    }
+    return true;
+}
+
+bool CppExporter::TabLoadRaw(const IVariate* var, const std::string& name, int tab)
+{
+    const RawType* type = static_cast<const RawType*>(var->Type());
+
+    Tab(tab);
+    switch (type->Raw())
+    {
+    case RawCategory::Bool:
+        _stream << "pTab->GetBoolean(line, \"" << name << "\" , false, " << name << ");" << std::endl;
+        break;
+    case RawCategory::Int:
+        _stream << "pTab->GetInteger(line, \"" << name << "\" , false, &" << name << ");" << std::endl;
+        break;
+    case RawCategory::Float:
+        _stream << "pTab->GetFloat(line, \"" << name << "\" , false, &" << name << ");" << std::endl;
+        break;
+    case RawCategory::String:
+        {
+            Tab(tab) << "{" << std::endl;
+            ++tab;
+            Tab(tab) << "char buffer[1024] = {0};" << std::endl;
+
+            Tab(tab) << "pTab->GetString(line, \"" << name << "\" , \"\", buffer, 1024);" << std::endl;
+
+            Tab(tab) << name << " = buffer;" << std::endl;
+
+            --tab;
+            Tab(tab) << "}" << std::endl;
+        }
+        break;
+    }
+    return true;
+}
+
+bool CppExporter::TabLoadEnum(const IVariate* var, const std::string& name, int tab)
+{
+    Tab(tab) << "pTab->GetInteger(line, \"" << name << "\" , false, &" << name << ");" << std::endl;
+    return true;
+}
+
+bool CppExporter::TabLoadArray(const IVariate* var, const std::string& name, int tab)
+{
+    const ArrayType* type = static_cast<const ArrayType*>(var->Type());
+    const IType* orignal = type->Original();
+    if (orignal != type->Prev())
+    {
+        // 多维数组
+        ERROR_NOT_ALLOW;
+        return false;
+    }
+
+    if (orignal->Category() == TypeCategory::Struct)
+    {
+        if (type->Length() < 0)
+        {
+            ERROR_NOT_ALLOW;
+            return false;
+        }
+
+        const StructType* sType = static_cast<const StructType*>(orignal);
+        for (int i = 0; i < type->Length(); ++i)
+            TabLoadStruct(sType, name + "_" + std::to_string(i + 1), tab);
+    }
+    else if (orignal->Category() == TypeCategory::Enum)
+    {
+        Tab(tab) << "{" << std::endl;
+        ++tab;
+
+        Tab(tab) << "std::vector<std::string> vecStr;" << std::endl;
+        Tab(tab) << "char buffer[1024] = {0};" << std::endl;
+        Tab(tab) << "pTab->GetString(line, \"" << name << "\" , \"\", buffer, 1024);" << std::endl;
+        Tab(tab) << "vecStr = KGTool::Split(buffer, ',');" << std::endl;
+
+        //TODO:
+
+        --tab;
+        Tab(tab) << "}" << std::endl;
+    }
+    else if (orignal->Category() == TypeCategory::Raw)
+    {
+        Tab(tab) << "{" << std::endl;
+        ++tab;
+
+        Tab(tab) << "std::vector<std::string> vecStr;" << std::endl;
+        Tab(tab) << "char buffer[1024] = {0};" << std::endl;
+        Tab(tab) << "pTab->GetString(line, \"" << name << "\" , \"\", buffer, 1024);" << std::endl;
+        Tab(tab) << "vecStr = KGTool::Split(buffer, ',');" << std::endl;
+
+        //TODO:
+
+        --tab;
+        Tab(tab) << "}" << std::endl;
+    }
+    return true;
+}
+
+bool CppExporter::Enum2String(const EnumType* eType, int tab)
+{
+    std::vector<std::string> path = util::Absolute(eType);
+    std::string base = util::Contact(path, "_");
+    std::string varName = "s_" + base + "_val";
+    std::string strName = "s_" + base + "_str";
+
+    TAB() << "const char* ToString(" << util::Contact(path, "::") << " value)" << std::endl;
+    TAB() << "{" << std::endl;
+    ++tab;
+
+    TAB() << "for (int i = 0; " << strName << "[i]; ++i)" << std::endl;
+    TAB() << "{" << std::endl;
+    ++tab;
+
+    TAB() << "if (" << varName << "[i] == valeu)" << std::endl;
+    Tab(tab + 1) << "return " << strName << "[i];" << std::endl;
+
+    --tab;
+    TAB() << "}" << std::endl << std::endl;
+    TAB() << "return nullptr;" << std::endl;
+
+    --tab;
+    TAB() << "}" << std::endl;
+    return true;
+}
+
+bool CppExporter::String2Enum(const EnumType* eType, int tab)
+{
+    std::vector<std::string> path = util::Absolute(eType);
+    std::string base = util::Contact(path, "_");
+    std::string varName = "s_" + base + "_val";
+    std::string strName = "s_" + base + "_str";
+
+    TAB() << "bool ToEnum(const char* name, " << util::Contact(path, "::") << "& value)" << std::endl;
+    TAB() << "{" << std::endl;
+    ++tab;
+
+    TAB() << "for (int i = 0; " << strName << "[i]; ++i)" << std::endl;
+    TAB() << "{" << std::endl;
+    ++tab;
+
+    TAB() << "if (std::strcmp(" << strName << "[i], name) == 0)" << std::endl;
+    TAB() << "{" << std::endl;
+    ++tab;
+
+    TAB() << "value = " << varName << "[i];" << std::endl;
+    TAB() << "return true;" << std::endl;
+
+    --tab;
+    TAB() << "}" << std::endl;
+
+    --tab;
+    TAB() << "}" << std::endl << std::endl;
+
+    TAB() << "return false;" << std::endl;
+    --tab;
+    TAB() << "}" << std::endl;
+    return true;
+}
+
+std::ostream& CppExporter::Tab(int tab)
+{
+    return util::Tab(_stream, tab);
+}
+
 CFG_NAMESPACE_END

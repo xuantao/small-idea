@@ -1,9 +1,26 @@
 ﻿#pragma once
 #include "CfgDef.h"
-#include <string>
-#include <vector>
+#include <ostream>
 
 CFG_NAMESPACE_BEGIN
+
+class StructType;
+
+struct UniqueVarName
+{
+    UniqueVarName()
+    {
+
+    }
+
+    UniqueVarName(const IVariate* _var, const std::string& _name)
+        : var(_var), name(_name)
+    {
+    }
+
+    const IVariate* var;
+    std::string name;
+};
 
 namespace util
 {
@@ -27,6 +44,10 @@ namespace util
 
     const IType* FindType(const IType* scope, const std::string& path);
     const IVariate* FindVar(const IType* scope, const std::string& path);
+
+    std::ostream& Tab(std::ostream& stream, int tab);
+
+    std::vector<UniqueVarName> UniqueName(const StructType* sType, const std::string& owner = EMPTY_STR);
 }
 
 CFG_NAMESPACE_END

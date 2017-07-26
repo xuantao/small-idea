@@ -1,7 +1,8 @@
 ﻿#include "ValueUtil.h"
-#include <cassert>
 #include "Utility.h"
 #include "Value.h"
+#include "Interface.h"
+#include <cassert>
 
 CFG_NAMESPACE_BEGIN
 

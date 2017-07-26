@@ -1,0 +1,114 @@
+﻿
+1. 数组（定常，不定长，原生类型，自定义类型）
+2. 包含关系
+3. 继承重名
+4. 枚举值引用 ？
+
+/* 原生类型 定常\不定长 数组 */
+struct A
+{
+    int arA[2];
+    int arB[];
+}
+/* json */
+"A" = {
+    "arA" = {
+        "type" = "int",
+        "length" = 2,       // 大于等于0表示定长，非数组元素不含有字段length
+        "scope" = "client, server, shared",
+        "default" = "0"
+    },
+    "arB" = {
+        "type" = "int",
+        "length" = -1,      // 小于0表示不定长
+        "scope" = "client, server, shared",
+        "default" = "0"
+    }
+}
+
+/* 自定义类型 定长数组 */
+struct A
+{
+    int nA;
+}
+
+struct B
+{
+    A arA[2];
+}
+
+/* json 拆分为多个元素 */
+"A" = {
+    "arA_1.nA" = {
+        "type" = "int",
+        "scope" = "client, server, shared",
+        "default" = "0"
+    },
+    "arA_2.nA" = {
+        "type" = "int",
+        "scope" = "client, server, shared",
+        "default" = "0"
+    }
+}
+
+/* 原生类型\自定义类型 多维数组 不支持 */
+/* 自定义类型 不定长数组 不支持 */
+struct A
+{
+    int nA;
+}
+
+struct B
+{
+    A arA[];
+}
+
+/* do not support */
+
+
+/* 包含关系 */
+struct A
+{
+  int nA;
+}
+
+struct B
+{
+ A sA;
+ int nC;
+ }
+
+/* json */
+"B" =  {
+    "sA.nA" = "0",
+    "nC" = "1",
+ }
+ 
+ /* 继承关系 */
+ struct A
+ {
+    int nUnique;
+    int nA;
+ }
+ 
+ struct B
+ {
+    int nA;
+    int nB;
+ }
+ /* json */
+ "B" = {
+    "nUnique" = "0",
+    "A::nA" = "0",
+    "nA" = "1",
+    "nB" = "2",
+ }
+ 
+ 后续需要添加的功能
+ 
+ 不能允许与基类同名的成员
+ 
+ reference : 引用其它系统的定义
+ namespace: 命名空间支持
+ 
+ 

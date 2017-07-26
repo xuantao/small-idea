@@ -714,8 +714,8 @@ namespace  cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 123,           //< Last index in yytable_.
-      yynnts_ = 28,  //< Number of nonterminal symbols.
+      yylast_ = 131,           //< Last index in yytable_.
+      yynnts_ = 29,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.
       yyterror_ = 1,
@@ -805,10 +805,10 @@ namespace  cfg  {
       case 28: // "0"
       case 29: // "0.0f"
       case 30: // "empty"
-      case 55: // BoolValue
-      case 56: // IntValue
-      case 57: // FloatValue
-      case 58: // RefValue
+      case 56: // BoolValue
+      case 57: // IntValue
+      case 58: // FloatValue
+      case 59: // RefValue
         value.copy< std::string > (other.value);
         break;
 
@@ -835,10 +835,10 @@ namespace  cfg  {
       case 28: // "0"
       case 29: // "0.0f"
       case 30: // "empty"
-      case 55: // BoolValue
-      case 56: // IntValue
-      case 57: // FloatValue
-      case 58: // RefValue
+      case 56: // BoolValue
+      case 57: // IntValue
+      case 58: // FloatValue
+      case 59: // RefValue
         value.copy< std::string > (v);
         break;
 
@@ -886,10 +886,10 @@ namespace  cfg  {
       case 28: // "0"
       case 29: // "0.0f"
       case 30: // "empty"
-      case 55: // BoolValue
-      case 56: // IntValue
-      case 57: // FloatValue
-      case 58: // RefValue
+      case 56: // BoolValue
+      case 57: // IntValue
+      case 58: // FloatValue
+      case 59: // RefValue
         value.template destroy< std::string > ();
         break;
 
@@ -913,10 +913,10 @@ namespace  cfg  {
       case 28: // "0"
       case 29: // "0.0f"
       case 30: // "empty"
-      case 55: // BoolValue
-      case 56: // IntValue
-      case 57: // FloatValue
-      case 58: // RefValue
+      case 56: // BoolValue
+      case 57: // IntValue
+      case 58: // FloatValue
+      case 59: // RefValue
         value.move< std::string > (s.value);
         break;
 
