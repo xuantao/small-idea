@@ -12,6 +12,41 @@ CFG_NAMESPACE_BEGIN
 #define _DEF_STREAM_ &std::cerr
 #define _OUTS_ (*_stream)
 #define _TAB_ util::Tab(*_stream, _tab)
+#define _TAB_EX_(ex) std::string((_tab + ex) * 4, ' ')
+
+#define _NEED_TEMP_INT      0x01
+#define _NEED_TEMP_BUFFER   0x02
+#define _NEED_TEMP_ARRAY    0x04
+
+static int sNeedTempMask(const IStructType* sType)
+{
+    int mask = 0;
+    const IVarSet* vars = sType->VarSet();
+    for (int i = 0; i < vars->Size(); ++i)
+    {
+        const IType* type = vars->Get(i)->Type();
+        if (type->Category() == TypeCategory::Array)
+        {
+            type = static_cast<const IArrayType*>(type)->Original();
+            mask |= _NEED_TEMP_ARRAY;
+        }
+
+        if (type->Category() == TypeCategory::Raw)
+        {
+            if (static_cast<const IRawType*>(type)->Raw() == RawCategory::String)
+                mask |= _NEED_TEMP_BUFFER;
+        }
+        else if (type->Category() == TypeCategory::Struct)
+        {
+            mask |= sNeedTempMask(static_cast<const IStructType*>(type));
+        }
+        else if (type->Category() == TypeCategory::Enum)
+        {
+            mask |= _NEED_TEMP_INT;
+        }
+    }
+    return mask;
+}
 
 CppExporter::CppExporter()
     : _stream(_DEF_STREAM_)
@@ -26,6 +61,9 @@ CppExporter::~CppExporter()
 
 void CppExporter::OnBegin(const IScopeType* global, const std::string& file)
 {
+    _global = global;
+    _file = file;
+
     std::ofstream* header = new std::ofstream();
     header->open(file + ".h");
     if (header->is_open())
@@ -39,6 +77,7 @@ void CppExporter::OnBegin(const IScopeType* global, const std::string& file)
 
 void CppExporter::OnEnd()
 {
+    // api declare
     DeclaerHeader();
 
     if (_stream != _DEF_STREAM_)
@@ -48,6 +87,7 @@ void CppExporter::OnEnd()
         _stream = _DEF_STREAM_;
     }
 
+    // build cpp file, api implemention
     std::ofstream cpp;
     cpp.open(_file + ".cpp");
     if (cpp.is_open())
@@ -55,12 +95,15 @@ void CppExporter::OnEnd()
 
     ImplationCpp();
 
+    _stream = _DEF_STREAM_;
+    cpp.close();
+
+    // clear
     _structs.clear();
     _enums.clear();
     _file = "";
     _global = nullptr;
     _tab = 0;
-    _stream = _DEF_STREAM_;
 }
 
 void CppExporter::OnFileBegin(const std::string& file)
@@ -81,7 +124,7 @@ void CppExporter::OnNameSapceEnd()
 
 void CppExporter::OnInclude(const std::string& file)
 {
-    std::string name = util::TrimSuffix(file, '.') + ".h";
+    std::string name = util::TrimFileSuffix(file, '.') + ".h";
     if (name.length() <= 2)
     {
         ERROR_NOT_ALLOW;
@@ -100,9 +143,7 @@ void CppExporter::OnVariate(const IVariate* var)
     if (!cpp_util::Convert(var, data))
         return;
 
-    if (var->IsConst())
-        _OUTS_ << "const ";
-    _OUTS_ << data.type << " " << data.name;
+    _OUTS_ << "const static " << data.type << " " << data.name;
     if (!data.value.empty())
         _OUTS_ << " = " << data.value;
     _OUTS_ << ";" << std::endl;
@@ -145,7 +186,7 @@ bool CppExporter::Declare(const IEnumType* ty)
 
         _TAB_ << data.name;
         if (!data.value.empty())
-            _OUTS_ << " = " << data.value;
+            _OUTS_ << " = " << data.value << ",";
         _OUTS_ << std::endl;
     }
 
@@ -256,68 +297,6 @@ bool CppExporter::Declare(const IStructType* sType)
 
     return true;
 }
-
-//
-//bool CppExporter::Enum2String(const IEnumType* eType)
-//{
-//    std::vector<std::string> path = util::Absolute(eType);
-//    std::string base = util::Contact(path, "_");
-//    std::string varName = "s_" + base + "_val";
-//    std::string strName = "s_" + base + "_str";
-//
-//    _TAB_ << "const char* ToString(" << util::Contact(path, "::") << " value)" << std::endl;
-//    _TAB_ << "{" << std::endl;
-//    ++_tab;
-//
-//    _TAB_ << "for (int i = 0; " << strName << "[i]; ++i)" << std::endl;
-//    _TAB_ << "{" << std::endl;
-//    ++_tab;
-//
-//    _TAB_ << "if (" << varName << "[i] == value)" << std::endl;
-//    Tab(_tab + 1) << "return " << strName << "[i];" << std::endl;
-//
-//    --_tab;
-//    _TAB_ << "}" << std::endl << std::endl;
-//    _TAB_ << "return nullptr;" << std::endl;
-//
-//    --_tab;
-//    _TAB_ << "}" << std::endl;
-//    return true;
-//}
-//
-//bool CppExporter::String2Enum(const IEnumType* eType)
-//{
-//    std::vector<std::string> path = util::Absolute(eType);
-//    std::string base = util::Contact(path, "_");
-//    std::string varName = "s_" + base + "_val";
-//    std::string strName = "s_" + base + "_str";
-//
-//    _TAB_ << "bool ToEnum(" << util::Contact(path, "::") << "& out, const char* name)" << std::endl;
-//    _TAB_ << "{" << std::endl;
-//    ++_tab;
-//
-//    _TAB_ << "for (int i = 0; " << strName << "[i]; ++i)" << std::endl;
-//    _TAB_ << "{" << std::endl;
-//    ++_tab;
-//
-//    _TAB_ << "if (std::strcmp(" << strName << "[i], name) == 0)" << std::endl;
-//    _TAB_ << "{" << std::endl;
-//    ++_tab;
-//
-//    _TAB_ << "out = " << "(" << util::Contact(path, "::") << ")" << varName << "[i];" << std::endl;
-//    _TAB_ << "return true;" << std::endl;
-//
-//    --_tab;
-//    _TAB_ << "}" << std::endl;
-//
-//    --_tab;
-//    _TAB_ << "}" << std::endl << std::endl;
-//
-//    _TAB_ << "return false;" << std::endl;
-//    --_tab;
-//    _TAB_ << "}" << std::endl;
-//    return true;
-//}
 
 bool CppExporter::DeclaerHeader()
 {
@@ -469,7 +448,7 @@ bool CppExporter::FuncImpl(const IEnumType* eType)
     std::string strName = "s_" + util::Contact(path, "_") + "_str";
 
     // const char*[] Names(Enum)
-    _TAB_ << "const char*[] Names(" << tyName << ")" << std::endl;
+    _TAB_ << "const char* const * Names(" << tyName << ")" << std::endl;
     _TAB_ << "{" << std::endl;
     ++_tab;
     _TAB_ << "return " << strName << ";" << std::endl;
@@ -574,11 +553,21 @@ bool CppExporter::TabLoader(const IStructType* sType)
 {
     std::vector<std::string> path = util::Absolute(sType);
     std::string tyName = util::Contact(path, "::");
+    int mask = sNeedTempMask(sType);
 
     _TAB_ << "static bool Load(ITabFile* pTab, int line, " << tyName << "& data)" << std::endl;
 
     _TAB_ << "{" << std::endl;
     ++_tab;
+
+    if (mask & _NEED_TEMP_INT)
+        _TAB_ << "int nTemp = 0;" << std::endl;
+    if (mask & _NEED_TEMP_BUFFER)
+        _TAB_ << "char cBuffer[LOAD_BUFFER_SIZE] = {0};" << std::endl;
+    if (mask & _NEED_TEMP_ARRAY)
+        _TAB_ << "std::vector<std::string> vecStrs;" << std::endl;
+    if (mask)
+        _OUTS_ << std::endl;
 
     TabLoad(sType, "data");
 
@@ -617,31 +606,20 @@ bool CppExporter::TabLoad(const IStructType* sType, const std::string& owner)
 
 bool CppExporter::TabLoad(const IVariate* var, const IRawType* type, const std::string& name)
 {
-    _TAB_;
     switch (type->Raw())
     {
     case RawCategory::Bool:
-        _OUTS_ << "pTab->GetBoolean(line, \"" << name << "\" , " << name << ", " << name << ");" << std::endl;
+        _TAB_ << "pTab->GetBoolean(line, \"" << name << "\" , " << name << ", " << name << ");" << std::endl;
         break;
     case RawCategory::Int:
-        _OUTS_ << "pTab->GetInteger(line, \"" << name << "\" , " << name << ", &" << name << ");" << std::endl;
+        _TAB_ << "pTab->GetInteger(line, \"" << name << "\" , " << name << ", &" << name << ");" << std::endl;
         break;
     case RawCategory::Float:
-        _OUTS_ << "pTab->GetFloat(line, \"" << name << "\" , " << name << ", &" << name << ");" << std::endl;
+        _TAB_ << "pTab->GetFloat(line, \"" << name << "\" , " << name << ", &" << name << ");" << std::endl;
         break;
     case RawCategory::String:
-        {
-            _TAB_ << "{" << std::endl;
-            ++_tab;
-            _TAB_ << "char buffer[1024] = {0};" << std::endl;
-
-            _TAB_ << "pTab->GetString(line, \"" << name << "\" , " << name << ".c_str(), buffer, 1024);" << std::endl;
-
-            _TAB_ << name << " = buffer;" << std::endl;
-
-            --_tab;
-            _TAB_ << "}" << std::endl;
-        }
+        _TAB_ << "pTab->GetString(line, \"" << name << "\" , " << name << ".c_str(), cBuffer, CFG_LOAD_BUFFER_SIZE);" << std::endl;
+        _TAB_ << name << " = cBuffer;" << std::endl;
         break;
     }
     return true;
@@ -649,7 +627,16 @@ bool CppExporter::TabLoad(const IVariate* var, const IRawType* type, const std::
 
 bool CppExporter::TabLoad(const IVariate* var, const IEnumType* type, const std::string& name)
 {
-    _TAB_ << "pTab->GetInteger(line, \"" << name << "\" , false, &" << name << ");" << std::endl;
+    std::string tyName = util::Contact(util::Absolute(type), "::");
+    _TAB_ << "pTab->GetString(line, \"" << name << "\" , \"\", cBuffer, CFG_LOAD_BUFFER_SIZE);" << std::endl <<
+        _TAB_EX_(0) << "if (!Enum::ToEnum(" << name << ", cBuffer))" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "if (KGTool::Convert(cBuffer, nTemp) && Enum::ToString((" << tyName << ")nTemp))" << std::endl <<
+        _TAB_EX_(2) << name << " = (" << tyName << ")nTemp;" << std::endl <<
+        _TAB_EX_(1) << "else" << std::endl <<
+        _TAB_EX_(2) << "; //TODO: log error" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+
     return true;
 }
 
@@ -667,6 +654,7 @@ bool CppExporter::TabLoad(const IVariate* var, const IArrayType* type, const std
     {
         if (type->Length() < 0)
         {
+            // 结构体的变长数组
             ERROR_NOT_ALLOW;
             return false;
         }
@@ -677,30 +665,58 @@ bool CppExporter::TabLoad(const IVariate* var, const IArrayType* type, const std
     }
     else if (orignal->Category() == TypeCategory::Enum)
     {
-        _TAB_ << "{" << std::endl;
-        ++_tab;
+        std::string tyName = util::Contact(util::Absolute(orignal), "::");
+        _TAB_ << std::endl <<
+            _TAB_EX_(0) << "pTab->GetString(line, \"" << name << "\" , \"\", cBuffer, CFG_LOAD_BUFFER_SIZE);" << std::endl <<
+            _TAB_EX_(0) << "vecStrs = KGTool::Split(cBuffer, ',');" << std::endl;
+        if (type->Length() <= 0)
+        {
+            _TAB_ << name << ".resize(vecStrs.size());" << std::endl << 
+                _TAB_EX_(0) << "for (size_t i = 0; i < vecStrs.size(); ++i)" << std::endl;
+        }
+        else
+        {
+            _TAB_ << "for (size_t i = 0; i < std::min(vecStrs.size(), " << name << ".size(); ++i)" << std::endl;
+        }
 
-        _TAB_ << "std::vector<std::string> vecStr;" << std::endl;
-        _TAB_ << "char buffer[1024] = {0};" << std::endl;
-        _TAB_ << "pTab->GetString(line, \"" << name << "\" , \"\", buffer, 1024);" << std::endl;
-        _TAB_ << "vecStr = KGTool::Split(buffer, ',');" << std::endl;
-
-        //TODO:
-
-        --_tab;
-        _TAB_ << "}" << std::endl;
+        _TAB_ << "{" << std::endl <<
+            _TAB_EX_(1) << "if (!Enum::ToEnum(" << name << "[i], vecStrs[i].c_str()))" << std::endl <<
+            _TAB_EX_(1) << "{" << std::endl <<
+            _TAB_EX_(2) << "if (KGTool::Convert(vecStrs[i].c_str(), nTemp) && Enum::ToString((" << tyName << ")nTemp))" << std::endl <<
+            _TAB_EX_(3) << name << "[i] = (" << tyName << ")nTemp;" << std::endl <<
+            _TAB_EX_(2) << "else" << std::endl <<
+            _TAB_EX_(3) << "; //TODO: log error" << std::endl <<
+            _TAB_EX_(1) << "}" << std::endl <<
+            _TAB_EX_(0) << "}" << std::endl;
     }
     else if (orignal->Category() == TypeCategory::Raw)
     {
+        const IRawType* rawType = static_cast<const IRawType*>(orignal);
+        _TAB_ << std::endl <<
+            _TAB_EX_(0) << "pTab->GetString(line, \"" << name << "\" , \"\", cBuffer, CFG_LOAD_BUFFER_SIZE);" << std::endl <<
+            _TAB_EX_(0) << "vecStrs = KGTool::Split(cBuffer, ',');" << std::endl;
+
+        if (type->Length() <= 0)
+        {
+            _TAB_ << name << ".resize(vecStrs.size());" << std::endl <<
+                _TAB_EX_(0) << "for (size_t i = 0; i < vecStrs.size(); ++i)" << std::endl;
+        }
+        else
+        {
+            _TAB_ << "for (size_t i = 0; i < std::min(vecStrs.size(), " << name << ".size(); ++i)" << std::endl;
+        }
+
         _TAB_ << "{" << std::endl;
         ++_tab;
-
-        _TAB_ << "std::vector<std::string> vecStr;" << std::endl;
-        _TAB_ << "char buffer[1024] = {0};" << std::endl;
-        _TAB_ << "pTab->GetString(line, \"" << name << "\" , \"\", buffer, 1024);" << std::endl;
-        _TAB_ << "vecStr = KGTool::Split(buffer, ',');" << std::endl;
-
-        //TODO:
+        if (rawType->Raw() == RawCategory::String)
+        {
+            _TAB_ << name << "[i] = vecStr[i];" << std::endl;
+        }
+        else
+        {
+            _TAB_ << "if (!KGTool::Convert(vecStr[i].c_str(), " << name << "[i]))" << std::endl
+                << _TAB_EX_(1) << "; //TODO: log error" << std::endl;
+        }
 
         --_tab;
         _TAB_ << "}" << std::endl;

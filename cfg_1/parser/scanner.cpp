@@ -82,6 +82,7 @@ bool Scanner::EndOfFile()
         return false;
 
     m_driver.GetContext()->OnIncludeEnd();
+    return true;
 }
 
 void Scanner::Unrecognized(char c)

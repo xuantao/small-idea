@@ -174,14 +174,23 @@ namespace util
         return true;
     }
 
-    std::string TrimSuffix(const std::string& file, char c)
+    std::string TrimFileSuffix(const std::string& file, char c/* = '.'*/)
     {
         std::string::size_type pos = file.find_last_of(c);
         if (pos == std::string::npos)
             return file;
-        if (pos == 0)
-            return std::string();
-        return file.substr(0, pos - 1);
+
+        std::string::size_type s_l = file.find_last_of("/");
+        std::string::size_type s_r = file.find_last_of("\\");
+        if (s_l == std::string::npos)
+            s_l = 0;
+        if (s_r == std::string::npos)
+            s_r = 0;
+
+        if (pos > std::max(s_l, s_r))
+            return file.substr(0, pos - 1);
+        else
+            return file;
     }
 
     std::string Contact(const std::vector<std::string>& path, const std::string& c)
@@ -209,7 +218,9 @@ namespace util
             beg = pos + 1;
             pos = str.find_first_of(s, beg);
         }
-        ret.push_back(str.substr(beg));
+
+        if (beg < str.length())
+            ret.push_back(str.substr(beg));
 
         return std::move(ret);
     }

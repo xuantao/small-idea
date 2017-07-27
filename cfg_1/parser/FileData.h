@@ -11,15 +11,15 @@ namespace detail
     class FileBlock;
 }
 
-class FileData : public IFileData
+class FileData
 {
 public:
     FileData(const std::string& file);
     virtual ~FileData();
 
 public:
-    virtual const std::string& File() const { return _file; }
-    virtual void Traverse(IExporter* visitor) const;
+    const std::string& File() const { return _file; }
+    void Export(IExporter* visitor, bool merge) const;
 
 public:
     void Add(const IType* type);

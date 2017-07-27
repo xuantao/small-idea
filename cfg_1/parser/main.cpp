@@ -32,9 +32,8 @@ int main(int argc, char** argv)
     }
 
     CppExporter cpp;
-    context.Export(&cpp);
-
-    std::array<int, 2> ar;
+    context.Export(&cpp, "../out/cfg", true);
+    context.Export(&cpp, "../out/", false);
 
     system("pause");
     return 1;

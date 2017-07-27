@@ -24,10 +24,7 @@ public:
     const IScopeType* Global() const;
     IType* GetType(const std::string& name) const;
 
-    int FileCount() const { return (int)_files.size(); }
-    const IFileData* GetFileData(int index) const;
-
-    bool Export(IExporter* expoter);
+    bool Export(IExporter* expoter, const std::string& file, bool merge);
 
 public:
     void OnParseBegin(Driver& driver, const std::string& file);

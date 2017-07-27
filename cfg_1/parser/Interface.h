@@ -155,18 +155,8 @@ public:
 };
 
 /*
- * 文件数据
+ * 导出器接口
 */
-class IFileData
-{
-public:
-    virtual ~IFileData() {}
-
-public:
-    virtual const std::string& File() const = 0;
-    virtual void Traverse(IExporter* visitor) const = 0;
-};
-
 class IExporter
 {
 public:
@@ -175,9 +165,6 @@ public:
 public:
     virtual void OnBegin(const IScopeType* global, const std::string& file) = 0;
     virtual void OnEnd() = 0;
-
-    //virtual void OnFileBegin(const std::string& file) = 0;
-    //virtual void OnFileEnd() = 0;
 
     virtual void OnNamespaceBegin(const std::string& name) = 0;
     virtual void OnNameSapceEnd() = 0;

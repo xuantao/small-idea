@@ -56,10 +56,8 @@ FileData::~FileData()
 }
 
 
-void FileData::Traverse(IExporter* visitor) const
+void FileData::Export(IExporter* visitor, bool merge) const
 {
-    //visitor->OnFileBegin(_file);
-
     for (size_t i = 0; i < _blocks.size(); ++i)
     {
         detail::FileBlock* block = _blocks[i];
@@ -72,7 +70,8 @@ void FileData::Traverse(IExporter* visitor) const
             visitor->OnType(static_cast<const IType*>(block->_data));
             break;
         case detail::BlockType::Include:
-            visitor->OnInclude(block->_str);
+            if (!merge)
+                visitor->OnInclude(block->_str);
             break;
         case detail::BlockType::NamespaceBegin:
             visitor->OnNamespaceBegin(block->_str);
@@ -84,8 +83,6 @@ void FileData::Traverse(IExporter* visitor) const
             break;
         }
     }
-
-    //visitor->OnFileEnd();
 }
 
 void FileData::Add(const IType* type)

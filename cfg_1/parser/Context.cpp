@@ -49,21 +49,35 @@ IType* Context::GetType(const std::string& name) const
     return type;
 }
 
-const IFileData* Context::GetFileData(int index) const
+bool Context::Export(IExporter* expoter, const std::string& file, bool merge)
 {
-    if (index < 0 || index >= FileCount())
-        return nullptr;
-    return _files[index];
-}
+    if (merge)
+    {
+        std::string fileName = util::TrimFileSuffix(file, '.');
+        if (fileName.empty() || fileName.back() == '/' || fileName.back() == '//')
+            fileName = "unamed";
+            
+        expoter->OnBegin(_scope, fileName);
+        for (auto it = _files.begin(); it != _files.end(); ++it)
+            (*it)->Export(expoter, merge);
+        expoter->OnEnd();
+    }
+    else
+    {
+        std::string path;
+        if (file.back() == '\\' || file.back() == '/')
+            path = file;
+        else
+            path = file + '/';
 
-bool Context::Export(IExporter* expoter)
-{
-    expoter->OnBegin(_scope, "test_out_put");
+        for (auto it = _files.begin(); it != _files.end(); ++it)
+        {
+            expoter->OnBegin(_scope, path + util::TrimFileSuffix((*it)->File(), '.'));
+            (*it)->Export(expoter, merge);
+            expoter->OnEnd();
+        }
+    }
 
-    for (auto it = _files.begin(); it != _files.end(); ++it)
-        (*it)->Traverse(expoter);
-
-    expoter->OnEnd();
     return true;
 }
 
@@ -87,7 +101,7 @@ void Context::OnIncludeBegin(const std::string& file)
     _driver->Warning("does not support include file {0};", file);
 
     auto it = std::find_if(_files.begin(), _files.end(),
-        [&file](IFileData* fd) { return fd->File() == file; });
+        [&file](FileData* fd) { return fd->File() == file; });
 
     if (it != _files.end())
     {

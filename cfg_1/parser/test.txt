@@ -38,6 +38,8 @@ struct Struct1 : Struct0
  int a = 1;
  int b = 2;
  int c;
+ Enum2 arEnum[];
+ Enum2 arEnum2[2];
 }
 
 struct Struct2 : Struct1
