@@ -205,13 +205,13 @@ BoolValue   : VALUE_TRUE            { $$ = $1; }
             ;
 
 IntValue    : VALUE_INT             { $$ = $1; }
-            | S_MINUS VALUE_INT     { $$ = $2; }
+            | S_MINUS VALUE_INT     { $$ = '-' + $2; }
             ;
 
 FloatValue  : VALUE_INT             { $$ = $1; }
             | VALUE_FLOAT           { $$ = $1; }
-            | S_MINUS VALUE_INT     { $$ = $2; }
-            | S_MINUS VALUE_FLOAT   { $$ = $2; }
+            | S_MINUS VALUE_INT     { $$ = '-' + $2; }
+            | S_MINUS VALUE_FLOAT   { $$ = '-' + $2; }
             ;
 
 /* gobal or enum value reference */

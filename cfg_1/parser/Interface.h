@@ -48,6 +48,24 @@ public:
 };
 
 /*
+ * Enum Type
+*/
+class IEnumType : public IType
+{
+public:
+    virtual ~IEnumType() {}
+};
+
+/*
+ * Scope Type
+*/
+class IScopeType : public IType
+{
+public:
+    virtual ~IScopeType() {}
+};
+
+/*
  * 数组类型
 */
 class IArrayType : public IType
@@ -137,17 +155,6 @@ public:
 };
 
 /*
- * 文件块
-*/
-class IBlock
-{
-public:
-    virtual ~IBlock() {}
-public:
-    virtual BlockCategory Category() const = 0;
-};
-
-/*
  * 文件数据
 */
 class IFileData
@@ -157,17 +164,26 @@ public:
 
 public:
     virtual const std::string& File() const = 0;
-    virtual int Size() const = 0;
-    virtual IBlock* Get(int index) const = 0;
-    virtual void Traverse(IFileVisitor* visitor) const = 0;
+    virtual void Traverse(IExporter* visitor) const = 0;
 };
 
-class IFileVisitor
+class IExporter
 {
 public:
-    virtual ~IFileVisitor() {}
+    virtual ~IExporter() {}
 
 public:
+    virtual void OnBegin(const IScopeType* global, const std::string& file) = 0;
+    virtual void OnEnd() = 0;
+
+    //virtual void OnFileBegin(const std::string& file) = 0;
+    //virtual void OnFileEnd() = 0;
+
+    virtual void OnNamespaceBegin(const std::string& name) = 0;
+    virtual void OnNameSapceEnd() = 0;
+
+    virtual void OnInclude(const std::string& file) = 0;
+
     virtual void OnVariate(const IVariate* var) = 0;
     virtual void OnType(const IType* type) = 0;
 };

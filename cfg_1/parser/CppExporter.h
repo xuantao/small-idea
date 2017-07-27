@@ -5,18 +5,14 @@
 
 CFG_NAMESPACE_BEGIN
 
-class EnumType;
-class StructType;
-class ScopeType;
-class IFileData;
-
-class CppExporter : protected IFileVisitor
+class CppExporter : public IExporter
 {
 public:
-    static bool Export(std::ostream& stream, const ScopeType* global, const IFileData* fileData)
+    static bool Export(std::ostream& stream, const IScopeType* global, const IFileData* fileData)
     {
-        CppExporter cpp(stream, global);
-        return cpp.Export(fileData);
+        //CppExporter cpp();
+        //return cpp.Export();
+        return true;
     }
 
 public:
@@ -27,38 +23,57 @@ public:
         std::string value;
     };
 
-protected:
-    CppExporter(std::ostream& stream, const ScopeType* global);
+public:
+    CppExporter();
     ~CppExporter();
 
-protected:
-    bool Export(const IFileData* file);
-
-    bool Declare(const EnumType* ty, int tab);
-    bool Declare(const StructType* ty, int tab);
-
-    bool TabLoader(const StructType* ty, int tab);
-    bool TabLoadStruct(const StructType* sType, const std::string& owner, int tab);
-    bool TabLoadRaw(const IVariate* var, const std::string& name, int tab);
-    bool TabLoadEnum(const IVariate* var, const std::string& name, int tab);
-    bool TabLoadArray(const IVariate* var, const std::string& name, int tab);
-
-    bool EnumStaticData(const EnumType* eType, int tab);
-    bool Enum2String(const EnumType* eType, int tab);
-    bool String2Enum(const EnumType* eType, int tab);
-
-    std::ostream& Tab(int tab);
-protected:
+public:
+    virtual void OnBegin(const IScopeType* global, const std::string& file);
+    virtual void OnEnd();
+    virtual void OnFileBegin(const std::string& file);
+    virtual void OnFileEnd();
+    virtual void OnNamespaceBegin(const std::string& name);
+    virtual void OnNameSapceEnd();
+    virtual void OnInclude(const std::string& file);
     virtual void OnVariate(const IVariate* var);
     virtual void OnType(const IType* type);
 
 protected:
-    typedef std::stack<const IType*> StackScop;
+    bool Declare(const IEnumType* ty);
+    bool Declare(const IStructType* ty);
 
-    const ScopeType* _global;
-    std::ostream& _stream;
-    StackScop _scope;
+
+    //bool Enum2String(const IEnumType* eType);
+    //bool String2Enum(const IEnumType* eType);
+
+    bool EnumStaticData(const IEnumType* eType);
+    bool FuncDeclare(const IEnumType* eType);
+    bool FuncImpl(const IEnumType* eType);
+
+    bool TabFuncDeclare(const IStructType* sType);
+    bool TabFuncImpl(const IStructType* sType);
+
+    bool TabLoader(const IStructType* ty);
+    bool TabLoad(const IStructType* sType, const std::string& owner);
+    bool TabLoad(const IVariate* var, const IRawType* type, const std::string& name);
+    bool TabLoad(const IVariate* var, const IEnumType* type, const std::string& name);
+    bool TabLoad(const IVariate* var, const IArrayType* type, const std::string& name);
+
+    bool JsonFuncDeclare(const IStructType* sType);
+    bool JsonFuncImpl(const IStructType* sType);
+
+    bool DeclaerHeader();
+    bool ImplationCpp();
+
+protected:
+    std::ostream* _stream;
     int _tab;
+
+    const IScopeType* _global;
+    std::string _file;
+
+    std::vector<const IEnumType*> _enums;
+    std::vector<const IStructType*> _structs;
 };
 
 CFG_NAMESPACE_END

@@ -24,9 +24,12 @@ public:
 
 protected:
     RawCategory _raw;
-    bool _b;
-    int _i;
-    float _f;
+    union
+    {
+        bool _b;
+        int _i;
+        float _f;
+    };
     std::string _s;
 };
 

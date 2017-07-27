@@ -21,11 +21,13 @@ public:
     ~Context();
 
 public:
+    const IScopeType* Global() const;
     IType* GetType(const std::string& name) const;
-    const ScopeType* Global() const { return _scope; }
 
     int FileCount() const { return (int)_files.size(); }
     const IFileData* GetFileData(int index) const;
+
+    bool Export(IExporter* expoter);
 
 public:
     void OnParseBegin(Driver& driver, const std::string& file);
@@ -51,7 +53,7 @@ public:
     void OnVariateEnd(bool isConst);
 
 protected:
-    std::string MakeSureName(const std::string& name) const;
+    std::string ConflictName(const std::string& name) const;
 
 protected:
     Driver* _driver;
@@ -59,7 +61,7 @@ protected:
     std::vector<FileData*> _files;
     std::vector<FileData*> _stackFile;
 
-    ScopeType* _scope;
+    IScopeType* _scope;
     Variate* _var;
 
     union

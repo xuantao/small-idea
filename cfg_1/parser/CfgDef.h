@@ -64,6 +64,6 @@ class IVariate;
 class IValue;
 class IBlock;
 class IFileData;
-class IFileVisitor;
+class IExporter;
 
 CFG_NAMESPACE_END

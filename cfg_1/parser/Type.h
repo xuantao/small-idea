@@ -33,7 +33,7 @@ protected:
 /*
  * 枚举
 */
-class EnumType : public IType
+class EnumType : public IEnumType
 {
 public:
     EnumType(const std::string& name, IType* belong);
@@ -114,7 +114,7 @@ protected:
 /*
  * scope
 */
-class ScopeType : public IType
+class ScopeType : public IScopeType
 {
 public:
     ScopeType(const std::string& name, ScopeType* belong = nullptr);

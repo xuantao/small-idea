@@ -8,6 +8,12 @@
 
 CFG_NAMESPACE_USING;
 
+const char* const * Names()
+{
+    static const char* ss[] = {"xuantao", "zouhui"};
+    return ss;
+}
+
 int main(int argc, char** argv)
 {
     if (argc < 2)
@@ -25,7 +31,8 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    CppExporter::Export(std::cout, context.Global(), context.GetFileData(0));
+    CppExporter cpp;
+    context.Export(&cpp);
 
     std::array<int, 2> ar;
 

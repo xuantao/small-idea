@@ -6,6 +6,8 @@ const float f_1 = 2;
 const string s_1 = "";
 const bool b_1 = true;
 
+#include "prev.txt"
+
 enum Enum1 {
     a,
     b = a,
@@ -18,6 +20,8 @@ enum Enum2
     c = 100,
     d,
 };
+
+
 
 struct Struct22;;;;;;;
 ;;;

@@ -6,6 +6,11 @@
 
 CFG_NAMESPACE_BEGIN
 
+namespace detail
+{
+    class FileBlock;
+}
+
 class FileData : public IFileData
 {
 public:
@@ -14,16 +19,19 @@ public:
 
 public:
     virtual const std::string& File() const { return _file; }
-    virtual int Size() const { return (int)_blocks.size(); }
-    virtual IBlock* Get(int index) const;
-    virtual void Traverse(IFileVisitor* visitor) const;
+    virtual void Traverse(IExporter* visitor) const;
 
 public:
     void Add(const IType* type);
     void Add(const IVariate* var);
 
+    void Inlcude(const std::string& file);
+
+    void NamesapceBegin(const std::string& name);
+    void NamesapceEnd();
+
 protected:
     std::string _file;
-    std::vector<IBlock*> _blocks;
+    std::vector<detail::FileBlock*> _blocks;
 };
 CFG_NAMESPACE_END

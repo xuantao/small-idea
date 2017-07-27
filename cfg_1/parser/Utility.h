@@ -36,6 +36,8 @@ namespace util
     bool Convert(const std::string& str, float& out);
     bool Convert(const std::string& str, float& out, float def);
 
+    std::string TrimSuffix(const std::string& file, char c);
+
     std::string Contact(const std::vector<std::string>& path, const std::string& c);
     std::vector<std::string> Split(const std::string& str, char s);
 

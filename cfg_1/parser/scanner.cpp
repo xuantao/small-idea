@@ -1,8 +1,9 @@
 ﻿#include "Scanner.h"
+#include "Driver.h"
+#include "Context.h"
+#include "location.hh"
 #include <fstream>
 #include <cassert>
-#include "Driver.h"
-#include "location.hh"
 
 CFG_NAMESPACE_BEGIN
 
@@ -66,13 +67,21 @@ location& Scanner::Location()
 
 bool Scanner::Include(const std::string& file)
 {
-    return Push(file);
+    if (!Push(file))
+        return false;
+
+    m_driver.GetContext()->OnIncludeBegin(file);
+    return true;
 }
 
 bool Scanner::EndOfFile()
 {
     yypop_buffer_state();
-    return Pop();
+
+    if (!Pop())
+        return false;
+
+    m_driver.GetContext()->OnIncludeEnd();
 }
 
 void Scanner::Unrecognized(char c)

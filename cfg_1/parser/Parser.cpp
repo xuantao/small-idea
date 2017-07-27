@@ -970,7 +970,7 @@ namespace  cfg  {
 
   case 70:
 #line 208 "./fb/parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
+    { yylhs.value.as< std::string > () = '-' + yystack_[0].value.as< std::string > (); }
 #line 975 "Parser.cpp" // lalr1.cc:846
     break;
 
@@ -988,13 +988,13 @@ namespace  cfg  {
 
   case 73:
 #line 213 "./fb/parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
+    { yylhs.value.as< std::string > () = '-' + yystack_[0].value.as< std::string > (); }
 #line 993 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 74:
 #line 214 "./fb/parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
+    { yylhs.value.as< std::string > () = '-' + yystack_[0].value.as< std::string > (); }
 #line 999 "Parser.cpp" // lalr1.cc:846
     break;
 

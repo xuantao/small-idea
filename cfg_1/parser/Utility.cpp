@@ -174,6 +174,16 @@ namespace util
         return true;
     }
 
+    std::string TrimSuffix(const std::string& file, char c)
+    {
+        std::string::size_type pos = file.find_last_of(c);
+        if (pos == std::string::npos)
+            return file;
+        if (pos == 0)
+            return std::string();
+        return file.substr(0, pos - 1);
+    }
+
     std::string Contact(const std::vector<std::string>& path, const std::string& c)
     {
         if (path.empty())

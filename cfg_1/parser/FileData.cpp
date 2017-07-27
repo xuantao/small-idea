@@ -4,21 +4,42 @@ CFG_NAMESPACE_BEGIN
 
 namespace detail
 {
-    class FileBlock : public IBlock
+    enum class BlockType
+    {
+        Type,
+        Var,
+        Include,
+        NamespaceBegin,
+        NamespaceEnd,
+    };
+
+    class FileBlock
     {
     public:
-        FileBlock(BlockCategory block, const void* data)
-            : _block(block), _data(data)
+        FileBlock(BlockType type)
+            : _type(type), _data(nullptr)
         {
         }
+
+        FileBlock(BlockType type, const void* data)
+            : _type(type), _data(data)
+        {
+        }
+
+        FileBlock(BlockType type, const std::string& str)
+            : _type(type), _data(nullptr), _str(str)
+        {
+        }
+
         ~FileBlock() {}
 
     public:
-        BlockCategory Category() const { return _block; }
+        BlockCategory Category() const { return BlockCategory::Var; }
 
     public:
-        BlockCategory _block;
+        BlockType _type;
         const void* _data;
+        const std::string _str;
     };
 }
 
@@ -30,37 +51,65 @@ FileData::FileData(const std::string& file)
 FileData::~FileData()
 {
     std::for_each(_blocks.begin(), _blocks.end(),
-        [ ](IBlock* block) {delete block; });
+        [ ](detail::FileBlock* block) { delete block; });
     _blocks.clear();
 }
 
-IBlock* FileData::Get(int index) const
-{
-    if (index < 0 || index >= Size())
-        return nullptr;
-    return _blocks[index];
-}
 
-void FileData::Traverse(IFileVisitor* visitor) const
+void FileData::Traverse(IExporter* visitor) const
 {
+    //visitor->OnFileBegin(_file);
+
     for (size_t i = 0; i < _blocks.size(); ++i)
     {
-        detail::FileBlock* block = static_cast<detail::FileBlock*>(_blocks[i]);
-        if (block->Category() == BlockCategory::Type)
-            visitor->OnType(static_cast<const IType*>(block->_data));
-        else if (block->Category() == BlockCategory::Var)
+        detail::FileBlock* block = _blocks[i];
+        switch (block->_type)
+        {
+        case detail::BlockType::Var:
             visitor->OnVariate(static_cast<const IVariate*>(block->_data));
+            break;
+        case detail::BlockType::Type:
+            visitor->OnType(static_cast<const IType*>(block->_data));
+            break;
+        case detail::BlockType::Include:
+            visitor->OnInclude(block->_str);
+            break;
+        case detail::BlockType::NamespaceBegin:
+            visitor->OnNamespaceBegin(block->_str);
+            break;
+        case detail::BlockType::NamespaceEnd:
+            visitor->OnNameSapceEnd();
+            break;
+        default:
+            break;
+        }
     }
+
+    //visitor->OnFileEnd();
 }
 
 void FileData::Add(const IType* type)
 {
-    _blocks.push_back(new detail::FileBlock(BlockCategory::Type, type));
+    _blocks.push_back(new detail::FileBlock(detail::BlockType::Type, type));
 }
 
 void FileData::Add(const IVariate* var)
 {
-    _blocks.push_back(new detail::FileBlock(BlockCategory::Var, var));
+    _blocks.push_back(new detail::FileBlock(detail::BlockType::Var, var));
 }
 
+void FileData::Inlcude(const std::string& file)
+{
+    _blocks.push_back(new detail::FileBlock(detail::BlockType::Include, file));
+}
+
+void FileData::NamesapceBegin(const std::string& name)
+{
+    _blocks.push_back(new detail::FileBlock(detail::BlockType::NamespaceBegin, name));
+}
+
+void FileData::NamesapceEnd()
+{
+    _blocks.push_back(new detail::FileBlock(detail::BlockType::NamespaceEnd));
+}
 CFG_NAMESPACE_END

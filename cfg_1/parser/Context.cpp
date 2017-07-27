@@ -38,6 +38,11 @@ Context::~Context()
     _var = nullptr;
 }
 
+const IScopeType* Context::Global() const
+{
+    return _scope;
+}
+
 IType* Context::GetType(const std::string& name) const
 {
     IType* type = _scope->TypeSet()->Get(name);
@@ -49,6 +54,17 @@ const IFileData* Context::GetFileData(int index) const
     if (index < 0 || index >= FileCount())
         return nullptr;
     return _files[index];
+}
+
+bool Context::Export(IExporter* expoter)
+{
+    expoter->OnBegin(_scope, "test_out_put");
+
+    for (auto it = _files.begin(); it != _files.end(); ++it)
+        (*it)->Traverse(expoter);
+
+    expoter->OnEnd();
+    return true;
 }
 
 void Context::OnParseBegin(Driver& driver, const std::string& file)
@@ -79,6 +95,8 @@ void Context::OnIncludeBegin(const std::string& file)
         return;
     }
 
+    _stackFile.back()->Inlcude(file);
+
     FileData* fd = new FileData(file);
     _files.push_back(fd);
     _stackFile.push_back(fd);
@@ -102,7 +120,7 @@ void Context::OnStructBegin(const std::string& name)
     if (_scope->TypeSet()->Get(name) || _scope->VarSet()->Get(name))
     {
         _driver->Warning("struct {0} name conflict", name);
-        _type = new StructType(MakeSureName(name), _scope);
+        _type = new StructType(ConflictName(name), _scope);
     }
     else
     {
@@ -174,7 +192,7 @@ void Context::OnEnumBegin(const std::string& name)
     if (_scope->TypeSet()->Get(name) || _scope->VarSet()->Get(name))
     {
         _driver->Error("enum {0} name conflict", name);
-        _type = new EnumType(MakeSureName(name), _scope);
+        _type = new EnumType(ConflictName(name), _scope);
     }
     else
     {
@@ -378,7 +396,7 @@ void Context::OnVariateEnd(bool isConst)
     _var = nullptr;
 }
 
-std::string Context::MakeSureName(const std::string& name) const
+std::string Context::ConflictName(const std::string& name) const
 {
     int index = 0;
 

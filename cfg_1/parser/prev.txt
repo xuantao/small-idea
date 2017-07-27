@@ -1,0 +1,10 @@
+
+enum GlobalType
+{
+    Invalid = -1,
+    Bool,
+    Int,
+    Float,
+    String,
+};
+
