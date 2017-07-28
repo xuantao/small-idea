@@ -1,45 +1,53 @@
 ﻿#include <iostream>
 #include <fstream>
-#include "Scanner.h"
-#include "Driver.h"
-#include "Context.h"
-#include "CppExporter.h"
+#include "CfgDef.h"
+//#include "Scanner.h"
+//#include "Driver.h"
+//#include "Context.h"
+//#include "CppExporter.h"
 #include <array>
+
+#include "TabParser.h"
 
 CFG_NAMESPACE_USING;
 
-const char* const * Names()
+void Names()
 {
-    static const char* ss[] = {"xuantao", "zouhui", "xiaoyan"};
-    int n = sizeof(ss);
+    //static const char* ss[] = {"xuantao", "zouhui", "xiaoyan"};
+    //int n = sizeof(ss);
+    std::array<const char*, 3> ss2 = { "xuantao", "zouhui", "xiaoyan" };
+
+    TabParser<3> tab(ss2);
+    tab.Parse();
+
     //Count(Temp());
     //Count(Temp2());
-    return ss;
+    
 }
 
 int main(int argc, char** argv)
 {
     Names();
     return 1;
-    if (argc < 2)
-    {
-        std::cerr << "please set parser file" << std::endl;
-        return 0;
-    }
+    //if (argc < 2)
+    //{
+    //    std::cerr << "please set parser file" << std::endl;
+    //    return 0;
+    //}
 
-    Driver driver;
-    Context context;
+    //Driver driver;
+    //Context context;
 
-    if (!driver.Parse(argv[1], context))
-    {
-        std::cerr << "initialize scanner failed" << std::endl;
-        return 0;
-    }
+    //if (!driver.Parse(argv[1], context))
+    //{
+    //    std::cerr << "initialize scanner failed" << std::endl;
+    //    return 0;
+    //}
 
-    CppExporter cpp;
-    context.Export(&cpp, "../out/cfg", true);
-    context.Export(&cpp, "../out/", false);
+    //CppExporter cpp;
+    //context.Export(&cpp, "../out/cfg", true);
+    //context.Export(&cpp, "../out/", false);
 
-    system("pause");
+    //system("pause");
     return 1;
 }
