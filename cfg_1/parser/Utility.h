@@ -22,7 +22,7 @@ struct UniqueVarName
     std::string name;
 };
 
-namespace util
+namespace utility
 {
     static const std::string EMPTY_STR;
     static const std::vector<std::string> EMPTY_VEC_STR;

@@ -10,12 +10,17 @@ CFG_NAMESPACE_USING;
 
 const char* const * Names()
 {
-    static const char* ss[] = {"xuantao", "zouhui"};
+    static const char* ss[] = {"xuantao", "zouhui", "xiaoyan"};
+    int n = sizeof(ss);
+    //Count(Temp());
+    //Count(Temp2());
     return ss;
 }
 
 int main(int argc, char** argv)
 {
+    Names();
+    return 1;
     if (argc < 2)
     {
         std::cerr << "please set parser file" << std::endl;

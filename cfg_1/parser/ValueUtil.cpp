@@ -79,7 +79,7 @@ namespace value_util
         if (raw == RawCategory::Bool)
             val = new RawValue(false);
         else if (raw == RawCategory::Int)
-                val = new RawValue(0);
+            val = new RawValue(0);
         else if (raw == RawCategory::Float)
             val = new RawValue(0.0f);
         else if (raw == RawCategory::String)
@@ -95,19 +95,19 @@ namespace value_util
         if (raw == RawCategory::Bool)
         {
             bool b = false;
-            if (util::Convert(value, b))
+            if (utility::Convert(value, b))
                 val = new RawValue(b);
         }
         else if (raw == RawCategory::Int)
         {
             int i = 0;
-            if (util::Convert(value, i))
+            if (utility::Convert(value, i))
                 val = new RawValue(i);
         }
         else if (raw == RawCategory::Float)
         {
             float f = 0.0f;
-            if (util::Convert(value, f))
+            if (utility::Convert(value, f))
                 val = new RawValue(f);
         }
         else if (raw == RawCategory::String)

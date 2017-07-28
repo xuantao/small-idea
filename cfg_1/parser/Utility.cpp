@@ -7,7 +7,7 @@
 
 CFG_NAMESPACE_BEGIN
 
-namespace util
+namespace utility
 {
     //std::string STR_EMPTY;
 
@@ -265,14 +265,14 @@ namespace util
             return nullptr;
         if (scope->Name() == path)
             return scope;
-        return FindType(scope, util::Split(path, '.'));
+        return FindType(scope, utility::Split(path, '.'));
     }
 
     IVariate* FindVar(IType* scope, const std::string& path)
     {
         IVariate* var = nullptr;
         const IType* type = scope;
-        std::vector<std::string> vec = util::Split(path, '.');
+        std::vector<std::string> vec = utility::Split(path, '.');
 
         if (vec.size() > 1)
             type = FindType(scope, vec, 0, (int)vec.size() - 1);

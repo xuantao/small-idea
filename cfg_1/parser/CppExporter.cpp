@@ -11,7 +11,7 @@ CFG_NAMESPACE_BEGIN
 
 #define _DEF_STREAM_ &std::cerr
 #define _OUTS_ (*_stream)
-#define _TAB_ util::Tab(*_stream, _tab)
+#define _TAB_ utility::Tab(*_stream, _tab)
 #define _TAB_EX_(ex) std::string((_tab + ex) * 4, ' ')
 
 #define _NEED_TEMP_INT      0x01
@@ -71,8 +71,11 @@ void CppExporter::OnBegin(const IScopeType* global, const std::string& file)
     else
         delete header;
 
-    _OUTS_ << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl;
-    _OUTS_ << "#pragma once" << std::endl << std::endl;
+    _OUTS_ << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl <<
+        "#pragma once" << std::endl << std::endl <<
+        "#include <vector>" << std::endl <<
+        "#include <string>" << std::endl <<
+        "#include <array>" << std::endl << std::endl;
 }
 
 void CppExporter::OnEnd()
@@ -124,7 +127,7 @@ void CppExporter::OnNameSapceEnd()
 
 void CppExporter::OnInclude(const std::string& file)
 {
-    std::string name = util::TrimFileSuffix(file, '.') + ".h";
+    std::string name = utility::TrimFileSuffix(file, '.') + ".h";
     if (name.length() <= 2)
     {
         ERROR_NOT_ALLOW;
@@ -143,7 +146,7 @@ void CppExporter::OnVariate(const IVariate* var)
     if (!cpp_util::Convert(var, data))
         return;
 
-    _OUTS_ << "const static " << data.type << " " << data.name;
+    _OUTS_ << "static const " << data.type << " " << data.name;
     if (!data.value.empty())
         _OUTS_ << " = " << data.value;
     _OUTS_ << ";" << std::endl;
@@ -338,7 +341,7 @@ bool CppExporter::DeclaerHeader()
 bool CppExporter::ImplationCpp()
 {
     _OUTS_ << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl;
-    _OUTS_ << "#include \"xxx.h\"" << std::endl << std::endl;
+    _OUTS_ << "#include \"" << _file << ".h\"" << std::endl << std::endl;
 
     if (!_enums.empty())
     {
@@ -346,11 +349,16 @@ bool CppExporter::ImplationCpp()
         ++_tab;
 
         for (auto it = _enums.begin(); it != _enums.end(); ++it)
+        {
             EnumStaticData(*it);
-        _OUTS_ << std::endl;
+            _OUTS_ << std::endl;
+        }
 
         for (auto it = _enums.begin(); it != _enums.end(); ++it)
+        {
             FuncImpl(*it);
+            _OUTS_ << std::endl;
+        }
 
         --_tab;
         _OUTS_ << "} // end of namespace Enum" << std::endl << std::endl;
@@ -382,8 +390,8 @@ bool CppExporter::ImplationCpp()
 
 bool CppExporter::EnumStaticData(const IEnumType* eType)
 {
-    std::vector<std::string> path = util::Absolute(eType);
-    std::string base = util::Contact(path, "_");
+    std::vector<std::string> path = utility::Absolute(eType);
+    std::string base = utility::Contact(path, "_");
     std::string varName = "s_" + base + "_val";
     std::string strName = "s_" + base + "_str";
 
@@ -430,8 +438,8 @@ bool CppExporter::EnumStaticData(const IEnumType* eType)
 
 bool CppExporter::FuncDeclare(const IEnumType* eType)
 {
-    std::vector<std::string> path = util::Absolute(eType);
-    std::string name = util::Contact(path, "::");
+    std::vector<std::string> path = utility::Absolute(eType);
+    std::string name = utility::Contact(path, "::");
 
     _TAB_ << "const char* const * Names(" << name << ");" << std::endl;
     _TAB_ << "const char* ToString(" << name << " value);" << std::endl;
@@ -442,10 +450,10 @@ bool CppExporter::FuncDeclare(const IEnumType* eType)
 
 bool CppExporter::FuncImpl(const IEnumType* eType)
 {
-    std::vector<std::string> path = util::Absolute(eType);
-    std::string tyName = util::Contact(path, "::");
-    std::string varName = "s_" + util::Contact(path, "_") + "_val";
-    std::string strName = "s_" + util::Contact(path, "_") + "_str";
+    std::vector<std::string> path = utility::Absolute(eType);
+    std::string tyName = utility::Contact(path, "::");
+    std::string varName = "s_" + utility::Contact(path, "_") + "_val";
+    std::string strName = "s_" + utility::Contact(path, "_") + "_str";
 
     // const char*[] Names(Enum)
     _TAB_ << "const char* const * Names(" << tyName << ")" << std::endl;
@@ -507,8 +515,8 @@ bool CppExporter::FuncImpl(const IEnumType* eType)
 
 bool CppExporter::TabFuncDeclare(const IStructType* sType)
 {
-    std::vector<std::string> path = util::Absolute(sType);
-    std::string tyName = util::Contact(path, "::");
+    std::vector<std::string> path = utility::Absolute(sType);
+    std::string tyName = utility::Contact(path, "::");
 
     _TAB_ << "int Load(ITabFile* pTab, std::vector<" << tyName << ">& out);" << std::endl;
 
@@ -517,8 +525,8 @@ bool CppExporter::TabFuncDeclare(const IStructType* sType)
 
 bool CppExporter::TabFuncImpl(const IStructType* sType)
 {
-    std::vector<std::string> path = util::Absolute(sType);
-    std::string tyName = util::Contact(path, "::");
+    std::vector<std::string> path = utility::Absolute(sType);
+    std::string tyName = utility::Contact(path, "::");
 
     TabLoader(sType);
     _OUTS_ << std::endl;
@@ -551,8 +559,8 @@ bool CppExporter::TabFuncImpl(const IStructType* sType)
 
 bool CppExporter::TabLoader(const IStructType* sType)
 {
-    std::vector<std::string> path = util::Absolute(sType);
-    std::string tyName = util::Contact(path, "::");
+    std::vector<std::string> path = utility::Absolute(sType);
+    std::string tyName = utility::Contact(path, "::");
     int mask = sNeedTempMask(sType);
 
     _TAB_ << "static bool Load(ITabFile* pTab, int line, " << tyName << "& data)" << std::endl;
@@ -583,6 +591,9 @@ bool CppExporter::TabLoad(const IStructType* sType, const std::string& owner)
     for (int i = 0; i < varSet->Size(); ++i)
     {
         const IVariate* var = varSet->Get(i);
+        if (var->IsConst())
+            continue;
+
         TypeCategory typeCategory = var->Type()->Category();
         std::string name;
         if (owner.empty())
@@ -627,7 +638,7 @@ bool CppExporter::TabLoad(const IVariate* var, const IRawType* type, const std::
 
 bool CppExporter::TabLoad(const IVariate* var, const IEnumType* type, const std::string& name)
 {
-    std::string tyName = util::Contact(util::Absolute(type), "::");
+    std::string tyName = utility::Contact(utility::Absolute(type), "::");
     _TAB_ << "pTab->GetString(line, \"" << name << "\" , \"\", cBuffer, CFG_LOAD_BUFFER_SIZE);" << std::endl <<
         _TAB_EX_(0) << "if (!Enum::ToEnum(" << name << ", cBuffer))" << std::endl <<
         _TAB_EX_(0) << "{" << std::endl <<
@@ -665,13 +676,13 @@ bool CppExporter::TabLoad(const IVariate* var, const IArrayType* type, const std
     }
     else if (orignal->Category() == TypeCategory::Enum)
     {
-        std::string tyName = util::Contact(util::Absolute(orignal), "::");
+        std::string tyName = utility::Contact(utility::Absolute(orignal), "::");
         _TAB_ << std::endl <<
             _TAB_EX_(0) << "pTab->GetString(line, \"" << name << "\" , \"\", cBuffer, CFG_LOAD_BUFFER_SIZE);" << std::endl <<
             _TAB_EX_(0) << "vecStrs = KGTool::Split(cBuffer, ',');" << std::endl;
         if (type->Length() <= 0)
         {
-            _TAB_ << name << ".resize(vecStrs.size());" << std::endl << 
+            _TAB_ << name << ".resize(vecStrs.size());" << std::endl <<
                 _TAB_EX_(0) << "for (size_t i = 0; i < vecStrs.size(); ++i)" << std::endl;
         }
         else
@@ -686,8 +697,8 @@ bool CppExporter::TabLoad(const IVariate* var, const IArrayType* type, const std
             _TAB_EX_(3) << name << "[i] = (" << tyName << ")nTemp;" << std::endl <<
             _TAB_EX_(2) << "else" << std::endl <<
             _TAB_EX_(3) << "; //TODO: log error" << std::endl <<
-            _TAB_EX_(1) << "}" << std::endl <<
-            _TAB_EX_(0) << "}" << std::endl;
+            _TAB_EX_(1) << "}" << std::endl;
+        _TAB_ << "}" << std::endl;
     }
     else if (orignal->Category() == TypeCategory::Raw)
     {

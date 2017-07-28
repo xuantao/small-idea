@@ -147,6 +147,9 @@
     <ClInclude Include="Block.h">
       <Filter>src\context</Filter>
     </ClInclude>
+    <ClInclude Include="TabParser.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="fb\parser.y">

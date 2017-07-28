@@ -53,10 +53,10 @@ bool Context::Export(IExporter* expoter, const std::string& file, bool merge)
 {
     if (merge)
     {
-        std::string fileName = util::TrimFileSuffix(file, '.');
+        std::string fileName = utility::TrimFileSuffix(file, '.');
         if (fileName.empty() || fileName.back() == '/' || fileName.back() == '//')
-            fileName = "unamed";
-            
+            fileName = "unnamed";
+
         expoter->OnBegin(_scope, fileName);
         for (auto it = _files.begin(); it != _files.end(); ++it)
             (*it)->Export(expoter, merge);
@@ -72,7 +72,7 @@ bool Context::Export(IExporter* expoter, const std::string& file, bool merge)
 
         for (auto it = _files.begin(); it != _files.end(); ++it)
         {
-            expoter->OnBegin(_scope, path + util::TrimFileSuffix((*it)->File(), '.'));
+            expoter->OnBegin(_scope, path + utility::TrimFileSuffix((*it)->File(), '.'));
             (*it)->Export(expoter, merge);
             expoter->OnEnd();
         }
@@ -248,7 +248,7 @@ void Context::OnEnumMember(const std::string& name, const std::string& value, bo
     Variate* var = new Variate(_enum, _enum, name);
     if (refer)
     {
-        IVariate* ref = util::FindVar(_enum, value);
+        IVariate* ref = utility::FindVar(_enum, value);
         if (ref == nullptr)
         {
             _driver->Error("can not find reference value:{0}", value);
@@ -358,7 +358,7 @@ void Context::OnVariateValue(const std::string& refer)
         return;
     }
 
-    IVariate* ref = util::FindVar(_type ? _type : _scope, refer);
+    IVariate* ref = utility::FindVar(_type ? _type : _scope, refer);
     if (ref == nullptr)
         _driver->Error("can not find reference value:{0}", refer);
     else if (!ref->IsConst())
@@ -376,7 +376,7 @@ void Context::OnVariateArray(const std::string& length/* = ""*/)
     }
 
     int len = -1;
-    if (!length.empty() && !util::Convert(length, len, -1))
+    if (!length.empty() && !utility::Convert(length, len, -1))
         _driver->Error("convert value:{0} to int failed", length);
 
     _var->UpgradeArray(len);

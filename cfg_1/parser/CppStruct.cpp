@@ -21,13 +21,13 @@ CppStruct::~CppStruct()
 
 bool CppStruct::Declare(std::ostream& stream, int tab/* = 0*/)
 {
-    util::Tab(stream, tab);
+    utility::Tab(stream, tab);
     stream << "struct " << _struct->Name();
     if (_struct->Inherited())
         stream << " : public " << cpp_util::TypeName(_struct, _struct->Inherited());
     stream << std::endl;
 
-    util::Tab(stream, tab);
+    utility::Tab(stream, tab);
     stream << "{" << std::endl;
 
     ++tab;
@@ -35,7 +35,7 @@ bool CppStruct::Declare(std::ostream& stream, int tab/* = 0*/)
     {
         bool first = true;
 
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << _struct->Name() << "()" << std::endl;
         ++tab;
         for (size_t i = 0; i < _vars.size(); i++)
@@ -44,7 +44,7 @@ bool CppStruct::Declare(std::ostream& stream, int tab/* = 0*/)
             if (data.value.empty())
                 continue;
 
-            util::Tab(stream, tab);
+            utility::Tab(stream, tab);
             if (first)
                 stream << ": ";
             else
@@ -55,14 +55,14 @@ bool CppStruct::Declare(std::ostream& stream, int tab/* = 0*/)
         }
 
         --tab;
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "{ }" << std::endl << std::endl;
     }
 
     for (size_t i = 0; i < _consts.size(); i++)
     {
         const CppVarData& data = _consts[i];
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "static const " << data.type << " " << data.name << " = " << data.value << ";" << std::endl;
     }
 
@@ -72,12 +72,12 @@ bool CppStruct::Declare(std::ostream& stream, int tab/* = 0*/)
     for (size_t i = 0; i < _vars.size(); i++)
     {
         const CppVarData& data = _vars[i];
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "" << data.type << " " << data.name << ";" << std::endl;
     }
 
     --tab;
-    util::Tab(stream, tab);
+    utility::Tab(stream, tab);
     stream << "};" << std::endl;
     return true;
 }
@@ -150,15 +150,15 @@ bool CppStruct::Json(std::ostream& stream, const IVariate* var, const std::strin
 
     if (type->Category() == TypeCategory::Raw)
     {
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "\"" << name << "\" = {" << std::endl;
         ++tab;
 
         const RawType* rawType = static_cast<const RawType*>(type);
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "\"type\" = " << "\"" << type->Name() << "\"," << std::endl;
 
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "\"default\" = \"";
         if (value == nullptr)
             stream << cpp_util::DefValue(rawType->Raw());
@@ -167,23 +167,23 @@ bool CppStruct::Json(std::ostream& stream, const IVariate* var, const std::strin
         stream << "\"" << std::endl;
 
         --tab;
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "}";
     }
     else if (type->Category() == TypeCategory::Enum)
     {
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "\"" << name << "\" = {" << std::endl;
         ++tab;
 
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "\"type\" = " << "\"enum\"," << std::endl;
 
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "\"enum\" = " << "\"" <<
-            util::Contact(util::Relative(var->Belong(), type), ".") << "\"," << std::endl;
+            utility::Contact(utility::Relative(var->Belong(), type), ".") << "\"," << std::endl;
 
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "\"default\" = \"";
         if (value == nullptr)
             stream << cpp_util::DefValue(RawCategory::Int);
@@ -192,7 +192,7 @@ bool CppStruct::Json(std::ostream& stream, const IVariate* var, const std::strin
         stream << "\"" << std::endl;
 
         --tab;
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "}";
     }
     else if (type->Category() == TypeCategory::Array)
@@ -205,27 +205,27 @@ bool CppStruct::Json(std::ostream& stream, const IVariate* var, const std::strin
             return false;
         }
 
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "\"" << name << "\" = {" << std::endl;
         ++tab;
 
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "\"type\" = " << "\"enum\"," << std::endl;
 
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "\"enum\" = " << "\"" <<
-            util::Contact(util::Relative(var->Belong(), type), ".") << "\"," << std::endl;
+            utility::Contact(utility::Relative(var->Belong(), type), ".") << "\"," << std::endl;
 
         if (value != nullptr)
         {
-            util::Tab(stream, tab);
+            utility::Tab(stream, tab);
             stream << "\"default\" = \"";
             stream << cpp_util::OrignalValue(value);
             stream << "\"" << std::endl;
         }
 
         --tab;
-        util::Tab(stream, tab);
+        utility::Tab(stream, tab);
         stream << "}";
     }
     else

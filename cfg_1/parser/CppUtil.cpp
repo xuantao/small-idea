@@ -12,7 +12,7 @@ namespace cpp_util
     static std::string sRawValue(const RawValue* val)
     {
         if (val == nullptr)
-            return util::EMPTY_STR;
+            return utility::EMPTY_STR;
 
         std::string str;
         if (val->Raw() == RawCategory::Bool)
@@ -48,8 +48,8 @@ namespace cpp_util
         if (type != var->Type())
             stream << "(" << TypeName(scope, type) << ")";
 
-        const std::vector<std::string> ralative = util::Relative(scope, var->Type());
-        stream << util::Contact(ralative, "::");
+        const std::vector<std::string> ralative = utility::Relative(scope, var->Type());
+        stream << utility::Contact(ralative, "::");
         if (!ralative.empty())
             stream << "::";
         stream << var->Name();
@@ -93,7 +93,7 @@ namespace cpp_util
         }
         else if (ty->Category() == TypeCategory::Enum || ty->Category() == TypeCategory::Struct)
         {
-            name = util::Contact(util::Relative(scope, ty), "::");
+            name = utility::Contact(utility::Relative(scope, ty), "::");
         }
         else if (ty->Category() == TypeCategory::Array)
         {
