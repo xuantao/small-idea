@@ -39,6 +39,7 @@ CFG_NAMESPACE_USING;
 %x COMMENT
 %x COMMENT_LINES
 %x COPY_SRC
+%x DESC
 
 REG_INCLUDE             ([ \t]*#[ \t]*include)
 REG_INCLUDE_FILE_1      (\"[ /._//a-zA-Z0-9]+\")
@@ -49,6 +50,7 @@ REG_FLOAT               ([0-9]*\.?[0-9]+[fF]?)
 REG_STRING              (\"[^\"\n]*\")
 REG_OPERATOR            ([-/+*()=,:;{}\[\]\.])
 REG_IDENTIFIER          ([_a-zA-Z][_a-zA-Z0-9]*)
+REG_DESC                (^[ \t]*///@)
 
 %%
 
@@ -58,13 +60,10 @@ REG_IDENTIFIER          ([_a-zA-Z][_a-zA-Z0-9]*)
     Location().step();
 %}
 
- /* copy source text copy to dest file */
-^[ \t]*"%{"     { yy_push_state(COPY_SRC); }
-<COPY_SRC>{
-        "%}"    { yy_pop_state(); }
-        \n      { _NEW_LINE_; }
-        .+      { }
-        <<EOF>> { m_driver.Error(Location(), "uncomplete in src copy"); return yyterminate(); }
+"//@"                       { yy_push_state(DESC); _desc = ""; }
+<DESC>{
+    \n                      { yy_pop_state(); return Parser::make_VALUE_DESC(_desc, Location()); }
+    .                       { _desc += yytext[0]; }
 }
 
  /* include files */
@@ -103,6 +102,9 @@ REG_IDENTIFIER          ([_a-zA-Z][_a-zA-Z0-9]*)
 "string"        { return Parser::make_STRING(Location()); }
 "true"          { return Parser::make_VALUE_TRUE(yytext, Location()); }
 "false"         { return Parser::make_VALUE_FALSE(yytext, Location()); }
+"tab"           { return Parser::make_TAB(Location()); }
+"json"          { return Parser::make_JSON(Location()); }
+"namespace"     { return Parser::make_NAMESPACE(Location()); }
 {REG_OPERATOR}  { return Parser::symbol_type((Parser::token_type)yytext[0], Location()); }
 {REG_INTEGER}   { return Parser::make_VALUE_INT(yytext, Location()); }
 {REG_FLOAT}     { return Parser::make_VALUE_FLOAT(yytext, Location()); }
@@ -121,3 +123,14 @@ int CfgFlexLexer::yylex()
     std::cerr << "play call lex to scann data" << std::endl;
     return 0;
 }
+
+ /* copy source text copy to dest file */
+/*
+^[ \t]*"%{"     { yy_push_state(COPY_SRC); }
+<COPY_SRC>{
+        "%}"    { yy_pop_state(); }
+        \n      { _NEW_LINE_; }
+        .+      { }
+        <<EOF>> { m_driver.Error(Location(), "uncomplete in src copy"); return yyterminate(); }
+}
+*/

@@ -248,9 +248,11 @@ namespace  cfg  {
       // "0"
       // "0.0f"
       // "empty"
+      // "desc"
       // BoolValue
       // IntValue
       // FloatValue
+      // ValueDesc
       // RefValue
       char dummy1[sizeof(std::string)];
 };
@@ -291,19 +293,23 @@ namespace  cfg  {
         TOK_S_RBRACK = 93,
         TOK_S_LBRACE = 123,
         TOK_S_RBRACE = 125,
-        TOK_ENUM = 258,
-        TOK_STRUCT = 259,
-        TOK_CONST = 260,
-        TOK_BOOL = 261,
-        TOK_INT = 262,
-        TOK_FLOAT = 263,
-        TOK_STRING = 264,
-        TOK_IDENTIFIER = 265,
-        TOK_VALUE_TRUE = 266,
-        TOK_VALUE_FALSE = 267,
-        TOK_VALUE_INT = 268,
-        TOK_VALUE_FLOAT = 269,
-        TOK_VALUE_STRING = 270
+        TOK_TAB = 258,
+        TOK_JSON = 259,
+        TOK_ENUM = 260,
+        TOK_STRUCT = 261,
+        TOK_CONST = 262,
+        TOK_BOOL = 263,
+        TOK_INT = 264,
+        TOK_FLOAT = 265,
+        TOK_STRING = 266,
+        TOK_NAMESPACE = 267,
+        TOK_IDENTIFIER = 268,
+        TOK_VALUE_TRUE = 269,
+        TOK_VALUE_FALSE = 270,
+        TOK_VALUE_INT = 271,
+        TOK_VALUE_FLOAT = 272,
+        TOK_VALUE_STRING = 273,
+        TOK_VALUE_DESC = 274
       };
     };
 
@@ -464,6 +470,14 @@ namespace  cfg  {
 
     static inline
     symbol_type
+    make_TAB (const location_type& l);
+
+    static inline
+    symbol_type
+    make_JSON (const location_type& l);
+
+    static inline
+    symbol_type
     make_ENUM (const location_type& l);
 
     static inline
@@ -492,6 +506,10 @@ namespace  cfg  {
 
     static inline
     symbol_type
+    make_NAMESPACE (const location_type& l);
+
+    static inline
+    symbol_type
     make_IDENTIFIER (const std::string& v, const location_type& l);
 
     static inline
@@ -513,6 +531,10 @@ namespace  cfg  {
     static inline
     symbol_type
     make_VALUE_STRING (const std::string& v, const location_type& l);
+
+    static inline
+    symbol_type
+    make_VALUE_DESC (const std::string& v, const location_type& l);
 
 
     /// Build a parser object.
@@ -589,7 +611,7 @@ namespace  cfg  {
   static const unsigned char yydefact_[];
 
   // YYPGOTO[NTERM-NUM].
-  static const signed char yypgoto_[];
+  static const short int yypgoto_[];
 
   // YYDEFGOTO[NTERM-NUM].
   static const signed char yydefgoto_[];
@@ -597,7 +619,7 @@ namespace  cfg  {
   // YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
   // positive, shift that token.  If negative, reduce the rule whose
   // number is the opposite.  If YYTABLE_NINF, syntax error.
-  static const unsigned char yytable_[];
+  static const signed char yytable_[];
 
   static const signed char yycheck_[];
 
@@ -714,13 +736,13 @@ namespace  cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 131,           //< Last index in yytable_.
-      yynnts_ = 29,  //< Number of nonterminal symbols.
+      yylast_ = 134,           //< Last index in yytable_.
+      yynnts_ = 30,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
-      yyntokens_ = 31    //< Number of tokens.
+      yyntokens_ = 35    //< Number of tokens.
     };
 
 
@@ -764,9 +786,9 @@ namespace  cfg  {
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,    18,    19,
       20,    21,    22,    23,    24,    25,    26,    27,    28,    29,
-      30
+      30,    31,    32,    33,    34
     };
-    const unsigned int user_token_number_max_ = 270;
+    const unsigned int user_token_number_max_ = 274;
     const token_number_type undef_token_ = 2;
 
     if (static_cast<int>(t) <= yyeof_)
@@ -799,16 +821,18 @@ namespace  cfg  {
   {
       switch (other.type_get ())
     {
-      case 25: // "identifier"
-      case 26: // "true"
-      case 27: // "false"
-      case 28: // "0"
-      case 29: // "0.0f"
-      case 30: // "empty"
-      case 56: // BoolValue
-      case 57: // IntValue
-      case 58: // FloatValue
-      case 59: // RefValue
+      case 28: // "identifier"
+      case 29: // "true"
+      case 30: // "false"
+      case 31: // "0"
+      case 32: // "0.0f"
+      case 33: // "empty"
+      case 34: // "desc"
+      case 60: // BoolValue
+      case 61: // IntValue
+      case 62: // FloatValue
+      case 63: // ValueDesc
+      case 64: // RefValue
         value.copy< std::string > (other.value);
         break;
 
@@ -829,16 +853,18 @@ namespace  cfg  {
     (void) v;
       switch (this->type_get ())
     {
-      case 25: // "identifier"
-      case 26: // "true"
-      case 27: // "false"
-      case 28: // "0"
-      case 29: // "0.0f"
-      case 30: // "empty"
-      case 56: // BoolValue
-      case 57: // IntValue
-      case 58: // FloatValue
-      case 59: // RefValue
+      case 28: // "identifier"
+      case 29: // "true"
+      case 30: // "false"
+      case 31: // "0"
+      case 32: // "0.0f"
+      case 33: // "empty"
+      case 34: // "desc"
+      case 60: // BoolValue
+      case 61: // IntValue
+      case 62: // FloatValue
+      case 63: // ValueDesc
+      case 64: // RefValue
         value.copy< std::string > (v);
         break;
 
@@ -880,16 +906,18 @@ namespace  cfg  {
     // Type destructor.
     switch (yytype)
     {
-      case 25: // "identifier"
-      case 26: // "true"
-      case 27: // "false"
-      case 28: // "0"
-      case 29: // "0.0f"
-      case 30: // "empty"
-      case 56: // BoolValue
-      case 57: // IntValue
-      case 58: // FloatValue
-      case 59: // RefValue
+      case 28: // "identifier"
+      case 29: // "true"
+      case 30: // "false"
+      case 31: // "0"
+      case 32: // "0.0f"
+      case 33: // "empty"
+      case 34: // "desc"
+      case 60: // BoolValue
+      case 61: // IntValue
+      case 62: // FloatValue
+      case 63: // ValueDesc
+      case 64: // RefValue
         value.template destroy< std::string > ();
         break;
 
@@ -907,16 +935,18 @@ namespace  cfg  {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 25: // "identifier"
-      case 26: // "true"
-      case 27: // "false"
-      case 28: // "0"
-      case 29: // "0.0f"
-      case 30: // "empty"
-      case 56: // BoolValue
-      case 57: // IntValue
-      case 58: // FloatValue
-      case 59: // RefValue
+      case 28: // "identifier"
+      case 29: // "true"
+      case 30: // "false"
+      case 31: // "0"
+      case 32: // "0.0f"
+      case 33: // "empty"
+      case 34: // "desc"
+      case 60: // BoolValue
+      case 61: // IntValue
+      case 62: // FloatValue
+      case 63: // ValueDesc
+      case 64: // RefValue
         value.move< std::string > (s.value);
         break;
 
@@ -971,7 +1001,7 @@ namespace  cfg  {
        0,   256,   257,    40,    41,    42,    43,    44,    45,    46,
       47,    58,    59,    61,    91,    93,   123,   125,   258,   259,
      260,   261,   262,   263,   264,   265,   266,   267,   268,   269,
-     270
+     270,   271,   272,   273,   274
     };
     return static_cast<token_type> (yytoken_number_[type]);
   }
@@ -1089,6 +1119,20 @@ namespace  cfg  {
   }
 
    Parser ::symbol_type
+   Parser ::make_TAB (const location_type& l)
+  {
+    return symbol_type (token::TOK_TAB, l);
+
+  }
+
+   Parser ::symbol_type
+   Parser ::make_JSON (const location_type& l)
+  {
+    return symbol_type (token::TOK_JSON, l);
+
+  }
+
+   Parser ::symbol_type
    Parser ::make_ENUM (const location_type& l)
   {
     return symbol_type (token::TOK_ENUM, l);
@@ -1138,6 +1182,13 @@ namespace  cfg  {
   }
 
    Parser ::symbol_type
+   Parser ::make_NAMESPACE (const location_type& l)
+  {
+    return symbol_type (token::TOK_NAMESPACE, l);
+
+  }
+
+   Parser ::symbol_type
    Parser ::make_IDENTIFIER (const std::string& v, const location_type& l)
   {
     return symbol_type (token::TOK_IDENTIFIER, v, l);
@@ -1179,10 +1230,17 @@ namespace  cfg  {
 
   }
 
+   Parser ::symbol_type
+   Parser ::make_VALUE_DESC (const std::string& v, const location_type& l)
+  {
+    return symbol_type (token::TOK_VALUE_DESC, v, l);
+
+  }
+
 
 #line 11 "./fb/parser.y" // lalr1.cc:371
 } //  cfg 
-#line 1186 "Parser.hpp" // lalr1.cc:371
+#line 1244 "Parser.hpp" // lalr1.cc:371
 
 
 

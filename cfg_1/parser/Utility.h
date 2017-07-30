@@ -4,7 +4,8 @@
 
 CFG_NAMESPACE_BEGIN
 
-class StructType;
+class IStructType;
+class IVarVistor;
 
 struct UniqueVarName
 {
@@ -37,6 +38,7 @@ namespace utility
     bool Convert(const std::string& str, float& out, float def);
 
     std::string TrimFileSuffix(const std::string& file, char c = '.');
+    std::string Trim(const std::string& file, const std::string& trim);
 
     std::string Contact(const std::vector<std::string>& path, const std::string& c);
     std::vector<std::string> Split(const std::string& str, char s);
@@ -49,7 +51,9 @@ namespace utility
 
     std::ostream& Tab(std::ostream& stream, int tab);
 
-    std::vector<UniqueVarName> UniqueName(const StructType* sType, const std::string& owner = EMPTY_STR);
+    std::vector<UniqueVarName> UniqueName(const IStructType* sType, const std::string& owner = EMPTY_STR);
+
+    void Traverse(const IStructType* sType, IVarVistor* visitor);
 }
 
 CFG_NAMESPACE_END

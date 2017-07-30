@@ -59,13 +59,14 @@ protected:
 class StructType : public IStructType
 {
 public:
-    StructType(const std::string& name, IType* belong);
+    StructType(const std::string& name, IType* belong, CfgCategory cfg);
     ~StructType();
 
 public:
     virtual IType* Belong() const { return _belong; }
     virtual TypeCategory Category() const { return TypeCategory::Struct; }
     virtual const std::string& Name() const { return _name; }
+    virtual CfgCategory Cfg() const { return _cfg; }
 
     virtual ITypeSet* TypeSet()  const { return nullptr; }
     virtual IVarSet* VarSet() const { return _vars; }
@@ -80,6 +81,7 @@ public:
 protected:
     std::string _name;
     IType* _belong;
+    CfgCategory _cfg;
     IVarSet* _vars;
     StructType* _inherit;
 };

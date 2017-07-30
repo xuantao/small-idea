@@ -3,6 +3,7 @@
 #include "Type.h"
 #include <algorithm>
 #include <sstream>
+#include <iostream>
 #include <set>
 
 CFG_NAMESPACE_BEGIN
@@ -67,7 +68,7 @@ namespace utility
         return scope;
     }
 
-    static bool sUniqueName(std::vector<UniqueVarName>& outNames, const StructType* sType, const std::string& owner)
+    static bool sUniqueName(std::vector<UniqueVarName>& outNames, const IStructType* sType, const std::string& owner)
     {
         std::set<std::string> allVars;
         std::set<std::string> conficts;
@@ -116,6 +117,100 @@ namespace utility
                 outNames.push_back(UniqueVarName(var, uniqName));
         }
 
+        return true;
+    }
+
+    static bool TabTraverse(const IStructType* aType, IVarVistor* visitor, const std::string& title, const std::string& path);
+    static bool TabTraverse(const IVariate* var, const IArrayType* aType, IVarVistor* visitor, const std::string& title, const std::string& path)
+    {
+        IType* original = aType->Original();
+        if (aType->Original() != aType->Prev())
+        {
+            ERROR_NOT_ALLOW;    // 多维数组
+            return true;
+        }
+
+        if (original->Category() == TypeCategory::Struct && aType->Length() <= 0)
+        {
+            ERROR_NOT_ALLOW;    // 结构体不支持变长数组
+            return true;
+        }
+
+        if (original->Category() == TypeCategory::Raw)
+        {
+            if (!visitor->OnVar(var, static_cast<const IRawType*>(original), title, path, aType->Length()))
+                return false;
+        }
+        else if (original->Category() == TypeCategory::Enum)
+        {
+            if (!visitor->OnVar(var, static_cast<const IEnumType*>(original), title, path, aType->Length()))
+                return false;
+        }
+        else if (original->Category() == TypeCategory::Struct)
+        {
+            for (int i = 0; i < aType->Length(); ++i)
+            {
+                std::string arPath = path + "[" + std::to_string(i) + "]";
+                std::string arTitle = title + "_" + std::to_string(i + 1);
+                if (!TabTraverse(static_cast<const IStructType*>(original), visitor, title, arPath))
+                    return false;
+            }
+        }
+        else
+        {
+            ERROR_NOT_ALLOW;
+        }
+
+        return true;
+    }
+
+    static bool TabTraverse(const IStructType* sType, IVarVistor* visitor, const std::string& title, const std::string& path)
+    {
+        const IVarSet* vars = sType->VarSet();
+        for (int i = 0; i < vars->Size(); ++i)
+        {
+            const IVariate* var = vars->Get(i);
+            if (var->IsConst())
+                continue;
+
+            const IType* type = var->Type();
+            std::string varPath;
+            std::string varTitle;
+            if (path.empty())
+                varPath = var->Name();
+            else
+                varPath = path + '.' + var->Name();
+
+            if (title.empty())
+                varTitle = var->Name();
+            else
+                varTitle = title + '.' + var->Name();
+
+            if (type->Category() == TypeCategory::Raw)
+            {
+                if (!visitor->OnVar(var, static_cast<const IRawType*>(type), varTitle, varPath))
+                    return false;
+            }
+            else if (type->Category() == TypeCategory::Enum)
+            {
+                if (!visitor->OnVar(var, static_cast<const IEnumType*>(type), varTitle, varPath))
+                    return false;
+            }
+            else if (type->Category() == TypeCategory::Array)
+            {
+                if (!TabTraverse(var, static_cast<const IArrayType*>(type), visitor, varTitle, varPath))
+                    return false;
+            }
+            else if (type->Category() == TypeCategory::Struct)
+            {
+                if (!TabTraverse(static_cast<const IStructType*>(type), visitor, varTitle, varPath))
+                    return false;
+            }
+            else
+            {
+                ERROR_NOT_ALLOW;
+            }
+        }
         return true;
     }
 
@@ -172,6 +267,28 @@ namespace utility
             return false;
         }
         return true;
+    }
+
+    std::string Trim(const std::string& str, const std::string& trim)
+    {
+        if (str.length() == 0)
+            return str;
+
+        std::string::size_type beg = 0;
+        std::string::size_type end = str.length() - 1;
+        for (; beg < str.length(); ++beg)
+        {
+            if (std::string::npos == trim.find(str[beg]))
+                break;
+        }
+
+        for (; end > beg; --end)
+        {
+            if (std::string::npos == trim.find(str[end]))
+                break;
+        }
+
+        return str.substr(beg, end + 1 - beg);
     }
 
     std::string TrimFileSuffix(const std::string& file, char c/* = '.'*/)
@@ -297,7 +414,7 @@ namespace utility
         return stream << std::string(tab * 4, ' ');
     }
 
-    std::vector<UniqueVarName> UniqueName(const StructType* sType, const std::string& owner/* = EMPTY_STR*/)
+    std::vector<UniqueVarName> UniqueName(const IStructType* sType, const std::string& owner/* = EMPTY_STR*/)
     {
         std::vector<UniqueVarName> varNames;
         if (sType = nullptr)
@@ -305,6 +422,14 @@ namespace utility
 
         sUniqueName(varNames, sType, owner);
         return std::move(varNames);
+    }
+
+    void Traverse(const IStructType* sType, IVarVistor* visitor)
+    {
+        if (!visitor->OnStart(sType))
+            return;
+        TabTraverse(sType, visitor, "", "");
+        visitor->OnEnd();
     }
 }
 

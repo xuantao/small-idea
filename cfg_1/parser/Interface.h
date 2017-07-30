@@ -42,6 +42,7 @@ class IStructType : public IType
 public:
     virtual ~IStructType() {}
 public:
+    virtual CfgCategory Cfg() const = 0;
     virtual bool IsInherited(const IType* type) const = 0;
     virtual IStructType* Inherited() const = 0;
     virtual IVarSet* OwnVars() const = 0;
@@ -114,6 +115,7 @@ public:
 public:
     virtual bool IsConst() const = 0;
     virtual const std::string& Name() const = 0;
+    virtual const std::string& Desc() const = 0;
     virtual IType* Belong() const = 0;
     virtual IType* Type() const = 0;
     virtual IValue* Value() const = 0;
@@ -154,6 +156,23 @@ public:
     virtual IRawValue* Original() const = 0;
 };
 
+class IVarVistor
+{
+public:
+    virtual ~IVarVistor() {}
+public:
+    virtual bool OnStart(const IStructType* sType) = 0;
+    virtual bool OnEnd() = 0;
+    virtual bool OnVar(const IVariate* var, const IRawType* rType,
+        const std::string& title, const std::string& path) = 0;
+    virtual bool OnVar(const IVariate* var, const IEnumType* eType,
+        const std::string& title, const std::string& path) = 0;
+    virtual bool OnVar(const IVariate* var, const IRawType* rType,
+        const std::string& title, const std::string& path, int length) = 0;
+    virtual bool OnVar(const IVariate* var, const IEnumType* eType,
+        const std::string& title, const std::string& path, int length) = 0;
+};
+
 /*
  * 导出器接口
 */
@@ -163,7 +182,7 @@ public:
     virtual ~IExporter() {}
 
 public:
-    virtual void OnBegin(const IScopeType* global, const std::string& file) = 0;
+    virtual void OnBegin(const IScopeType* global, const std::string& path, const std::string& file) = 0;
     virtual void OnEnd() = 0;
 
     virtual void OnNamespaceBegin(const std::string& name) = 0;

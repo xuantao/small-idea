@@ -49,7 +49,7 @@ IType* Context::GetType(const std::string& name) const
     return type;
 }
 
-bool Context::Export(IExporter* expoter, const std::string& file, bool merge)
+bool Context::Export(IExporter* expoter, const std::string& path, const std::string& file, bool merge)
 {
     if (merge)
     {
@@ -57,25 +57,25 @@ bool Context::Export(IExporter* expoter, const std::string& file, bool merge)
         if (fileName.empty() || fileName.back() == '/' || fileName.back() == '//')
             fileName = "unnamed";
 
-        expoter->OnBegin(_scope, fileName);
+        expoter->OnBegin(_scope, path, fileName);
         for (auto it = _files.begin(); it != _files.end(); ++it)
             (*it)->Export(expoter, merge);
         expoter->OnEnd();
     }
     else
     {
-        std::string path;
-        if (file.back() == '\\' || file.back() == '/')
-            path = file;
-        else
-            path = file + '/';
+        //std::string path;
+        //if (file.back() == '\\' || file.back() == '/')
+        //    path = file;
+        //else
+        //    path = file + '/';
 
-        for (auto it = _files.begin(); it != _files.end(); ++it)
-        {
-            expoter->OnBegin(_scope, path + utility::TrimFileSuffix((*it)->File(), '.'));
-            (*it)->Export(expoter, merge);
-            expoter->OnEnd();
-        }
+        //for (auto it = _files.begin(); it != _files.end(); ++it)
+        //{
+        //    expoter->OnBegin(_scope, path, path + utility::TrimFileSuffix((*it)->File(), '.'));
+        //    (*it)->Export(expoter, merge);
+        //    expoter->OnEnd();
+        //}
     }
 
     return true;
@@ -98,8 +98,6 @@ void Context::OnParseEnd()
 
 void Context::OnIncludeBegin(const std::string& file)
 {
-    _driver->Warning("does not support include file {0};", file);
-
     auto it = std::find_if(_files.begin(), _files.end(),
         [&file](FileData* fd) { return fd->File() == file; });
 
@@ -126,7 +124,7 @@ void Context::OnPredefine(const std::string& name)
     _driver->Warning("does not support predefine struct {0};", name);
 }
 
-void Context::OnStructBegin(const std::string& name)
+void Context::OnStructBegin(const std::string& name, CfgCategory cfg)
 {
     if (_type != nullptr)
         _driver->Warning("last type define is not completed pre:{0}, cur:{1}", _type->Name(), name);
@@ -134,15 +132,24 @@ void Context::OnStructBegin(const std::string& name)
     if (_scope->TypeSet()->Get(name) || _scope->VarSet()->Get(name))
     {
         _driver->Warning("struct {0} name conflict", name);
-        _type = new StructType(ConflictName(name), _scope);
+        _type = new StructType(ConflictName(name), _scope, cfg);
     }
     else
     {
-        _type = new StructType(name, _scope);
+        _type = new StructType(name, _scope, cfg);
     }
 
     _scope->TypeSet()->Add(_type);
     _stackFile.back()->Add(_type);
+
+    //if (cfg == CfgCategory::Tab)
+    //    _tabs.push_back(Cfg(_stackFile.back()->File(), _struct));
+    //else if (cfg == CfgCategory::Json)
+    //    _jsons.push_back(Cfg(_stackFile.back()->File(), _struct));
+    if (cfg == CfgCategory::Tab)
+        _tabs.push_back(Cfg("../out", _struct));
+    else if (cfg == CfgCategory::Json)
+        _jsons.push_back(Cfg("../out", _struct));
 }
 
 void Context::OnInherit(const std::string& name)
@@ -382,7 +389,7 @@ void Context::OnVariateArray(const std::string& length/* = ""*/)
     _var->UpgradeArray(len);
 }
 
-void Context::OnVariateEnd(bool isConst)
+void Context::OnVariateEnd(bool isConst, const std::string& desc)
 {
     if (_var)
     {
@@ -392,6 +399,9 @@ void Context::OnVariateEnd(bool isConst)
 
         if (_var->Value() == nullptr && varType->Category() == TypeCategory::Raw)
             _var->BindValue(value_util::Create(static_cast<const RawType*>(varType)->Raw()));
+
+        if (!desc.empty())
+            _var->SetDesc(utility::Trim(desc, " \t"));
 
         if (_type)
         {

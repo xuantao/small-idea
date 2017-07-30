@@ -14,6 +14,18 @@ class StructType;
 class ScopeType;
 class FileData;
 
+struct Cfg
+{
+    Cfg() {}
+    Cfg(const std::string& _path, IStructType* type)
+        : path(_path)
+        , sType(type)
+    { }
+
+    std::string path;
+    IStructType* sType;
+};
+
 class Context
 {
 public:
@@ -24,7 +36,10 @@ public:
     const IScopeType* Global() const;
     IType* GetType(const std::string& name) const;
 
-    bool Export(IExporter* expoter, const std::string& file, bool merge);
+    const std::vector<Cfg>& TabCfgs() const { return _tabs; }
+    const std::vector<Cfg>& JsonCfgs() const { return _jsons; }
+
+    bool Export(IExporter* expoter, const std::string& path, const std::string& file, bool merge);
 
 public:
     void OnParseBegin(Driver& driver, const std::string& file);
@@ -34,7 +49,7 @@ public:
     void OnIncludeEnd();
 
     void OnPredefine(const std::string& name);
-    void OnStructBegin(const std::string& name);
+    void OnStructBegin(const std::string& name, CfgCategory cfg);
     void OnInherit(const std::string& name);
     void OnStructEnd();
 
@@ -47,7 +62,7 @@ public:
     void OnVariateValue(RawCategory raw, const std::string& value);
     void OnVariateValue(const std::string& refer);
     void OnVariateArray(const std::string& length = "");
-    void OnVariateEnd(bool isConst);
+    void OnVariateEnd(bool isConst, const std::string& desc);
 
 protected:
     std::string ConflictName(const std::string& name) const;
@@ -57,6 +72,9 @@ protected:
 
     std::vector<FileData*> _files;
     std::vector<FileData*> _stackFile;
+
+    std::vector<Cfg> _tabs;
+    std::vector<Cfg> _jsons;
 
     IScopeType* _scope;
     Variate* _var;

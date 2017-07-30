@@ -22,12 +22,6 @@ namespace cpp_util
     std::string OrignalValue(const IValue* val);
 
     bool Convert(const IVariate* var, CppVarData& out);
-
-    bool Declare(std::ostream& stream, const IVariate* var, int tab);
-    bool Declare(std::ostream& stream, const IType* type, int tab);
-
-    bool TabLoader(std::ostream& stream, const IType* type, int tab);
-    bool JsonLoader(std::ostream& stream, const IType* type, int tab);
 }
 
 CFG_NAMESPACE_END

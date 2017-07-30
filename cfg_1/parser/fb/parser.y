@@ -71,7 +71,7 @@ static cfg::Parser::symbol_type yylex(cfg::Driver& driver)
     ;
 
 /* key words */
-%token ENUM STRUCT CONST BOOL INT FLOAT STRING
+%token TAB JSON ENUM STRUCT CONST BOOL INT FLOAT STRING NAMESPACE
 
 %token <std::string> IDENTIFIER     "identifier"
 %token <std::string> VALUE_TRUE     "true"
@@ -79,8 +79,9 @@ static cfg::Parser::symbol_type yylex(cfg::Driver& driver)
 %token <std::string> VALUE_INT      "0"
 %token <std::string> VALUE_FLOAT    "0.0f"
 %token <std::string> VALUE_STRING   "empty"
+%token <std::string> VALUE_DESC     "desc"
 
-%type <std::string> BoolValue IntValue FloatValue RefValue
+%type <std::string> BoolValue IntValue FloatValue RefValue ValueDesc
 
 //%printer { yyoutput << $$; }
 
@@ -97,8 +98,8 @@ Program : /* empty */           { }
         ;
 
 /* const value */
-ConstValue  : _ConstValue S_SEMICOLON           { CONTEXT.OnVariateEnd(false); }
-            | CONST _ConstValue S_SEMICOLON     { CONTEXT.OnVariateEnd(true); }
+ConstValue  : ValueDesc _ConstValue S_SEMICOLON         { CONTEXT.OnVariateEnd(false, $1); }
+            | ValueDesc CONST _ConstValue S_SEMICOLON   { CONTEXT.OnVariateEnd(true, $1); }
             ;
 
 _ConstValue : BoolVar S_ASSIGN BoolValue        { CONTEXT.OnVariateValue(RawCategory::Bool, $3); }
@@ -139,7 +140,10 @@ StructDecl      : STRUCT IDENTIFIER S_SEMICOLON         { CONTEXT.OnPredefine($2
 StructBegin     : _StructBegin S_LBRACE                         { }
                 | _StructBegin S_COLON StructInherit S_LBRACE   { }
                 ;
-_StructBegin    : STRUCT IDENTIFIER     { CONTEXT.OnStructBegin($2); }
+
+_StructBegin    : STRUCT IDENTIFIER         { CONTEXT.OnStructBegin($2, CfgCategory::None); }
+                | TAB STRUCT IDENTIFIER     { CONTEXT.OnStructBegin($3, CfgCategory::Tab); }
+                | JSON STRUCT IDENTIFIER    { CONTEXT.OnStructBegin($3, CfgCategory::Json); }
                 ;
 
 StructEnd       : S_RBRACE              { CONTEXT.OnStructEnd(); }
@@ -158,8 +162,8 @@ _StructMember   : VariateDecl                   { }
                 ;
 
 /* common detect */
-VariateDecl : Variate S_SEMICOLON               { CONTEXT.OnVariateEnd(false); }
-            | CONST Variate S_SEMICOLON         { CONTEXT.OnVariateEnd(true); }
+VariateDecl : ValueDesc Variate S_SEMICOLON         { CONTEXT.OnVariateEnd(false, $1); }
+            | ValueDesc CONST Variate S_SEMICOLON   { CONTEXT.OnVariateEnd(true, $1); }
             ;
 
 Variate     : BoolVar                           { }
@@ -212,6 +216,10 @@ FloatValue  : VALUE_INT             { $$ = $1; }
             | VALUE_FLOAT           { $$ = $1; }
             | S_MINUS VALUE_INT     { $$ = '-' + $2; }
             | S_MINUS VALUE_FLOAT   { $$ = '-' + $2; }
+            ;
+
+ValueDesc   : /* empty */           { $$ = ""; }
+            | VALUE_DESC            { $$ = $1; }
             ;
 
 /* gobal or enum value reference */

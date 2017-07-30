@@ -1,6 +1,7 @@
 
 /* test enum */
 
+//@ xxxxxxxxxxx
 const int g_1 = 1;
 const float f_1 = 2;
 const string s_1 = "";
@@ -21,30 +22,27 @@ enum Enum2
     d,
 };
 
-
-
-struct Struct22;;;;;;;
-;;;
-
 struct Struct0
 {
- int a[];
- int b[10][];
- int c[10][][10];
+ int s0a[];
+ int s0b[10];
+ int s0c[10];
 }
 
-struct Struct1 : Struct0
+json struct Struct1 : Struct0
 {
- int a = 1;
- int b = 2;
- int c;
- Enum2 arEnum[];
- Enum2 arEnum2[2];
+ int s1a = 1;
+ int s1b = 2;
+ int s1c;
+ Enum2 s1arEnum[];
+ Enum2 s1arEnum2[2];
 }
 
-struct Struct2 : Struct1
+tab struct Struct2 : Struct1
 {
  const int MAX=100;
+
+ //@ 这个是描述
  int a = 1;
  int b = Enum2.c;
  int c;
@@ -52,4 +50,3 @@ struct Struct2 : Struct1
  Struct1 s1;
  Struct1 s2[2];
 }
-

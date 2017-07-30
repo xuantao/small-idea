@@ -8,14 +8,6 @@ CFG_NAMESPACE_BEGIN
 class CppExporter : public IExporter
 {
 public:
-    static bool Export(std::ostream& stream, const IScopeType* global, const IFileData* fileData)
-    {
-        //CppExporter cpp();
-        //return cpp.Export();
-        return true;
-    }
-
-public:
     struct VarData
     {
         std::string type;
@@ -28,7 +20,7 @@ public:
     ~CppExporter();
 
 public:
-    virtual void OnBegin(const IScopeType* global, const std::string& file);
+    virtual void OnBegin(const IScopeType* global, const std::string& path, const std::string& file);
     virtual void OnEnd();
     virtual void OnFileBegin(const std::string& file);
     virtual void OnFileEnd();
@@ -42,10 +34,6 @@ protected:
     bool Declare(const IEnumType* ty);
     bool Declare(const IStructType* ty);
 
-
-    //bool Enum2String(const IEnumType* eType);
-    //bool String2Enum(const IEnumType* eType);
-
     bool EnumStaticData(const IEnumType* eType);
     bool FuncDeclare(const IEnumType* eType);
     bool FuncImpl(const IEnumType* eType);
@@ -53,11 +41,11 @@ protected:
     bool TabFuncDeclare(const IStructType* sType);
     bool TabFuncImpl(const IStructType* sType);
 
-    bool TabLoader(const IStructType* ty);
-    bool TabLoad(const IStructType* sType, const std::string& owner);
-    bool TabLoad(const IVariate* var, const IRawType* type, const std::string& name);
-    bool TabLoad(const IVariate* var, const IEnumType* type, const std::string& name);
-    bool TabLoad(const IVariate* var, const IArrayType* type, const std::string& name);
+    bool TabLoaderFunc(const IStructType* ty);
+    //bool TabLoad(const IStructType* sType, const std::string& title, const std::string& name);
+    //bool TabLoad(const IRawType* type, const std::string& title, const std::string& name);
+    //bool TabLoad(const IEnumType* type, const std::string& title, const std::string& name);
+    //bool TabLoad(const IArrayType* type, const std::string& title, const std::string& name);
 
     bool JsonFuncDeclare(const IStructType* sType);
     bool JsonFuncImpl(const IStructType* sType);
@@ -70,6 +58,7 @@ protected:
     int _tab;
 
     const IScopeType* _global;
+    std::string _path;
     std::string _file;
 
     std::vector<const IEnumType*> _enums;

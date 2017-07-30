@@ -52,6 +52,7 @@ protected:
     bool Pop();
 
 private:
+    std::string _desc;
     Driver& m_driver;
     FileStack  m_fileStack;
 };

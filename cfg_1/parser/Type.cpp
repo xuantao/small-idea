@@ -25,9 +25,10 @@ EnumType::~EnumType()
 
 //////////////////////////////////////////////////////////////////////////
 // StructType
-StructType::StructType(const std::string& name, IType* belong)
+StructType::StructType(const std::string& name, IType* belong, CfgCategory cfg)
     : _name(name)
     , _belong(belong)
+    , _cfg(cfg)
     , _vars(nullptr)
     , _inherit(nullptr)
 {
