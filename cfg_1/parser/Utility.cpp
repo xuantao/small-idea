@@ -5,7 +5,11 @@
 #include <sstream>
 #include <iostream>
 #include <set>
+#include <queue>
+#include <Windows.h>
 
+#undef min
+#undef max
 CFG_NAMESPACE_BEGIN
 
 namespace utility
@@ -269,6 +273,36 @@ namespace utility
         return true;
     }
 
+    std::string TrimLeft(const std::string& str, const std::string& trim)
+    {
+        if (str.length() == 0)
+            return str;
+
+        std::string::size_type beg = 0;
+        for (; beg < str.length(); ++beg)
+        {
+            if (std::string::npos == trim.find(str[beg]))
+                break;
+        }
+
+        return str.substr(beg);
+    }
+
+    std::string TrimRight(const std::string& str, const std::string& trim)
+    {
+        if (str.length() == 0)
+            return str;
+
+        std::string::size_type end = str.length() - 1;
+        for (; end > 0; --end)
+        {
+            if (std::string::npos == trim.find(str[end]))
+                break;
+        }
+
+        return str.substr(0, end + 1);
+    }
+
     std::string Trim(const std::string& str, const std::string& trim)
     {
         if (str.length() == 0)
@@ -336,7 +370,7 @@ namespace utility
         return stream.str();
     }
 
-    std::vector<std::string> Split(const std::string& str, char s)
+    std::vector<std::string> Split(const std::string& str, const std::string& s)
     {
         std::vector<std::string> ret;
         std::string::size_type beg = 0;
@@ -345,7 +379,7 @@ namespace utility
         while (std::string::npos != pos)
         {
             ret.push_back(str.substr(beg, pos - beg));
-            beg = pos + 1;
+            beg = pos + s.length();
             pos = str.find_first_of(s, beg);
         }
 
@@ -395,14 +429,14 @@ namespace utility
             return nullptr;
         if (scope->Name() == path)
             return scope;
-        return FindType(scope, utility::Split(path, '.'));
+        return FindType(scope, utility::Split(path, "."));
     }
 
     IVariate* FindVar(IType* scope, const std::string& path)
     {
         IVariate* var = nullptr;
         const IType* type = scope;
-        std::vector<std::string> vec = utility::Split(path, '.');
+        std::vector<std::string> vec = utility::Split(path, ".");
 
         if (vec.size() > 1)
             type = FindType(scope, vec, 0, (int)vec.size() - 1);
@@ -443,6 +477,103 @@ namespace utility
             return;
         TabTraverse(sType, visitor, "", "");
         visitor->OnEnd();
+    }
+
+    bool IsDir(const std::string& path)
+    {
+        uint32_t mask = ::GetFileAttributesA(path.c_str());
+        if (mask == INVALID_FILE_ATTRIBUTES)
+            return false;
+        return mask & FILE_ATTRIBUTE_DIRECTORY;
+    }
+
+    bool IsFile(const std::string& file)
+    {
+        uint32_t mask = ::GetFileAttributesA(file.c_str());
+        if (mask == INVALID_FILE_ATTRIBUTES)
+            return false;
+        return mask & FILE_ATTRIBUTE_NORMAL;
+    }
+
+    bool CreateDir(const std::string& path)
+    {
+        std::string p;
+        std::vector<std::string> sp = Split(Replace(path, "\\", "/"), "/");
+
+        for (size_t i = 0; i < sp.size(); ++i)
+        {
+            if (sp[i].empty() || sp[i] == ".")
+                continue;
+
+            if (p.empty())
+                p = sp[i];
+            else
+                p += '/' + sp[i];
+
+            if(sp[i] == "..")
+                continue;
+
+            if (!IsDir(p) && !::CreateDirectoryA(p.c_str(), nullptr))
+            {
+                std::cerr << "create directory " << p << " failed" << std::endl;
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool TraverseDir(const std::string& path, const std::function<bool(const std::string &, bool)> visitor)
+    {
+        if (!IsDir(path))
+            return false;
+
+        std::queue<std::string> dirs;
+        bool success = true;
+
+        dirs.push(TrimRight(path, "/\\"));
+        while (success && !dirs.empty())
+        {
+            std::string p = dirs.front();
+            dirs.pop();
+
+            WIN32_FIND_DATAA ffd;
+            HANDLE hFind = ::FindFirstFileA((p + "/*").c_str(), &ffd);
+            if (hFind == INVALID_HANDLE_VALUE)
+                return false;
+
+            while (success && ::FindNextFileA(hFind, &ffd) != 0)
+            {
+                std::string f = p + "/" + ffd.cFileName;
+                if (ffd.cFileName[0] == '.' && ffd.cFileName[1] == 0)
+                    continue;
+                if (ffd.cFileName[0] == '.' && ffd.cFileName[1] == '.')
+                    continue;
+
+                if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                    dirs.push(f);
+
+                success = visitor(f, ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+            }
+
+            ::FindClose(hFind);
+        }
+
+        return success;
+    }
+
+    std::vector<std::string> CollectDir(const std::string& path, bool ignoreDir/* = true*/)
+    {
+        std::vector<std::string> files;
+        utility::TraverseDir(path, [&](const std::string& file, bool dir) {
+            if (dir && ignoreDir)
+                return true;
+
+            files.push_back(file);
+            return true;
+        });
+
+        return std::move(files);
     }
 }
 

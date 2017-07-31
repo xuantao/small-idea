@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "CfgDef.h"
 #include <ostream>
+#include <functional>
 
 CFG_NAMESPACE_BEGIN
 
@@ -38,11 +39,13 @@ namespace utility
     bool Convert(const std::string& str, float& out, float def);
 
     std::string TrimFileSuffix(const std::string& file, char c = '.');
+    std::string TrimLeft(const std::string& str, const std::string& trim);
+    std::string TrimRight(const std::string& str, const std::string& trim);
     std::string Trim(const std::string& str, const std::string& trim);
     std::string Replace(const std::string& str, const std::string& _r, const std::string& _n);
 
     std::string Contact(const std::vector<std::string>& path, const std::string& c);
-    std::vector<std::string> Split(const std::string& str, char s);
+    std::vector<std::string> Split(const std::string& str, const std::string& s);
 
     std::vector<std::string> Absolute(const IType* type);
     std::vector<std::string> Relative(const IType* self, const IType* other);
@@ -55,6 +58,12 @@ namespace utility
     std::vector<UniqueVarName> UniqueName(const IStructType* sType, const std::string& owner = EMPTY_STR);
 
     void Traverse(const IStructType* sType, IVarVistor* visitor);
+
+    bool IsDir(const std::string& path);
+    bool IsFile(const std::string& file);
+    bool CreateDir(const std::string& path);
+    bool TraverseDir(const std::string& path, const std::function<bool(const std::string&, bool)> visitor);
+    std::vector<std::string> CollectDir(const std::string& path, bool ignoreDir = true);
 }
 
 CFG_NAMESPACE_END
