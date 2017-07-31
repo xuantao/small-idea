@@ -291,6 +291,19 @@ namespace utility
         return str.substr(beg, end + 1 - beg);
     }
 
+    std::string Replace(const std::string& str, const std::string& _r, const std::string& _n)
+    {
+        std::string temp = str;
+        std::string::size_type pos = temp.find(_r);
+        while (pos != std::string::npos)
+        {
+            temp = temp.replace(pos, _r.length(), _n);
+            pos = temp.find(_r, pos + _n.length());
+        }
+
+        return temp;
+    }
+
     std::string TrimFileSuffix(const std::string& file, char c/* = '.'*/)
     {
         std::string::size_type pos = file.find_last_of(c);

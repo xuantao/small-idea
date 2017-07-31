@@ -401,7 +401,7 @@ void Context::OnVariateEnd(bool isConst, const std::string& desc)
             _var->BindValue(value_util::Create(static_cast<const RawType*>(varType)->Raw()));
 
         if (!desc.empty())
-            _var->SetDesc(utility::Trim(desc, " \t"));
+            _var->SetDesc(utility::Replace(utility::Trim(desc, " \t"), "\t", " "));
 
         if (_type)
         {

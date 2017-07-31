@@ -38,7 +38,8 @@ namespace utility
     bool Convert(const std::string& str, float& out, float def);
 
     std::string TrimFileSuffix(const std::string& file, char c = '.');
-    std::string Trim(const std::string& file, const std::string& trim);
+    std::string Trim(const std::string& str, const std::string& trim);
+    std::string Replace(const std::string& str, const std::string& _r, const std::string& _n);
 
     std::string Contact(const std::vector<std::string>& path, const std::string& c);
     std::vector<std::string> Split(const std::string& str, char s);
