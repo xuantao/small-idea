@@ -16,7 +16,7 @@ Driver::~Driver()
 {
 }
 
-bool Driver::Parse(const std::string& file, Context& context)
+bool Driver::Parse(Context& context, const std::string& file)
 {
     m_pScanner = new Scanner(*this);
     m_pParser = new Parser(*this);
@@ -25,9 +25,23 @@ bool Driver::Parse(const std::string& file, Context& context)
     if (!m_pScanner->Init(file))
         return false;
 
-    context.OnParseBegin(*this, file);
     m_pParser->parse();
-    context.OnParseEnd();
+
+    m_pScanner = nullptr;
+    m_pParser = nullptr;
+    return true;
+}
+
+bool Driver::Parse(Context& context, const std::vector<std::string>& files)
+{
+    m_pScanner = new Scanner(*this);
+    m_pParser = new Parser(*this);
+    m_pContext = &context;
+
+    if (!m_pScanner->Init(files))
+        return false;
+
+    m_pParser->parse();
 
     m_pScanner = nullptr;
     m_pParser = nullptr;

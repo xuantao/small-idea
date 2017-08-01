@@ -16,8 +16,8 @@ static std::ostream& operator << (std::ostream& out, RawCategory raw)
     return out;
 }
 
-Context::Context()
-    : _driver(nullptr)
+Context::Context(Driver& driver)
+    : _driver(driver)
     , _scope(nullptr)
     , _var(nullptr)
     , _type(nullptr)
@@ -81,10 +81,8 @@ bool Context::Export(IExporter* expoter, const std::string& path, const std::str
     return true;
 }
 
-void Context::OnParseBegin(Driver& driver, const std::string& file)
+void Context::OnParseBegin(const std::string& file)
 {
-    _driver = &driver;
-
     FileData* fd = new FileData(file);
     _files.push_back(fd);
     _stackFile.push_back(fd);
@@ -92,7 +90,6 @@ void Context::OnParseBegin(Driver& driver, const std::string& file)
 
 void Context::OnParseEnd()
 {
-    _driver = nullptr;
     _stackFile.pop_back();
 }
 
@@ -103,7 +100,7 @@ void Context::OnIncludeBegin(const std::string& file)
 
     if (it != _files.end())
     {
-        _driver->Error("circle include file {0};", file);
+        _driver.Error("circle include file {0};", file);
         return;
     }
 
@@ -121,17 +118,17 @@ void Context::OnIncludeEnd()
 
 void Context::OnPredefine(const std::string& name)
 {
-    _driver->Warning("does not support predefine struct {0};", name);
+    _driver.Warning("does not support predefine struct {0};", name);
 }
 
 void Context::OnStructBegin(const std::string& name, CfgCategory cfg)
 {
     if (_type != nullptr)
-        _driver->Warning("last type define is not completed pre:{0}, cur:{1}", _type->Name(), name);
+        _driver.Warning("last type define is not completed pre:{0}, cur:{1}", _type->Name(), name);
 
     if (_scope->TypeSet()->Get(name) || _scope->VarSet()->Get(name))
     {
-        _driver->Warning("struct {0} name conflict", name);
+        _driver.Warning("struct {0} name conflict", name);
         _type = new StructType(ConflictName(name), _scope, cfg);
     }
     else
@@ -156,44 +153,44 @@ void Context::OnInherit(const std::string& name)
 {
     if (_type == nullptr)
     {
-        _driver->Error("current scope is not define a struct, can not inherit from {0}", name);
+        _driver.Error("current scope is not define a struct, can not inherit from {0}", name);
         return;
     }
 
     if (_type->Category() != TypeCategory::Struct)
     {
-        _driver->Error("current type {0} is not a struct, can not inherit from {1}", _type->Name(), name);
+        _driver.Error("current type {0} is not a struct, can not inherit from {1}", _type->Name(), name);
         return;
     }
 
     IType* herit = GetType(name);
     if (herit == nullptr)
     {
-        _driver->Error("type {0} is not defined", name);
+        _driver.Error("type {0} is not defined", name);
         return;
     }
 
     if (herit->Category() != TypeCategory::Struct)
     {
-        _driver->Error("type {0} is not a struct", name);
+        _driver.Error("type {0} is not a struct", name);
         return;
     }
 
     if (_struct->Inherited() != nullptr)
     {
-        _driver->Error("struct {0} has already inherit from", _struct->Name(), _struct->Inherited()->Name());
+        _driver.Error("struct {0} has already inherit from", _struct->Name(), _struct->Inherited()->Name());
         return;
     }
 
     if (_struct == herit)
     {
-        _driver->Error("struct {0} can not inherit from self", name);
+        _driver.Error("struct {0} can not inherit from self", name);
         return;
     }
 
     if (_struct->IsInherited(herit))
     {
-        _driver->Error("struct {0} is alreay inherit from {1}", _struct->Name(), name);
+        _driver.Error("struct {0} is alreay inherit from {1}", _struct->Name(), name);
         return;
     }
 
@@ -208,11 +205,11 @@ void Context::OnStructEnd()
 void Context::OnEnumBegin(const std::string& name)
 {
     if (_type != nullptr)
-        _driver->Error("last type [{0}] define is not completed", _type->Name());
+        _driver.Error("last type [{0}] define is not completed", _type->Name());
 
     if (_scope->TypeSet()->Get(name) || _scope->VarSet()->Get(name))
     {
-        _driver->Error("enum {0} name conflict", name);
+        _driver.Error("enum {0} name conflict", name);
         _type = new EnumType(ConflictName(name), _scope);
     }
     else
@@ -228,7 +225,7 @@ void Context::OnEnumMember(const std::string& name)
 {
     if (_type == nullptr || _type->Category() != TypeCategory::Enum)
     {
-        _driver->Error("active type is not an enum");
+        _driver.Error("active type is not an enum");
         return;
     }
 
@@ -237,7 +234,7 @@ void Context::OnEnumMember(const std::string& name)
 
     if (!_enum->VarSet()->Add(var))
     {
-        _driver->Error("enum {0} member {1} conflict", _enum->Name(), name);
+        _driver.Error("enum {0} member {1} conflict", _enum->Name(), name);
         delete var;
         var = nullptr;
     }
@@ -247,7 +244,7 @@ void Context::OnEnumMember(const std::string& name, const std::string& value, bo
 {
     if (_type == nullptr || _type->Category() != TypeCategory::Enum)
     {
-        _driver->Error("active type is not an enum");
+        _driver.Error("active type is not an enum");
         return;
     }
 
@@ -258,14 +255,14 @@ void Context::OnEnumMember(const std::string& name, const std::string& value, bo
         IVariate* ref = utility::FindVar(_enum, value);
         if (ref == nullptr)
         {
-            _driver->Error("can not find reference value:{0}", value);
+            _driver.Error("can not find reference value:{0}", value);
         }
         else if (ref->Value() == nullptr
             || !ref->IsConst()
             || !value_util::IsRaw(ref->Value(), RawCategory::Int)
             )
         {
-            _driver->Error("reference value:{0} is not allow", value);
+            _driver.Error("reference value:{0} is not allow", value);
         }
         else
         {
@@ -276,7 +273,7 @@ void Context::OnEnumMember(const std::string& name, const std::string& value, bo
     {
         val = value_util::Create(RawCategory::Int, value);
         if (val == nullptr)
-            _driver->Error("parse enum key:{0} value:{1} failed", name, value);
+            _driver.Error("parse enum key:{0} value:{1} failed", name, value);
     }
 
     if (val)
@@ -285,7 +282,7 @@ void Context::OnEnumMember(const std::string& name, const std::string& value, bo
     var->SetConst();
     if (!_enum->VarSet()->Add(var))
     {
-        _driver->Error("enum {0} member {1} conflict", _enum->Name(), name);
+        _driver.Error("enum {0} member {1} conflict", _enum->Name(), name);
 
         delete var;
         var = nullptr;
@@ -302,13 +299,13 @@ void Context::OnVariateBegin(const std::string& type, const std::string& name)
     IType* varType = GetType(type);
     if (varType == nullptr)
     {
-        _driver->Error("var type:{0} name:{1}, type is not defined", type, name);
+        _driver.Error("var type:{0} name:{1}, type is not defined", type, name);
         return;
     }
 
     if (varType->Category() == TypeCategory::Struct && varType == _struct)
     {
-        _driver->Error("struct {0} is not completed", type);
+        _driver.Error("struct {0} is not completed", type);
         return;
     }
 
@@ -316,7 +313,7 @@ void Context::OnVariateBegin(const std::string& type, const std::string& name)
     {
         if (_scope->VarSet()->Get(name))
         {
-            _driver->Error("var name:{0} conflict", name);
+            _driver.Error("var name:{0} conflict", name);
             return;
         }
 
@@ -326,19 +323,19 @@ void Context::OnVariateBegin(const std::string& type, const std::string& name)
     else if (_type->Category() == TypeCategory::Struct)
     {
         if (_struct->Inherited() && _struct->Inherited()->VarSet()->Get(name))
-            _driver->Warning("var name:{0} conflict in base struct", name);
+            _driver.Warning("var name:{0} conflict in base struct", name);
 
         _var = new Variate(_struct, varType, name);
         if (!_struct->VarSet()->Add(_var))
         {
             delete _var;
             _var = nullptr;
-            _driver->Error("var name:{0} conflict", name);
+            _driver.Error("var name:{0} conflict", name);
         }
     }
     else
     {
-        _driver->Error("var {0} {1} known error", type, name);
+        _driver.Error("var {0} {1} known error", type, name);
     }
 }
 
@@ -346,7 +343,7 @@ void Context::OnVariateValue(RawCategory raw, const std::string& value)
 {
     if (_var == nullptr)
     {
-        _driver->Error("current var is not exist value:{0}", value);
+        _driver.Error("current var is not exist value:{0}", value);
         return;
     }
 
@@ -354,22 +351,22 @@ void Context::OnVariateValue(RawCategory raw, const std::string& value)
     if (val)
         _var->BindValue(val);
     else
-        _driver->Error("convert value:{0} to raw:{1} failed", value, raw);
+        _driver.Error("convert value:{0} to raw:{1} failed", value, raw);
 }
 
 void Context::OnVariateValue(const std::string& refer)
 {
     if (_var == nullptr)
     {
-        _driver->Error("current var is not exist value:{0}", refer);
+        _driver.Error("current var is not exist value:{0}", refer);
         return;
     }
 
     IVariate* ref = utility::FindVar(_type ? _type : _scope, refer);
     if (ref == nullptr)
-        _driver->Error("can not find reference value:{0}", refer);
+        _driver.Error("can not find reference value:{0}", refer);
     else if (!ref->IsConst())
-        _driver->Error("reference value:{0} is not allow", refer);
+        _driver.Error("reference value:{0} is not allow", refer);
     else
         _var->BindValue(value_util::Create(ref));
 }
@@ -378,13 +375,13 @@ void Context::OnVariateArray(const std::string& length/* = ""*/)
 {
     if (_var == nullptr)
     {
-        _driver->Error("current var is not exist");
+        _driver.Error("current var is not exist");
         return;
     }
 
     int len = -1;
     if (!length.empty() && !utility::Convert(length, len, -1))
-        _driver->Error("convert value:{0} to int failed", length);
+        _driver.Error("convert value:{0} to int failed", length);
 
     _var->UpgradeArray(len);
 }
@@ -415,7 +412,7 @@ void Context::OnVariateEnd(bool isConst, const std::string& desc)
     }
     else
     {
-        _driver->Error("var is not exist");
+        _driver.Error("var is not exist");
     }
     _var = nullptr;
 }

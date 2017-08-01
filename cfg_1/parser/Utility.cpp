@@ -293,14 +293,13 @@ namespace utility
         if (str.length() == 0)
             return str;
 
-        std::string::size_type end = str.length() - 1;
-        for (; end > 0; --end)
+        std::string::size_type end = str.length();
+        while (end > 0 && std::string::npos != trim.find(str[end - 1]))
         {
-            if (std::string::npos == trim.find(str[end]))
-                break;
+            --end;
         }
 
-        return str.substr(0, end + 1);
+        return str.substr(0, end);
     }
 
     std::string Trim(const std::string& str, const std::string& trim)
@@ -308,21 +307,23 @@ namespace utility
         if (str.length() == 0)
             return str;
 
-        std::string::size_type beg = 0;
-        std::string::size_type end = str.length() - 1;
-        for (; beg < str.length(); ++beg)
-        {
-            if (std::string::npos == trim.find(str[beg]))
-                break;
-        }
+        return TrimLeft(TrimRight(str, trim), trim);
 
-        for (; end > beg; --end)
-        {
-            if (std::string::npos == trim.find(str[end]))
-                break;
-        }
+        //std::string::size_type beg = 0;
+        //std::string::size_type end = str.length() - 1;
+        //for (; beg < str.length(); ++beg)
+        //{
+        //    if (std::string::npos == trim.find(str[beg]))
+        //        break;
+        //}
 
-        return str.substr(beg, end + 1 - beg);
+        //for (; end > beg; --end)
+        //{
+        //    if (std::string::npos == trim.find(str[end]))
+        //        break;
+        //}
+
+        //return str.substr(beg, end + 1 - beg);
     }
 
     std::string Replace(const std::string& str, const std::string& _r, const std::string& _n)
@@ -479,6 +480,83 @@ namespace utility
         visitor->OnEnd();
     }
 
+    std::string AbsolutePath(const std::string& path)
+    {
+        std::vector<std::string> ps = Split(Replace(path, "\\", "/"), "/");
+        int idx = 0;
+
+        while (idx < ps.size())
+        {
+            if (ps.empty() || ps[idx] == ".")
+            {
+                ps.erase(ps.begin() + idx);
+            }
+            else if (ps[idx] == ".." && idx && ps[idx - 1] != "..")
+            {
+                ps.erase(ps.begin() + idx);
+                --idx;
+                ps.erase(ps.begin() + idx);
+            }
+            else
+            {
+                ++idx;
+            }
+        }
+
+        return Contact(ps, "/");
+    }
+
+    bool SplitPath(const std::string& src, std::string* p/* = nullptr*/, std::string* f/* = nullptr*/, std::string* e/* = nullptr*/)
+    {
+        std::string::size_type dot = src.find_last_of('.');
+        std::string::size_type slash = src.find_last_of('/');
+        std::string::size_type slash2 = src.find_last_of('\\');
+
+        if (slash == std::string::npos)
+            slash = slash2;
+        else if (slash2 != std::string::npos)
+            slash = std::max(slash, slash2);
+
+        if (dot != std::string::npos)
+        {
+            if (slash != std::string::npos)
+            {
+                if (dot > slash)
+                {
+                    if (p) *p = src.substr(0, slash);
+                    if (f) *f = src.substr(slash + 1, dot - slash - 1);
+                    if (e) *e = src.substr(dot + 1);
+                }
+                else
+                {
+                    if (p) *p = src.substr(0, slash);
+                    if (f) *f = src.substr(slash + 1);
+                    if (e) *e = EMPTY_STR;
+                }
+            }
+            else
+            {
+                if (p) *p = EMPTY_STR;
+                if (f) *f = src.substr(0, dot);
+                if (e) *e = src.substr(dot + 1);
+            }
+        }
+        else if (slash != std::string::npos)
+        {
+            if (p) *p = src.substr(0, slash);
+            if (f) *f = src.substr(slash + 1);
+            if (e) *e = EMPTY_STR;
+        }
+        else
+        {
+            if (p) *p = EMPTY_STR;
+            if (f) *f = src;
+            if (e) *e = EMPTY_STR;
+        }
+
+        return true;
+    }
+
     bool IsDir(const std::string& path)
     {
         uint32_t mask = ::GetFileAttributesA(path.c_str());
@@ -492,7 +570,7 @@ namespace utility
         uint32_t mask = ::GetFileAttributesA(file.c_str());
         if (mask == INVALID_FILE_ATTRIBUTES)
             return false;
-        return mask & FILE_ATTRIBUTE_NORMAL;
+        return !(mask & FILE_ATTRIBUTE_DIRECTORY);
     }
 
     bool CreateDir(const std::string& path)
@@ -510,7 +588,7 @@ namespace utility
             else
                 p += '/' + sp[i];
 
-            if(sp[i] == "..")
+            if (sp[i] == "..")
                 continue;
 
             if (!IsDir(p) && !::CreateDirectoryA(p.c_str(), nullptr))
@@ -562,12 +640,25 @@ namespace utility
         return success;
     }
 
-    std::vector<std::string> CollectDir(const std::string& path, bool ignoreDir/* = true*/)
+    std::vector<std::string> CollectDir(const std::string& path,
+        const std::string& suffix/* = EMPTY_STR*/, bool ignoreDir/* = true*/)
     {
         std::vector<std::string> files;
         utility::TraverseDir(path, [&](const std::string& file, bool dir) {
             if (dir && ignoreDir)
                 return true;
+
+            // 过滤后缀
+            if (
+                !suffix.empty() &&
+                (
+                    file.length() <= suffix.length() ||
+                    suffix != file.substr(file.length() - suffix.length())
+                    )
+                )
+            {
+                return true;
+            }
 
             files.push_back(file);
             return true;

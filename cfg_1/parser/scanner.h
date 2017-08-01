@@ -2,6 +2,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <set>
 
 #define YY_BUF_SIZE 16384
 #ifndef yyFlexLexer
@@ -30,6 +31,7 @@ public:
 
 public:
     bool Init(const std::string& file);
+    bool Init(const std::vector<std::string>& files);
     void UnInit();
 
 public:
@@ -46,15 +48,19 @@ protected:
 
 protected:
     typedef std::shared_ptr<detail::ScanningFile> FilePtr;
-    typedef std::vector<FilePtr> FileStack;
 
+    bool NextFile();
     bool Push(const std::string& file);
     bool Pop();
 
 private:
     std::string _desc;
-    Driver& m_driver;
-    FileStack  m_fileStack;
+    Driver& _driver;
+    std::vector<FilePtr>  _stack;
+
+    std::vector<std::string> _files;
+    std::string _path;
+    std::set<std::string> _parsed;
 };
 
 CFG_NAMESPACE_END

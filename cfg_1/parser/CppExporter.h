@@ -53,6 +53,7 @@ protected:
     bool DeclaerHeader();
     bool ImplationCpp();
 
+    void GetDepends(const IStructType* sType, std::vector<const IStructType*>& deps);
 protected:
     std::ostream* _stream;
     int _tab;
@@ -63,6 +64,12 @@ protected:
 
     std::vector<const IEnumType*> _enums;
     std::vector<const IStructType*> _structs;
+
+    std::vector<const IStructType*> _tabs;
+    std::vector<const IStructType*> _tabDepends;
+
+    std::vector<const IStructType*> _jsons;
+    std::vector<const IStructType*> _jsonDepends;
 };
 
 CFG_NAMESPACE_END

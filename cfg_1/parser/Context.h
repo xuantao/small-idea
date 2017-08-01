@@ -20,7 +20,8 @@ struct Cfg
     Cfg(const std::string& _path, IStructType* type)
         : path(_path)
         , sType(type)
-    { }
+    {
+    }
 
     std::string path;
     IStructType* sType;
@@ -29,7 +30,7 @@ struct Cfg
 class Context
 {
 public:
-    Context();
+    Context(Driver& driver);
     ~Context();
 
 public:
@@ -42,7 +43,7 @@ public:
     bool Export(IExporter* expoter, const std::string& path, const std::string& file, bool merge);
 
 public:
-    void OnParseBegin(Driver& driver, const std::string& file);
+    void OnParseBegin(const std::string& file);
     void OnParseEnd();
 
     void OnIncludeBegin(const std::string& file);
@@ -68,7 +69,7 @@ protected:
     std::string ConflictName(const std::string& name) const;
 
 protected:
-    Driver* _driver;
+    Driver& _driver;
 
     std::vector<FileData*> _files;
     std::vector<FileData*> _stackFile;

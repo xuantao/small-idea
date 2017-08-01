@@ -59,11 +59,15 @@ namespace utility
 
     void Traverse(const IStructType* sType, IVarVistor* visitor);
 
+    std::string AbsolutePath(const std::string& path);
+    bool SplitPath(const std::string& src,
+        std::string* p = nullptr, std::string* f = nullptr, std::string* e = nullptr);
     bool IsDir(const std::string& path);
     bool IsFile(const std::string& file);
     bool CreateDir(const std::string& path);
     bool TraverseDir(const std::string& path, const std::function<bool(const std::string&, bool)> visitor);
-    std::vector<std::string> CollectDir(const std::string& path, bool ignoreDir = true);
+    std::vector<std::string> CollectDir(const std::string& path,
+        const std::string& suffix = EMPTY_STR, bool ignoreDir = true);
 }
 
 CFG_NAMESPACE_END

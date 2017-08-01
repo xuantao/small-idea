@@ -55,7 +55,8 @@ namespace detail
     {
     public:
         TabLoader(std::ostream* stream, int tab) : _stream(stream), _tab(tab)
-        { }
+        {
+        }
 
     public:
         virtual bool OnStart(const IStructType* sType)
@@ -162,7 +163,7 @@ namespace detail
                 _TAB_EX_(1) << "if (!Enum::ToEnum(vecStr[i].c_str(), out." << path << "[i]))" << std::endl <<
                 _TAB_EX_(1) << "{" << std::endl <<
                 _TAB_EX_(2) << "if (utility::Convert(vecStr[i].c_str(), nTemp) && Enum::ToString((" << tyName << ")nTemp))" << std::endl <<
-                _TAB_EX_(3) << "out." <<path << "[i] = (" << tyName << ")nTemp;" << std::endl <<
+                _TAB_EX_(3) << "out." << path << "[i] = (" << tyName << ")nTemp;" << std::endl <<
                 _TAB_EX_(2) << "else" << std::endl <<
                 _TAB_EX_(3) << "; //TODO: log error" << std::endl <<
                 _TAB_EX_(1) << "}" << std::endl <<
@@ -296,6 +297,17 @@ void CppExporter::OnType(const IType* type)
         const IStructType* sType = static_cast<const IStructType*>(type);
         Declare(sType);
         _structs.push_back(sType);
+
+        if (sType->Cfg() == CfgCategory::Tab)
+        {
+            GetDepends(sType, _tabDepends);
+            _tabs.push_back(sType);
+        }
+        else
+        {
+            GetDepends(sType, _jsonDepends);
+            _jsons.push_back(sType);;
+        }
     }
     else
     {
@@ -656,7 +668,7 @@ bool CppExporter::TabFuncImpl(const IStructType* sType)
 
     _OUTS_ <<
         _TAB_EX_(1) << "// load default data" << std::endl <<
-        _TAB_EX_(1) << tyName << " def;" << std::endl<<
+        _TAB_EX_(1) << tyName << " def;" << std::endl <<
         _TAB_EX_(1) << "Load(pTab, 4, def);" << std::endl << std::endl;
 
     _OUTS_ <<
@@ -711,5 +723,30 @@ bool CppExporter::JsonFuncImpl(const IStructType* sType)
     return true;
 }
 
+void CppExporter::GetDepends(const IStructType* sType, std::vector<const IStructType*>& deps)
+{
+    if (deps.end() != std::find(deps.begin(), deps.end(), sType))
+        return;
+
+    const IVarSet* vars = sType->VarSet();
+    for (int i = 0; i < vars->Size(); ++i)
+    {
+        const IType* type = vars->Get(i)->Type();
+
+        if (type->Category() == TypeCategory::Struct)
+        {
+            GetDepends(static_cast<const IStructType*>(type), deps);
+        }
+        else if (type->Category() == TypeCategory::Array)
+        {
+            const IArrayType* aType = static_cast<const IArrayType*>(type);
+            if (aType->Original()->Category() == TypeCategory::Struct)
+                GetDepends(static_cast<const IStructType*>(aType->Original()), deps);
+        }
+    }
+
+    assert(deps.end() == std::find(deps.begin(), deps.end(), sType));
+    deps.push_back(sType);
+}
 
 CFG_NAMESPACE_END

@@ -3,12 +3,11 @@
 */
 #pragma once
 
+#include <vector>
 #include <array>
 #include <memory>
 #include <iterator>
-
-template <size_t N>
-class TabLineIter;
+#include <cassert>
 
 template <typename Ty>
 class TabElementIter : public std::random_access_iterator_tag
@@ -22,13 +21,15 @@ public:
 public:
     TabElementIter(size_t index, const pointer data, size_t size)
         : _index(index), _data(data), _size(size)
-    { }
+    {
+    }
 
     TabElementIter(const TabElementIter& other)
         : _index(other._index)
         , _size(other._size)
         , _data(other._data)
-    { }
+    {
+    }
 
     ~TabElementIter() {}
 
@@ -127,6 +128,41 @@ protected:
     const pointer _data;
 };
 
+class TabIter
+{
+public:
+    TabIter(const char* const * data, size_t size)
+        : _data(data)
+        , _size(size)
+        , _index(0)
+    {
+    }
+
+public:
+    const char* Curr() const
+    {
+        assert(_index < _size);
+        return _data[_index];
+    }
+
+    const char* Next()
+    {
+        assert(_index < _size);
+        return _data[_index++];
+    }
+
+protected:
+    const char* const * _data;
+    size_t _index;
+    size_t _size;
+};
+
+/*
+ * tab 文件数据解析器
+ * N: 每行拥有的数据数量
+ * LB: 起始行号, 起始行一般为(title, type, desc)
+ * SEP: 分隔符, 一行元素的分割符
+*/
 template <size_t N, size_t LB = 3, char SEP = '\t'>
 class TabParser
 {
@@ -147,6 +183,11 @@ public:
 
     Iterator Begin() const { return Iterator(0, &_datas[0], N); }
     Iterator End() const { return Iterator(N, &_datas[0], N); }
+
+    TabIter Curr()
+    {
+        return TabIter(&_datas[0], N);
+    }
 
     bool NextLine()
     {
@@ -255,11 +296,11 @@ protected:
     }
 
 protected:
-    const std::array<const char*, N>& _titles;  // tab titles
-    std::vector<const char*> _lines;            // line index
-    std::vector<int> _index;                    // title visit index
+    const std::array<const char*, N>& _titles;  // titles
+    std::vector<const char*> _lines;            // line data
+    std::vector<size_t> _index;                    // title -> index
 
-    std::array<const char*, N + 1> _datas;
+    std::array<const char*, N + 1> _datas;      // line element data
     std::unique_ptr<char[]> _buffer;            // line data buffer
-    size_t _lineNO;
+    size_t _lineNO;                             // current line NO.
 };

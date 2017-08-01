@@ -28,7 +28,8 @@ public:
     ~Driver();
 
 public:
-    bool Parse(const std::string& file, Context& context);
+    bool Parse(Context& context, const std::string& file);
+    bool Parse(Context& context, const std::vector<std::string>& files);
 
 public:
     Scanner* GetScanner() const { return m_pScanner; }

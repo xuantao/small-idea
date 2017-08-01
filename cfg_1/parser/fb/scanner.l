@@ -72,7 +72,7 @@ REG_DESC                (^[ \t]*///@)
     {REG_INCLUDE_FILE_1}    { yy_pop_state(); Include(std::string(&yytext[1], yyleng - 2)); }
     {REG_INCLUDE_FILE_2}    { yy_pop_state(); Include(std::string(&yytext[1], yyleng - 2)); }
     [ \t]+                  { }
-    \n                      { _NEW_LINE_; yy_pop_state(); m_driver.Error(Location(), "error #"); }
+    \n                      { _NEW_LINE_; yy_pop_state(); _driver.Error(Location(), "error #"); }
     .                       { yy_pop_state(); Unrecognized(yytext[0]); }
 }
 
@@ -89,7 +89,7 @@ REG_DESC                (^[ \t]*///@)
     "*/"            { yy_pop_state(); }
     \n              { _NEW_LINE_; }
     .               { }
-    <<EOF>>         { m_driver.Error(Location(), "uncomplete in lines comment"); return yyterminate(); }
+    <<EOF>>         { _driver.Error(Location(), "uncomplete in lines comment"); return yyterminate(); }
 }
 
  /* main */
@@ -131,6 +131,6 @@ int CfgFlexLexer::yylex()
         "%}"    { yy_pop_state(); }
         \n      { _NEW_LINE_; }
         .+      { }
-        <<EOF>> { m_driver.Error(Location(), "uncomplete in src copy"); return yyterminate(); }
+        <<EOF>> { _driver.Error(Location(), "uncomplete in src copy"); return yyterminate(); }
 }
 */

@@ -1,0 +1,6 @@
+ID	Name	Type	Desc	Check
+int	string	int	string	bool
+唯一ID	名字	类型	描述	TRUE
+0	XXX	0	哈哈	TRUE
+1	宣涛	1	帅哥	TRUE
+2	邹慧	2	美女	TRUE
