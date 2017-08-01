@@ -98,17 +98,17 @@ int main(int argc, char** argv)
     }
 
     CppExporter cpp;
-    //context.Export(&cpp, "../test/", "Cfg", true);
+    context.Export(&cpp, "../test/", "Cfg", true);
     //context.Export(&cpp, "../out/", false);
 
-    const auto& tabs = context.TabCfgs();
-    const auto& jsons = context.JsonCfgs();
+    //const auto& tabs = context.TabCfgs();
+    //const auto& jsons = context.JsonCfgs();
 
-    for (auto it = tabs.cbegin(); it != tabs.cend(); ++it)
-    {
-        TabCreator tab("../out/" + it->sType->Name() + ".xls");
-        utility::Traverse(it->sType, &tab);
-    }
+    //for (auto it = tabs.cbegin(); it != tabs.cend(); ++it)
+    //{
+    //    TabCreator tab("../out/" + it->sType->Name() + ".xls");
+    //    utility::Traverse(it->sType, &tab);
+    //}
 
     system("pause");
     return 1;

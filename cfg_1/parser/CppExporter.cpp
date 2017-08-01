@@ -28,22 +28,25 @@ static int sNeedTempMask(const IStructType* sType)
         if (type->Category() == TypeCategory::Array)
         {
             type = static_cast<const IArrayType*>(type)->Original();
-            if (type->Category() != TypeCategory::Raw || ((const IRawType*)type)->Raw() != RawCategory::String)
-                mask |= _NEED_TEMP_ARRAY | _NEED_TEMP_BUFFER;
+            if ((type->Category() != TypeCategory::Raw || ((const IRawType*)type)->Raw() != RawCategory::String) ||
+                (type->Category() != TypeCategory::Struct))
+            {
+                mask |= _NEED_TEMP_ARRAY;
+            }
         }
 
         if (type->Category() == TypeCategory::Raw)
         {
-            if (static_cast<const IRawType*>(type)->Raw() == RawCategory::String)
-                mask |= _NEED_TEMP_BUFFER;
+            //if (static_cast<const IRawType*>(type)->Raw() == RawCategory::String)
+            //    mask |= _NEED_TEMP_BUFFER;
         }
         else if (type->Category() == TypeCategory::Struct)
         {
-            mask |= sNeedTempMask(static_cast<const IStructType*>(type));
+            //mask |= sNeedTempMask(static_cast<const IStructType*>(type));
         }
         else if (type->Category() == TypeCategory::Enum)
         {
-            mask |= _NEED_TEMP_INT;
+            mask |= _NEED_TEMP_INT | _NEED_TEMP_BUFFER;
         }
     }
     return mask;
@@ -178,6 +181,172 @@ namespace detail
     };
 }
 
+static bool _OnVar(const IVariate* var, const IRawType* rType, std::ostream* _stream, int _tab)
+{
+    switch (rType->Raw())
+    {
+    case RawCategory::Bool:
+        break;
+    case RawCategory::Int:
+        break;
+    case RawCategory::Float:
+        _TAB_ << "utility::Convert(iter->Next(), out." << var->Name() << ");" << std::endl;
+        break;
+    case RawCategory::String:
+        _TAB_ << "out." << var->Name() << " = iter.Next();" << std::endl;
+        break;
+    }
+    return true;
+}
+
+static bool _OnVar(const IVariate* var, const IEnumType* eType, std::ostream* _stream, int _tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(eType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "str = iter.Next();" << std::endl <<
+        _TAB_EX_(0) << "if (!Enum::ToEnum(cBuffer, out." << var->Name() << "))" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "if (utility::Convert(cBuffer, val) && Enum::ToString((" << tyName << ")val))" << std::endl <<
+        _TAB_EX_(2) << "out." << var->Name() << " = (" << tyName << ")nTemp;" << std::endl <<
+        _TAB_EX_(1) << "else" << std::endl <<
+        _TAB_EX_(2) << "; //TODO: log error" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+    return true;
+}
+
+static bool _OnVar(const IVariate* var, const IRawType* rType, int length, std::ostream* _stream, int _tab)
+{
+    if (rType->Raw() == RawCategory::String)
+    {
+        _TAB_ << "out." << var->Name() << " = utility::Split(iter.Next(), \",\");" << std::endl;
+    }
+    else
+    {
+        _TAB_ << "vec = utility::Split(iter.Next(), \",\");" << std::endl;
+
+        if (length <= 0)
+        {
+            _OUTS_ <<
+                _TAB_EX_(0) << "out." << var->Name() << ".resize(vec.size());" << std::endl <<
+                _TAB_EX_(0) << "for (size_t i = 0; i < vec.size(); ++i)" << std::endl;
+        }
+        else
+        {
+            _OUTS_ <<
+                _TAB_EX_(0) << "for (size_t i = 0; i < std::min(vec.size(), out." << var->Name() << ".size()); ++i)" << std::endl;
+        }
+
+        _OUTS_ <<
+            _TAB_EX_(0) << "{" << std::endl <<
+            _TAB_EX_(1) << "if (!utility::Convert(vec[i].c_str(), out." << var->Name() << "[i]))" << std::endl <<
+            _TAB_EX_(2) << "; //TODO: log error" << std::endl <<
+            _TAB_EX_(0) << "}" << std::endl;
+    }
+    return true;
+}
+
+static bool _OnVar(const IVariate* var, const IEnumType* eType, int length, std::ostream* _stream, int _tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(eType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "vec = utility::Split(iter.Next(), \",\");" << std::endl;
+
+    if (length <= 0)
+    {
+        _OUTS_ <<
+            _TAB_EX_(0) << "out." << var->Name() << ".resize(vec.size());" << std::endl <<
+            _TAB_EX_(0) << "for (size_t i = 0; i < vec.size(); ++i)" << std::endl;
+    }
+    else
+    {
+        _OUTS_ <<
+            _TAB_EX_(0) << "for (size_t i = 0; i < std::min(vec.size(), out." << var->Name() << ".size()); ++i)" << std::endl;
+    }
+
+    _OUTS_ <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "if (!Enum::ToEnum(vec[i].c_str(), out." << var->Name() << "[i]))" << std::endl <<
+        _TAB_EX_(1) << "{" << std::endl <<
+        _TAB_EX_(2) << "if (utility::Convert(vec[i].c_str(), val) && Enum::ToString((" << tyName << ")val))" << std::endl <<
+        _TAB_EX_(3) << "out." << var->Name() << "[i] = (" << tyName << ")nTemp;" << std::endl <<
+        _TAB_EX_(2) << "else" << std::endl <<
+        _TAB_EX_(3) << "; //TODO: log error" << std::endl <<
+        _TAB_EX_(1) << "}" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+    return true;
+}
+
+static bool _OnVar(const IVariate* var, const IStructType* rType, int length, std::ostream* _stream, int _tab)
+{
+    _OUTS_ <<
+        _TAB_EX_(0) << "for (size_t i = 0; i < out." << var->Name() << ".size(); ++i)" << std::endl <<
+        _TAB_EX_(1) << "sLoad(iter, out." << var->Name() << "[i]);" << std::endl;
+    return true;
+}
+
+static void _loader(const IStructType* sType, std::ostream* _stream, int _tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "static bool sLoad(utility::TabIter& iter, " << tyName << "& out)" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl;
+
+    int mask = sNeedTempMask(sType);
+    if (mask & _NEED_TEMP_INT)
+        _OUTS_ << _TAB_EX_(1) << "int val = 0;" << std::endl;
+    if (mask & _NEED_TEMP_BUFFER)
+        _OUTS_ << _TAB_EX_(1) << "const char* str = nullptr;" << std::endl;
+    if (mask & _NEED_TEMP_ARRAY)
+        _OUTS_ << _TAB_EX_(1) << "std::vector<string> vec;" << std::endl;
+    if (mask)
+        _OUTS_ << std::endl;
+
+    const IVarSet* vars = sType->VarSet();
+    for (int i = 0; i < vars->Size(); ++i)
+    {
+        const IVariate* var = vars->Get(i);
+        const IType* ty = var->Type();
+
+        if (ty->Category() == TypeCategory::Raw)
+        {
+            _OnVar(var, (const IRawType*)ty, _stream, _tab + 1);
+        }
+        else if (ty->Category() == TypeCategory::Enum)
+        {
+            if (i) _OUTS_ << std::endl;
+            _OnVar(var, (const IEnumType*)ty, _stream, _tab + 1);
+        }
+        else if (ty->Category() == TypeCategory::Struct)
+        {
+            _OUTS_ <<
+                _TAB_EX_(1) << "sLoad(iter, out." << var->Name() << ");" << std::endl;
+        }
+        else if (ty->Category() == TypeCategory::Array)
+        {
+            if (i) _OUTS_ << std::endl;
+
+            const IArrayType* aTy = (const IArrayType*)ty;
+            const IType* original = aTy->Original();
+            if (original->Category() == TypeCategory::Raw)
+            {
+                _OnVar(var, (const IRawType*)original, aTy->Length(), _stream, _tab + 1);
+            }
+            else if (original->Category() == TypeCategory::Enum)
+            {
+                _OnVar(var, (const IEnumType*)original, aTy->Length(), _stream, _tab + 1);
+            }
+            else if (original->Category() == TypeCategory::Struct)
+            {
+                _OnVar(var, (const IStructType*)original, aTy->Length(), _stream, _tab + 1);
+            }
+        }
+    }
+
+    _OUTS_ <<
+        _TAB_EX_(1) << "return true;" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
 CppExporter::CppExporter()
     : _stream(_DEF_STREAM_)
     , _global(nullptr)
@@ -195,12 +364,12 @@ void CppExporter::OnBegin(const IScopeType* global, const std::string& path, con
     _path = path;
     _file = file;
 
-    std::ofstream* header = new std::ofstream();
-    header->open(path + file + ".h");
-    if (header->is_open())
-        _stream = header;
-    else
-        delete header;
+    //std::ofstream* header = new std::ofstream();
+    //header->open(path + file + ".h");
+    //if (header->is_open())
+    //    _stream = header;
+    //else
+    //    delete header;
 
     _OUTS_ << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl <<
         "#pragma once" << std::endl << std::endl <<
@@ -212,6 +381,8 @@ void CppExporter::OnBegin(const IScopeType* global, const std::string& path, con
 
 void CppExporter::OnEnd()
 {
+    return;
+
     // api declare
     DeclaerHeader();
 
@@ -295,19 +466,20 @@ void CppExporter::OnType(const IType* type)
     else if (type->Category() == TypeCategory::Struct)
     {
         const IStructType* sType = static_cast<const IStructType*>(type);
-        Declare(sType);
-        _structs.push_back(sType);
+        _loader(sType, &std::cout, 0);
+        //Declare(sType);
+        //_structs.push_back(sType);
 
-        if (sType->Cfg() == CfgCategory::Tab)
-        {
-            GetDepends(sType, _tabDepends);
-            _tabs.push_back(sType);
-        }
-        else
-        {
-            GetDepends(sType, _jsonDepends);
-            _jsons.push_back(sType);;
-        }
+        //if (sType->Cfg() == CfgCategory::Tab)
+        //{
+        //    GetDepends(sType, _tabDepends);
+        //    _tabs.push_back(sType);
+        //}
+        //else
+        //{
+        //    GetDepends(sType, _jsonDepends);
+        //    _jsons.push_back(sType);;
+        //}
     }
     else
     {
