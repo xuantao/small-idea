@@ -22,7 +22,7 @@ public:
 public:
     void SetConst();
     void SetDesc(const std::string& desc) { _desc = desc; }
-    void UpgradeArray(int length = -1);
+    void UpgradeArray(int length = 0);
 
 protected:
     IType* _belong;

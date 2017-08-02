@@ -45,6 +45,10 @@ namespace cpp_util
     {
         const IVariate* var = val->Var();
         std::stringstream stream;
+
+        if (type->Category() == TypeCategory::Array)
+            type = static_cast<const IArrayType*>(type)->Original();
+
         if (type != var->Type())
             stream << "(" << TypeName(scope, type) << ")";
 
@@ -99,7 +103,7 @@ namespace cpp_util
         {
             const ArrayType* arTy = static_cast<const ArrayType*>(ty);
             name = TypeName(scope, arTy->Prev());
-            if (arTy->Length() >= 0)
+            if (arTy->Length() > 0)
             {
                 name = "std::array<" + name + ", " + std::to_string(arTy->Length()) + ">";
             }
@@ -159,6 +163,14 @@ namespace cpp_util
             out.value = Value(var->Belong(), var->Type(), var->Value());
         else if (var->Type()->Category() == TypeCategory::Raw)
             out.value = DefValue(static_cast<const RawType*>(var->Type())->Raw());
+
+        if (var->Type()->Category() == TypeCategory::Raw &&
+            !out.value.empty() &&
+            static_cast<const RawType*>(var->Type())->Raw() == RawCategory::String)
+        {
+            out.value = "\"" + out.value + "\"";
+        }
+
         out.var = var;
         return true;
     }

@@ -36,9 +36,6 @@
     <ClInclude Include="CfgUtility.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="ITabFile.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="CfgTabParser.h">
       <Filter>src</Filter>
     </ClInclude>

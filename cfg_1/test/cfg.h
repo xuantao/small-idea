@@ -36,6 +36,12 @@ enum Enum2
 
 struct Struct0
 {
+    Struct0()
+    {
+        s0b.fill(0);
+        s0c.fill(0);
+    }
+
     std::vector<int> s0a;
     std::array<int, 10> s0b;
     std::array<int, 10> s0c;
@@ -49,10 +55,11 @@ struct Struct1 : public Struct0
         , s1c(0)
         , b1(false)
         , f1(0.000000)
-        , str1()
-        , str2(s_1)
+        , str2("s_1")
         , str3("zouhui")
-    { }
+    {
+        s1arEnum2.fill(Enum2::c);
+    }
 
     int s1a;
     int s1b;
@@ -77,8 +84,9 @@ struct Struct2
         , b((int)Enum2::c)
         , c(0)
         , d(0)
-        , s(s_1)
-    { }
+        , s("s_1")
+    {
+    }
 
     int a;
     int b;

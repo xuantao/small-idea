@@ -150,7 +150,6 @@
   <ItemGroup>
     <ClInclude Include="cfg.h" />
     <ClInclude Include="CfgUtility.h" />
-    <ClInclude Include="ITabFile.h" />
     <ClInclude Include="CfgTabParser.h" />
     <ClInclude Include="json\include\json\allocator.h" />
     <ClInclude Include="json\include\json\assertions.h" />

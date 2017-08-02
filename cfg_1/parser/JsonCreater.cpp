@@ -68,8 +68,8 @@ void JsonCreater::Create(const IStructType* sType, int tab)
         {
             const IRawType* rType = static_cast<const IRawType*>(type);
             std::string str = cpp_util::OrignalValue(var->Value());
-            if (rType->Raw() == RawCategory::String && str.empty())
-                str = "\"\"";
+            if (rType->Raw() == RawCategory::String)
+                str = "\"" + str + "\"";
             _OUTS_ << str;
         }
         else if (type->Category() == TypeCategory::Enum)

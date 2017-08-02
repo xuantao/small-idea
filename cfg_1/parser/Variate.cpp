@@ -22,7 +22,7 @@ Variate::~Variate()
     _type = nullptr;
 }
 
-void Variate::UpgradeArray(int length /* = -1 */)
+void Variate::UpgradeArray(int length /* = 0 */)
 {
     _type = new ArrayType(_type, length);
 }

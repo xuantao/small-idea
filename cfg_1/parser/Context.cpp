@@ -350,7 +350,12 @@ void Context::OnVariateValue(RawCategory raw, const std::string& value)
         return;
     }
 
-    IValue* val = value_util::Create(raw, value);
+    IValue* val = nullptr;
+    if (raw == RawCategory::String)
+        val = value_util::Create(raw, value.substr(1, value.length() - 2));
+    else
+        val = value_util::Create(raw, value);
+
     if (val)
         _var->BindValue(val);
     else
@@ -367,11 +372,42 @@ void Context::OnVariateValue(const std::string& refer)
 
     IVariate* ref = utility::FindVar(_type ? _type : _scope, refer);
     if (ref == nullptr)
+    {
         _driver.Error("can not find reference value:{0}", refer);
+        return;
+    }
     else if (!ref->IsConst())
+    {
         _driver.Error("reference value:{0} is not allow", refer);
-    else
-        _var->BindValue(value_util::Create(ref));
+        return;
+    }
+
+    IType* type = _var->Type();
+    if (type->Category() == TypeCategory::Array)
+        type = static_cast<IArrayType*>(type)->Original();
+
+    if (type->Category() == TypeCategory::Raw)
+    {
+        if (!value_util::IsRaw(ref->Value(), static_cast<IRawType*>(type)->Raw()))
+        {
+            _driver.Error("{0} type def value failed", type->Name(), refer);
+        }
+    }
+    else if (type->Category() == TypeCategory::Enum)
+    {
+        if (!value_util::IsRaw(ref->Value(), RawCategory::Int))
+        {
+            _driver.Error("enum {0} type def value failed", type->Name(), refer);
+            return;
+        }
+    }
+    else if (type->Category() == TypeCategory::Struct)
+    {
+        _driver.Error("custom type can not been assign default value {0} {1}", type->Name(), refer);
+        return;
+    }
+
+    _var->BindValue(value_util::Create(ref));
 }
 
 void Context::OnVariateArray(const std::string& length/* = ""*/)
@@ -382,23 +418,43 @@ void Context::OnVariateArray(const std::string& length/* = ""*/)
         return;
     }
 
-    int len = -1;
+    if (_var->Type()->Category() == TypeCategory::Array)
+    {
+        _driver.Error("var:{0} does not support multy level array", _var->Name());
+        return;
+    }
+
+    int len = 0;
     if (!length.empty() && !utility::Convert(length, len, -1))
         _driver.Error("convert value:{0} to int failed", length);
 
-    _var->UpgradeArray(len);
+    _var->UpgradeArray(std::max(len, 0));
 }
 
 void Context::OnVariateEnd(bool isConst, const std::string& desc)
 {
     if (_var)
     {
-        const IType* varType = _var->Type();
+        IType* varType = _var->Type();
+        if (varType->Category() == TypeCategory::Array)
+            varType = static_cast<IArrayType*>(varType)->Original();
+
         if (isConst)
             _var->SetConst();
 
-        if (_var->Value() == nullptr && varType->Category() == TypeCategory::Raw)
-            _var->BindValue(value_util::Create(static_cast<const RawType*>(varType)->Raw()));
+        if (_var->Value() == nullptr)
+        {
+            if (varType->Category() == TypeCategory::Raw)
+            {
+                _var->BindValue(value_util::Create(static_cast<const RawType*>(varType)->Raw()));
+            }
+            else if (varType->Category() == TypeCategory::Enum)
+            {
+                IEnumType* eType = static_cast<IEnumType*>(varType);
+                if (eType->VarSet()->Size())
+                    _var->BindValue(value_util::Create(eType->VarSet()->Get(0)));
+            }
+        }
 
         if (!desc.empty())
             _var->SetDesc(utility::Replace(utility::Trim(desc, " \t"), "\t", " "));

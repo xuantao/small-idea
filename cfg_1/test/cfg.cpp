@@ -157,6 +157,14 @@ namespace Tab
 
         sLoad(iter, (Struct0&)out);
         iter.MoveNext();
+        utility::Convert(iter.Value(), out.s1a);
+        iter.MoveNext();
+        utility::Convert(iter.Value(), out.s1b);
+        iter.MoveNext();
+        utility::Convert(iter.Value(), out.s1c);
+        iter.MoveNext();
+        utility::Convert(iter.Value(), out.b1);
+        iter.MoveNext();
         utility::Convert(iter.Value(), out.f1);
         iter.MoveNext();
         if (iter.Value() && iter.Value()[0])
@@ -205,6 +213,14 @@ namespace Tab
     {
         std::vector<std::string> vec;
 
+        iter.MoveNext();
+        utility::Convert(iter.Value(), out.a);
+        iter.MoveNext();
+        utility::Convert(iter.Value(), out.b);
+        iter.MoveNext();
+        utility::Convert(iter.Value(), out.c);
+        iter.MoveNext();
+        utility::Convert(iter.Value(), out.d);
         iter.MoveNext();
         if (iter.Value() && iter.Value()[0])
             out.s = iter.Value();
@@ -266,7 +282,7 @@ namespace Json
             if (mem.type() == Json::ValueType::arrayValue)
             {
                 out.s0a.resize(mem.size());
-                for (int i = 0; i < mem.size(); ++i)
+                for (int i = 0; i < (int)mem.size(); ++i)
                 {
                     if (mem[i].type() == Json::ValueType::intValue || mem[i].type() == Json::ValueType::uintValue)
                         out.s0a[i]  = mem[i].asInt();

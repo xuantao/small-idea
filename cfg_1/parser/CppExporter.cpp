@@ -333,7 +333,7 @@ bool CppExporter::Declare(const IStructType* sType)
                 continue;
 
             const IType* type = data.var->Type();
-            if (type->Category() != TypeCategory::Raw && data.value.empty())
+            if (type->Category() != TypeCategory::Raw || data.value.empty())
                 continue;
 
             _TAB_;
@@ -359,7 +359,27 @@ bool CppExporter::Declare(const IStructType* sType)
         }
 
         --tab;
-        _TAB_ << "{ }" << std::endl << std::endl;
+        _TAB_ << "{" << std::endl;
+
+        for (size_t i = 0; i < vars.size(); i++)
+        {
+            const CppVarData& data = vars[i];
+            if (data.var->IsConst())
+                continue;
+
+            const IType* type = data.var->Type();
+            if (type->Category() != TypeCategory::Array || data.value.empty())
+                continue;
+
+            const IArrayType* aTy = static_cast<const IArrayType*>(type);
+            if (aTy->Length() == 0)
+                continue;
+
+            _OUTS_ <<
+                _TAB_EX_(1) << data.name << ".fill(" << data.value << ");" << std::endl;
+        }
+
+        _TAB_ << "}" << std::endl << std::endl;
     }
 
     /* member data */
@@ -689,6 +709,9 @@ void CppExporter::TabLoadDetail(const IStructType* sType, int tab)
         const IVariate* var = vars->Get(i);
         const IType* ty = var->Type();
 
+        if (var->IsConst())
+            continue;
+
         if (ty->Category() == TypeCategory::Raw)
         {
             TabLoadVar(var, (const IRawType*)ty, tab);
@@ -730,9 +753,7 @@ void CppExporter::TabLoadVar(const IVariate* var, const IRawType* rType, int tab
     switch (rType->Raw())
     {
     case RawCategory::Bool:
-        break;
     case RawCategory::Int:
-        break;
     case RawCategory::Float:
         _TAB_ << "iter.MoveNext();" << std::endl;
         _TAB_ << "utility::Convert(iter.Value(), out." << var->Name() << ");" << std::endl;

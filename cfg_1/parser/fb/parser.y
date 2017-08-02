@@ -167,23 +167,33 @@ VariateDecl : ValueDesc Variate S_SEMICOLON         { CONTEXT.OnVariateEnd(false
             ;
 
 Variate     : BoolVar                           { }
-            | BoolVar Array                     { }
             | BoolVar S_ASSIGN BoolValue        { CONTEXT.OnVariateValue(RawCategory::Bool, $3); }
             | BoolVar S_ASSIGN RefValue         { CONTEXT.OnVariateValue($3); }
+            | BoolVar Array                     { }
+            | BoolVar Array S_ASSIGN BoolValue  { CONTEXT.OnVariateValue(RawCategory::Bool, $4); }
+            | BoolVar Array S_ASSIGN RefValue   { CONTEXT.OnVariateValue($4); }
             | IntVar                            { }
-            | IntVar Array                      { }
             | IntVar S_ASSIGN IntValue          { CONTEXT.OnVariateValue(RawCategory::Int, $3); }
             | IntVar S_ASSIGN RefValue          { CONTEXT.OnVariateValue($3); }
+            | IntVar Array                      { }
+            | IntVar Array S_ASSIGN IntValue    { CONTEXT.OnVariateValue(RawCategory::Int, $4); }
+            | IntVar Array S_ASSIGN RefValue    { CONTEXT.OnVariateValue($4); }
             | FloatVar                          { }
-            | FloatVar Array                    { }
             | FloatVar S_ASSIGN FloatValue      { CONTEXT.OnVariateValue(RawCategory::Float, $3); }
             | FloatVar S_ASSIGN RefValue        { CONTEXT.OnVariateValue($3); }
+            | FloatVar Array                    { }
+            | FloatVar Array S_ASSIGN FloatValue    { CONTEXT.OnVariateValue(RawCategory::Float, $4); }
+            | FloatVar Array S_ASSIGN RefValue      { CONTEXT.OnVariateValue($4); }
             | StringVar                         { }
-            | StringVar Array                   { }
             | StringVar S_ASSIGN VALUE_STRING   { CONTEXT.OnVariateValue(RawCategory::String, $3); }
             | StringVar S_ASSIGN RefValue       { CONTEXT.OnVariateValue($3); }
+            | StringVar Array                   { }
+            | StringVar Array S_ASSIGN VALUE_STRING { CONTEXT.OnVariateValue(RawCategory::String, $4); }
+            | StringVar Array S_ASSIGN RefValue     { CONTEXT.OnVariateValue($4); }
             | VarCustom                         { }
+            | VarCustom S_ASSIGN RefValue       {  CONTEXT.OnVariateValue($3); }
             | VarCustom Array                   { }
+            | VarCustom Array S_ASSIGN RefValue {  CONTEXT.OnVariateValue($4); }
             ;
 
 VarCustom   : IDENTIFIER IDENTIFIER             { CONTEXT.OnVariateBegin($1, $2); }

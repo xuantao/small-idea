@@ -63,8 +63,10 @@ namespace cfg
     class TabParser
     {
     public:
+        static_assert(LB > 0, "first line is title, can not be set as 0");
+    public:
         TabParser(const std::array<const char*, N>& elements)
-            : _lineNO(0)
+            : _lineNO(LB - 1)
             , _titles(elements)
         {
         }
@@ -102,7 +104,7 @@ namespace cfg
 
             InitTitles();
 
-            Split(LB);
+            //Split(LB);
             return true;
         }
 
