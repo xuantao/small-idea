@@ -49,35 +49,38 @@ IType* Context::GetType(const std::string& name) const
     return type;
 }
 
-bool Context::Export(IExporter* expoter, const std::string& path, const std::string& file, bool merge)
+bool Context::Export(IExporter* expoter, const std::string& file)
 {
-    if (merge)
+    std::string fileName = utility::TrimFileSuffix(file, '.');
+    if (fileName.empty() || fileName.back() == '/' || fileName.back() == '//')
+        fileName = "unnamed";
+
+    expoter->OnBegin(_scope, fileName);
+    for (auto it = _files.begin(); it != _files.end(); ++it)
+        (*it)->Export(expoter, true);
+    expoter->OnEnd();
+
+    return true;
+}
+
+bool Context::Export(ITabCreater* creator, const std::string& path)
+{
+    for (auto it = _tabs.cbegin(); it != _tabs.cend(); ++it)
     {
-        std::string fileName = utility::TrimFileSuffix(file, '.');
-        if (fileName.empty() || fileName.back() == '/' || fileName.back() == '//')
-            fileName = "unnamed";
-
-        expoter->OnBegin(_scope, path, fileName);
-        for (auto it = _files.begin(); it != _files.end(); ++it)
-            (*it)->Export(expoter, merge);
-        expoter->OnEnd();
+        creator->SetPath(path + "/" + it->path);
+        utility::Traverse(it->sType, creator);
     }
-    else
+    return true;
+}
+
+bool Context::Export(IJsonCreater* creator, const std::string& path)
+{
+    for (auto it = _jsons.cbegin(); it != _jsons.cend(); ++it)
     {
-        //std::string path;
-        //if (file.back() == '\\' || file.back() == '/')
-        //    path = file;
-        //else
-        //    path = file + '/';
-
-        //for (auto it = _files.begin(); it != _files.end(); ++it)
-        //{
-        //    expoter->OnBegin(_scope, path, path + utility::TrimFileSuffix((*it)->File(), '.'));
-        //    (*it)->Export(expoter, merge);
-        //    expoter->OnEnd();
-        //}
+        creator->SetPath(path + "/" + it->path);
+        creator->OnStart(it->sType);
+        creator->OnEnd();
     }
-
     return true;
 }
 

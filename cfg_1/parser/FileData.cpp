@@ -77,7 +77,7 @@ void FileData::Export(IExporter* visitor, bool merge) const
             visitor->OnNamespaceBegin(block->_str);
             break;
         case detail::BlockType::NamespaceEnd:
-            visitor->OnNameSapceEnd();
+            visitor->OnNamesapceEnd();
             break;
         default:
             break;

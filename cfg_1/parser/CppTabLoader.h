@@ -6,7 +6,7 @@ CFG_NAMESPACE_BEGIN
 
 namespace detail
 {
-    class CppTabLoader : public IVarVistor
+    class CppTabLoader : public ITabVisitor
     {
     public:
         CppTabLoader(std::ostream* stream, int tab) : _stream(stream), _tab(tab)

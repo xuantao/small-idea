@@ -6,7 +6,7 @@
 CFG_NAMESPACE_BEGIN
 
 class IStructType;
-class IVarVistor;
+class ITabVisitor;
 
 struct UniqueVarName
 {
@@ -57,7 +57,7 @@ namespace utility
 
     std::vector<UniqueVarName> UniqueName(const IStructType* sType, const std::string& owner = EMPTY_STR);
 
-    void Traverse(const IStructType* sType, IVarVistor* visitor);
+    void Traverse(const IStructType* sType, ITabVisitor* visitor);
 
     std::string AbsolutePath(const std::string& path);
     bool SplitPath(const std::string& src,

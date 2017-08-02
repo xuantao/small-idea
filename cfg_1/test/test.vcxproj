@@ -89,6 +89,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)/json/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,13 +142,28 @@
   <ItemGroup>
     <ClCompile Include="cfg.cpp" />
     <ClCompile Include="CfgUtility.cpp" />
+    <ClCompile Include="json\src\lib_json\json_reader.cpp" />
+    <ClCompile Include="json\src\lib_json\json_value.cpp" />
+    <ClCompile Include="json\src\lib_json\json_writer.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cfg.h" />
     <ClInclude Include="CfgUtility.h" />
     <ClInclude Include="ITabFile.h" />
-    <ClInclude Include="TabParser.h" />
+    <ClInclude Include="CfgTabParser.h" />
+    <ClInclude Include="json\include\json\allocator.h" />
+    <ClInclude Include="json\include\json\assertions.h" />
+    <ClInclude Include="json\include\json\autolink.h" />
+    <ClInclude Include="json\include\json\config.h" />
+    <ClInclude Include="json\include\json\features.h" />
+    <ClInclude Include="json\include\json\forwards.h" />
+    <ClInclude Include="json\include\json\json.h" />
+    <ClInclude Include="json\include\json\reader.h" />
+    <ClInclude Include="json\include\json\value.h" />
+    <ClInclude Include="json\include\json\version.h" />
+    <ClInclude Include="json\include\json\writer.h" />
+    <ClInclude Include="json\src\lib_json\json_tool.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

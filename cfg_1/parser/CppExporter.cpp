@@ -1,6 +1,6 @@
 ﻿#include "CppExporter.h"
 #include "Utility.h"
-#include "CppStruct.h"
+#include "CppUtil.h"
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -9,14 +9,14 @@
 
 CFG_NAMESPACE_BEGIN
 
-//#define _DEF_STREAM_ &std::cerr
-//#define _OUTS_ (*_stream)
-//#define _TAB_ utility::Tab(*_stream, _tab)
-//#define _TAB_EX_(ex) std::string((_tab + ex) * 4, ' ')
-
 #define _NEED_TEMP_INT      0x01
 #define _NEED_TEMP_BUFFER   0x02
 #define _NEED_TEMP_ARRAY    0x04
+
+#define _DEF_STREAM_    &std::cerr
+#define _OUTS_          (*_stream)
+#define _TAB_           utility::Tab(*_stream, tab)
+#define _TAB_EX_(ex)    std::string((tab + ex) * 4, ' ')
 
 static int sNeedTempMask(const IStructType* sType)
 {
@@ -33,16 +33,9 @@ static int sNeedTempMask(const IStructType* sType)
             {
                 mask |= _NEED_TEMP_ARRAY;
             }
-        }
+            if (type->Category() == TypeCategory::Enum)
+                mask |= _NEED_TEMP_INT;
 
-        if (type->Category() == TypeCategory::Raw)
-        {
-            //if (static_cast<const IRawType*>(type)->Raw() == RawCategory::String)
-            //    mask |= _NEED_TEMP_BUFFER;
-        }
-        else if (type->Category() == TypeCategory::Struct)
-        {
-            //mask |= sNeedTempMask(static_cast<const IStructType*>(type));
         }
         else if (type->Category() == TypeCategory::Enum)
         {
@@ -54,303 +47,76 @@ static int sNeedTempMask(const IStructType* sType)
 
 namespace detail
 {
-    class TabLoader : public IVarVistor
+    class TabTitles : public ITabVisitor
     {
     public:
-        TabLoader(std::ostream* stream, int tab) : _stream(stream), _tab(tab)
-        {
-        }
+        TabTitles(int tab) : _count(0), _tab(tab) {}
+        virtual ~TabTitles() {}
 
     public:
-        virtual bool OnStart(const IStructType* sType)
+        size_t Count() const { return _count; }
+        std::string Str() const { return _title.str(); }
+    public:
+        virtual bool OnStart(const IStructType* sType) { return true; }
+        virtual bool OnEnd() { return true; }
+
+        virtual bool OnVar(const IVariate* var, const IRawType* rType,
+            const std::string& title, const std::string& path)
         {
+            OnTitle(title);
             return true;
         }
-
-        virtual bool OnEnd()
+        virtual bool OnVar(const IVariate* var, const IEnumType* eType,
+            const std::string& title, const std::string& path)
         {
+            OnTitle(title);
             return true;
         }
-
-        virtual bool OnVar(const IVariate* var, const IRawType* rType, const std::string& title, const std::string& path)
+        virtual bool OnVar(const IVariate* var, const IRawType* rType,
+            const std::string& title, const std::string& path, int length)
         {
-            switch (rType->Raw())
-            {
-            case RawCategory::Bool:
-                _TAB_ << "pTab->GetBoolean(line, \"" << title << "\" , out." << path << ", &out." << path << ");" << std::endl;
-                break;
-            case RawCategory::Int:
-                _TAB_ << "pTab->GetInteger(line, \"" << title << "\" , out." << path << ", &out." << path << ");" << std::endl;
-                break;
-            case RawCategory::Float:
-                _TAB_ << "pTab->GetFloat(line, \"" << title << "\" , out." << path << ", &" << path << ");" << std::endl;
-                break;
-            case RawCategory::String:
-                _TAB_ << "pTab->GetString(line, \"" << path << "\" , out." << path << ".c_str(), cBuffer, CFG_STR_BUFFER_SIZE);" << std::endl;
-                _TAB_ << "out." << path << " = cBuffer;" << std::endl;
-                break;
-            }
+            OnTitle(title);
             return true;
         }
-
-        virtual bool OnVar(const IVariate* var, const IEnumType* eType, const std::string& title, const std::string& path)
+        virtual bool OnVar(const IVariate* var, const IEnumType* eType,
+            const std::string& title, const std::string& path, int length)
         {
-            std::string tyName = utility::Contact(utility::Absolute(eType), "::");
-            _TAB_ << "pTab->GetString(line, \"" << title << "\" , \"\", cBuffer, CFG_STR_BUFFER_SIZE);" << std::endl <<
-                _TAB_EX_(0) << "if (!Enum::ToEnum(cBuffer, out." << path << "))" << std::endl <<
-                _TAB_EX_(0) << "{" << std::endl <<
-                _TAB_EX_(1) << "if (utility::Convert(cBuffer, nTemp) && Enum::ToString((" << tyName << ")nTemp))" << std::endl <<
-                _TAB_EX_(2) << "out." << path << " = (" << tyName << ")nTemp;" << std::endl <<
-                _TAB_EX_(1) << "else" << std::endl <<
-                _TAB_EX_(2) << "; //TODO: log error" << std::endl <<
-                _TAB_EX_(0) << "}" << std::endl;
-            return true;
-        }
-
-        virtual bool OnVar(const IVariate* var, const IRawType* rType, const std::string& title, const std::string& path, int length)
-        {
-            if (rType->Raw() == RawCategory::String)
-            {
-                _OUTS_ <<
-                    _TAB_EX_(0) << "pTab->GetString(line, \"" << title << "\" , \"\", cBuffer, CFG_STR_BUFFER_SIZE);" << std::endl <<
-                    _TAB_EX_(0) << "out." << path << " = utility::Split(cBuffer, \",\");" << std::endl;
-            }
-            else
-            {
-                _OUTS_ <<
-                    _TAB_EX_(0) << "pTab->GetString(line, \"" << title << "\" , \"\", cBuffer, CFG_STR_BUFFER_SIZE);" << std::endl <<
-                    _TAB_EX_(0) << "vecStr = utility::Split(cBuffer, \",\");" << std::endl;
-
-                if (length <= 0)
-                {
-                    _OUTS_ <<
-                        _TAB_EX_(0) << "out." << path << ".resize(vecStr.size());" << std::endl <<
-                        _TAB_EX_(0) << "for (size_t i = 0; i < vecStr.size(); ++i)" << std::endl;
-                }
-                else
-                {
-                    _OUTS_ <<
-                        _TAB_EX_(0) << "for (size_t i = 0; i < std::min(vecStr.size(), out." << path << ".size()); ++i)" << std::endl;
-                }
-
-                _OUTS_ <<
-                    _TAB_EX_(0) << "{" << std::endl <<
-                    _TAB_EX_(1) << "if (!utility::Convert(vecStr[i].c_str(), out." << path << "[i]))" << std::endl <<
-                    _TAB_EX_(2) << "; //TODO: log error" << std::endl <<
-                    _TAB_EX_(0) << "}" << std::endl;
-            }
-            return true;
-        }
-
-        virtual bool OnVar(const IVariate* var, const IEnumType* eType, const std::string& title, const std::string& path, int length)
-        {
-            std::string tyName = utility::Contact(utility::Absolute(eType), "::");
-            _OUTS_ <<
-                _TAB_EX_(0) << "pTab->GetString(line, \"" << title << "\" , \"\", cBuffer, CFG_STR_BUFFER_SIZE);" << std::endl <<
-                _TAB_EX_(0) << "vecStr = utility::Split(cBuffer, \",\");" << std::endl;
-
-            if (length <= 0)
-            {
-                _OUTS_ <<
-                    _TAB_EX_(0) << "out." << path << ".resize(vecStr.size());" << std::endl <<
-                    _TAB_EX_(0) << "for (size_t i = 0; i < vecStr.size(); ++i)" << std::endl;
-            }
-            else
-            {
-                _OUTS_ <<
-                    _TAB_EX_(0) << "for (size_t i = 0; i < std::min(vecStr.size(), out." << path << ".size()); ++i)" << std::endl;
-            }
-
-            _OUTS_ <<
-                _TAB_EX_(0) << "{" << std::endl <<
-                _TAB_EX_(1) << "if (!Enum::ToEnum(vecStr[i].c_str(), out." << path << "[i]))" << std::endl <<
-                _TAB_EX_(1) << "{" << std::endl <<
-                _TAB_EX_(2) << "if (utility::Convert(vecStr[i].c_str(), nTemp) && Enum::ToString((" << tyName << ")nTemp))" << std::endl <<
-                _TAB_EX_(3) << "out." << path << "[i] = (" << tyName << ")nTemp;" << std::endl <<
-                _TAB_EX_(2) << "else" << std::endl <<
-                _TAB_EX_(3) << "; //TODO: log error" << std::endl <<
-                _TAB_EX_(1) << "}" << std::endl <<
-                _TAB_EX_(0) << "}" << std::endl;
+            OnTitle(title);
             return true;
         }
 
     protected:
-        bool _newLine;
-        std::ostream* _stream;
+        void OnTitle(const std::string& title)
+        {
+            if (_count)
+            {
+                if (_count % 5 == 0)
+                {
+                    _title << ",\n";
+                    utility::Tab(_title, _tab);
+                }
+                else
+                {
+                    _title << ", ";
+                }
+            }
+
+            ++_count;
+            _title << "\"" << title << "\"";
+        }
+
+    protected:
+        std::stringstream _title;
+        int _count;
         int _tab;
     };
-}
-
-static bool _OnVar(const IVariate* var, const IRawType* rType, std::ostream* _stream, int _tab)
-{
-    switch (rType->Raw())
-    {
-    case RawCategory::Bool:
-        break;
-    case RawCategory::Int:
-        break;
-    case RawCategory::Float:
-        _TAB_ << "utility::Convert(iter->Next(), out." << var->Name() << ");" << std::endl;
-        break;
-    case RawCategory::String:
-        _TAB_ << "out." << var->Name() << " = iter.Next();" << std::endl;
-        break;
-    }
-    return true;
-}
-
-static bool _OnVar(const IVariate* var, const IEnumType* eType, std::ostream* _stream, int _tab)
-{
-    std::string tyName = utility::Contact(utility::Absolute(eType), "::");
-    _OUTS_ <<
-        _TAB_EX_(0) << "str = iter.Next();" << std::endl <<
-        _TAB_EX_(0) << "if (!Enum::ToEnum(cBuffer, out." << var->Name() << "))" << std::endl <<
-        _TAB_EX_(0) << "{" << std::endl <<
-        _TAB_EX_(1) << "if (utility::Convert(cBuffer, val) && Enum::ToString((" << tyName << ")val))" << std::endl <<
-        _TAB_EX_(2) << "out." << var->Name() << " = (" << tyName << ")nTemp;" << std::endl <<
-        _TAB_EX_(1) << "else" << std::endl <<
-        _TAB_EX_(2) << "; //TODO: log error" << std::endl <<
-        _TAB_EX_(0) << "}" << std::endl;
-    return true;
-}
-
-static bool _OnVar(const IVariate* var, const IRawType* rType, int length, std::ostream* _stream, int _tab)
-{
-    if (rType->Raw() == RawCategory::String)
-    {
-        _TAB_ << "out." << var->Name() << " = utility::Split(iter.Next(), \",\");" << std::endl;
-    }
-    else
-    {
-        _TAB_ << "vec = utility::Split(iter.Next(), \",\");" << std::endl;
-
-        if (length <= 0)
-        {
-            _OUTS_ <<
-                _TAB_EX_(0) << "out." << var->Name() << ".resize(vec.size());" << std::endl <<
-                _TAB_EX_(0) << "for (size_t i = 0; i < vec.size(); ++i)" << std::endl;
-        }
-        else
-        {
-            _OUTS_ <<
-                _TAB_EX_(0) << "for (size_t i = 0; i < std::min(vec.size(), out." << var->Name() << ".size()); ++i)" << std::endl;
-        }
-
-        _OUTS_ <<
-            _TAB_EX_(0) << "{" << std::endl <<
-            _TAB_EX_(1) << "if (!utility::Convert(vec[i].c_str(), out." << var->Name() << "[i]))" << std::endl <<
-            _TAB_EX_(2) << "; //TODO: log error" << std::endl <<
-            _TAB_EX_(0) << "}" << std::endl;
-    }
-    return true;
-}
-
-static bool _OnVar(const IVariate* var, const IEnumType* eType, int length, std::ostream* _stream, int _tab)
-{
-    std::string tyName = utility::Contact(utility::Absolute(eType), "::");
-    _OUTS_ <<
-        _TAB_EX_(0) << "vec = utility::Split(iter.Next(), \",\");" << std::endl;
-
-    if (length <= 0)
-    {
-        _OUTS_ <<
-            _TAB_EX_(0) << "out." << var->Name() << ".resize(vec.size());" << std::endl <<
-            _TAB_EX_(0) << "for (size_t i = 0; i < vec.size(); ++i)" << std::endl;
-    }
-    else
-    {
-        _OUTS_ <<
-            _TAB_EX_(0) << "for (size_t i = 0; i < std::min(vec.size(), out." << var->Name() << ".size()); ++i)" << std::endl;
-    }
-
-    _OUTS_ <<
-        _TAB_EX_(0) << "{" << std::endl <<
-        _TAB_EX_(1) << "if (!Enum::ToEnum(vec[i].c_str(), out." << var->Name() << "[i]))" << std::endl <<
-        _TAB_EX_(1) << "{" << std::endl <<
-        _TAB_EX_(2) << "if (utility::Convert(vec[i].c_str(), val) && Enum::ToString((" << tyName << ")val))" << std::endl <<
-        _TAB_EX_(3) << "out." << var->Name() << "[i] = (" << tyName << ")nTemp;" << std::endl <<
-        _TAB_EX_(2) << "else" << std::endl <<
-        _TAB_EX_(3) << "; //TODO: log error" << std::endl <<
-        _TAB_EX_(1) << "}" << std::endl <<
-        _TAB_EX_(0) << "}" << std::endl;
-    return true;
-}
-
-static bool _OnVar(const IVariate* var, const IStructType* rType, int length, std::ostream* _stream, int _tab)
-{
-    _OUTS_ <<
-        _TAB_EX_(0) << "for (size_t i = 0; i < out." << var->Name() << ".size(); ++i)" << std::endl <<
-        _TAB_EX_(1) << "sLoad(iter, out." << var->Name() << "[i]);" << std::endl;
-    return true;
-}
-
-static void _loader(const IStructType* sType, std::ostream* _stream, int _tab)
-{
-    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
-    _OUTS_ <<
-        _TAB_EX_(0) << "static bool sLoad(utility::TabIter& iter, " << tyName << "& out)" << std::endl <<
-        _TAB_EX_(0) << "{" << std::endl;
-
-    int mask = sNeedTempMask(sType);
-    if (mask & _NEED_TEMP_INT)
-        _OUTS_ << _TAB_EX_(1) << "int val = 0;" << std::endl;
-    if (mask & _NEED_TEMP_BUFFER)
-        _OUTS_ << _TAB_EX_(1) << "const char* str = nullptr;" << std::endl;
-    if (mask & _NEED_TEMP_ARRAY)
-        _OUTS_ << _TAB_EX_(1) << "std::vector<string> vec;" << std::endl;
-    if (mask)
-        _OUTS_ << std::endl;
-
-    const IVarSet* vars = sType->VarSet();
-    for (int i = 0; i < vars->Size(); ++i)
-    {
-        const IVariate* var = vars->Get(i);
-        const IType* ty = var->Type();
-
-        if (ty->Category() == TypeCategory::Raw)
-        {
-            _OnVar(var, (const IRawType*)ty, _stream, _tab + 1);
-        }
-        else if (ty->Category() == TypeCategory::Enum)
-        {
-            if (i) _OUTS_ << std::endl;
-            _OnVar(var, (const IEnumType*)ty, _stream, _tab + 1);
-        }
-        else if (ty->Category() == TypeCategory::Struct)
-        {
-            _OUTS_ <<
-                _TAB_EX_(1) << "sLoad(iter, out." << var->Name() << ");" << std::endl;
-        }
-        else if (ty->Category() == TypeCategory::Array)
-        {
-            if (i) _OUTS_ << std::endl;
-
-            const IArrayType* aTy = (const IArrayType*)ty;
-            const IType* original = aTy->Original();
-            if (original->Category() == TypeCategory::Raw)
-            {
-                _OnVar(var, (const IRawType*)original, aTy->Length(), _stream, _tab + 1);
-            }
-            else if (original->Category() == TypeCategory::Enum)
-            {
-                _OnVar(var, (const IEnumType*)original, aTy->Length(), _stream, _tab + 1);
-            }
-            else if (original->Category() == TypeCategory::Struct)
-            {
-                _OnVar(var, (const IStructType*)original, aTy->Length(), _stream, _tab + 1);
-            }
-        }
-    }
-
-    _OUTS_ <<
-        _TAB_EX_(1) << "return true;" << std::endl <<
-        _TAB_EX_(0) << "}" << std::endl;
 }
 
 CppExporter::CppExporter()
     : _stream(_DEF_STREAM_)
     , _global(nullptr)
     , _tab(0)
+    , _lastIsVar(false)
 {
 }
 
@@ -358,33 +124,29 @@ CppExporter::~CppExporter()
 {
 }
 
-void CppExporter::OnBegin(const IScopeType* global, const std::string& path, const std::string& file)
+void CppExporter::OnBegin(const IScopeType* global, const std::string& file)
 {
     _global = global;
-    _path = path;
     _file = file;
 
-    //std::ofstream* header = new std::ofstream();
-    //header->open(path + file + ".h");
-    //if (header->is_open())
-    //    _stream = header;
-    //else
-    //    delete header;
+    std::ofstream* header = new std::ofstream();
+    header->open(file + ".h");
+    if (header->is_open())
+        _stream = header;
+    else
+        delete header;
 
     _OUTS_ << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl <<
         "#pragma once" << std::endl << std::endl <<
         "#include <vector>" << std::endl <<
         "#include <string>" << std::endl <<
-        "#include <array>" << std::endl << std::endl <<
-        "class ITabFile;" << std::endl << std::endl;
+        "#include <array>" << std::endl << std::endl;
 }
 
 void CppExporter::OnEnd()
 {
-    return;
-
     // api declare
-    DeclaerHeader();
+    HeaderDeclare();
 
     if (_stream != _DEF_STREAM_)
     {
@@ -393,13 +155,13 @@ void CppExporter::OnEnd()
         _stream = _DEF_STREAM_;
     }
 
-    // build cpp file, api implemention
+    // build cpp file, api implementation
     std::ofstream cpp;
-    cpp.open(_path + _file + ".cpp");
+    cpp.open(_file + ".cpp");
     if (cpp.is_open())
         _stream = &cpp;
 
-    ImplationCpp();
+    CppImpl();
 
     _stream = _DEF_STREAM_;
     cpp.close();
@@ -410,6 +172,7 @@ void CppExporter::OnEnd()
     _file = "";
     _global = nullptr;
     _tab = 0;
+    _lastIsVar = false;
 }
 
 void CppExporter::OnFileBegin(const std::string& file)
@@ -424,23 +187,12 @@ void CppExporter::OnNamespaceBegin(const std::string& name)
 {
 }
 
-void CppExporter::OnNameSapceEnd()
+void CppExporter::OnNamesapceEnd()
 {
 }
 
 void CppExporter::OnInclude(const std::string& file)
 {
-    std::string name = utility::TrimFileSuffix(file, '.') + ".h";
-    if (name.length() <= 2)
-    {
-        ERROR_NOT_ALLOW;
-        return;
-    }
-
-    _OUTS_ << "#include \"" << name << "\"";
-    if (name != file)
-        _OUTS_ << " // \"" << file << "\"";
-    _OUTS_ << std::endl;
 }
 
 void CppExporter::OnVariate(const IVariate* var)
@@ -449,14 +201,24 @@ void CppExporter::OnVariate(const IVariate* var)
     if (!cpp_util::Convert(var, data))
         return;
 
-    _OUTS_ << "static const " << data.type << " " << data.name;
+    int tab = _tab;
+    _OUTS_ <<
+        _TAB_EX_(0) << "static const " << data.type << " " << data.name;
     if (!data.value.empty())
         _OUTS_ << " = " << data.value;
     _OUTS_ << ";" << std::endl;
+
+    _lastIsVar = true;
 }
 
 void CppExporter::OnType(const IType* type)
 {
+    if (_lastIsVar)
+    {
+        _OUTS_ << std::endl;
+        _lastIsVar = false;
+    }
+
     if (type->Category() == TypeCategory::Enum)
     {
         const IEnumType* eType = static_cast<const IEnumType*>(type);
@@ -466,20 +228,18 @@ void CppExporter::OnType(const IType* type)
     else if (type->Category() == TypeCategory::Struct)
     {
         const IStructType* sType = static_cast<const IStructType*>(type);
-        _loader(sType, &std::cout, 0);
-        //Declare(sType);
-        //_structs.push_back(sType);
+        Declare(sType);
 
-        //if (sType->Cfg() == CfgCategory::Tab)
-        //{
-        //    GetDepends(sType, _tabDepends);
-        //    _tabs.push_back(sType);
-        //}
-        //else
-        //{
-        //    GetDepends(sType, _jsonDepends);
-        //    _jsons.push_back(sType);;
-        //}
+        if (sType->Cfg() == CfgCategory::Tab)
+        {
+            GetDepends(sType, _tabDepends);
+            _tabs.push_back(sType);
+        }
+        else if (sType->Cfg() == CfgCategory::Json)
+        {
+            GetDepends(sType, _jsonDepends);
+            _jsons.push_back(sType);;
+        }
     }
     else
     {
@@ -492,9 +252,10 @@ void CppExporter::OnType(const IType* type)
 
 bool CppExporter::Declare(const IEnumType* ty)
 {
+    int tab = _tab;
     _TAB_ << "enum " << ty->Name() << std::endl;
     _TAB_ << "{" << std::endl;
-    ++_tab;
+    ++tab;
 
     const IVarSet* vars = ty->VarSet();
     for (int i = 0; i < vars->Size(); ++i)
@@ -508,13 +269,14 @@ bool CppExporter::Declare(const IEnumType* ty)
         _OUTS_ << std::endl;
     }
 
-    --_tab;
+    --tab;
     _TAB_ << "};" << std::endl;
     return true;
 }
 
 bool CppExporter::Declare(const IStructType* sType)
 {
+    int tab = _tab;
     const IVarSet* varSet = sType->OwnVars();
     std::vector<CppVarData> vars;
     bool constructor = false;
@@ -542,7 +304,7 @@ bool CppExporter::Declare(const IStructType* sType)
     _OUTS_ << std::endl;
 
     _TAB_ << "{" << std::endl;
-    ++_tab;
+    ++tab;
 
     /* const values */
     for (size_t i = 0; i < vars.size(); i++)
@@ -561,7 +323,7 @@ bool CppExporter::Declare(const IStructType* sType)
     if (constructor)
     {
         _TAB_ << sType->Name() << "()" << std::endl;
-        ++_tab;
+        ++tab;
 
         bool first = true;
         for (size_t i = 0; i < vars.size(); i++)
@@ -596,7 +358,7 @@ bool CppExporter::Declare(const IStructType* sType)
             first = false;
         }
 
-        --_tab;
+        --tab;
         _TAB_ << "{ }" << std::endl << std::endl;
     }
 
@@ -610,107 +372,121 @@ bool CppExporter::Declare(const IStructType* sType)
         _TAB_ << "" << data.type << " " << data.name << ";" << std::endl;
     }
 
-    --_tab;
+    --tab;
     _TAB_ << "};" << std::endl;
 
     return true;
 }
 
-bool CppExporter::DeclaerHeader()
+bool CppExporter::HeaderDeclare()
 {
+    int tab = _tab;
     if (!_enums.empty())
     {
         _OUTS_ << "namespace Enum\n{" << std::endl;
-        ++_tab;
 
-        for (auto it = _enums.begin(); it != _enums.end(); ++it)
-            FuncDeclare(*it);
+        for (int i = 0; i < _enums.size(); ++i)
+        {
+            EnumHelperDeclare(_enums[i], 1);
+            if (i + 1 != _enums.size())
+                _OUTS_ << std::endl;
+        }
 
-        --_tab;
         _OUTS_ << "} // end of namespace Enum" << std::endl << std::endl;
     }
 
-    if (!_structs.empty())
+    if (!_tabs.empty())
     {
         _OUTS_ << "namespace Tab\n{" << std::endl;
-        ++_tab;
 
-        for (auto it = _structs.begin(); it != _structs.end(); ++it)
-            TabFuncDeclare(*it);
+        for (auto it = _tabs.begin(); it != _tabs.end(); ++it)
+            TabDeclare(*it, 1);
 
-        --_tab;
         _OUTS_ << "} // end of namespace Tab" << std::endl;
 
         _OUTS_ << std::endl << "namespace Json\n{" << std::endl;
-        ++_tab;
 
-        for (auto it = _structs.begin(); it != _structs.end(); ++it)
-            ; // TODO: json
+        for (auto it = _jsons.begin(); it != _jsons.end(); ++it)
+            JsonDeclare(*it, 1);
 
-        --_tab;
         _OUTS_ << "} // end of namespace Json" << std::endl;
     }
     return true;
 }
 
-bool CppExporter::ImplationCpp()
+bool CppExporter::CppImpl()
 {
+    int tab = 0;
+    std::string f;
+    utility::SplitPath(_file, nullptr, &f, nullptr);
+
     _OUTS_ << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl;
-    _OUTS_ << "#include \"" << _file << ".h\"" << std::endl <<
+    _OUTS_ << "#include \"" << f << ".h\"" << std::endl <<
         "#include \"CfgUtility.h\"" << std::endl <<
-        "#include \"ITabFile.h\"" << std::endl << std::endl <<
+        "#include \"CfgTabParser.h\"" << std::endl <<
+        "#include <json/reader.h>" << std::endl << std::endl <<
         "using namespace cfg;" << std::endl << std::endl;
 
     if (!_enums.empty())
     {
         _OUTS_ << "namespace Enum\n{" << std::endl;
-        ++_tab;
 
         for (auto it = _enums.begin(); it != _enums.end(); ++it)
         {
-            EnumStaticData(*it);
+            EnumData(*it, 1);
             _OUTS_ << std::endl;
         }
 
         for (auto it = _enums.begin(); it != _enums.end(); ++it)
         {
-            FuncImpl(*it);
+            EnumHelper(*it, 1);
             if (it + 1 != _enums.end())
                 _OUTS_ << std::endl;
         }
 
-        --_tab;
         _OUTS_ << "} // end of namespace Enum" << std::endl << std::endl;
     }
 
-    if (!_structs.empty())
+    if (!_tabs.empty())
     {
         _OUTS_ << "namespace Tab\n{" << std::endl;
-        ++_tab;
 
-        for (auto it = _structs.begin(); it != _structs.end(); ++it)
+        for (size_t i = 0; i < _tabDepends.size(); ++i)
         {
-            TabFuncImpl(*it);
-            if (it + 1 != _structs.end())
+            TabLoaderStatic(_tabDepends[i], 1);
+            _OUTS_ << std::endl;
+        }
+
+        for (size_t i = 0; i < _tabs.size(); ++i)
+        {
+            TabLoader(_tabs[i], 1);
+            if (i + 1 != _tabs.size())
                 _OUTS_ << std::endl;
         }
 
-        --_tab;
         _OUTS_ << "} // end of namespace Tab" << std::endl;
 
         _OUTS_ << std::endl << "namespace Json\n{" << std::endl;
-        ++_tab;
 
-        for (auto it = _structs.begin(); it != _structs.end(); ++it)
-            ; // TODO: json
+        for (size_t i = 0; i < _jsonDepends.size(); ++i)
+        {
+            JsonLoaderStatic(_jsonDepends[i], 1);
+            _OUTS_ << std::endl;
+        }
 
-        --_tab;
+        for (size_t i = 0; i < _jsons.size(); ++i)
+        {
+            JsonLoader(_jsons[i], 1);
+            if (i + 1 != _jsons.size())
+                _OUTS_ << std::endl;
+        }
+
         _OUTS_ << "} // end of namespace Json" << std::endl;
     }
     return true;
 }
 
-bool CppExporter::EnumStaticData(const IEnumType* eType)
+bool CppExporter::EnumData(const IEnumType* eType, int tab)
 {
     std::vector<std::string> path = utility::Absolute(eType);
     std::string base = utility::Contact(path, "_");
@@ -720,7 +496,7 @@ bool CppExporter::EnumStaticData(const IEnumType* eType)
     const IVarSet* varSet = eType->VarSet();
 
     _TAB_ << "static const int " << varName << "[] = {" << std::endl;
-    ++_tab;
+    ++tab;
 
     _TAB_;
     for (int i = 0; i < varSet->Size(); ++i)
@@ -734,11 +510,11 @@ bool CppExporter::EnumStaticData(const IEnumType* eType)
     }
     _OUTS_ << "CFG_INVALID_ENUM";
 
-    --_tab;
+    --tab;
     _OUTS_ << " }; // end of enum " << eType->Name() << std::endl;
 
     _TAB_ << "static const char* const  " << strName << "[] = {" << std::endl;
-    ++_tab;
+    ++tab;
 
     _TAB_;
     for (int i = 0; i < varSet->Size(); ++i)
@@ -752,25 +528,25 @@ bool CppExporter::EnumStaticData(const IEnumType* eType)
     }
     _OUTS_ << "nullptr";
 
-    --_tab;
+    --tab;
     _OUTS_ << " }; // end of enum " << eType->Name() << std::endl;
 
     return true;
 }
 
-bool CppExporter::FuncDeclare(const IEnumType* eType)
+bool CppExporter::EnumHelperDeclare(const IEnumType* eType, int tab)
 {
     std::vector<std::string> path = utility::Absolute(eType);
-    std::string name = utility::Contact(path, "::");
-
-    _TAB_ << "const char* const * Names(" << name << ");" << std::endl;
-    _TAB_ << "const char* ToString(" << name << " value);" << std::endl;
-    _TAB_ << "bool ToEnum(const char* name," << name << "& out);" << std::endl;
+    std::string tyName = utility::Contact(path, "::");
+    _TAB_ << "/* " << tyName << " */" << std::endl;
+    _TAB_ << "const char* const * Names(" << tyName << ");" << std::endl;
+    _TAB_ << "const char* ToString(" << tyName << " value);" << std::endl;
+    _TAB_ << "bool ToEnum(const char* name, " << tyName << "& out);" << std::endl;
 
     return true;
 }
 
-bool CppExporter::FuncImpl(const IEnumType* eType)
+bool CppExporter::EnumHelper(const IEnumType* eType, int tab)
 {
     std::vector<std::string> path = utility::Absolute(eType);
     std::string tyName = utility::Contact(path, "::");
@@ -813,86 +589,516 @@ bool CppExporter::FuncImpl(const IEnumType* eType)
     return true;
 }
 
-bool CppExporter::TabFuncDeclare(const IStructType* sType)
+void CppExporter::TabDeclare(const IStructType* sType, int tab)
 {
     std::vector<std::string> path = utility::Absolute(sType);
     std::string tyName = utility::Contact(path, "::");
 
-    _TAB_ << "int Load(ITabFile* pTab, std::vector<" << tyName << ">& out);" << std::endl;
-
-    return true;
+    _TAB_ << "bool Load(const char* data, size_t size, std::vector<" << tyName << ">& out);" << std::endl;
 }
 
-bool CppExporter::TabFuncImpl(const IStructType* sType)
+void CppExporter::TabLoader(const IStructType* sType, int tab)
 {
-    std::vector<std::string> path = utility::Absolute(sType);
-    std::string tyName = utility::Contact(path, "::");
+    detail::TabTitles titles(tab + 2);
+    utility::Traverse(sType, &titles);
 
-    TabLoaderFunc(sType);
+    if (titles.Count() == 0)
+        return;
 
-    _OUTS_ << std::endl;
+    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
     _OUTS_ <<
-        _TAB_EX_(0) << "int Load(ITabFile* pTab, std::vector<" << tyName << ">& out)" << std::endl <<
-        _TAB_EX_(0) << "{" << std::endl <<
-        _TAB_EX_(1) << "size_t prev = out.size();" << std::endl <<
-        _TAB_EX_(1) << "if (pTab == nullptr || pTab->GetHeight() <= 4) " << std::endl <<
-        _TAB_EX_(2) << "return 0;" << std::endl << std::endl;
+        _TAB_EX_(0) << "bool Load(const char* data, size_t size, std::vector<" << tyName << ">& out)" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl;
 
     _OUTS_ <<
-        _TAB_EX_(1) << "// load default data" << std::endl <<
-        _TAB_EX_(1) << tyName << " def;" << std::endl <<
-        _TAB_EX_(1) << "Load(pTab, 4, def);" << std::endl << std::endl;
+        _TAB_EX_(1) << "static const std::array<const char*, " << titles.Count() << "> titles = {" << std::endl <<
+        _TAB_EX_(2) << titles.Str() << std::endl <<
+        _TAB_EX_(1) << "};" << std::endl << std::endl;
 
-    _OUTS_ <<
-        _TAB_EX_(1) << "for (int i = 5; i < pTab->GetHeight(); ++i)" << std::endl <<
-        _TAB_EX_(1) << "{" << std::endl <<
-        _TAB_EX_(2) << tyName << " data = def;" << std::endl <<
-        _TAB_EX_(2) << "if (Load(pTab, i, data))" << std::endl <<
-        _TAB_EX_(3) << "out.push_back(data);" << std::endl <<
-        _TAB_EX_(1) << "}" << std::endl << std::endl <<
-        _TAB_EX_(1) << "return out.size() - prev;" << std::endl <<
-        _TAB_EX_(0) << "}" << std::endl;
-    return true;
-}
-
-bool CppExporter::TabLoaderFunc(const IStructType* sType)
-{
-    std::vector<std::string> path = utility::Absolute(sType);
-    std::string tyName = utility::Contact(path, "::");
+    // define temp val
     int mask = sNeedTempMask(sType);
-
-    _TAB_ << "static bool Load(ITabFile* pTab, int line, " << tyName << "& out)" << std::endl;
-
-    _TAB_ << "{" << std::endl;
-    ++_tab;
-
     if (mask & _NEED_TEMP_INT)
-        _TAB_ << "int nTemp = 0;" << std::endl;
+        _OUTS_ << _TAB_EX_(1) << "int val = 0;" << std::endl;
     if (mask & _NEED_TEMP_BUFFER)
-        _TAB_ << "char cBuffer[CFG_STR_BUFFER_SIZE] = {0};" << std::endl;
+        _OUTS_ << _TAB_EX_(1) << "const char* str = nullptr;" << std::endl;
     if (mask & _NEED_TEMP_ARRAY)
-        _TAB_ << "std::vector<std::string> vecStr;" << std::endl;
+        _OUTS_ << _TAB_EX_(1) << "std::vector<std::string> vec;" << std::endl;
     if (mask)
         _OUTS_ << std::endl;
 
-    //TabLoad(sType, "", "data");
-    detail::TabLoader loader(_stream, _tab);
-    utility::Traverse(sType, &loader);
+    // load default value
+    _OUTS_ <<
+        _TAB_EX_(1) << "TabParser<" << titles.Count() << "> parser(titles);" << std::endl <<
+        _TAB_EX_(1) << "if (!parser.Parse(data, size))" << std::endl <<
+        _TAB_EX_(2) << "return false;" << std::endl << std::endl <<
+        _TAB_EX_(1) << "// load default data" << std::endl <<
+        _TAB_EX_(1) << tyName << " def;" << std::endl <<
+        _TAB_EX_(1) << "if (!parser.NextLine() || !sLoad(parser.LineIter(), def))" << std::endl <<
+        _TAB_EX_(2) << "return false;" << std::endl << std::endl;
 
-    _TAB_ << "return true;" << std::endl;
-    --_tab;
-    _TAB_ << "}" << std::endl;
-    return true;
+    // while load
+    _OUTS_ <<
+        _TAB_EX_(1) << "while (parser.NextLine())" << std::endl <<
+        _TAB_EX_(1) << "{" << std::endl <<
+        _TAB_EX_(2) << tyName << " data = def;" << std::endl <<
+        _TAB_EX_(2) << "if (sLoad(parser.LineIter(), data))" << std::endl <<
+        _TAB_EX_(3) << "out.push_back(data);" << std::endl <<
+        _TAB_EX_(1) << "}" << std::endl;
+
+    _OUTS_ <<
+        _TAB_EX_(1) << "return true;" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
 }
 
-bool CppExporter::JsonFuncDeclare(const IStructType* sType)
+void CppExporter::TabLoaderStatic(const IStructType* sType, int tab)
 {
-    return true;
+    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "static bool sLoad(TabLineIter& iter, " << tyName << "& out)" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl;
+
+    int mask = sNeedTempMask(sType);
+    if (mask & _NEED_TEMP_INT)
+        _OUTS_ << _TAB_EX_(1) << "int val = 0;" << std::endl;
+    if (mask & _NEED_TEMP_BUFFER)
+        _OUTS_ << _TAB_EX_(1) << "const char* str = nullptr;" << std::endl;
+    if (mask & _NEED_TEMP_ARRAY)
+        _OUTS_ << _TAB_EX_(1) << "std::vector<std::string> vec;" << std::endl;
+    if (mask)
+        _OUTS_ << std::endl;
+
+    TabLoadDetail(sType, tab + 1);
+
+    _OUTS_ <<
+        _TAB_EX_(1) << "return true;" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
 }
 
-bool CppExporter::JsonFuncImpl(const IStructType* sType)
+void CppExporter::TabLoadDetail(const IStructType* sType, int tab)
 {
-    return true;
+    if (sType->Inherited())
+    {
+        std::string tyName = utility::Contact(utility::Absolute(sType->Inherited()), "::");
+        _OUTS_ << _TAB_EX_(0) << "sLoad(iter, (" << tyName << "&)out);" << std::endl;
+    }
+
+    const IVarSet* vars = sType->OwnVars();
+    bool bnewLine = false;
+    for (int i = 0; i < vars->Size(); ++i)
+    {
+        const IVariate* var = vars->Get(i);
+        const IType* ty = var->Type();
+
+        if (ty->Category() == TypeCategory::Raw)
+        {
+            TabLoadVar(var, (const IRawType*)ty, tab);
+        }
+        else if (ty->Category() == TypeCategory::Enum)
+        {
+            if (i) _OUTS_ << std::endl;
+            TabLoadVar(var, (const IEnumType*)ty, tab);
+        }
+        else if (ty->Category() == TypeCategory::Struct)
+        {
+            const IStructType* sTy = (const IStructType*)ty;
+            TabLoadVar(var, sTy, tab);
+        }
+        else if (ty->Category() == TypeCategory::Array)
+        {
+            if (i) _OUTS_ << std::endl;
+
+            const IArrayType* aTy = (const IArrayType*)ty;
+            const IType* original = aTy->Original();
+            if (original->Category() == TypeCategory::Raw)
+            {
+                TabLoadVar(var, (const IRawType*)original, aTy->Length(), tab);
+            }
+            else if (original->Category() == TypeCategory::Enum)
+            {
+                TabLoadVar(var, (const IEnumType*)original, aTy->Length(), tab);
+            }
+            else if (original->Category() == TypeCategory::Struct)
+            {
+                TabLoadVar(var, (const IStructType*)original, aTy->Length(), tab);
+            }
+        }
+    }
+}
+
+void CppExporter::TabLoadVar(const IVariate* var, const IRawType* rType, int tab)
+{
+    switch (rType->Raw())
+    {
+    case RawCategory::Bool:
+        break;
+    case RawCategory::Int:
+        break;
+    case RawCategory::Float:
+        _TAB_ << "iter.MoveNext();" << std::endl;
+        _TAB_ << "utility::Convert(iter.Value(), out." << var->Name() << ");" << std::endl;
+        break;
+    case RawCategory::String:
+        _OUTS_ <<
+            _TAB_EX_(0) << "iter.MoveNext();" << std::endl <<
+            _TAB_EX_(0) << "if (iter.Value() && iter.Value()[0])" << std::endl <<
+            _TAB_EX_(1) << "out." << var->Name() << " = iter.Value();" << std::endl;
+        break;
+    }
+}
+
+void CppExporter::TabLoadVar(const IVariate* var, const IEnumType* eType, int tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(eType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "iter.MoveNext();" << std::endl <<
+        _TAB_EX_(0) << "if (!Enum::ToEnum(iter.Value(), out." << var->Name() << "))" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "if (utility::Convert(iter.Value(), val) && Enum::ToString((" << tyName << ")val))" << std::endl <<
+        _TAB_EX_(2) << "out." << var->Name() << " = (" << tyName << ")val;" << std::endl <<
+        _TAB_EX_(1) << "else" << std::endl <<
+        _TAB_EX_(2) << "; //TODO: log error" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::TabLoadVar(const IVariate* var, const IStructType* rType, int tab)
+{
+    _OUTS_ <<
+        _TAB_EX_(0) << "sLoad(iter, out." << var->Name() << ");" << std::endl;
+}
+
+void CppExporter::TabLoadVar(const IVariate* var, const IRawType* rType, int length, int tab)
+{
+    _TAB_ << "iter.MoveNext();" << std::endl;
+    if (rType->Raw() == RawCategory::String)
+    {
+        _TAB_ << "out." << var->Name() << " = utility::Split(iter.Value(), \",\");" << std::endl;
+    }
+    else
+    {
+        _TAB_ << "vec = utility::Split(iter.Value(), \",\");" << std::endl;
+
+        if (length <= 0)
+        {
+            _OUTS_ <<
+                _TAB_EX_(0) << "out." << var->Name() << ".resize(vec.size());" << std::endl <<
+                _TAB_EX_(0) << "for (size_t i = 0; i < vec.size(); ++i)" << std::endl;
+        }
+        else
+        {
+            _OUTS_ <<
+                _TAB_EX_(0) << "for (size_t i = 0; i < std::min(vec.size(), out." << var->Name() << ".size()); ++i)" << std::endl;
+        }
+
+        _OUTS_ <<
+            _TAB_EX_(0) << "{" << std::endl <<
+            _TAB_EX_(1) << "if (!utility::Convert(vec[i].c_str(), out." << var->Name() << "[i]))" << std::endl <<
+            _TAB_EX_(2) << "; //TODO: log error" << std::endl <<
+            _TAB_EX_(0) << "}" << std::endl;
+    }
+}
+
+void CppExporter::TabLoadVar(const IVariate* var, const IEnumType* eType, int length, int tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(eType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "iter.MoveNext();" << std::endl <<
+        _TAB_EX_(0) << "vec = utility::Split(iter.Value(), \",\");" << std::endl;
+
+    if (length <= 0)
+    {
+        _OUTS_ <<
+            _TAB_EX_(0) << "out." << var->Name() << ".resize(vec.size());" << std::endl <<
+            _TAB_EX_(0) << "for (size_t i = 0; i < vec.size(); ++i)" << std::endl;
+    }
+    else
+    {
+        _OUTS_ <<
+            _TAB_EX_(0) << "for (size_t i = 0; i < std::min(vec.size(), out." << var->Name() << ".size()); ++i)" << std::endl;
+    }
+
+    _OUTS_ <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "if (!Enum::ToEnum(vec[i].c_str(), out." << var->Name() << "[i]))" << std::endl <<
+        _TAB_EX_(1) << "{" << std::endl <<
+        _TAB_EX_(2) << "if (utility::Convert(vec[i].c_str(), val) && Enum::ToString((" << tyName << ")val))" << std::endl <<
+        _TAB_EX_(3) << "out." << var->Name() << "[i] = (" << tyName << ")val;" << std::endl <<
+        _TAB_EX_(2) << "else" << std::endl <<
+        _TAB_EX_(3) << "; //TODO: log error" << std::endl <<
+        _TAB_EX_(1) << "}" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::TabLoadVar(const IVariate* var, const IStructType* rType, int length, int tab)
+{
+    _OUTS_ <<
+        _TAB_EX_(0) << "for (size_t i = 0; i < out." << var->Name() << ".size(); ++i)" << std::endl <<
+        _TAB_EX_(1) << "sLoad(iter, out." << var->Name() << "[i]);" << std::endl;
+}
+
+void CppExporter::JsonDeclare(const IStructType* sType, int tab)
+{
+    std::vector<std::string> path = utility::Absolute(sType);
+    std::string tyName = utility::Contact(path, "::");
+
+    _TAB_ << "bool Load(const char* data, size_t size, " << tyName << "& out);" << std::endl;
+}
+
+void CppExporter::JsonLoader(const IStructType* sType, int tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
+
+    _OUTS_ <<
+        _TAB_EX_(0) << "bool Load(const char* data, size_t size, " << tyName << "& out)" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "if (data == nullptr || data[0] == 0)" << std::endl <<
+        _TAB_EX_(2) << "return false;" << std::endl << std::endl <<
+        _TAB_EX_(1) << "Json::Value node;" << std::endl <<
+        _TAB_EX_(1) << "Json::Reader reader;" << std::endl <<
+        _TAB_EX_(1) << "if (!reader.parse(std::string(data, size), node, false))" << std::endl <<
+        _TAB_EX_(2) << "return false;" << std::endl << std::endl <<
+        _TAB_EX_(1) << "if (node.type() != Json::ValueType::objectValue)" << std::endl <<
+        _TAB_EX_(2) << "return false;" << std::endl << std::endl <<
+        _TAB_EX_(1) << " return sLoad(node, out);" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+
+}
+
+void CppExporter::JsonLoaderStatic(const IStructType* sType, int tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "bool sLoad(const Json::Value& node, " << tyName << "& out)" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl;
+
+    if (sType->Inherited())
+    {
+        std::string baseName = utility::Contact(utility::Absolute(sType->Inherited()), "::");
+        _OUTS_ << _TAB_EX_(1) << "sLoad(node, (" << baseName << "&)out);" << std::endl << std::endl;
+    }
+
+    const IVarSet* vars = sType->OwnVars();
+    bool bnewLine = false;
+    for (int i = 0; i < vars->Size(); ++i)
+    {
+        const IVariate* var = vars->Get(i);
+        const IType* ty = var->Type();
+
+        if (ty->Category() == TypeCategory::Raw)
+        {
+            JsonLoadVar(var, (const IRawType*)ty, tab + 1);
+        }
+        else if (ty->Category() == TypeCategory::Enum)
+        {
+            if (i) _OUTS_ << std::endl;
+            JsonLoadVar(var, (const IEnumType*)ty, tab + 1);
+        }
+        else if (ty->Category() == TypeCategory::Struct)
+        {
+            const IStructType* sTy = (const IStructType*)ty;
+            JsonLoadVar(var, sTy, tab + 1);
+        }
+        else if (ty->Category() == TypeCategory::Array)
+        {
+            if (i) _OUTS_ << std::endl;
+
+            const IArrayType* aTy = (const IArrayType*)ty;
+            const IType* original = aTy->Original();
+            if (original->Category() == TypeCategory::Raw)
+            {
+                JsonLoadVar(var, (const IRawType*)original, aTy->Length(), tab + 1);
+            }
+            else if (original->Category() == TypeCategory::Enum)
+            {
+                JsonLoadVar(var, (const IEnumType*)original, aTy->Length(), tab + 1);
+            }
+            else if (original->Category() == TypeCategory::Struct)
+            {
+                JsonLoadVar(var, (const IStructType*)original, aTy->Length(), tab + 1);
+            }
+        }
+    }
+
+    _OUTS_ <<
+        _TAB_EX_(1) << "return true;" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::JsonLoadVar(const IVariate* var, const IRawType* rType, int tab)
+{
+    _OUTS_ <<
+        _TAB_EX_(0) << "if (node.isMember(\"" << var->Name() << "\"))" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "const Json::Value& mem = node[\"" << var->Name() << "\"];" << std::endl;
+
+    if (rType->Raw() == RawCategory::Bool)
+    {
+        _OUTS_ <<
+            _TAB_EX_(1) << "if (mem.type() == Json::ValueType::booleanValue)" << std::endl <<
+            _TAB_EX_(2) << "out." << var->Name() << " = mem.asBool();" << std::endl;
+    }
+    else if (rType->Raw() == RawCategory::Int)
+    {
+        _OUTS_ <<
+            _TAB_EX_(1) << "if (mem.type() == Json::ValueType::intValue || mem.type() == Json::ValueType::uintValue)" << std::endl <<
+            _TAB_EX_(2) << "out." << var->Name() << " = mem.asInt();" << std::endl;
+    }
+    else if (rType->Raw() == RawCategory::Float)
+    {
+        _OUTS_ <<
+            _TAB_EX_(1) << "if (mem.type() == Json::ValueType::intValue || mem.type() == Json::ValueType::uintValue)" << std::endl <<
+            _TAB_EX_(2) << "out." << var->Name() << " = (float)mem.asInt();" << std::endl <<
+            _TAB_EX_(1) << "else if (mem.type() == Json::ValueType::realValue)" << std::endl <<
+            _TAB_EX_(2) << "out." << var->Name() << " = (float)mem.asDouble();" << std::endl;
+    }
+    else if (rType->Raw() == RawCategory::String)
+    {
+        _OUTS_ <<
+            _TAB_EX_(1) << "if (mem.type() == Json::ValueType::stringValue)" << std::endl <<
+            _TAB_EX_(2) << "out." << var->Name() << " = mem.asString();" << std::endl;
+    }
+
+    _OUTS_ <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::JsonLoadVar(const IVariate* var, const IEnumType* rType, int tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(rType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "if (node.isMember(\"" << var->Name() << "\"))" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "const Json::Value& mem = node[\"" << var->Name() << "\"];" << std::endl <<
+        _TAB_EX_(1) << "if (mem.type() == Json::ValueType::intValue || mem.type() == Json::ValueType::uintValue)" << std::endl <<
+        _TAB_EX_(2) << "out." << var->Name() << " = (" << tyName << ")mem.asInt();" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::JsonLoadVar(const IVariate* var, const IStructType* rType, int tab)
+{
+    _OUTS_ <<
+        _TAB_EX_(0) << "if (node.isMember(\"" << var->Name() << "\"))" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "const Json::Value& mem = node[\"" << var->Name() << "\"];" << std::endl <<
+        _TAB_EX_(1) << "if (mem.type() == Json::ValueType::objectValue)" << std::endl <<
+        _TAB_EX_(2) << "sLoad(mem, out." << var->Name() << ");" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::JsonLoadVar(const IVariate* var, const IRawType* rType, int length, int tab)
+{
+    _OUTS_ <<
+        _TAB_EX_(0) << "if (node.isMember(\"" << var->Name() << "\"))" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "const Json::Value& mem = node[\"" << var->Name() << "\"];" << std::endl <<
+        _TAB_EX_(1) << "if (mem.type() == Json::ValueType::arrayValue)" << std::endl <<
+        _TAB_EX_(1) << "{" << std::endl;
+
+    if (length > 0)
+    {
+        _OUTS_ << _TAB_EX_(2) << "for (int i = 0; i < std::min((int)mem.size(), (int)out." << var->Name() << ".size()); ++i)" << std::endl;
+    }
+    else
+    {
+        _OUTS_ <<
+            _TAB_EX_(2) << "out." << var->Name() << ".resize(mem.size());" << std::endl <<
+            _TAB_EX_(2) << "for (int i = 0; i < (int)mem.size(); ++i)" << std::endl;
+    }
+    _OUTS_ << _TAB_EX_(2) << "{" << std::endl;
+
+    if (rType->Raw() == RawCategory::Bool)
+    {
+        _OUTS_ <<
+            _TAB_EX_(3) << "if (mem[i].type() == Json::ValueType::booleanValue)" << std::endl <<
+            _TAB_EX_(4) << "out." << var->Name() << "[i]  = mem[i].asBool();" << std::endl;
+    }
+    else if (rType->Raw() == RawCategory::Int)
+    {
+        _OUTS_ <<
+            _TAB_EX_(3) << "if (mem[i].type() == Json::ValueType::intValue || mem[i].type() == Json::ValueType::uintValue)" << std::endl <<
+            _TAB_EX_(4) << "out." << var->Name() << "[i]  = mem[i].asInt();" << std::endl;
+    }
+    else if (rType->Raw() == RawCategory::Float)
+    {
+        _OUTS_ <<
+            _TAB_EX_(3) << "if (mem[i].type() == Json::ValueType::intValue || mem[i].type() == Json::ValueType::uintValue)" << std::endl <<
+            _TAB_EX_(4) << "out." << var->Name() << "[i]  = (float)mem[i].asInt();" << std::endl <<
+            _TAB_EX_(3) << "else if (mem[i].type() == Json::ValueType::realValue)" << std::endl <<
+            _TAB_EX_(4) << "out." << var->Name() << "[i]  = (float)mem[i].asDouble();" << std::endl;
+    }
+    else if (rType->Raw() == RawCategory::String)
+    {
+        _OUTS_ <<
+            _TAB_EX_(3) << "if (mem[i].type() == Json::ValueType::stringValue)" << std::endl <<
+            _TAB_EX_(4) << "out." << var->Name() << "[i] = mem[i].asString();" << std::endl;
+    }
+
+    _OUTS_ <<
+        _TAB_EX_(2) << "}" << std::endl <<
+        _TAB_EX_(1) << "}" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::JsonLoadVar(const IVariate* var, const IEnumType* rType, int length, int tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(rType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "if (node.isMember(\"" << var->Name() << "\"))" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "const Json::Value& mem = node[\"" << var->Name() << "\"];" << std::endl <<
+        _TAB_EX_(1) << "if (mem.type() == Json::ValueType::arrayValue)" << std::endl <<
+        _TAB_EX_(1) << "{" << std::endl;
+
+    if (length > 0)
+    {
+        _OUTS_ << _TAB_EX_(2) << "for (int i = 0; i < std::min((int)mem.size(), (int)out." << var->Name() << ".size()); ++i)" << std::endl;
+    }
+    else
+    {
+        _OUTS_ <<
+            _TAB_EX_(2) << "out." << var->Name() << ".resize(mem.size());" << std::endl <<
+            _TAB_EX_(2) << "for (int i = 0; i < (int)mem.size(); ++i)" << std::endl;
+    }
+    _OUTS_ << _TAB_EX_(2) << "{" << std::endl;
+
+    _OUTS_ <<
+        _TAB_EX_(3) << "if (mem[i].type() == Json::ValueType::intValue || mem[i].type() == Json::ValueType::uintValue)" << std::endl <<
+        _TAB_EX_(4) << "out." << var->Name() << "[i] = (" << tyName << ")mem[i].asInt();" << std::endl;
+
+    _OUTS_ <<
+        _TAB_EX_(2) << "}" << std::endl <<
+        _TAB_EX_(1) << "}" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::JsonLoadVar(const IVariate* var, const IStructType* rType, int length, int tab)
+{
+    _OUTS_ <<
+        _TAB_EX_(0) << "if (node.isMember(\"" << var->Name() << "\"))" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "const Json::Value& mem = node[\"" << var->Name() << "\"];" << std::endl <<
+        _TAB_EX_(1) << "if (mem.type() == Json::ValueType::arrayValue)" << std::endl <<
+        _TAB_EX_(1) << "{" << std::endl;
+
+    if (length > 0)
+    {
+        _OUTS_ << _TAB_EX_(2) << "for (int i = 0; i < std::min((int)mem.size(), (int)out." << var->Name() << ".size()); ++i)" << std::endl;
+    }
+    else
+    {
+        _OUTS_ <<
+            _TAB_EX_(2) << "out." << var->Name() << ".resize(mem.size());" << std::endl <<
+            _TAB_EX_(2) << "for (int i = 0; i < (int)mem.size(); ++i)" << std::endl;
+    }
+    _OUTS_ << _TAB_EX_(2) << "{" << std::endl;
+
+    _OUTS_ <<
+        _TAB_EX_(3) << "if (mem[i].type() == Json::ValueType::objectValue)" << std::endl <<
+        _TAB_EX_(4) << "sLoad(mem[i], out." << var->Name() << "[i]);" << std::endl;
+
+    _OUTS_ <<
+        _TAB_EX_(2) << "}" << std::endl <<
+        _TAB_EX_(1) << "}" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
 }
 
 void CppExporter::GetDepends(const IStructType* sType, std::vector<const IStructType*>& deps)
@@ -900,7 +1106,10 @@ void CppExporter::GetDepends(const IStructType* sType, std::vector<const IStruct
     if (deps.end() != std::find(deps.begin(), deps.end(), sType))
         return;
 
-    const IVarSet* vars = sType->VarSet();
+    if (sType->Inherited())
+        GetDepends(sType->Inherited(), deps);
+
+    const IVarSet* vars = sType->OwnVars();
     for (int i = 0; i < vars->Size(); ++i)
     {
         const IType* type = vars->Get(i)->Type();

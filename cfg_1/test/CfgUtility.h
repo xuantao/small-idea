@@ -6,7 +6,6 @@
 #include <vector>
 
 #define CFG_INVALID_ENUM    -1000000
-#define CFG_STR_BUFFER_SIZE  2048
 
 namespace cfg
 {

@@ -23,6 +23,9 @@
     <Filter Include="src\export\cpp">
       <UniqueIdentifier>{474be6da-f9fa-4177-a0d7-2dc77372bade}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\export\cfg">
+      <UniqueIdentifier>{f33ac415-0f58-4c9c-b430-e7bdb7dd8fb0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -64,20 +67,17 @@
     <ClCompile Include="CppExporter.cpp">
       <Filter>src\export\cpp</Filter>
     </ClCompile>
-    <ClCompile Include="CppStruct.cpp">
-      <Filter>src\export\cpp</Filter>
-    </ClCompile>
     <ClCompile Include="CppUtil.cpp">
       <Filter>src\export\cpp</Filter>
     </ClCompile>
     <ClCompile Include="FileData.cpp">
       <Filter>src\context</Filter>
     </ClCompile>
-    <ClCompile Include="CppTabLoader.cpp">
-      <Filter>src\export\cpp</Filter>
+    <ClCompile Include="TabCreater.cpp">
+      <Filter>src\export\cfg</Filter>
     </ClCompile>
-    <ClCompile Include="TabCreator.cpp">
-      <Filter>src\export\cpp</Filter>
+    <ClCompile Include="JsonCreater.cpp">
+      <Filter>src\export\cfg</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -129,16 +129,7 @@
     <ClInclude Include="TupleLogger.h">
       <Filter>src\util</Filter>
     </ClInclude>
-    <ClInclude Include="IExporter.h">
-      <Filter>src\export</Filter>
-    </ClInclude>
     <ClInclude Include="CppExporter.h">
-      <Filter>src\export\cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="IExportObj.h">
-      <Filter>src\export</Filter>
-    </ClInclude>
-    <ClInclude Include="CppStruct.h">
       <Filter>src\export\cpp</Filter>
     </ClInclude>
     <ClInclude Include="CppUtil.h">
@@ -156,14 +147,11 @@
     <ClInclude Include="TabParser.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="CppTabLoader.h">
-      <Filter>src\export\cpp</Filter>
+    <ClInclude Include="TabCreater.h">
+      <Filter>src\export\cfg</Filter>
     </ClInclude>
-    <ClInclude Include="MiddExport.h">
-      <Filter>src\export\cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="TabCreator.h">
-      <Filter>src\export\cpp</Filter>
+    <ClInclude Include="JsonCreater.h">
+      <Filter>src\export\cfg</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

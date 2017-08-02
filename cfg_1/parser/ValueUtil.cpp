@@ -83,7 +83,7 @@ namespace value_util
         else if (raw == RawCategory::Float)
             val = new RawValue(0.0f);
         else if (raw == RawCategory::String)
-            val = new RawValue("");
+            val = new RawValue(std::string());
         else
             ERROR_NOT_ALLOW;
         return val;

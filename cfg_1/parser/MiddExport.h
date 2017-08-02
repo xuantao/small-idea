@@ -1,12 +1,12 @@
-/*
- * ÖÐ¼äÎÄ¼þµ¼³ö
+ï»¿/*
+ * ä¸­é—´æ–‡ä»¶å¯¼å‡º
 */
 #pragma once
 #include "Interface.h"
 
 CFG_NAMESPACE_BEGIN
 
-class CppMiddExport : public IVarVistor
+class CppMiddExport : public ITabVisitor
 {
 public:
 

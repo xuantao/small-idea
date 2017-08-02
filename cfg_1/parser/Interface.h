@@ -156,10 +156,10 @@ public:
     virtual IRawValue* Original() const = 0;
 };
 
-class IVarVistor
+class ITabVisitor
 {
 public:
-    virtual ~IVarVistor() {}
+    virtual ~ITabVisitor() {}
 public:
     virtual bool OnStart(const IStructType* sType) = 0;
     virtual bool OnEnd() = 0;
@@ -173,6 +173,21 @@ public:
         const std::string& title, const std::string& path, int length) = 0;
 };
 
+class IJsonVisitor
+{
+public:
+    virtual ~IJsonVisitor() {}
+public:
+    virtual bool OnStart(const IStructType* sType) = 0;
+    virtual bool OnEnd() = 0;
+    //virtual bool OnVar(const IVariate* var, const IRawType* rType) = 0;
+    //virtual bool OnVar(const IVariate* var, const IEnumType* eType) = 0;
+    //virtual bool OnVar(const IVariate* var, const IStructType* eType) = 0;
+    //virtual bool OnVar(const IVariate* var, const IRawType* rType, int length) = 0;
+    //virtual bool OnVar(const IVariate* var, const IEnumType* eType, int length) = 0;
+    //virtual bool OnVar(const IVariate* var, const IStructType* eType, int length) = 0;
+};
+
 /*
  * 导出器接口
 */
@@ -182,11 +197,11 @@ public:
     virtual ~IExporter() {}
 
 public:
-    virtual void OnBegin(const IScopeType* global, const std::string& path, const std::string& file) = 0;
+    virtual void OnBegin(const IScopeType* global, const std::string& file) = 0;
     virtual void OnEnd() = 0;
 
     virtual void OnNamespaceBegin(const std::string& name) = 0;
-    virtual void OnNameSapceEnd() = 0;
+    virtual void OnNamesapceEnd() = 0;
 
     virtual void OnInclude(const std::string& file) = 0;
 
@@ -194,4 +209,25 @@ public:
     virtual void OnType(const IType* type) = 0;
 };
 
+/*
+ * tab creator
+*/
+class ITabCreater : public ITabVisitor
+{
+public:
+    virtual ~ITabCreater() {}
+public:
+    virtual void SetPath(const std::string& path) = 0;
+};
+
+/*
+ * json creator
+*/
+class IJsonCreater : public IJsonVisitor
+{
+public:
+    virtual ~IJsonCreater() {}
+public:
+    virtual void SetPath(const std::string& path) = 0;
+};
 CFG_NAMESPACE_END

@@ -22,13 +22,15 @@ public:
 public:
     TabElementIter(size_t index, const pointer data, size_t size)
         : _index(index), _data(data), _size(size)
-    { }
+    {
+    }
 
     TabElementIter(const TabElementIter& other)
         : _index(other._index)
         , _size(other._size)
         , _data(other._data)
-    { }
+    {
+    }
 
     ~TabElementIter() {}
 

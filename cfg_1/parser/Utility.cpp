@@ -124,8 +124,8 @@ namespace utility
         return true;
     }
 
-    static bool TabTraverse(const IStructType* aType, IVarVistor* visitor, const std::string& title, const std::string& path);
-    static bool TabTraverse(const IVariate* var, const IArrayType* aType, IVarVistor* visitor, const std::string& title, const std::string& path)
+    static bool TabTraverse(const IStructType* aType, ITabVisitor* visitor, const std::string& title, const std::string& path);
+    static bool TabTraverse(const IVariate* var, const IArrayType* aType, ITabVisitor* visitor, const std::string& title, const std::string& path)
     {
         IType* original = aType->Original();
         if (aType->Original() != aType->Prev())
@@ -168,7 +168,7 @@ namespace utility
         return true;
     }
 
-    static bool TabTraverse(const IStructType* sType, IVarVistor* visitor, const std::string& title, const std::string& path)
+    static bool TabTraverse(const IStructType* sType, ITabVisitor* visitor, const std::string& title, const std::string& path)
     {
         const IVarSet* vars = sType->VarSet();
         for (int i = 0; i < vars->Size(); ++i)
@@ -472,7 +472,7 @@ namespace utility
         return std::move(varNames);
     }
 
-    void Traverse(const IStructType* sType, IVarVistor* visitor)
+    void Traverse(const IStructType* sType, ITabVisitor* visitor)
     {
         if (!visitor->OnStart(sType))
             return;

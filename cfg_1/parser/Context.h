@@ -40,8 +40,9 @@ public:
     const std::vector<Cfg>& TabCfgs() const { return _tabs; }
     const std::vector<Cfg>& JsonCfgs() const { return _jsons; }
 
-    bool Export(IExporter* expoter, const std::string& path, const std::string& file, bool merge);
-
+    bool Export(IExporter* expoter, const std::string& file);
+    bool Export(ITabCreater* creator, const std::string& path);
+    bool Export(IJsonCreater* creator, const std::string& path);
 public:
     void OnParseBegin(const std::string& file);
     void OnParseEnd();

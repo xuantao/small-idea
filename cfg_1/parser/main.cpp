@@ -6,7 +6,8 @@
 #include "Context.h"
 #include "CppExporter.h"
 #include <array>
-#include "TabCreator.h"
+#include "TabCreater.h"
+#include "JsonCreater.h"
 #include "Utility.h"
 
 CFG_NAMESPACE_USING;
@@ -15,8 +16,8 @@ struct Args
 {
     std::string srcPath;    // source file
     std::string cfgPath;    // configuration
-    std::string cppPath;    // cpp code
-    std::string csPath;     // c sharp code
+    std::string cppFile;    // cpp code
+    std::string csFile;     // c sharp code
 };
 
 int main(int argc, char** argv)
@@ -83,8 +84,8 @@ int main(int argc, char** argv)
     Args arg;
     arg.srcPath = "../work/src";
     arg.cfgPath = "../work/cfg";
-    arg.cppPath = "../work/cpp";
-    arg.csPath = "../work/cs";
+    arg.cppFile = "../test/Cfg";
+    arg.csFile = "../work/Cfg";
 
     std::vector<std::string> srcs = utility::CollectDir(arg.srcPath);
 
@@ -98,17 +99,13 @@ int main(int argc, char** argv)
     }
 
     CppExporter cpp;
-    context.Export(&cpp, "../test/", "Cfg", true);
-    //context.Export(&cpp, "../out/", false);
+    context.Export(&cpp, arg.cppFile);
 
-    //const auto& tabs = context.TabCfgs();
-    //const auto& jsons = context.JsonCfgs();
+    TabCreater tab;
+    context.Export(&tab, arg.cfgPath);
 
-    //for (auto it = tabs.cbegin(); it != tabs.cend(); ++it)
-    //{
-    //    TabCreator tab("../out/" + it->sType->Name() + ".xls");
-    //    utility::Traverse(it->sType, &tab);
-    //}
+    JsonCreater json;
+    context.Export(&json, arg.cfgPath);
 
     system("pause");
     return 1;

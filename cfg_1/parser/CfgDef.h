@@ -16,11 +16,6 @@
 #define CFG_NAMESPACE_USING using namespace CFG_NAMESPACE
 #define CFG_NAMESPACE_REF   CFG_NAMESPACE::
 
-#define _DEF_STREAM_ &std::cerr
-#define _OUTS_ (*_stream)
-#define _TAB_ utility::Tab(*_stream, _tab)
-#define _TAB_EX_(ex) std::string((_tab + ex) * 4, ' ')
-
 #define ERROR_NOT_ALLOW std::cerr << "not allow file:" << __FILE__ << " line:" << __LINE__ << std::endl
 
 CFG_NAMESPACE_BEGIN

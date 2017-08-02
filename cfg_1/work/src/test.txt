@@ -4,7 +4,7 @@
 //@ xxxxxxxxxxx
 const int g_1 = 1;
 const float f_1 = 2;
-const string s_1 = "";
+const string s_1 = "xuantao";
 const bool b_1 = true;
 
 #include "prev.txt"
@@ -34,11 +34,18 @@ json struct Struct1 : Struct0
  int s1a = 1;
  int s1b = 2;
  int s1c;
+ bool b1;
+ float f1;
+ string str1;
+ string str2 = s_1;
+ string str3 = "zouhui";
+ Struct0 s1;
+ Struct0 s11[2];
  Enum2 s1arEnum[];
  Enum2 s1arEnum2[2];
 }
 
-tab struct Struct2 : Struct1
+tab struct Struct2
 {
  const int MAX=100;
 
@@ -46,6 +53,7 @@ tab struct Struct2 : Struct1
  int a = 1;
  int b = Enum2.c;
  int c;
+ int d;
  string s = s_1;
  Struct1 s1;
  Struct1 s2[2];
