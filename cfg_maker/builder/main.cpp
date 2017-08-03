@@ -1,11 +1,9 @@
 ﻿#include <iostream>
 #include <fstream>
-#include "CfgDef.h"
-#include "Scanner.h"
+#include <array>
 #include "Driver.h"
 #include "Context.h"
 #include "CppExporter.h"
-#include <array>
 #include "TabCreater.h"
 #include "JsonCreater.h"
 #include "Utility.h"

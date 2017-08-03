@@ -65,8 +65,15 @@ void TestTab()
 
 int main(int argc, char* argv[])
 {
-    TestTab();
-    TestJson();
+
+    Struct1 s1;
+    Json::Write(std::cout, s1);
+
+    Struct2 s2;
+    Tab::Write(std::cout, s2);
+
+    //TestTab();
+    //TestJson();
 
     system("pause");
 

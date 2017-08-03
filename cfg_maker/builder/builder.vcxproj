@@ -156,6 +156,7 @@
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="Set.cpp" />
     <ClCompile Include="TabCreater.cpp" />
+    <ClCompile Include="TabVisitor.cpp" />
     <ClCompile Include="Type.cpp" />
     <ClCompile Include="Utility.cpp" />
     <ClCompile Include="Value.cpp" />
@@ -163,7 +164,6 @@
     <ClCompile Include="Variate.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Block.h" />
     <ClInclude Include="Context.h" />
     <ClInclude Include="CfgDef.h" />
     <ClInclude Include="CppExporter.h" />
@@ -175,7 +175,7 @@
     <ClInclude Include="JsonCreater.h" />
     <ClInclude Include="Set.h" />
     <ClInclude Include="TabCreater.h" />
-    <ClInclude Include="TabParser.h" />
+    <ClInclude Include="TabVisitor.h" />
     <ClInclude Include="TupleLogger.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="Value.h" />

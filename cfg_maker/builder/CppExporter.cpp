@@ -1,4 +1,5 @@
 ﻿#include "CppExporter.h"
+#include "TabVisitor.h"
 #include "Utility.h"
 #include "CppUtil.h"
 #include <iostream>
@@ -140,7 +141,8 @@ void CppExporter::OnBegin(const IScopeType* global, const std::string& file)
         "#pragma once" << std::endl << std::endl <<
         "#include <vector>" << std::endl <<
         "#include <string>" << std::endl <<
-        "#include <array>" << std::endl << std::endl;
+        "#include <array>" << std::endl <<
+        "#include <ostream>" << std::endl << std::endl;
 }
 
 void CppExporter::OnEnd()
@@ -473,12 +475,22 @@ bool CppExporter::CppImpl()
 
         for (size_t i = 0; i < _tabDepends.size(); ++i)
         {
+            TabWriterStatic(_tabDepends[i], 1);
+            _OUTS_ << std::endl;
+        }
+
+        for (size_t i = 0; i < _tabDepends.size(); ++i)
+        {
             TabLoaderStatic(_tabDepends[i], 1);
             _OUTS_ << std::endl;
         }
 
         for (size_t i = 0; i < _tabs.size(); ++i)
         {
+            TabWriteHeader(_tabs[i], 1);
+            _OUTS_ << std::endl;
+            TabWriter(_tabs[i], 1);
+            _OUTS_ << std::endl;
             TabLoader(_tabs[i], 1);
             if (i + 1 != _tabs.size())
                 _OUTS_ << std::endl;
@@ -490,12 +502,20 @@ bool CppExporter::CppImpl()
 
         for (size_t i = 0; i < _jsonDepends.size(); ++i)
         {
+            JsonWriterStatic(_jsonDepends[i], 1);
+            _OUTS_ << std::endl;
+        }
+
+        for (size_t i = 0; i < _jsonDepends.size(); ++i)
+        {
             JsonLoaderStatic(_jsonDepends[i], 1);
             _OUTS_ << std::endl;
         }
 
         for (size_t i = 0; i < _jsons.size(); ++i)
         {
+            JsonWriter(_jsons[i], 1);
+            _OUTS_ << std::endl;
             JsonLoader(_jsons[i], 1);
             if (i + 1 != _jsons.size())
                 _OUTS_ << std::endl;
@@ -589,7 +609,7 @@ bool CppExporter::EnumHelper(const IEnumType* eType, int tab)
         _TAB_EX_(2) << "if (" << varName << "[i] == value)" << std::endl <<
         _TAB_EX_(3) << "return " << strName << "[i];" << std::endl <<
         _TAB_EX_(1) << "}" << std::endl << std::endl <<
-        _TAB_EX_(1) << "return nullptr;" << std::endl <<
+        _TAB_EX_(1) << "return \"\";" << std::endl <<
         _TAB_EX_(0) << "}" << std::endl;
     _OUTS_ << std::endl;
 
@@ -614,7 +634,10 @@ void CppExporter::TabDeclare(const IStructType* sType, int tab)
     std::vector<std::string> path = utility::Absolute(sType);
     std::string tyName = utility::Contact(path, "::");
 
-    _TAB_ << "bool Load(const char* data, size_t size, std::vector<" << tyName << ">& out);" << std::endl;
+    _OUTS_ <<
+        _TAB_EX_(0) << "void WriteHeader(std::ostream& stream, const " << tyName << "& def);" << std::endl <<
+        _TAB_EX_(0) << "void Write(std::ostream& stream, const " << tyName << "& data);" << std::endl <<
+        _TAB_EX_(0) << "bool Load(const char* data, size_t size, std::vector<" << tyName << ">& out);" << std::endl;
 }
 
 void CppExporter::TabLoader(const IStructType* sType, int tab)
@@ -856,11 +879,116 @@ void CppExporter::TabLoadVar(const IVariate* var, const IStructType* rType, int 
         _TAB_EX_(1) << "sLoad(iter, out." << var->Name() << "[i]);" << std::endl;
 }
 
+void CppExporter::TabWriteHeader(const IStructType* sType, int tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "void WriteHeader(std::ostream& stream, const " << tyName << "& def)" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl;
+
+    TabVisitor visitor;
+    utility::Traverse(sType, &visitor);
+
+    _OUTS_ <<
+        _TAB_EX_(1) << "static const char* title = \"" << utility::Contact(visitor.Title(), "\\t") << "\";" << std::endl <<
+        _TAB_EX_(1) << "static const char* type = \"" << utility::Contact(visitor.Type(), "\\t") << "\";" << std::endl <<
+        _TAB_EX_(1) << "static const char* desc = \"" << utility::Contact(visitor.Describe(), "\\t") << "\";" << std::endl << std::endl <<
+        _TAB_EX_(1) << "stream << title << std::endl << type << std::endl << desc << std::endl;" << std::endl <<
+        _TAB_EX_(1) << "Write(stream, def);" << std::endl;
+
+    _OUTS_ <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::TabWriter(const IStructType* sType, int tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "void Write(std::ostream& stream, const " << tyName << "& data)" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "sWrite(stream, data);" << std::endl <<
+        _TAB_EX_(1) << "stream << std::endl;" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::TabWriterStatic(const IStructType* sType, int tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "void sWrite(std::ostream& stream, const " << tyName << "& data)" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl;
+    
+    TabWriterDetail(sType, tab + 1);
+
+    _OUTS_ <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::TabWriterDetail(const IStructType* sType, int tab)
+{
+    const IVarSet* vars = sType->OwnVars();
+    if (sType->Inherited())
+    {
+        std::string inherit = utility::Contact(utility::Absolute(sType->Inherited()), "::");
+        _TAB_ << "sWrite(stream, (const " << inherit << "&)data);" << std::endl;
+
+        if (vars->Size())
+            _TAB_ << "stream << \"\\t\";" << std::endl;
+    }
+
+    bool bnewLine = false;
+    for (int i = 0; i < vars->Size(); ++i)
+    {
+        const IVariate* var = vars->Get(i);
+        const IType* ty = var->Type();
+
+        if (var->IsConst())
+            continue;
+
+        if (ty->Category() == TypeCategory::Raw)
+        {
+            _TAB_ << "stream << data." << var->Name() << ";" << std::endl;
+        }
+        else if (ty->Category() == TypeCategory::Enum)
+        {
+            _TAB_ << "stream << Enum::ToString(data." << var->Name() << ");" << std::endl;
+        }
+        else if (ty->Category() == TypeCategory::Struct)
+        {
+            _TAB_ << "sWrite(stream, data." << var->Name() << ");" << std::endl;
+        }
+        else if (ty->Category() == TypeCategory::Array)
+        {
+            if (i) _OUTS_ << std::endl;
+
+            const IArrayType* aTy = (const IArrayType*)ty;
+            const IType* original = aTy->Original();
+
+            _TAB_ << "for (size_t i = 0; i < data." << var->Name() << ".size(); ++i)" << std::endl <<
+                _TAB_EX_(0) << "{" << std::endl <<
+                _TAB_EX_(1) << "if (i) stream << \"\\t\";" << std::endl;
+
+            if (original->Category() == TypeCategory::Raw)
+                _OUTS_ << _TAB_EX_(1) << "stream << data." << var->Name() << "[i];" << std::endl;
+            else if (original->Category() == TypeCategory::Enum)
+                _OUTS_ << _TAB_EX_(1) << "stream << Enum::ToString(data." << var->Name() << "[i]);" << std::endl;
+            else if (original->Category() == TypeCategory::Struct)
+                _OUTS_ << _TAB_EX_(1) << "sWrite(stream, data." << var->Name() << "[i]);" << std::endl;
+
+            _TAB_ << "}" << std::endl;
+        }
+
+        if (i + 1 < vars->Size())
+            _TAB_ << "stream << \"\\t\";" << std::endl;
+    }
+}
+
 void CppExporter::JsonDeclare(const IStructType* sType, int tab)
 {
     std::vector<std::string> path = utility::Absolute(sType);
     std::string tyName = utility::Contact(path, "::");
 
+    _TAB_ << "void Write(std::ostream& stream, const " << tyName << "& data);" << std::endl;
     _TAB_ << "bool Load(const char* data, size_t size, " << tyName << "& out);" << std::endl;
 }
 
@@ -1119,6 +1247,103 @@ void CppExporter::JsonLoadVar(const IVariate* var, const IStructType* rType, int
     _OUTS_ <<
         _TAB_EX_(2) << "}" << std::endl <<
         _TAB_EX_(1) << "}" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::JsonWriter(const IStructType* sType, int tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "void Write(std::ostream& stream, const " << tyName << "& data)" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl <<
+        _TAB_EX_(1) << "stream << \"{\" << std::endl;" << std::endl <<
+        _TAB_EX_(1) << "sWrite(stream, data, 1);" << std::endl <<
+        _TAB_EX_(1) << "stream << std::endl << \"}\" << std::endl;" << std::endl <<
+        _TAB_EX_(0) << "}" << std::endl;
+}
+
+void CppExporter::JsonWriterStatic(const IStructType* sType, int tab)
+{
+    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
+    _OUTS_ <<
+        _TAB_EX_(0) << "void sWrite(std::ostream& stream, const " << tyName << "& data, int tab)" << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl;
+
+    const IVarSet* vars = sType->OwnVars();
+    if (sType->Inherited())
+    {
+        std::string baseName = utility::Contact(utility::Absolute(sType->Inherited()), "::");
+        _OUTS_ <<
+            _TAB_EX_(1) << "sWrite(stream, (" << baseName << "&)data, tab);" << std::endl <<
+            _TAB_EX_(1) << "stream << \",\" << std::endl;" << std::endl << std::endl;
+    }
+
+    for (int i = 0; i < vars->Size(); ++i)
+    {
+        const IVariate* var = vars->Get(i);
+        const IType* ty = var->Type();
+        _OUTS_ <<
+            _TAB_EX_(1) << "stream << std::string(\" \", tab * 4) << \"\\\"" << var->Name() << "\\\":\";" << std::endl;
+
+        if (ty->Category() == TypeCategory::Raw)
+        {
+            if (static_cast<const IRawType*>(ty)->Raw() == RawCategory::String)
+                _OUTS_ << _TAB_EX_(1) << "stream << \"\\\"\" << data." << var->Name() << "<< \"\\\"\";" << std::endl;
+            else
+                _OUTS_ << _TAB_EX_(1) << "stream << data." << var->Name() << ";" << std::endl;
+        }
+        else if (ty->Category() == TypeCategory::Enum)
+        {
+            _OUTS_ << _TAB_EX_(1) << "stream << data." << var->Name() << ";" << std::endl;
+        }
+        else if (ty->Category() == TypeCategory::Struct)
+        {
+            _OUTS_ <<
+                _TAB_EX_(1) << "stream << \"{\" << std::endl;" << std::endl <<
+                _TAB_EX_(1) << "sWrite(stream, data." << var->Name() << ", tab + 1);" << std::endl <<
+                _TAB_EX_(1) << "stream << std::endl << std::string(\" \", tab * 4) << \"}\";" << std::endl;
+        }
+        else if (ty->Category() == TypeCategory::Array)
+        {
+            const IArrayType* aTy = (const IArrayType*)ty;
+            const IType* original = aTy->Original();
+
+            _OUTS_ <<
+                _TAB_EX_(1) << "stream << \"[\";" << std::endl <<
+                _TAB_EX_(1) << "for (size_t i = 0; i < data." << var->Name() << ".size(); ++i)" << std::endl <<
+                _TAB_EX_(1) << "{" << std::endl <<
+                _TAB_EX_(2) << "if (i) stream << \",\";" << std::endl;
+
+            if (original->Category() == TypeCategory::Raw)
+            {
+                if (static_cast<const IRawType*>(ty)->Raw() == RawCategory::String)
+                    _OUTS_ << _TAB_EX_(2) << "stream << \"\\\"\" << data." << var->Name() << "[i] << \"\\\"\";" << std::endl;
+                else
+                    _OUTS_ << _TAB_EX_(2) << "stream << data." << var->Name() << "[i];" << std::endl;
+            }
+            else if (original->Category() == TypeCategory::Enum)
+            {
+                _OUTS_ << _TAB_EX_(2) << "stream << data." << var->Name() << "[i];" << std::endl;
+            }
+            else if (original->Category() == TypeCategory::Struct)
+            {
+                _OUTS_ <<
+                    _TAB_EX_(2) << "stream << \"{\" << std::endl;" << std::endl <<
+                    _TAB_EX_(2) << "sWrite(stream, data." << var->Name() << "[i], tab + 1);" << std::endl <<
+                    _TAB_EX_(2) << "stream << std::endl << std::string(\" \", tab * 4) << \"}\";" << std::endl;
+            }
+
+            _OUTS_ <<
+                _TAB_EX_(1) << "}" << std::endl <<
+                _TAB_EX_(1) << "stream << \"]\";" << std::endl;
+            
+        }
+
+        if (i + 1 < vars->Size())
+            _OUTS_ << _TAB_EX_(1) << "stream << \",\" << std::endl;" << std::endl;
+    }
+    _OUTS_ <<
+        //_TAB_EX_(1) << "stream << std::endl;" <<
         _TAB_EX_(0) << "}" << std::endl;
 }
 

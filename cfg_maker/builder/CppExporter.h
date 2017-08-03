@@ -55,6 +55,10 @@ protected:
     void TabLoadVar(const IVariate* var, const IRawType* rType, int length, int tab);
     void TabLoadVar(const IVariate* var, const IEnumType* rType, int length, int tab);
     void TabLoadVar(const IVariate* var, const IStructType* rType, int length, int tab);
+    void TabWriteHeader(const IStructType* sType, int tab);
+    void TabWriter(const IStructType* sType, int tab);
+    void TabWriterStatic(const IStructType* sType, int tab);
+    void TabWriterDetail(const IStructType* sType, int tab);
 
     /* json */
     void JsonDeclare(const IStructType* sType, int tab);
@@ -66,6 +70,9 @@ protected:
     void JsonLoadVar(const IVariate* var, const IRawType* rType, int length, int tab);
     void JsonLoadVar(const IVariate* var, const IEnumType* rType, int length, int tab);
     void JsonLoadVar(const IVariate* var, const IStructType* rType, int length, int tab);
+    void JsonWriter(const IStructType* sType, int tab);
+    void JsonWriterStatic(const IStructType* sType, int tab);
+
 protected:
     std::ostream* _stream;
     int _tab;

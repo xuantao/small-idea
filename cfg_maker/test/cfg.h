@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <array>
+#include <ostream>
 
 enum GlobalType
 {
@@ -117,10 +118,13 @@ namespace Enum
 
 namespace Tab
 {
+    void WriteHeader(std::ostream& stream, const Struct2& def);
+    void Write(std::ostream& stream, const Struct2& data);
     bool Load(const char* data, size_t size, std::vector<Struct2>& out);
 } // end of namespace Tab
 
 namespace Json
 {
+    void Write(std::ostream& stream, const Struct1& data);
     bool Load(const char* data, size_t size, Struct1& out);
 } // end of namespace Json

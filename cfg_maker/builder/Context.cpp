@@ -55,6 +55,7 @@ bool Context::Export(IExporter* expoter, const std::string& file)
     if (fileName.empty() || fileName.back() == '/' || fileName.back() == '//')
         fileName = "unnamed";
 
+    //TODO: 这里还需要考虑include的情况
     expoter->OnBegin(_scope, fileName);
     for (auto it = _files.begin(); it != _files.end(); ++it)
         (*it)->Export(expoter, true);
