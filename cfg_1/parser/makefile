@@ -1,4 +1,5 @@
+BUILD: ./fb/scanner.l ./fb/parser.y
+	flex ./fb/scanner.l;	\
+	bison -o Parser.cpp ./fb/parser.y
 
 
-CfgFlexLexer.cpp: flex ./fb/scanner.l
-Parser.cpp: bison -o Parser.cpp ./fb/parser.y

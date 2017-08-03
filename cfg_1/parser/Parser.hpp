@@ -603,7 +603,7 @@ namespace  cfg  {
     // Tables.
   // YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
   // STATE-NUM.
-  static const signed char yypact_[];
+  static const short int yypact_[];
 
   // YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
   // Performed when YYTABLE does not specify something else to do.  Zero
@@ -619,7 +619,7 @@ namespace  cfg  {
   // YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
   // positive, shift that token.  If negative, reduce the rule whose
   // number is the opposite.  If YYTABLE_NINF, syntax error.
-  static const signed char yytable_[];
+  static const short int yytable_[];
 
   static const signed char yycheck_[];
 
@@ -736,7 +736,7 @@ namespace  cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 134,           //< Last index in yytable_.
+      yylast_ = 159,           //< Last index in yytable_.
       yynnts_ = 30,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.

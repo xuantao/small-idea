@@ -14,98 +14,122 @@ CFG_NAMESPACE_USING;
 
 struct Args
 {
-    std::string srcPath;    // source file
-    std::string cfgPath;    // configuration
-    std::string cppFile;    // cpp code
-    std::string csFile;     // c sharp code
+    std::string srcPath;    // source path
+    std::string cfgPath;    // configuration path
+    std::string cppFile;    // cpp code file
+    std::string csFile;     // Csharp code file
 };
 
-int main(int argc, char** argv)
+static bool ParseArgs(int argc, char** argv, Args& out)
 {
+    int idx = 1;
+    while (idx < argc)
+    {
+        if (std::strcmp(argv[idx], "-src") == 0)
+        {
+            if (idx + 1 >= argc)
+                break;
 
-    //bool d1 = utility::IsDir(".");
-    //bool d2 = utility::IsDir("..");
-    //bool d3 = utility::IsDir("../out");
-    //bool d4 = utility::IsDir("../out/");
-    //bool d5 = utility::IsDir("../out/cfg.h");
-    //bool f1 = utility::IsFile(".");
-    //bool f2 = utility::IsFile("..");
-    //bool f3 = utility::IsFile("../out");
-    //bool f4 = utility::IsFile("../out/");
-    //bool f5 = utility::IsFile("../out/cfg.h");
+            out.srcPath = argv[++idx];
+            ++idx;
+        }
+        else if (std::strcmp(argv[idx], "-cfg") == 0)
+        {
+            if (idx + 1 >= argc)
+                break;
 
-    //bool c1 = utility::CreateDir("../out");
-    //bool c2 = utility::CreateDir("../out/test");
-    //bool c3 = utility::CreateDir("../out/test/");
+            out.cfgPath = argv[++idx];
+            ++idx;
+        }
+        else if (std::strcmp(argv[idx], "-cpp") == 0)
+        {
+            if (idx + 1 >= argc)
+                break;
 
-    //utility::TraverseDir("../out", [ ](const std::string& file, bool dir) {
-    //    std::cout << (dir ? "dir:" : "") << file << std::endl;
-    //    return true;
-    //});
+            out.cppFile = argv[++idx];
+            ++idx;
+        }
+        else if (std::strcmp(argv[idx], "-cs") == 0)
+        {
+            if (idx + 1 >= argc)
+                break;
 
-    //auto files = utility::CollectDir("../out/");
+            out.csFile = argv[++idx];
+            ++idx;
+        }
+        else
+        {
+            ++idx;
+        }
+    }
 
-    //std::cout << "Left  :l" << utility::TrimLeft(" \tx\t ", " \t") << "r" << std::endl;
-    //std::cout << "Left  :l" << utility::TrimLeft(" \t\t ", " \t") << "r" << std::endl;
-    //std::cout << "Right :l" << utility::TrimRight(" \t\t ", " \t") << "r" << std::endl;
-    //std::cout << "Right :l" << utility::TrimRight(" \tx\t ", " \t") << "r" << std::endl;
+    return !out.srcPath.empty();
+}
 
-    /*std::string p;
-    std::string f;
-    std::string e;
+static void LogInfo()
+{
+    std::cout << "configuration file parser" << std::endl <<
+        "-src: source file path" << std::endl <<
+        "-cfg: target configuration file path" << std::endl <<
+        "-cpp: cpp file name(do not need file suffix)" << std::endl <<
+        "-cs : csharp file name" << std::endl;
+}
 
-    utility::SplitPath("", p, f, e);
-    std::cout << "p:" << p << " f:" << f << " e:" << e << std::endl;
-
-    utility::SplitPath("test", p, f, e);
-    std::cout << "p:" << p << " f:" << f << " e:" << e << std::endl;
-
-    utility::SplitPath("test.txt", p, f, e);
-    std::cout << "p:" << p << " f:" << f << " e:" << e << std::endl;
-
-    utility::SplitPath("./out/text", p, f, e);
-    std::cout << "p:" << p << " f:" << f << " e:" << e << std::endl;
-
-    utility::SplitPath("./out/text.txt", p, f, e);
-    std::cout << "p:" << p << " f:" << f << " e:" << e << std::endl;
-
-    utility::SplitPath(".\\out\\text.txt", p, f, e);
-    std::cout << "p:" << p << " f:" << f << " e:" << e << std::endl;
-
-
-    std::cout << utility::AbsolutePath("../") << std::endl;
-    std::cout << utility::AbsolutePath("../../") << std::endl;
-    std::cout << utility::AbsolutePath("../xuantao/./") << std::endl;
-    std::cout << utility::AbsolutePath("../xuantao/../") << std::endl;
-    std::cout << utility::AbsolutePath("../xuantao/../../") << std::endl;
-
-    return 1;*/
-
-    Args arg;
-    arg.srcPath = "../work/src";
-    arg.cfgPath = "../work/cfg";
-    arg.cppFile = "../test/Cfg";
-    arg.csFile = "../work/Cfg";
-
+static void DoWork(Args& arg)
+{
     std::vector<std::string> srcs = utility::CollectDir(arg.srcPath);
+
+    if (srcs.empty())
+    {
+        std::cout << "can not find any file in path: " << arg.srcPath << std::endl;
+        return;
+    }
 
     Driver driver;
     Context context(driver);
 
     if (!driver.Parse(context, srcs))
     {
-        std::cerr << "initialize scanner failed" << std::endl;
+        std::cout << "parse src file failed" << std::endl;
+        return;
+    }
+
+    if (!arg.cfgPath.empty())
+    {
+        TabCreater tab;
+        context.Export(&tab, arg.cfgPath);
+
+        JsonCreater json;
+        context.Export(&json, arg.cfgPath);
+    }
+
+    if (!arg.cppFile.empty())
+    {
+        CppExporter cpp;
+        context.Export(&cpp, arg.cppFile);
+    }
+
+    if (!arg.csFile.empty())
+    {
+        std::cout << "Csharp exporter has not completed" << std::endl;
+    }
+}
+
+int main(int argc, char** argv)
+{
+    Args arg;
+    if (!ParseArgs(argc, argv, arg))
+    {
+        LogInfo();
         return 0;
     }
 
-    CppExporter cpp;
-    context.Export(&cpp, arg.cppFile);
+    arg.srcPath = "../work/src";
+    arg.cfgPath = "../work/cfg";
+    arg.cppFile = "../test/Cfg";
+    arg.csFile = "../work/Cfg";
 
-    TabCreater tab;
-    context.Export(&tab, arg.cfgPath);
-
-    JsonCreater json;
-    context.Export(&json, arg.cfgPath);
+    DoWork(arg);
 
     system("pause");
     return 1;
