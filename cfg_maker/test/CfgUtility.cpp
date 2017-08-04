@@ -4,6 +4,8 @@ namespace cfg
 {
     namespace utility
     {
+        static FnLogger sLogger = nullptr;
+
         bool Convert(const std::string& str, bool& out)
         {
             if (str == "true" || str == "True" || str == "TRUE" || str == "1")
@@ -58,6 +60,16 @@ namespace cfg
                 ret.push_back(str.substr(beg));
 
             return std::move(ret);
+        }
+
+        void SetLogger(FnLogger logger)
+        {
+            sLogger = logger;
+        }
+
+        FnLogger GetLogger()
+        {
+            return sLogger;
         }
     }
 }
