@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <fstream>
+#include <stdio.h>
 
 #define CFG_INVALID_ENUM    -1000000
 
@@ -19,33 +20,41 @@ namespace cfg
         bool Convert(const std::string& str, int& out);
         bool Convert(const std::string& str, float& out);
         std::vector<std::string> Split(const std::string& str, const std::string& s);
-
-        void SetLogger(FnLogger fn);
-        FnLogger GetLogger();
     }
 
     /*
-     * pair maker example
-    struct PmakerExample
-    {
-        std::pair<KeyType, ValueType> operator() (ValueType& value)
-        {
-            return std::make_pair(value.key, value);
-        }
-    };
+     * Keyfn example
+     struct Keyfn
+     {
+        key_type key(value_type& value) { return value.key; }
+     };
     */
+
+    template <class Ty>
+    struct ValueFilter
+    {
+        typedef Ty value_type;
+
+        bool filter(value_type& value) { return true; }
+    };
 
     /*
      * 配置数据map表
     */
-    template <class Kty, class Vty, class Pmaker, class Less = std::less<Kty>, class Alloc = std::allocator<std::pair<const Kty, Vty> > >
+    template <
+        class Kty, class Vty, class Keyfn,
+        class Filter = ValueFilter<Vty>,
+        class Less = std::less<Kty>,
+        class Alloc = std::allocator<std::pair<const Kty, Vty> >
+    >
     class TabDataMap
     {
     public:
         typedef Kty key_type;
         typedef Vty value_type;
         typedef const value_type* const_pointer;
-        typedef Pmaker pair_maker;
+        typedef Keyfn key_fn;
+        typedef Filter value_filter;
         typedef Less less;
         typedef Alloc allocator;
         typedef std::map<key_type, value_type, less, allocator> map_data;
@@ -89,11 +98,15 @@ namespace cfg
             if (!Tab::Load(data, size, vecData))
                 return false;
 
-            pair_maker maker;
+            key_fn kfn;
+            value_filter vf;
             for (auto it = vecData.begin(); it != vecData.end(); ++it)
             {
-                if (!_data.insert(maker(*it)).second)
-                    printf("key conficted");
+                if (!vf.filter(*it))
+                    continue;
+
+                if (!_data.insert(std::make_pair(kfn.key(*it), *it)).second)
+                    printf("key confict");
             }
 
             return true;
