@@ -1,6 +1,6 @@
 ﻿#include "JsonCreater.h"
 #include "Utility.h"
-#include "CppUtil.h"
+#include "ValueUtil.h"
 #include <fstream>
 #include <iostream>
 
@@ -67,7 +67,7 @@ void JsonCreater::Create(const IStructType* sType, int tab)
         if (type->Category() == TypeCategory::Raw)
         {
             const IRawType* rType = static_cast<const IRawType*>(type);
-            std::string str = cpp_util::OrignalValue(var->Value());
+            std::string str = value_util::ToString(var->Value());
             if (rType->Raw() == RawCategory::String)
                 str = "\"" + str + "\"";
             _OUTS_ << str;
@@ -92,7 +92,7 @@ void JsonCreater::Create(const IStructType* sType, int tab)
                     for (int j = 0; j < aTy->Length(); ++j)
                     {
                         if (j) _OUTS_ << ",";
-                        _OUTS_ << cpp_util::DefValue(static_cast<const IRawType*>(original)->Raw());
+                        _OUTS_ << value_util::DefValue(static_cast<const IRawType*>(original)->Raw());
                     }
                 }
             }

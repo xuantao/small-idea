@@ -1,6 +1,6 @@
 ﻿#include "TabCreater.h"
-#include "CppUtil.h"
 #include "Utility.h"
+#include "ValueUtil.h"
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -102,9 +102,9 @@ bool TabCreater::OnVar(const IVariate* var, const IRawType* rType,
     _desc.push_back(var->Desc());
 
     if (var->Value())
-        _def.push_back(cpp_util::OrignalValue(var->Value()));
+        _def.push_back(value_util::ToString(var->Value()));
     else
-        _def.push_back(cpp_util::DefValue(rType->Raw()));
+        _def.push_back(value_util::DefValue(rType->Raw()));
     return true;
 }
 
@@ -116,7 +116,7 @@ bool TabCreater::OnVar(const IVariate* var, const IEnumType* eType,
     _desc.push_back(var->Desc());
 
     if (var->Value())
-        _def.push_back(cpp_util::OrignalValue(var->Value()));
+        _def.push_back(value_util::ToString(var->Value()));
     else
         _def.push_back("");
     return true;
@@ -132,7 +132,7 @@ bool TabCreater::OnVar(const IVariate* var, const IRawType* rType,
         _type.push_back(rType->Name() + "[" + "]");
 
     _desc.push_back(var->Desc());
-    _def.push_back(cpp_util::DefValue(rType->Raw()));
+    _def.push_back(value_util::DefValue(rType->Raw()));
     return true;
 }
 

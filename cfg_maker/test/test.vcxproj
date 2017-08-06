@@ -163,7 +163,6 @@
     <ClInclude Include="json\include\json\version.h" />
     <ClInclude Include="json\include\json\writer.h" />
     <ClInclude Include="json\src\lib_json\json_tool.h" />
-    <ClInclude Include="TupleLogger.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

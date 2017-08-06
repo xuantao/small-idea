@@ -7,6 +7,7 @@
 #include "CfgTabParser.h"
 #include <json/reader.h>
 
+#undef min
 using namespace cfg;
 
 namespace Enum
@@ -216,26 +217,17 @@ namespace Tab
         vec = utility::Split(iter.Value(), ",");
         out.s0a.resize(vec.size());
         for (size_t i = 0; i < vec.size(); ++i)
-        {
-            if (!utility::Convert(vec[i].c_str(), out.s0a[i]))
-                ; //TODO: log error
-        }
+            utility::Convert(vec[i].c_str(), out.s0a[i]);
 
         iter.MoveNext();
         vec = utility::Split(iter.Value(), ",");
         for (size_t i = 0; i < std::min(vec.size(), out.s0b.size()); ++i)
-        {
-            if (!utility::Convert(vec[i].c_str(), out.s0b[i]))
-                ; //TODO: log error
-        }
+            utility::Convert(vec[i].c_str(), out.s0b[i]);
 
         iter.MoveNext();
         vec = utility::Split(iter.Value(), ",");
         for (size_t i = 0; i < std::min(vec.size(), out.s0c.size()); ++i)
-        {
-            if (!utility::Convert(vec[i].c_str(), out.s0c[i]))
-                ; //TODO: log error
-        }
+            utility::Convert(vec[i].c_str(), out.s0c[i]);
         return true;
     }
 
@@ -279,7 +271,7 @@ namespace Tab
                 if (utility::Convert(vec[i].c_str(), val) && Enum::ToString((Enum2)val))
                     out.s1arEnum[i] = (Enum2)val;
                 else
-                    ; //TODO: log error
+                    utility::Log("chunk:%s line:%d title:%s Convert failed from type:%s value:%s", iter.Chunk(), iter.LineNO(), iter.Title(), "Enum2", vec[i].c_str());
             }
         }
 
@@ -292,7 +284,7 @@ namespace Tab
                 if (utility::Convert(vec[i].c_str(), val) && Enum::ToString((Enum2)val))
                     out.s1arEnum2[i] = (Enum2)val;
                 else
-                    ; //TODO: log error
+                    utility::Log("chunk:%s line:%d title:%s Convert failed from type:%s value:%s", iter.Chunk(), iter.LineNO(), iter.Title(), "Enum2", vec[i].c_str());
             }
         }
         return true;
@@ -336,7 +328,7 @@ namespace Tab
         stream << std::endl;
     }
 
-    bool Load(const char* data, size_t size, std::vector<Struct2>& out)
+    bool Load(const char* data, size_t size, std::vector<Struct2>& out, const char* chunk /*= nullptr*/)
     {
         static const std::array<const char*, 71> titles = {
             "a", "b", "c", "d", "s",
@@ -359,7 +351,7 @@ namespace Tab
         std::vector<std::string> vec;
 
         TabParser<71> parser(titles);
-        if (!parser.Parse(data, size))
+        if (!parser.Parse(data, size, chunk))
             return false;
 
         // load default data

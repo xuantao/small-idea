@@ -14,12 +14,17 @@ namespace cfg
 {
     namespace utility
     {
-        typedef void(*FnLogger)(const char*);
+        typedef void(*LogCallback)(const char*);
 
         bool Convert(const std::string& str, bool& out);
         bool Convert(const std::string& str, int& out);
         bool Convert(const std::string& str, float& out);
         std::vector<std::string> Split(const std::string& str, const std::string& s);
+
+        void SetLogger(LogCallback fn);
+        LogCallback GetLogger();
+
+        void Log(const char* fmt, ...);
     }
 
     /*
@@ -84,18 +89,18 @@ namespace cfg
                 (uint8_t)buff.get()[2] == 0xBF
                 )
             {
-                return Load(buff.get() + 3, size - 3); // skip BOM head
+                return Load(buff.get() + 3, size - 3, fileName); // skip BOM head
             }
             else
             {
-                return Load(buff.get(), size);
+                return Load(buff.get(), size, fileName);
             }
         }
 
-        bool Load(const char* data, size_t size)
+        bool Load(const char* data, size_t size, const char* chunk = nullptr)
         {
             std::vector<value_type> vecData;
-            if (!Tab::Load(data, size, vecData))
+            if (!Tab::Load(data, size, vecData, chunk))
                 return false;
 
             key_fn kfn;
@@ -106,7 +111,7 @@ namespace cfg
                     continue;
 
                 if (!_data.insert(std::make_pair(kfn.key(*it), *it)).second)
-                    printf("key confict");
+                    utility::Log("chunk:%s TabDataMap key conflict", chunk ? chunk : "");
             }
 
             return true;

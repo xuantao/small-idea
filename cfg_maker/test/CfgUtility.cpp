@@ -1,10 +1,16 @@
 ﻿#include "CfgUtility.h"
+#include <cstdarg>
 
 namespace cfg
 {
     namespace utility
     {
-        static FnLogger sLogger = nullptr;
+        static void LogWrap(const char* msg)
+        {
+            printf(msg);
+        }
+
+        static LogCallback sLogger = LogWrap;
 
         bool Convert(const std::string& str, bool& out)
         {
@@ -62,14 +68,29 @@ namespace cfg
             return std::move(ret);
         }
 
-        void SetLogger(FnLogger logger)
+        void SetLogger(LogCallback logger)
         {
             sLogger = logger;
         }
 
-        FnLogger GetLogger()
+        LogCallback GetLogger()
         {
             return sLogger;
+        }
+
+        void Log(const char* fmt, ...)
+        {
+            if (!sLogger)
+                return;
+
+            char buffer[2048] = { 0 };
+            va_list args;
+
+            va_start(args, fmt);
+            vsnprintf(buffer, 2048, fmt, args);
+            va_end(args);
+
+            sLogger(buffer);
         }
     }
 }

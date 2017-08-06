@@ -75,8 +75,5 @@
     <ClInclude Include="json\src\lib_json\json_tool.h">
       <Filter>src\json</Filter>
     </ClInclude>
-    <ClInclude Include="TupleLogger.h">
-      <Filter>src</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

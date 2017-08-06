@@ -27,6 +27,38 @@ namespace value_util
         return raw;
     }
 
+    static std::string sRawValue(const RawValue* val)
+    {
+        if (val == nullptr)
+            return utility::EMPTY_STR;
+
+        std::string str;
+        if (val->Raw() == RawCategory::Bool)
+        {
+            bool b = false;
+            val->Value(b);
+            str = b ? "true" : "false";
+        }
+        else if (val->Raw() == RawCategory::Int)
+        {
+            int i = 0;
+            val->Value(i);
+            str = std::to_string(i);
+        }
+        else if (val->Raw() == RawCategory::Float)
+        {
+            float f = 0.0f;
+            val->Value(f);
+            str = std::to_string(f);
+        }
+        else if (val->Raw() == RawCategory::String)
+        {
+            val->Value(str);
+        }
+
+        return str;
+    }
+
     bool IsRaw(const IValue* val, RawCategory raw, bool ref/* = true*/)
     {
         if (val == nullptr)
@@ -71,6 +103,35 @@ namespace value_util
         if (raw)
             return raw->Value(str);
         return true;
+    }
+
+    std::string ToString(const IValue* val)
+    {
+        if (val == nullptr)
+            return std::string();
+
+        if (val->Category() == ValueCategory::Raw)
+            return sRawValue(static_cast<const RawValue*>(val));
+        else if (val->Category() == ValueCategory::Ref)
+            return ToString(static_cast<const RefValue*>(val)->Var()->Value());
+        else
+            ERROR_NOT_ALLOW;
+
+        return std::string();
+    }
+
+    std::string DefValue(RawCategory raw)
+    {
+        if (raw == RawCategory::Bool)
+            return "false";
+        else if (raw == RawCategory::Int)
+            return "0";
+        else if (raw == RawCategory::Float)
+            return "0.0f";
+        else if (raw == RawCategory::String)
+            return std::string();
+        else
+            return std::string();
     }
 
     IValue* Create(RawCategory raw)

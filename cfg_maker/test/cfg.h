@@ -120,7 +120,7 @@ namespace Tab
 {
     void WriteHeader(std::ostream& stream, const Struct2& def);
     void Write(std::ostream& stream, const Struct2& data);
-    bool Load(const char* data, size_t size, std::vector<Struct2>& out);
+    bool Load(const char* data, size_t size, std::vector<Struct2>& out, const char* chunk = nullptr);
 } // end of namespace Tab
 
 namespace Json

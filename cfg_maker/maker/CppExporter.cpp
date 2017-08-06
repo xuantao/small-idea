@@ -2,6 +2,7 @@
 #include "TabVisitor.h"
 #include "Utility.h"
 #include "CppUtil.h"
+#include "ValueUtil.h"
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -349,7 +350,7 @@ bool CppExporter::Declare(const IStructType* sType)
             if (data.value.empty())
             {
                 assert(type->Category() == TypeCategory::Raw);
-                _OUTS_ << cpp_util::DefValue(static_cast<const IRawType*>(type)->Raw());
+                _OUTS_ << value_util::DefValue(static_cast<const IRawType*>(type)->Raw());
             }
             else
             {
@@ -447,6 +448,7 @@ bool CppExporter::CppImpl()
         "#include \"CfgUtility.h\"" << std::endl <<
         "#include \"CfgTabParser.h\"" << std::endl <<
         "#include <json/reader.h>" << std::endl << std::endl <<
+        "#undef min" << std::endl <<
         "using namespace cfg;" << std::endl << std::endl;
 
     if (!_enums.empty())
@@ -541,7 +543,7 @@ bool CppExporter::EnumData(const IEnumType* eType, int tab)
     _TAB_;
     for (int i = 0; i < varSet->Size(); ++i)
     {
-        _OUTS_ << "" << cpp_util::OrignalValue(varSet->Get(i)->Value()) << ", ";
+        _OUTS_ << "" << value_util::ToString(varSet->Get(i)->Value()) << ", ";
         if (i && (i % 8) == 0)
         {
             _OUTS_ << std::endl;
@@ -637,7 +639,7 @@ void CppExporter::TabDeclare(const IStructType* sType, int tab)
     _OUTS_ <<
         _TAB_EX_(0) << "void WriteHeader(std::ostream& stream, const " << tyName << "& def);" << std::endl <<
         _TAB_EX_(0) << "void Write(std::ostream& stream, const " << tyName << "& data);" << std::endl <<
-        _TAB_EX_(0) << "bool Load(const char* data, size_t size, std::vector<" << tyName << ">& out);" << std::endl;
+        _TAB_EX_(0) << "bool Load(const char* data, size_t size, std::vector<" << tyName << ">& out, const char* chunk = nullptr);" << std::endl;
 }
 
 void CppExporter::TabLoader(const IStructType* sType, int tab)
@@ -650,7 +652,7 @@ void CppExporter::TabLoader(const IStructType* sType, int tab)
 
     std::string tyName = utility::Contact(utility::Absolute(sType), "::");
     _OUTS_ <<
-        _TAB_EX_(0) << "bool Load(const char* data, size_t size, std::vector<" << tyName << ">& out)" << std::endl <<
+        _TAB_EX_(0) << "bool Load(const char* data, size_t size, std::vector<" << tyName << ">& out, const char* chunk /*= nullptr*/)" << std::endl <<
         _TAB_EX_(0) << "{" << std::endl;
 
     _OUTS_ <<
@@ -672,7 +674,7 @@ void CppExporter::TabLoader(const IStructType* sType, int tab)
     // load default value
     _OUTS_ <<
         _TAB_EX_(1) << "TabParser<" << titles.Count() << "> parser(titles);" << std::endl <<
-        _TAB_EX_(1) << "if (!parser.Parse(data, size))" << std::endl <<
+        _TAB_EX_(1) << "if (!parser.Parse(data, size, chunk))" << std::endl <<
         _TAB_EX_(2) << "return false;" << std::endl << std::endl <<
         _TAB_EX_(1) << "// load default data" << std::endl <<
         _TAB_EX_(1) << tyName << " def;" << std::endl <<
@@ -800,7 +802,7 @@ void CppExporter::TabLoadVar(const IVariate* var, const IEnumType* eType, int ta
         _TAB_EX_(1) << "if (utility::Convert(iter.Value(), val) && Enum::ToString((" << tyName << ")val))" << std::endl <<
         _TAB_EX_(2) << "out." << var->Name() << " = (" << tyName << ")val;" << std::endl <<
         _TAB_EX_(1) << "else" << std::endl <<
-        _TAB_EX_(2) << "; //TODO: log error" << std::endl <<
+        _TAB_EX_(2) << "utility::Log(\"chunk:%s line:%d title:%s Convert failed from type:%s value:%s\", iter.Chunk(), iter.LineNO(), iter.Title(), \""<< tyName << "\", iter.Value());" << std::endl <<
         _TAB_EX_(0) << "}" << std::endl;
 }
 
@@ -833,11 +835,7 @@ void CppExporter::TabLoadVar(const IVariate* var, const IRawType* rType, int len
                 _TAB_EX_(0) << "for (size_t i = 0; i < std::min(vec.size(), out." << var->Name() << ".size()); ++i)" << std::endl;
         }
 
-        _OUTS_ <<
-            _TAB_EX_(0) << "{" << std::endl <<
-            _TAB_EX_(1) << "if (!utility::Convert(vec[i].c_str(), out." << var->Name() << "[i]))" << std::endl <<
-            _TAB_EX_(2) << "; //TODO: log error" << std::endl <<
-            _TAB_EX_(0) << "}" << std::endl;
+        _OUTS_ << _TAB_EX_(1) << "utility::Convert(vec[i].c_str(), out." << var->Name() << "[i]);" << std::endl;
     }
 }
 
@@ -867,7 +865,7 @@ void CppExporter::TabLoadVar(const IVariate* var, const IEnumType* eType, int le
         _TAB_EX_(2) << "if (utility::Convert(vec[i].c_str(), val) && Enum::ToString((" << tyName << ")val))" << std::endl <<
         _TAB_EX_(3) << "out." << var->Name() << "[i] = (" << tyName << ")val;" << std::endl <<
         _TAB_EX_(2) << "else" << std::endl <<
-        _TAB_EX_(3) << "; //TODO: log error" << std::endl <<
+        _TAB_EX_(3) << "utility::Log(\"chunk:%s line:%d title:%s Convert failed from type:%s value:%s\", iter.Chunk(), iter.LineNO(), iter.Title(), \"" << tyName << "\", vec[i].c_str());" << std::endl <<
         _TAB_EX_(1) << "}" << std::endl <<
         _TAB_EX_(0) << "}" << std::endl;
 }

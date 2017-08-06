@@ -13,11 +13,13 @@ namespace cfg
     class TabLineIter
     {
     public:
-        TabLineIter(const char* const * data, const char* const * title, size_t size)
+        TabLineIter(const char* const * data, const char* const * title, size_t size, const char* chunk, int lineNO)
             : _data(data)
             , _title(title)
             , _size(size)
             , _index(-1)
+            , _chunk(chunk)
+            , _lineNO(lineNO)
         {
         }
 
@@ -34,6 +36,10 @@ namespace cfg
             return _title[_index];
         }
 
+        const char* Chunk() const { return _chunk; }
+
+        int LineNO() const { return _lineNO; }
+
         bool MoveNext()
         {
             if (_index + 1 >= _size)
@@ -49,6 +55,8 @@ namespace cfg
     protected:
         const char* const * _data;
         const char* const * _title;
+        const char* _chunk;
+        int _lineNO;
         int _index;
         size_t _size;
     };
@@ -68,6 +76,7 @@ namespace cfg
         TabParser(const std::array<const char*, N>& elements)
             : _lineNO(LB - 1)
             , _titles(elements)
+            , _chunk("")
         {
         }
 
@@ -78,7 +87,7 @@ namespace cfg
 
         TabLineIter LineIter()
         {
-            return TabLineIter(&_datas[0], &_titles[0], N);
+            return TabLineIter(&_datas[0], &_titles[0], N, "", LineNO());
         }
 
         bool NextLine()
@@ -90,10 +99,12 @@ namespace cfg
             return true;
         }
 
-        bool Parse(const char* data, size_t size)
+        bool Parse(const char* data, size_t size, const char* chunk = nullptr)
         {
             if (data == nullptr || size == 0)
                 return false;
+
+            _chunk = chunk ? chunk : "";
 
             size_t maxLength = InitLines(data, size);
 
@@ -104,7 +115,6 @@ namespace cfg
 
             InitTitles();
 
-            //Split(LB);
             return true;
         }
 
@@ -161,7 +171,7 @@ namespace cfg
         void Split(size_t line)
         {
             size_t pos = 0;
-            size_t size =_lines[line + 1] - _lines[line];
+            size_t size = _lines[line + 1] - _lines[line];
             char* beg = &_buffer[0];
             char* end = &_buffer[size - 1];
 
@@ -190,8 +200,9 @@ namespace cfg
     protected:
         const std::array<const char*, N>& _titles;  // titles
         std::vector<const char*> _lines;            // line data
-        std::vector<size_t> _index;                    // title -> index
+        std::vector<size_t> _index;                 // title -> index
 
+        const char* _chunk;
         std::array<const char*, N + 1> _datas;      // line element data
         std::unique_ptr<char[]> _buffer;            // line data buffer
         size_t _lineNO;                             // current line NO.
