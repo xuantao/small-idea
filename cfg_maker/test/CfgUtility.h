@@ -28,47 +28,29 @@ namespace cfg
     }
 
     /*
-     * Keyfn example
-     struct Keyfn
-     {
-        key_type key(value_type& value) { return value.key; }
-     };
+     * 读取文件
     */
-
-    template <class Ty>
-    struct ValueFilter
-    {
-        typedef Ty value_type;
-
-        bool filter(value_type& value) { return true; }
-    };
-
-    /*
-     * 配置数据map表
-    */
-    template <
-        class Kty, class Vty, class Keyfn,
-        class Filter = ValueFilter<Vty>,
-        class Less = std::less<Kty>,
-        class Alloc = std::allocator<std::pair<const Kty, Vty> >
-    >
-    class TabDataMap
+    class TabFileData
     {
     public:
-        typedef Kty key_type;
-        typedef Vty value_type;
-        typedef const value_type* const_pointer;
-        typedef Keyfn key_fn;
-        typedef Filter value_filter;
-        typedef Less less;
-        typedef Alloc allocator;
-        typedef std::map<key_type, value_type, less, allocator> map_data;
+        TabFileData() : _buff(nullptr), _size(0)
+        {
+        }
+
+        ~TabFileData()
+        {
+            delete _buff;
+            _buff = nullptr;
+        }
 
     public:
-        bool Load(const char* fileName)
+        char* Buffer() const { return _buff; }
+        size_t Size() const { return _size; }
+
+        bool Load(const char* file)
         {
             std::ifstream fs;
-            fs.open(fileName, std::ios::in);
+            fs.open(file, std::ios::in);
             if (!fs.is_open())
                 return false;
 
@@ -77,24 +59,104 @@ namespace cfg
             size = fs.tellg();
             fs.seekg(0, std::ios::beg);
 
-            std::unique_ptr<char> buff(new char[size + 1]);
-            fs.read(buff.get(), size);
-            fs.close();
-            buff.get()[size] = 0;
+            if (size >= 3)  // skip bom header
+            {
+                char bom[3] = {0};
+                fs.read(bom, 3);
+                if ((uint8_t)bom[0] == 0xEF && (uint8_t)bom[1] == 0xBB && (uint8_t)bom[2] == 0xBF)
+                    size -= 3;
+                else
+                    fs.seekg(0, std::ios::beg);
+            }
 
-            if (
-                size >= 3 &&
-                (uint8_t)buff.get()[0] == 0xEF &&
-                (uint8_t)buff.get()[1] == 0xBB &&
-                (uint8_t)buff.get()[2] == 0xBF
-                )
-            {
-                return Load(buff.get() + 3, size - 3, fileName); // skip BOM head
-            }
-            else
-            {
-                return Load(buff.get(), size, fileName);
-            }
+            _buff = new char[size + 1];
+            if (_buff == nullptr)
+                return false;
+
+            _size = size;
+            fs.read(_buff, size);
+            fs.close();
+
+            return true;
+        }
+
+    protected:
+        char* _buff;
+        size_t _size;
+    };
+
+    template <class Ty, class Alloc = std::allocator<_Ty>>
+    class TabDataList
+    {
+    public:
+        typedef Ty value_type;
+        typedef Alloc allocator;
+        typedef std::vector<value_type, allocator> vector_data;
+
+    public:
+        bool Load(const char* file)
+        {
+            TabFileData fd;
+            if (!fd.Load(file))
+                return false;
+
+            return Load(fd.Buffer(), fd.Size(), file);
+        }
+
+        bool Load(const char* data, size_t size, const char* chunk = nullptr)
+        {
+            return Tab::Load(data, size, _data, chunk);
+        }
+
+        size_t Size() const { return _data.size(); }
+
+        const value_type& operator[] (int index) const
+        {
+            assert(index < size);
+            return _data[index];
+        }
+
+    protected:
+        vector_data _data;
+    };
+
+
+    /*
+    * Keyfn example
+     struct Keyfn
+     {
+        key_type Key(value_type& value) { return value.key; }
+     };
+    */
+
+    /*
+     * 配置数据map表
+     * Keyfn: 通过value获取key值
+    */
+    template <
+        class Kty, class Vty, class Keyfn,
+        class Less = std::less<Kty>,
+        class Alloc = std::allocator<std::pair<const Kty, Vty> >
+    >
+        class TabDataMap
+    {
+    public:
+        typedef Kty key_type;
+        typedef Vty value_type;
+        typedef const value_type* const_pointer;
+        typedef Keyfn key_fn;
+        typedef Less less;
+        typedef Alloc allocator;
+        typedef std::map<key_type, value_type, less, allocator> map_data;
+
+    public:
+        bool Load(const char* file)
+        {
+            TabFileData fd;
+            if (!fd.Load(file))
+                return false;
+
+            return Load(fd.Buffer(), fd.Size(), file);
         }
 
         bool Load(const char* data, size_t size, const char* chunk = nullptr)
@@ -104,13 +166,12 @@ namespace cfg
                 return false;
 
             key_fn kfn;
-            value_filter vf;
             for (auto it = vecData.begin(); it != vecData.end(); ++it)
             {
-                if (!vf.filter(*it))
+                if (!Filter(*it))
                     continue;
 
-                if (!_data.insert(std::make_pair(kfn.key(*it), *it)).second)
+                if (!_data.insert(std::make_pair(kfn.Key(*it), *it)).second)
                     utility::Log("chunk:%s TabDataMap key conflict", chunk ? chunk : "");
             }
 
@@ -138,6 +199,11 @@ namespace cfg
             }
             return true;
         }
+
+        size_t Size() const { return _data.size(); }
+
+    protected:
+        virtual bool Filter(value_type& value) { return true; }
 
     protected:
         map_data _data;

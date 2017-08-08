@@ -24,6 +24,9 @@ namespace cfg
         }
 
     public:
+        const char* Chunk() const { return _chunk; }
+        int LineNO() const { return _lineNO; }
+
         const char* Value() const
         {
             assert(_index >= 0 && _index < _size);
@@ -35,10 +38,6 @@ namespace cfg
             assert(_index >= 0 && _index < _size);
             return _title[_index];
         }
-
-        const char* Chunk() const { return _chunk; }
-
-        int LineNO() const { return _lineNO; }
 
         bool MoveNext()
         {
@@ -71,7 +70,7 @@ namespace cfg
     class TabParser
     {
     public:
-        static_assert(LB > 0, "first line is title, can not be set as 0");
+        static_assert(LB > 0, "first line is title, can not be set 0");
     public:
         TabParser(const std::array<const char*, N>& elements)
             : _lineNO(LB - 1)

@@ -69,12 +69,27 @@ void TestTab()
 
 struct Keyfn
 {
-    int key(Struct2& test) { return test.a; }
+    int Key(Struct2& test) { return test.a; }
+};
+
+template <class Kty>
+struct TestKey
+{
+    typedef Kty key_type;
+
+    virtual key_type GetKey() = 0;
+};
+
+struct TestDrive : public TestKey<int>
+{
+    virtual int GetKey() { return 1; }
 };
 
 int main(int argc, char* argv[])
 {
     //typedef std::map<int, TestKey> MapKey;
+
+    TestDrive td;
 
     TabDataMap<int, Struct2, Keyfn> data;
     if (data.Load("../work/out/Struct2.tab"))

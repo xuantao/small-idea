@@ -135,9 +135,6 @@
     <ClInclude Include="CppUtil.h">
       <Filter>src\exporter\cpp</Filter>
     </ClInclude>
-    <ClInclude Include="Interface.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
     <ClInclude Include="FileData.h">
       <Filter>src\context</Filter>
     </ClInclude>
@@ -152,6 +149,9 @@
     </ClInclude>
     <ClInclude Include="TabVisitor.h">
       <Filter>src\exporter</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

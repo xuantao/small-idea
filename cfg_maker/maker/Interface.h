@@ -7,6 +7,9 @@
 
 CFG_NAMESPACE_BEGIN
 
+class ITypeSet;
+class IVarSet;
+
 /*
  * 类型
 */
@@ -19,6 +22,19 @@ public:
     virtual TypeCategory Category() const = 0;
     virtual const std::string& Name() const = 0;
 
+    virtual ITypeSet* TypeSet() const = 0;
+    virtual IVarSet* VarSet() const = 0;
+};
+
+/*
+ * 范围域
+*/
+class IScope
+{
+public:
+    virtual ~IScope() {}
+
+public:
     virtual ITypeSet* TypeSet() const = 0;
     virtual IVarSet* VarSet() const = 0;
 };
