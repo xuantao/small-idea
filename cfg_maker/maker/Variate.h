@@ -11,6 +11,7 @@ public:
     ~Variate();
 
 public:
+    virtual ElementCategory ElementCat() const { return ElementCategory::Var; }
     virtual bool IsConst() const { return _const; }
     virtual IType* Belong() const { return _belong; }
     virtual IType* Type() const { return _type; }

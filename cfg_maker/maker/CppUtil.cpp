@@ -14,7 +14,7 @@ namespace cpp_util
         const IVariate* var = val->Var();
         std::stringstream stream;
 
-        if (type->Category() == TypeCategory::Array)
+        if (type->TypeCat() == TypeCategory::Array)
             type = static_cast<const IArrayType*>(type)->Original();
 
         if (type != var->Type())
@@ -45,15 +45,15 @@ namespace cpp_util
     std::string TypeName(const IType* scope, const IType* ty)
     {
         std::string name;
-        if (ty->Category() == TypeCategory::Raw)
+        if (ty->TypeCat() == TypeCategory::Raw)
         {
             name = RawName(static_cast<const IRawType*>(ty)->Raw());
         }
-        else if (ty->Category() == TypeCategory::Enum || ty->Category() == TypeCategory::Struct)
+        else if (ty->TypeCat() == TypeCategory::Enum || ty->TypeCat() == TypeCategory::Struct)
         {
             name = utility::Contact(utility::Relative(scope, ty), "::");
         }
-        else if (ty->Category() == TypeCategory::Array)
+        else if (ty->TypeCat() == TypeCategory::Array)
         {
             const IArrayType* arTy = static_cast<const IArrayType*>(ty);
             name = TypeName(scope, arTy->Prev());
@@ -82,9 +82,9 @@ namespace cpp_util
             return std::string();
 
         std::string value;
-        if (val->Category() == ValueCategory::Raw)
+        if (val->ValueCat() == ValueCategory::Raw)
             value = value_util::ToString(static_cast<const IRawValue*>(val));
-        else if (val->Category() == ValueCategory::Ref)
+        else if (val->ValueCat() == ValueCategory::Ref)
             value = sRefValue(scope, type, static_cast<const IRefValue*>(val));
         else
             ERROR_NOT_ALLOW;
@@ -100,10 +100,10 @@ namespace cpp_util
         out.name = var->Name();
         if (var->Value())
             out.value = Value(var->Belong(), var->Type(), var->Value());
-        else if (var->Type()->Category() == TypeCategory::Raw)
+        else if (var->Type()->TypeCat() == TypeCategory::Raw)
             out.value = value_util::DefValue(static_cast<const IRawType*>(var->Type())->Raw());
 
-        if (var->Type()->Category() == TypeCategory::Raw &&
+        if (var->Type()->TypeCat() == TypeCategory::Raw &&
             !out.value.empty() &&
             static_cast<const IRawType*>(var->Type())->Raw() == RawCategory::String)
         {

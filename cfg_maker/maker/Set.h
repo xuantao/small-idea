@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "CfgDef.h"
 #include "Interface.h"
 #include <algorithm>
 
@@ -11,18 +10,16 @@ CFG_NAMESPACE_BEGIN
 class TypeSetNormal : public ITypeSet
 {
 public:
-    TypeSetNormal(IType* belong);
+    TypeSetNormal();
     ~TypeSetNormal();
 
 public:
-    virtual IType* Belong() const { return _belong; }
     virtual IType* Get(const std::string& name) const;
     virtual IType* Get(int index) const;
     virtual int Size() const { return (int)_types.size(); }
     virtual bool Add(IType* type);
 
 private:
-    IType* _belong;
     std::vector<IType*> _types;
 };
 
@@ -33,18 +30,16 @@ private:
 class VarSetNormal : public IVarSet
 {
 public:
-    VarSetNormal(IType* belong);
+    VarSetNormal();
     ~VarSetNormal();
 
 public:
-    virtual IType* Belong() const { return _belong; }
     virtual IVariate* Get(const std::string& name) const;
     virtual IVariate* Get(int index) const;
     virtual int Size() const { return (int)_vars.size(); }
     virtual bool Add(IVariate* var);
 
 protected:
-    IType* _belong;
     std::vector<IVariate*> _vars;
 };
 
@@ -56,26 +51,23 @@ class EnumType;
 class EnumVarSet : public VarSetNormal
 {
 public:
-    EnumVarSet(EnumType* belong);
+    EnumVarSet();
 
 public:
     virtual bool Add(IVariate* var);
 };
 
-
 /*
  * 针对struct的成员变量集合
  * struct含有继承
 */
-class StructType;
 class StructVarSet : public IVarSet
 {
 public:
-    StructVarSet(StructType* belong);
+    StructVarSet(IStructType* belong);
     ~StructVarSet();
 
 public:
-    virtual IType* Belong() const;
     virtual IVariate* Get(const std::string& name) const;
     virtual IVariate* Get(int index) const;
     virtual int Size() const;
@@ -87,7 +79,24 @@ public:
 
 protected:
     VarSetNormal _self;
-    StructType* _struct;
+    IStructType* _struct;
 };
 
+/*
+ * NsSet
+*/
+class NsSet : public INsSet
+{
+public:
+    virtual ~NsSet();
+public:
+    virtual INamespace* Get(const std::string& name) const;
+    virtual INamespace* Get(int index) const;
+    virtual int Size() const { return (int)_ns.size(); }
+
+    virtual bool Add(INamespace* ns);
+
+protected:
+    std::vector<INamespace*> _ns;
+};
 CFG_NAMESPACE_END

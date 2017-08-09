@@ -27,19 +27,19 @@ static int sNeedTempMask(const IStructType* sType)
     for (int i = 0; i < vars->Size(); ++i)
     {
         const IType* type = vars->Get(i)->Type();
-        if (type->Category() == TypeCategory::Array)
+        if (type->TypeCat() == TypeCategory::Array)
         {
             type = static_cast<const IArrayType*>(type)->Original();
-            if ((type->Category() != TypeCategory::Raw || ((const IRawType*)type)->Raw() != RawCategory::String) ||
-                (type->Category() != TypeCategory::Struct))
+            if ((type->TypeCat() != TypeCategory::Raw || ((const IRawType*)type)->Raw() != RawCategory::String) ||
+                (type->TypeCat() != TypeCategory::Struct))
             {
                 mask |= _NEED_TEMP_ARRAY;
             }
-            if (type->Category() == TypeCategory::Enum)
+            if (type->TypeCat() == TypeCategory::Enum)
                 mask |= _NEED_TEMP_INT;
 
         }
-        else if (type->Category() == TypeCategory::Enum)
+        else if (type->TypeCat() == TypeCategory::Enum)
         {
             mask |= _NEED_TEMP_INT | _NEED_TEMP_BUFFER;
         }
@@ -222,23 +222,23 @@ void CppExporter::OnType(const IType* type)
         _lastIsVar = false;
     }
 
-    if (type->Category() == TypeCategory::Enum)
+    if (type->TypeCat() == TypeCategory::Enum)
     {
         const IEnumType* eType = static_cast<const IEnumType*>(type);
         Declare(eType);
         _enums.push_back(eType);
     }
-    else if (type->Category() == TypeCategory::Struct)
+    else if (type->TypeCat() == TypeCategory::Struct)
     {
         const IStructType* sType = static_cast<const IStructType*>(type);
         Declare(sType);
 
-        if (sType->Cfg() == CfgCategory::Tab)
+        if (sType->CfgCat() == CfgCategory::Tab)
         {
             GetDepends(sType, _tabDepends);
             _tabs.push_back(sType);
         }
-        else if (sType->Cfg() == CfgCategory::Json)
+        else if (sType->CfgCat() == CfgCategory::Json)
         {
             GetDepends(sType, _jsonDepends);
             _jsons.push_back(sType);;
@@ -336,7 +336,7 @@ bool CppExporter::Declare(const IStructType* sType)
                 continue;
 
             const IType* type = data.var->Type();
-            if (type->Category() != TypeCategory::Raw || data.value.empty())
+            if (type->TypeCat() != TypeCategory::Raw || data.value.empty())
                 continue;
 
             _TAB_;
@@ -349,7 +349,7 @@ bool CppExporter::Declare(const IStructType* sType)
 
             if (data.value.empty())
             {
-                assert(type->Category() == TypeCategory::Raw);
+                assert(type->TypeCat() == TypeCategory::Raw);
                 _OUTS_ << value_util::DefValue(static_cast<const IRawType*>(type)->Raw());
             }
             else
@@ -371,7 +371,7 @@ bool CppExporter::Declare(const IStructType* sType)
                 continue;
 
             const IType* type = data.var->Type();
-            if (type->Category() != TypeCategory::Array || data.value.empty())
+            if (type->TypeCat() != TypeCategory::Array || data.value.empty())
                 continue;
 
             const IArrayType* aTy = static_cast<const IArrayType*>(type);
@@ -737,35 +737,35 @@ void CppExporter::TabLoadDetail(const IStructType* sType, int tab)
         if (var->IsConst())
             continue;
 
-        if (ty->Category() == TypeCategory::Raw)
+        if (ty->TypeCat() == TypeCategory::Raw)
         {
             TabLoadVar(var, (const IRawType*)ty, tab);
         }
-        else if (ty->Category() == TypeCategory::Enum)
+        else if (ty->TypeCat() == TypeCategory::Enum)
         {
             if (i) _OUTS_ << std::endl;
             TabLoadVar(var, (const IEnumType*)ty, tab);
         }
-        else if (ty->Category() == TypeCategory::Struct)
+        else if (ty->TypeCat() == TypeCategory::Struct)
         {
             const IStructType* sTy = (const IStructType*)ty;
             TabLoadVar(var, sTy, tab);
         }
-        else if (ty->Category() == TypeCategory::Array)
+        else if (ty->TypeCat() == TypeCategory::Array)
         {
             if (i) _OUTS_ << std::endl;
 
             const IArrayType* aTy = (const IArrayType*)ty;
             const IType* original = aTy->Original();
-            if (original->Category() == TypeCategory::Raw)
+            if (original->TypeCat() == TypeCategory::Raw)
             {
                 TabLoadVar(var, (const IRawType*)original, aTy->Length(), tab);
             }
-            else if (original->Category() == TypeCategory::Enum)
+            else if (original->TypeCat() == TypeCategory::Enum)
             {
                 TabLoadVar(var, (const IEnumType*)original, aTy->Length(), tab);
             }
-            else if (original->Category() == TypeCategory::Struct)
+            else if (original->TypeCat() == TypeCategory::Struct)
             {
                 TabLoadVar(var, (const IStructType*)original, aTy->Length(), tab);
             }
@@ -775,7 +775,7 @@ void CppExporter::TabLoadDetail(const IStructType* sType, int tab)
 
 void CppExporter::TabLoadVar(const IVariate* var, const IRawType* rType, int tab)
 {
-    switch (rType->Raw())
+    switch (rType->RawCat())
     {
     case RawCategory::Bool:
     case RawCategory::Int:
@@ -802,7 +802,7 @@ void CppExporter::TabLoadVar(const IVariate* var, const IEnumType* eType, int ta
         _TAB_EX_(1) << "if (utility::Convert(iter.Value(), val) && Enum::ToString((" << tyName << ")val))" << std::endl <<
         _TAB_EX_(2) << "out." << var->Name() << " = (" << tyName << ")val;" << std::endl <<
         _TAB_EX_(1) << "else" << std::endl <<
-        _TAB_EX_(2) << "utility::Log(\"chunk:%s line:%d title:%s Convert failed from type:%s value:%s\", iter.Chunk(), iter.LineNO(), iter.Title(), \""<< tyName << "\", iter.Value());" << std::endl <<
+        _TAB_EX_(2) << "utility::Log(\"chunk:%s line:%d title:%s Convert failed from type:%s value:%s\", iter.Chunk(), iter.LineNO(), iter.Title(), \"" << tyName << "\", iter.Value());" << std::endl <<
         _TAB_EX_(0) << "}" << std::endl;
 }
 
@@ -815,7 +815,7 @@ void CppExporter::TabLoadVar(const IVariate* var, const IStructType* rType, int 
 void CppExporter::TabLoadVar(const IVariate* var, const IRawType* rType, int length, int tab)
 {
     _TAB_ << "iter.MoveNext();" << std::endl;
-    if (rType->Raw() == RawCategory::String)
+    if (rType->RawCat() == RawCategory::String)
     {
         _TAB_ << "out." << var->Name() << " = utility::Split(iter.Value(), \",\");" << std::endl;
     }
@@ -915,7 +915,7 @@ void CppExporter::TabWriterStatic(const IStructType* sType, int tab)
     _OUTS_ <<
         _TAB_EX_(0) << "void sWrite(std::ostream& stream, const " << tyName << "& data)" << std::endl <<
         _TAB_EX_(0) << "{" << std::endl;
-    
+
     TabWriterDetail(sType, tab + 1);
 
     _OUTS_ <<
@@ -943,19 +943,19 @@ void CppExporter::TabWriterDetail(const IStructType* sType, int tab)
         if (var->IsConst())
             continue;
 
-        if (ty->Category() == TypeCategory::Raw)
+        if (ty->TypeCat() == TypeCategory::Raw)
         {
             _TAB_ << "stream << data." << var->Name() << ";" << std::endl;
         }
-        else if (ty->Category() == TypeCategory::Enum)
+        else if (ty->TypeCat() == TypeCategory::Enum)
         {
             _TAB_ << "stream << Enum::ToString(data." << var->Name() << ");" << std::endl;
         }
-        else if (ty->Category() == TypeCategory::Struct)
+        else if (ty->TypeCat() == TypeCategory::Struct)
         {
             _TAB_ << "sWrite(stream, data." << var->Name() << ");" << std::endl;
         }
-        else if (ty->Category() == TypeCategory::Array)
+        else if (ty->TypeCat() == TypeCategory::Array)
         {
             if (i) _OUTS_ << std::endl;
 
@@ -966,11 +966,11 @@ void CppExporter::TabWriterDetail(const IStructType* sType, int tab)
                 _TAB_EX_(0) << "{" << std::endl <<
                 _TAB_EX_(1) << "if (i) stream << \"\\t\";" << std::endl;
 
-            if (original->Category() == TypeCategory::Raw)
+            if (original->TypeCat() == TypeCategory::Raw)
                 _OUTS_ << _TAB_EX_(1) << "stream << data." << var->Name() << "[i];" << std::endl;
-            else if (original->Category() == TypeCategory::Enum)
+            else if (original->TypeCat() == TypeCategory::Enum)
                 _OUTS_ << _TAB_EX_(1) << "stream << Enum::ToString(data." << var->Name() << "[i]);" << std::endl;
-            else if (original->Category() == TypeCategory::Struct)
+            else if (original->TypeCat() == TypeCategory::Struct)
                 _OUTS_ << _TAB_EX_(1) << "sWrite(stream, data." << var->Name() << "[i]);" << std::endl;
 
             _TAB_ << "}" << std::endl;
@@ -1030,35 +1030,35 @@ void CppExporter::JsonLoaderStatic(const IStructType* sType, int tab)
         const IVariate* var = vars->Get(i);
         const IType* ty = var->Type();
 
-        if (ty->Category() == TypeCategory::Raw)
+        if (ty->TypeCat() == TypeCategory::Raw)
         {
             JsonLoadVar(var, (const IRawType*)ty, tab + 1);
         }
-        else if (ty->Category() == TypeCategory::Enum)
+        else if (ty->TypeCat() == TypeCategory::Enum)
         {
             if (i) _OUTS_ << std::endl;
             JsonLoadVar(var, (const IEnumType*)ty, tab + 1);
         }
-        else if (ty->Category() == TypeCategory::Struct)
+        else if (ty->TypeCat() == TypeCategory::Struct)
         {
             const IStructType* sTy = (const IStructType*)ty;
             JsonLoadVar(var, sTy, tab + 1);
         }
-        else if (ty->Category() == TypeCategory::Array)
+        else if (ty->TypeCat() == TypeCategory::Array)
         {
             if (i) _OUTS_ << std::endl;
 
             const IArrayType* aTy = (const IArrayType*)ty;
             const IType* original = aTy->Original();
-            if (original->Category() == TypeCategory::Raw)
+            if (original->TypeCat() == TypeCategory::Raw)
             {
                 JsonLoadVar(var, (const IRawType*)original, aTy->Length(), tab + 1);
             }
-            else if (original->Category() == TypeCategory::Enum)
+            else if (original->TypeCat() == TypeCategory::Enum)
             {
                 JsonLoadVar(var, (const IEnumType*)original, aTy->Length(), tab + 1);
             }
-            else if (original->Category() == TypeCategory::Struct)
+            else if (original->TypeCat() == TypeCategory::Struct)
             {
                 JsonLoadVar(var, (const IStructType*)original, aTy->Length(), tab + 1);
             }
@@ -1077,19 +1077,19 @@ void CppExporter::JsonLoadVar(const IVariate* var, const IRawType* rType, int ta
         _TAB_EX_(0) << "{" << std::endl <<
         _TAB_EX_(1) << "const Json::Value& mem = node[\"" << var->Name() << "\"];" << std::endl;
 
-    if (rType->Raw() == RawCategory::Bool)
+    if (rType->RawCat() == RawCategory::Bool)
     {
         _OUTS_ <<
             _TAB_EX_(1) << "if (mem.type() == Json::ValueType::booleanValue)" << std::endl <<
             _TAB_EX_(2) << "out." << var->Name() << " = mem.asBool();" << std::endl;
     }
-    else if (rType->Raw() == RawCategory::Int)
+    else if (rType->RawCat() == RawCategory::Int)
     {
         _OUTS_ <<
             _TAB_EX_(1) << "if (mem.type() == Json::ValueType::intValue || mem.type() == Json::ValueType::uintValue)" << std::endl <<
             _TAB_EX_(2) << "out." << var->Name() << " = mem.asInt();" << std::endl;
     }
-    else if (rType->Raw() == RawCategory::Float)
+    else if (rType->RawCat() == RawCategory::Float)
     {
         _OUTS_ <<
             _TAB_EX_(1) << "if (mem.type() == Json::ValueType::intValue || mem.type() == Json::ValueType::uintValue)" << std::endl <<
@@ -1097,7 +1097,7 @@ void CppExporter::JsonLoadVar(const IVariate* var, const IRawType* rType, int ta
             _TAB_EX_(1) << "else if (mem.type() == Json::ValueType::realValue)" << std::endl <<
             _TAB_EX_(2) << "out." << var->Name() << " = (float)mem.asDouble();" << std::endl;
     }
-    else if (rType->Raw() == RawCategory::String)
+    else if (rType->RawCat() == RawCategory::String)
     {
         _OUTS_ <<
             _TAB_EX_(1) << "if (mem.type() == Json::ValueType::stringValue)" << std::endl <<
@@ -1152,19 +1152,19 @@ void CppExporter::JsonLoadVar(const IVariate* var, const IRawType* rType, int le
     }
     _OUTS_ << _TAB_EX_(2) << "{" << std::endl;
 
-    if (rType->Raw() == RawCategory::Bool)
+    if (rType->RawCat() == RawCategory::Bool)
     {
         _OUTS_ <<
             _TAB_EX_(3) << "if (mem[i].type() == Json::ValueType::booleanValue)" << std::endl <<
             _TAB_EX_(4) << "out." << var->Name() << "[i]  = mem[i].asBool();" << std::endl;
     }
-    else if (rType->Raw() == RawCategory::Int)
+    else if (rType->RawCat() == RawCategory::Int)
     {
         _OUTS_ <<
             _TAB_EX_(3) << "if (mem[i].type() == Json::ValueType::intValue || mem[i].type() == Json::ValueType::uintValue)" << std::endl <<
             _TAB_EX_(4) << "out." << var->Name() << "[i]  = mem[i].asInt();" << std::endl;
     }
-    else if (rType->Raw() == RawCategory::Float)
+    else if (rType->RawCat() == RawCategory::Float)
     {
         _OUTS_ <<
             _TAB_EX_(3) << "if (mem[i].type() == Json::ValueType::intValue || mem[i].type() == Json::ValueType::uintValue)" << std::endl <<
@@ -1172,7 +1172,7 @@ void CppExporter::JsonLoadVar(const IVariate* var, const IRawType* rType, int le
             _TAB_EX_(3) << "else if (mem[i].type() == Json::ValueType::realValue)" << std::endl <<
             _TAB_EX_(4) << "out." << var->Name() << "[i]  = (float)mem[i].asDouble();" << std::endl;
     }
-    else if (rType->Raw() == RawCategory::String)
+    else if (rType->RawCat() == RawCategory::String)
     {
         _OUTS_ <<
             _TAB_EX_(3) << "if (mem[i].type() == Json::ValueType::stringValue)" << std::endl <<
@@ -1283,25 +1283,25 @@ void CppExporter::JsonWriterStatic(const IStructType* sType, int tab)
         _OUTS_ <<
             _TAB_EX_(1) << "stream << std::string(\" \", tab * 4) << \"\\\"" << var->Name() << "\\\":\";" << std::endl;
 
-        if (ty->Category() == TypeCategory::Raw)
+        if (ty->TypeCat() == TypeCategory::Raw)
         {
             if (static_cast<const IRawType*>(ty)->Raw() == RawCategory::String)
                 _OUTS_ << _TAB_EX_(1) << "stream << \"\\\"\" << data." << var->Name() << "<< \"\\\"\";" << std::endl;
             else
                 _OUTS_ << _TAB_EX_(1) << "stream << data." << var->Name() << ";" << std::endl;
         }
-        else if (ty->Category() == TypeCategory::Enum)
+        else if (ty->TypeCat() == TypeCategory::Enum)
         {
             _OUTS_ << _TAB_EX_(1) << "stream << data." << var->Name() << ";" << std::endl;
         }
-        else if (ty->Category() == TypeCategory::Struct)
+        else if (ty->TypeCat() == TypeCategory::Struct)
         {
             _OUTS_ <<
                 _TAB_EX_(1) << "stream << \"{\" << std::endl;" << std::endl <<
                 _TAB_EX_(1) << "sWrite(stream, data." << var->Name() << ", tab + 1);" << std::endl <<
                 _TAB_EX_(1) << "stream << std::endl << std::string(\" \", tab * 4) << \"}\";" << std::endl;
         }
-        else if (ty->Category() == TypeCategory::Array)
+        else if (ty->TypeCat() == TypeCategory::Array)
         {
             const IArrayType* aTy = (const IArrayType*)ty;
             const IType* original = aTy->Original();
@@ -1312,18 +1312,18 @@ void CppExporter::JsonWriterStatic(const IStructType* sType, int tab)
                 _TAB_EX_(1) << "{" << std::endl <<
                 _TAB_EX_(2) << "if (i) stream << \",\";" << std::endl;
 
-            if (original->Category() == TypeCategory::Raw)
+            if (original->TypeCat() == TypeCategory::Raw)
             {
                 if (static_cast<const IRawType*>(ty)->Raw() == RawCategory::String)
                     _OUTS_ << _TAB_EX_(2) << "stream << \"\\\"\" << data." << var->Name() << "[i] << \"\\\"\";" << std::endl;
                 else
                     _OUTS_ << _TAB_EX_(2) << "stream << data." << var->Name() << "[i];" << std::endl;
             }
-            else if (original->Category() == TypeCategory::Enum)
+            else if (original->TypeCat() == TypeCategory::Enum)
             {
                 _OUTS_ << _TAB_EX_(2) << "stream << data." << var->Name() << "[i];" << std::endl;
             }
-            else if (original->Category() == TypeCategory::Struct)
+            else if (original->TypeCat() == TypeCategory::Struct)
             {
                 _OUTS_ <<
                     _TAB_EX_(2) << "stream << \"{\" << std::endl;" << std::endl <<
@@ -1334,7 +1334,7 @@ void CppExporter::JsonWriterStatic(const IStructType* sType, int tab)
             _OUTS_ <<
                 _TAB_EX_(1) << "}" << std::endl <<
                 _TAB_EX_(1) << "stream << \"]\";" << std::endl;
-            
+
         }
 
         if (i + 1 < vars->Size())
@@ -1358,14 +1358,14 @@ void CppExporter::GetDepends(const IStructType* sType, std::vector<const IStruct
     {
         const IType* type = vars->Get(i)->Type();
 
-        if (type->Category() == TypeCategory::Struct)
+        if (type->TypeCat() == TypeCategory::Struct)
         {
             GetDepends(static_cast<const IStructType*>(type), deps);
         }
-        else if (type->Category() == TypeCategory::Array)
+        else if (type->TypeCat() == TypeCategory::Array)
         {
             const IArrayType* aType = static_cast<const IArrayType*>(type);
-            if (aType->Original()->Category() == TypeCategory::Struct)
+            if (aType->Original()->TypeCat() == TypeCategory::Struct)
                 GetDepends(static_cast<const IStructType*>(aType->Original()), deps);
         }
     }

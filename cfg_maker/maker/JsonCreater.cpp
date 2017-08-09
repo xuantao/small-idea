@@ -64,28 +64,28 @@ void JsonCreater::Create(const IStructType* sType, int tab)
 
         _OUTS_ << _TAB_EX_(1) << "\"" << var->Name() << "\":";
 
-        if (type->Category() == TypeCategory::Raw)
+        if (type->TypeCat() == TypeCategory::Raw)
         {
             const IRawType* rType = static_cast<const IRawType*>(type);
             std::string str = value_util::ToString(var->Value());
-            if (rType->Raw() == RawCategory::String)
+            if (rType->RawCat() == RawCategory::String)
                 str = "\"" + str + "\"";
             _OUTS_ << str;
         }
-        else if (type->Category() == TypeCategory::Enum)
+        else if (type->TypeCat() == TypeCategory::Enum)
         {
             _OUTS_ << "0";
         }
-        else if (type->Category() == TypeCategory::Struct)
+        else if (type->TypeCat() == TypeCategory::Struct)
         {
             Create(static_cast<const IStructType*>(type), tab + 1);
         }
-        else if (type->Category() == TypeCategory::Array)
+        else if (type->TypeCat() == TypeCategory::Array)
         {
             const IArrayType* aTy = static_cast<const IArrayType*>(type);
             const IType* original = aTy->Original();
             _OUTS_ << "[";
-            if (original->Category() == TypeCategory::Raw)
+            if (original->TypeCat() == TypeCategory::Raw)
             {
                 if (aTy->Length() > 0)
                 {
@@ -96,7 +96,7 @@ void JsonCreater::Create(const IStructType* sType, int tab)
                     }
                 }
             }
-            else if (original->Category() == TypeCategory::Enum)
+            else if (original->TypeCat() == TypeCategory::Enum)
             {
                 if (aTy->Length() > 0)
                 {
@@ -107,7 +107,7 @@ void JsonCreater::Create(const IStructType* sType, int tab)
                     }
                 }
             }
-            else if (original->Category() == TypeCategory::Struct)
+            else if (original->TypeCat() == TypeCategory::Struct)
             {
                 if (aTy->Length() > 0)
                 {

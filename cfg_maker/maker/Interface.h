@@ -9,34 +9,38 @@ CFG_NAMESPACE_BEGIN
 
 class ITypeSet;
 class IVarSet;
+class INsSet;
+class IScope;
+class INamespace;
+
+enum class ElementCategory
+{
+    Type,
+    Var,
+    Namespace,
+};
+
+class IElement
+{
+public:
+    virtual ~IElement() {}
+public:
+    virtual ElementCategory ElementCat() const = 0;
+};
 
 /*
  * 类型
 */
-class IType
+class IType : public IElement
 {
 public:
     virtual ~IType() {}
 public:
-    virtual IType* Belong() const = 0;
-    virtual TypeCategory Category() const = 0;
+    virtual TypeCategory TypeCat() const = 0;
     virtual const std::string& Name() const = 0;
 
-    virtual ITypeSet* TypeSet() const = 0;
-    virtual IVarSet* VarSet() const = 0;
-};
-
-/*
- * 范围域
-*/
-class IScope
-{
-public:
-    virtual ~IScope() {}
-
-public:
-    virtual ITypeSet* TypeSet() const = 0;
-    virtual IVarSet* VarSet() const = 0;
+    virtual IScope* Owner() const = 0;
+    virtual IScope* Scope() const = 0;
 };
 
 /*
@@ -47,7 +51,7 @@ class IRawType : public IType
 public:
     virtual ~IRawType() {}
 public:
-    virtual RawCategory Raw() const = 0;
+    virtual RawCategory RawCat() const = 0;
 };
 
 /*
@@ -58,10 +62,13 @@ class IStructType : public IType
 public:
     virtual ~IStructType() {}
 public:
-    virtual CfgCategory Cfg() const = 0;
-    virtual bool IsInherited(const IType* type) const = 0;
+    virtual CfgCategory CfgCat() const = 0;
+
+    virtual bool IsInherited(const IStructType* type) const = 0;
+    virtual bool Inherit(IStructType* parent) = 0;
     virtual IStructType* Inherited() const = 0;
-    virtual IVarSet* OwnVars() const = 0;
+
+    virtual IScope* OwnScope() const = 0;
 };
 
 /*
@@ -73,13 +80,14 @@ public:
     virtual ~IEnumType() {}
 };
 
-/*
- * Scope Type
-*/
-class IScopeType : public IType
+class INamespace : public IElement
 {
 public:
-    virtual ~IScopeType() {}
+    virtual ~INamespace() {}
+public:
+    virtual const std::string& Name() const = 0;
+    virtual IScope* Owner() const = 0;
+    virtual IScope* Scope() const = 0;
 };
 
 /*
@@ -95,36 +103,10 @@ public:
     virtual int Length() const = 0;
 };
 
-class ITypeSet
-{
-public:
-    virtual ~ITypeSet() {}
-public:
-    virtual IType* Belong() const = 0;
-    virtual IType* Get(const std::string& name) const = 0;
-    virtual IType* Get(int index) const = 0;
-    virtual int Size() const = 0;
-
-    virtual bool Add(IType* type) = 0;
-};
-
-class IVarSet
-{
-public:
-    virtual ~IVarSet() {}
-public:
-    virtual IType* Belong() const = 0;
-    virtual IVariate* Get(const std::string& name) const = 0;
-    virtual IVariate* Get(int index) const = 0;
-    virtual int Size() const = 0;
-
-    virtual bool Add(IVariate* var) = 0;
-};
-
 /*
  * 变量
 */
-class IVariate
+class IVariate : public IElement
 {
 public:
     virtual ~IVariate() {}
@@ -139,6 +121,65 @@ public:
 };
 
 /*
+* 范围/域
+*/
+class IScope
+{
+public:
+    virtual ~IScope() {}
+
+public:
+    virtual const std::string& Name() const = 0;
+    virtual IType* Binding() const = 0;
+    virtual IScope* Owner() const = 0;
+
+    virtual ITypeSet* TypeSet() const = 0;
+    virtual IVarSet* VarSet() const = 0;
+    virtual INsSet* NsSet() const = 0;
+
+    virtual IElement* Get(const std::string& name) const = 0;
+};
+
+/*
+ * type set
+*/
+class ITypeSet
+{
+public:
+    virtual ~ITypeSet() {}
+public:
+    virtual IType* Get(const std::string& name) const = 0;
+    virtual IType* Get(int index) const = 0;
+    virtual int Size() const = 0;
+
+    virtual bool Add(IType* type) = 0;
+};
+
+class IVarSet
+{
+public:
+    virtual ~IVarSet() {}
+public:
+    virtual IVariate* Get(const std::string& name) const = 0;
+    virtual IVariate* Get(int index) const = 0;
+    virtual int Size() const = 0;
+
+    virtual bool Add(IVariate* var) = 0;
+};
+
+class INsSet
+{
+public:
+    virtual ~INsSet() {}
+public:
+    virtual INamespace* Get(const std::string& name) const = 0;
+    virtual INamespace* Get(int index) const = 0;
+    virtual int Size() const = 0;
+
+    virtual bool Add(INamespace* ns) = 0;
+};
+
+/*
  * 值
 */
 class IValue
@@ -146,7 +187,7 @@ class IValue
 public:
     virtual ~IValue() {}
 public:
-    virtual ValueCategory Category() const = 0;
+    virtual ValueCategory ValueCat() const = 0;
 };
 
 /*
@@ -157,7 +198,7 @@ class IRawValue : public IValue
 public:
     virtual ~IRawValue() {}
 public:
-    virtual RawCategory Raw() const = 0;
+    virtual RawCategory RawCat() const = 0;
 };
 
 /*

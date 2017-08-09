@@ -85,6 +85,12 @@ struct TestDrive : public TestKey<int>
     virtual int GetKey() { return 1; }
 };
 
+//int _global_it = 0;
+//namespace _global_it
+//{
+//
+//}
+
 int main(int argc, char* argv[])
 {
     //typedef std::map<int, TestKey> MapKey;

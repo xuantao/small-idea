@@ -18,34 +18,38 @@ static std::ostream& operator << (std::ostream& out, RawCategory raw)
 
 Context::Context(Driver& driver)
     : _driver(driver)
-    , _scope(nullptr)
+    , _gloal(nullptr)
     , _var(nullptr)
     , _type(nullptr)
 {
-    _scope = new ScopeType("");
-    _scope->TypeSet()->Add(new RawType(TYPE_BOOL, RawCategory::Bool));
-    _scope->TypeSet()->Add(new RawType(TYPE_INT, RawCategory::Int));
-    _scope->TypeSet()->Add(new RawType(TYPE_FLOAT, RawCategory::Float));
-    _scope->TypeSet()->Add(new RawType(TYPE_STRING, RawCategory::String));
+    _gloal = new Namespace("", nullptr);
+    _stackScope.push(_gloal->Scope());
+
+    Scope()->TypeSet()->Add(new RawType(TYPE_BOOL, RawCategory::Bool));
+    Scope()->TypeSet()->Add(new RawType(TYPE_INT, RawCategory::Int));
+    Scope()->TypeSet()->Add(new RawType(TYPE_FLOAT, RawCategory::Float));
+    Scope()->TypeSet()->Add(new RawType(TYPE_STRING, RawCategory::String));
 }
 
 Context::~Context()
 {
-    delete _scope;
-    _scope = nullptr;
+    delete _gloal;
+    _gloal = nullptr;
 
     delete _var;
     _var = nullptr;
+
+    _type = nullptr;
 }
 
-const IScopeType* Context::Global() const
+const IScope* Context::Global() const
 {
-    return _scope;
+    return _gloal->Scope();
 }
 
 IType* Context::GetType(const std::string& name) const
 {
-    IType* type = _scope->TypeSet()->Get(name);
+    IType* type = Global()->TypeSet()->Get(name);
     return type;
 }
 
@@ -56,7 +60,7 @@ bool Context::Export(IExporter* expoter, const std::string& file)
         fileName = "unnamed";
 
     //TODO: 这里还需要考虑include的情况
-    expoter->OnBegin(_scope, fileName);
+    expoter->OnBegin(Global(), fileName);
     for (auto it = _files.begin(); it != _files.end(); ++it)
         (*it)->Export(expoter, true);
     expoter->OnEnd();
@@ -130,23 +134,24 @@ void Context::OnStructBegin(const std::string& name, CfgCategory cfg)
     if (_type != nullptr)
         _driver.Warning("last type define is not completed pre:{0}, cur:{1}", _type->Name(), name);
 
-    if (_scope->TypeSet()->Get(name) || _scope->VarSet()->Get(name))
+    std::string newName = name;
+    IElement* element = Scope()->Get(name);
+
+    if (element != nullptr)
     {
         _driver.Warning("struct {0} name conflict", name);
-        _type = new StructType(ConflictName(name), _scope, cfg);
-    }
-    else
-    {
-        _type = new StructType(name, _scope, cfg);
+        newName = ConflictName(name);
     }
 
-    _scope->TypeSet()->Add(_type);
+    _type = new StructType(newName, Scope(), cfg);
+    if (Scope()->TypeSet() == nullptr)
+        _driver.Error("can not declare type");
+    else
+        Scope()->TypeSet()->Add(_type);
+
+    _stackScope.push(_type->Scope());
     _stackFile.back()->Add(_type);
 
-    //if (cfg == CfgCategory::Tab)
-    //    _tabs.push_back(Cfg(_stackFile.back()->File(), _struct));
-    //else if (cfg == CfgCategory::Json)
-    //    _jsons.push_back(Cfg(_stackFile.back()->File(), _struct));
     if (cfg == CfgCategory::Tab)
         _tabs.push_back(Cfg("../out", _struct));
     else if (cfg == CfgCategory::Json)
@@ -161,7 +166,7 @@ void Context::OnInherit(const std::string& name)
         return;
     }
 
-    if (_type->Category() != TypeCategory::Struct)
+    if (_type->TypeCat() != TypeCategory::Struct)
     {
         _driver.Error("current type {0} is not a struct, can not inherit from {1}", _type->Name(), name);
         return;
@@ -174,7 +179,7 @@ void Context::OnInherit(const std::string& name)
         return;
     }
 
-    if (herit->Category() != TypeCategory::Struct)
+    if (herit->TypeCat() != TypeCategory::Struct)
     {
         _driver.Error("type {0} is not a struct", name);
         return;
@@ -192,7 +197,7 @@ void Context::OnInherit(const std::string& name)
         return;
     }
 
-    if (_struct->IsInherited(herit))
+    if (_struct->IsInherited((IStructType*)herit))
     {
         _driver.Error("struct {0} is alreay inherit from {1}", _struct->Name(), name);
         return;
@@ -203,6 +208,10 @@ void Context::OnInherit(const std::string& name)
 
 void Context::OnStructEnd()
 {
+    if (_stackScope.size() > 1)
+        _stackScope.pop();
+    else
+        _driver.Error("empty scope stack");
     _type = nullptr;
 }
 
@@ -227,7 +236,7 @@ void Context::OnEnumBegin(const std::string& name)
 
 void Context::OnEnumMember(const std::string& name)
 {
-    if (_type == nullptr || _type->Category() != TypeCategory::Enum)
+    if (_type == nullptr || _type->TypeCat() != TypeCategory::Enum)
     {
         _driver.Error("active type is not an enum");
         return;
@@ -246,7 +255,7 @@ void Context::OnEnumMember(const std::string& name)
 
 void Context::OnEnumMember(const std::string& name, const std::string& value, bool refer)
 {
-    if (_type == nullptr || _type->Category() != TypeCategory::Enum)
+    if (_type == nullptr || _type->TypeCat() != TypeCategory::Enum)
     {
         _driver.Error("active type is not an enum");
         return;
@@ -295,6 +304,10 @@ void Context::OnEnumMember(const std::string& name, const std::string& value, bo
 
 void Context::OnEnumEnd()
 {
+    if (_stackScope.size() > 1)
+        _stackScope.pop();
+    else
+        _driver.Error("empty scope stack");
     _type = nullptr;
 }
 
@@ -307,7 +320,7 @@ void Context::OnVariateBegin(const std::string& type, const std::string& name)
         return;
     }
 
-    if (varType->Category() == TypeCategory::Struct && varType == _struct)
+    if (varType->TypeCat() == TypeCategory::Struct && varType == _struct)
     {
         _driver.Error("struct {0} is not completed", type);
         return;
@@ -324,7 +337,7 @@ void Context::OnVariateBegin(const std::string& type, const std::string& name)
         _var = new Variate(_scope, varType, name);
         _scope->VarSet()->Add(_var);
     }
-    else if (_type->Category() == TypeCategory::Struct)
+    else if (_type->TypeCat() == TypeCategory::Struct)
     {
         if (_struct->Inherited() && _struct->Inherited()->VarSet()->Get(name))
             _driver.Warning("var name:{0} conflict in base struct", name);
@@ -384,17 +397,17 @@ void Context::OnVariateValue(const std::string& refer)
     }
 
     IType* type = _var->Type();
-    if (type->Category() == TypeCategory::Array)
+    if (type->TypeCat() == TypeCategory::Array)
         type = static_cast<IArrayType*>(type)->Original();
 
-    if (type->Category() == TypeCategory::Raw)
+    if (type->TypeCat() == TypeCategory::Raw)
     {
-        if (!value_util::IsRaw(ref->Value(), static_cast<IRawType*>(type)->Raw()))
+        if (!value_util::IsRaw(ref->Value(), static_cast<IRawType*>(type)->RawCat()))
         {
             _driver.Error("{0} type def value failed", type->Name(), refer);
         }
     }
-    else if (type->Category() == TypeCategory::Enum)
+    else if (type->TypeCat() == TypeCategory::Enum)
     {
         if (!value_util::IsRaw(ref->Value(), RawCategory::Int))
         {
@@ -402,7 +415,7 @@ void Context::OnVariateValue(const std::string& refer)
             return;
         }
     }
-    else if (type->Category() == TypeCategory::Struct)
+    else if (type->TypeCat() == TypeCategory::Struct)
     {
         _driver.Error("custom type can not been assign default value {0} {1}", type->Name(), refer);
         return;
@@ -419,7 +432,7 @@ void Context::OnVariateArray(const std::string& length/* = ""*/)
         return;
     }
 
-    if (_var->Type()->Category() == TypeCategory::Array)
+    if (_var->Type()->TypeCat() == TypeCategory::Array)
     {
         _driver.Error("var:{0} does not support multy level array", _var->Name());
         return;
@@ -437,7 +450,7 @@ void Context::OnVariateEnd(bool isConst, const std::string& desc)
     if (_var)
     {
         IType* varType = _var->Type();
-        if (varType->Category() == TypeCategory::Array)
+        if (varType->TypeCat() == TypeCategory::Array)
             varType = static_cast<IArrayType*>(varType)->Original();
 
         if (isConst)
@@ -445,30 +458,28 @@ void Context::OnVariateEnd(bool isConst, const std::string& desc)
 
         if (_var->Value() == nullptr)
         {
-            if (varType->Category() == TypeCategory::Raw)
-            {
-                _var->BindValue(value_util::Create(static_cast<const RawType*>(varType)->Raw()));
-            }
-            else if (varType->Category() == TypeCategory::Enum)
-            {
-                IEnumType* eType = static_cast<IEnumType*>(varType);
-                if (eType->VarSet()->Size())
-                    _var->BindValue(value_util::Create(eType->VarSet()->Get(0)));
-            }
+            //if (varType->TypeCat() == TypeCategory::Raw)
+            //{
+            //    _var->BindValue(value_util::Create(static_cast<const RawType*>(varType)->Raw()));
+            //}
+            //else if (varType->TypeCat() == TypeCategory::Enum)
+            //{
+            //    IEnumType* eType = static_cast<IEnumType*>(varType);
+            //    if (eType->VarSet()->Size())
+            //        _var->BindValue(value_util::Create(eType->VarSet()->Get(0)));
+            //}
         }
 
         if (!desc.empty())
             _var->SetDesc(utility::Replace(utility::Trim(desc, " \t"), "\t", " "));
 
-        if (_type)
-        {
-            _type->VarSet()->Add(_var);
-        }
+        if (Scope()->VarSet() == nullptr)
+            _driver.Error("can not declare variate");
         else
-        {
-            _scope->VarSet()->Add(_var);
+            Scope()->VarSet()->Add(_var);
+
+        if (Scope() == Global())
             _stackFile.back()->Add(_var);
-        }
     }
     else
     {
@@ -482,9 +493,7 @@ std::string Context::ConflictName(const std::string& name) const
     int index = 0;
 
     std::string ret = name + "_crash";
-    while (_scope->TypeSet()->Get(ret))
-        ret = name + "_crash_" + std::to_string(++index);
-    while (_scope->VarSet()->Get(ret))
+    while (Scope()->Get(ret))
         ret = name + "_crash_" + std::to_string(++index);
 
     return ret;

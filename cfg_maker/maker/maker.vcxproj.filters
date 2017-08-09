@@ -82,6 +82,9 @@
     <ClCompile Include="TabVisitor.cpp">
       <Filter>src\exporter</Filter>
     </ClCompile>
+    <ClCompile Include="Scope.cpp">
+      <Filter>src\context</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CfgDef.h">
@@ -152,6 +155,9 @@
     </ClInclude>
     <ClInclude Include="Interface.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Scope.h">
+      <Filter>src\context</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

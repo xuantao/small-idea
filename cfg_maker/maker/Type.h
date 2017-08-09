@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "CfgDef.h"
 #include "Interface.h"
 
 CFG_NAMESPACE_BEGIN
@@ -17,13 +16,17 @@ public:
     }
 
 public:
-    virtual IType* Belong() const { return nullptr; }
-    virtual TypeCategory Category() const { return TypeCategory::Raw; }
-    virtual const std::string& Name() const { return _name; }
+    /* IElement */
+    virtual ElementCategory ElementCat() const { return ElementCategory::Type; }
 
-    virtual ITypeSet* TypeSet() const { return nullptr; }
-    virtual IVarSet* VarSet() const { return nullptr; }
-    virtual RawCategory Raw() const { return _raw; }
+    /* IType */
+    virtual TypeCategory TypeCat() const { return TypeCategory::Raw; }
+    virtual const std::string& Name() const { return _name; }
+    virtual IScope* Owner() const { return nullptr; }
+    virtual IScope* Scope() const { return nullptr; }
+
+    /* IRawType */
+    virtual RawCategory RawCat() const { return _raw; }
 
 protected:
     std::string _name;
@@ -36,20 +39,23 @@ protected:
 class EnumType : public IEnumType
 {
 public:
-    EnumType(const std::string& name, IType* belong);
+    EnumType(const std::string& name, IScope* owner);
     ~EnumType();
 
 public:
-    virtual IType* Belong() const { return _belong; }
-    virtual TypeCategory Category() const { return TypeCategory::Enum; }
-    virtual const std::string& Name() const { return _name; }
+    /* IElement */
+    virtual ElementCategory ElementCat() const { return ElementCategory::Type; }
 
-    virtual ITypeSet* TypeSet() const { return nullptr; }
-    virtual IVarSet* VarSet() const { return _vars; }
+    /* IType */
+    virtual TypeCategory TypeCat() const { return TypeCategory::Enum; }
+    virtual const std::string& Name() const { return _name; }
+    virtual IScope* Owner() const { return _owner; }
+    virtual IScope* Scope() const { return _scope; }
 
 protected:
     std::string _name;
-    IType* _belong;
+    IScope* _owner;
+    IScope* _scope;
     IVarSet* _vars;
 };
 
@@ -59,31 +65,35 @@ protected:
 class StructType : public IStructType
 {
 public:
-    StructType(const std::string& name, IType* belong, CfgCategory cfg);
+    StructType(const std::string& name, IScope* owner, CfgCategory cfg);
     ~StructType();
 
 public:
-    virtual IType* Belong() const { return _belong; }
-    virtual TypeCategory Category() const { return TypeCategory::Struct; }
+    /* IElement */
+    virtual ElementCategory ElementCat() const { return ElementCategory::Type; }
+
+    /* IType */
+    virtual TypeCategory TypeCat() const { return TypeCategory::Struct; }
     virtual const std::string& Name() const { return _name; }
-    virtual CfgCategory Cfg() const { return _cfg; }
+    virtual IScope* Owner() const { return _owner; }
+    virtual IScope* Scope() const { return _scope; }
 
-    virtual ITypeSet* TypeSet()  const { return nullptr; }
-    virtual IVarSet* VarSet() const { return _vars; }
-
-    virtual bool IsInherited(const IType* type) const;
+    /* IStructType */
+    virtual CfgCategory CfgCat() const { return _cfg; }
+    virtual bool IsInherited(const IStructType* type) const;
+    virtual bool Inherit(IStructType* parent);
     virtual IStructType* Inherited() const { return _inherit; }
-    virtual IVarSet* OwnVars() const;
-
-public:
-    bool Inherit(StructType* type);
+    virtual IScope* OwnScope() const { return _ownScope; }
 
 protected:
     std::string _name;
-    IType* _belong;
+    IScope* _owner;
     CfgCategory _cfg;
+    IStructType* _inherit;
+
     IVarSet* _vars;
-    StructType* _inherit;
+    IScope* _scope;
+    IScope* _ownScope;
 };
 
 /*
@@ -96,13 +106,16 @@ public:
     ~ArrayType();
 
 public:
-    virtual IType* Belong() const { return nullptr; }
-    virtual TypeCategory Category() const { return TypeCategory::Array; }
+    /* IElement */
+    virtual ElementCategory ElementCat() const { return ElementCategory::Type; }
+
+    /* IType */
+    virtual TypeCategory TypeCat() const { return TypeCategory::Array; }
     virtual const std::string& Name() const { return _name; }
+    virtual IScope* Owner() const { return nullptr; }
+    virtual IScope* Scope() const { return nullptr; }
 
-    virtual ITypeSet* TypeSet() const { return nullptr; }
-    virtual IVarSet* VarSet() const { return nullptr; }
-
+    /* IArrayType */
     virtual IType* Original() const;
     virtual IType* Prev() const { return _prev; }
     virtual int Length() const { return _length; }
@@ -114,26 +127,27 @@ protected:
 };
 
 /*
- * scope
+ * 名字空间
 */
-class ScopeType : public IScopeType
+class Namespace : public INamespace
 {
 public:
-    ScopeType(const std::string& name, ScopeType* belong = nullptr);
-    ~ScopeType();
+    Namespace(const std::string& name, IScope* owner);
+    ~Namespace();
 
 public:
-    virtual ScopeType* Belong() const { return _belong; }
-    virtual TypeCategory Category() const { return TypeCategory::Scope; }
+    virtual ElementCategory ElementCat() const { return ElementCategory::Namespace; }
     virtual const std::string& Name() const { return _name; }
-
-    virtual ITypeSet* TypeSet() const { return _types; }
-    virtual IVarSet* VarSet() const { return _vars; }
+    virtual IScope* Owner() const { return _owner; }
+    virtual IScope* Scope() const { return _scope; }
 
 protected:
     std::string _name;
-    ScopeType* _belong;
-    ITypeSet* _types;
-    IVarSet* _vars;
+    ITypeSet* _tySet;
+    IVarSet* _varSet;
+    INsSet* _nsSet;
+    IScope* _owner;
+    IScope* _scope;
 };
+
 CFG_NAMESPACE_END

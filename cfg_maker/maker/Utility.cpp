@@ -98,7 +98,7 @@ namespace utility
             if (var->IsConst())
                 continue;
 
-            TypeCategory typeCategory = var->Type()->Category();
+            TypeCategory typeCategory = var->Type()->TypeCat();
             std::string uniqName;
             if (conficts.find(var->Name()) != conficts.end())
             {
@@ -115,7 +115,7 @@ namespace utility
                     uniqName = owner + "." + var->Name();
             }
 
-            if (var->Type()->Category() == TypeCategory::Struct)
+            if (var->Type()->TypeCat() == TypeCategory::Struct)
                 sUniqueName(outNames, static_cast<const StructType*>(var->Type()), uniqName);
             else
                 outNames.push_back(UniqueVarName(var, uniqName));
@@ -134,23 +134,23 @@ namespace utility
             return true;
         }
 
-        if (original->Category() == TypeCategory::Struct && aType->Length() <= 0)
+        if (original->TypeCat() == TypeCategory::Struct && aType->Length() <= 0)
         {
             ERROR_NOT_ALLOW;    // 结构体不支持变长数组
             return true;
         }
 
-        if (original->Category() == TypeCategory::Raw)
+        if (original->TypeCat() == TypeCategory::Raw)
         {
             if (!visitor->OnVar(var, static_cast<const IRawType*>(original), title, path, aType->Length()))
                 return false;
         }
-        else if (original->Category() == TypeCategory::Enum)
+        else if (original->TypeCat() == TypeCategory::Enum)
         {
             if (!visitor->OnVar(var, static_cast<const IEnumType*>(original), title, path, aType->Length()))
                 return false;
         }
-        else if (original->Category() == TypeCategory::Struct)
+        else if (original->TypeCat() == TypeCategory::Struct)
         {
             for (int i = 0; i < aType->Length(); ++i)
             {
@@ -190,22 +190,22 @@ namespace utility
             else
                 varTitle = title + '.' + var->Name();
 
-            if (type->Category() == TypeCategory::Raw)
+            if (type->TypeCat() == TypeCategory::Raw)
             {
                 if (!visitor->OnVar(var, static_cast<const IRawType*>(type), varTitle, varPath))
                     return false;
             }
-            else if (type->Category() == TypeCategory::Enum)
+            else if (type->TypeCat() == TypeCategory::Enum)
             {
                 if (!visitor->OnVar(var, static_cast<const IEnumType*>(type), varTitle, varPath))
                     return false;
             }
-            else if (type->Category() == TypeCategory::Array)
+            else if (type->TypeCat() == TypeCategory::Array)
             {
                 if (!TabTraverse(var, static_cast<const IArrayType*>(type), visitor, varTitle, varPath))
                     return false;
             }
-            else if (type->Category() == TypeCategory::Struct)
+            else if (type->TypeCat() == TypeCategory::Struct)
             {
                 if (!TabTraverse(static_cast<const IStructType*>(type), visitor, varTitle, varPath))
                     return false;
@@ -394,7 +394,7 @@ namespace utility
     {
         if (type == nullptr)
             return EMPTY_VEC_STR;
-        if (type->Category() == TypeCategory::Raw)
+        if (type->TypeCat() == TypeCategory::Raw)
             return EMPTY_VEC_STR;
 
         std::vector<std::string> path;
@@ -407,7 +407,7 @@ namespace utility
     {
         if (self == nullptr || other == nullptr)
             return EMPTY_VEC_STR;
-        if (self->Category() == TypeCategory::Raw || other->Category() == TypeCategory::Raw)
+        if (self->TypeCat() == TypeCategory::Raw || other->TypeCat() == TypeCategory::Raw)
             return EMPTY_VEC_STR;
 
         const std::vector<std::string> sp = Absolute(self);

@@ -1,49 +1,80 @@
 ﻿#include "Type.h"
-#include <algorithm>
 #include "Utility.h"
 #include "Set.h"
 #include "Value.h"
+#include "Scope.h"
 #include "ValueUtil.h"
+#include <algorithm>
 
 CFG_NAMESPACE_BEGIN
 
 //////////////////////////////////////////////////////////////////////////
 // Enum Type
-EnumType::EnumType(const std::string& name, IType* belong)
+EnumType::EnumType(const std::string& name, IScope* owner)
     : _name(name)
-    , _belong(belong)
+    , _owner(owner)
+    , _vars(nullptr)
 {
-    _vars = new EnumVarSet(this);
+    NormalScope* scope = new NormalScope(name, owner);
+    _vars = new EnumVarSet();
+    _scope = scope;
+    scope->Bind(this);
+    scope->VarSet(_vars);
 }
 
 EnumType::~EnumType()
 {
+    delete _scope;
+    _scope = nullptr;
+
     delete _vars;
     _vars = nullptr;
-    _belong = nullptr;
+
+    _owner = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // StructType
-StructType::StructType(const std::string& name, IType* belong, CfgCategory cfg)
+StructType::StructType(const std::string& name, IScope* owner, CfgCategory cfg)
     : _name(name)
-    , _belong(belong)
+    , _owner(owner)
     , _cfg(cfg)
-    , _vars(nullptr)
     , _inherit(nullptr)
+    , _vars(nullptr)
+    , _scope(nullptr)
+    , _ownScope(nullptr)
 {
-    _vars = new StructVarSet(this);
+    StructVarSet* vars = new StructVarSet(this);
+    NormalScope* scope = new NormalScope(name, owner);
+    NormalScope* ownScope = new NormalScope(name, owner);
+
+    scope->Bind(this);
+    scope->VarSet(vars);
+
+    ownScope->Bind(this);
+    ownScope->VarSet(vars->OwnVars());
+
+    _vars = vars;
+    _scope = scope;
+    _ownScope = ownScope;
 }
 
 StructType::~StructType()
 {
+    delete _ownScope;
+    _ownScope = nullptr;
+
+    delete _scope;
+    _scope = nullptr;
+
     delete _vars;
     _vars = nullptr;
-    _belong = nullptr;
+
+    _owner = nullptr;
     _inherit = nullptr;
 }
 
-bool StructType::IsInherited(const IType* type) const
+bool StructType::IsInherited(const IStructType* type) const
 {
     if (_inherit == nullptr)
         return false;
@@ -54,12 +85,12 @@ bool StructType::IsInherited(const IType* type) const
     return _inherit->IsInherited(type);
 }
 
-bool StructType::Inherit(StructType* type)
+bool StructType::Inherit(IStructType* type)
 {
     if (_inherit != nullptr)
         return false;
 
-    if (type->Category() != TypeCategory::Struct)
+    if (type->TypeCat() != TypeCategory::Struct)
         return false;
 
     if (type == this)
@@ -70,11 +101,6 @@ bool StructType::Inherit(StructType* type)
 
     _inherit = type;
     return true;
-}
-
-IVarSet* StructType::OwnVars() const
-{
-    return static_cast<StructVarSet*>(_vars)->OwnVars();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,35 +117,52 @@ ArrayType::ArrayType(IType* prev, int length)
 
 ArrayType::~ArrayType()
 {
-    if (_prev->Category() == TypeCategory::Array)
+    if (_prev->TypeCat() == TypeCategory::Array)
         delete _prev;
     _prev = nullptr;
 }
 
 IType* ArrayType::Original() const
 {
-    if (_prev->Category() == TypeCategory::Array)
+    if (_prev->TypeCat() == TypeCategory::Array)
         return static_cast<const ArrayType*>(_prev)->Original();
     return _prev;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// ScopeType
-ScopeType::ScopeType(const std::string& name, ScopeType* belong /* = nullptr */)
-    : _name(name), _belong(belong)
+// Namesapce
+Namespace::Namespace(const std::string& name, IScope* owner)
+    : _name(name)
+    , _owner(owner)
 {
-    _types = new TypeSetNormal(this);
-    _vars = new VarSetNormal(this);
+    NormalScope* scope = new NormalScope(name, owner);
+    _scope = scope;
+
+    _tySet = new TypeSetNormal();
+    scope->TypeSet(_tySet);
+
+    _varSet = new VarSetNormal();
+    scope->VarSet(_varSet);
+
+    _nsSet = new NsSet();
+    scope->NsSet(_nsSet);
 }
 
-ScopeType::~ScopeType()
+Namespace::~Namespace()
 {
-    // vars dependence types
-    delete _vars;
-    delete _types;
-    _vars = nullptr;
-    _types = nullptr;
-    _belong = nullptr;
+    delete _scope;
+    _scope = nullptr;
+
+    delete _nsSet;
+    _nsSet = nullptr;
+
+    delete _varSet;
+    _varSet = nullptr;
+
+    delete _tySet;
+    _tySet = nullptr;
+
+    _owner = nullptr;
 }
 
 CFG_NAMESPACE_END

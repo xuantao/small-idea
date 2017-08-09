@@ -154,6 +154,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Scanner.cpp" />
+    <ClCompile Include="Scope.cpp" />
     <ClCompile Include="Set.cpp" />
     <ClCompile Include="TabCreater.cpp" />
     <ClCompile Include="TabVisitor.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="FlexLexer.h" />
     <ClInclude Include="Interface.h" />
     <ClInclude Include="JsonCreater.h" />
+    <ClInclude Include="Scope.h" />
     <ClInclude Include="Set.h" />
     <ClInclude Include="TabCreater.h" />
     <ClInclude Include="TabVisitor.h" />

@@ -104,7 +104,7 @@ bool TabCreater::OnVar(const IVariate* var, const IRawType* rType,
     if (var->Value())
         _def.push_back(value_util::ToString(var->Value()));
     else
-        _def.push_back(value_util::DefValue(rType->Raw()));
+        _def.push_back(value_util::DefValue(rType->RawCat()));
     return true;
 }
 
@@ -132,7 +132,7 @@ bool TabCreater::OnVar(const IVariate* var, const IRawType* rType,
         _type.push_back(rType->Name() + "[" + "]");
 
     _desc.push_back(var->Desc());
-    _def.push_back(value_util::DefValue(rType->Raw()));
+    _def.push_back(value_util::DefValue(rType->RawCat()));
     return true;
 }
 

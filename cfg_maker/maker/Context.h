@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <stack>
 #include "Interface.h"
 
 CFG_NAMESPACE_BEGIN
@@ -34,7 +35,7 @@ public:
     ~Context();
 
 public:
-    const IScopeType* Global() const;
+    const IScope* Global() const;
     IType* GetType(const std::string& name) const;
 
     const std::vector<Cfg>& TabCfgs() const { return _tabs; }
@@ -67,6 +68,7 @@ public:
     void OnVariateEnd(bool isConst, const std::string& desc);
 
 protected:
+    IScope* Scope() const { _stackScope.top(); }
     std::string ConflictName(const std::string& name) const;
 
 protected:
@@ -78,9 +80,10 @@ protected:
     std::vector<Cfg> _tabs;
     std::vector<Cfg> _jsons;
 
-    IScopeType* _scope;
-    Variate* _var;
+    INamespace* _gloal;
+    std::stack<IScope*> _stackScope;
 
+    Variate* _var;
     union
     {
         IType* _type;

@@ -13,8 +13,8 @@ public:
     RawValue(const std::string& value);
 
 public:
-    virtual ValueCategory Category() const { return ValueCategory::Raw; }
-    virtual RawCategory Raw() const { return _raw; }
+    virtual ValueCategory ValueCat() const { return ValueCategory::Raw; }
+    virtual RawCategory RawCat() const { return _raw; }
 
 public:
     bool Value(bool& b) const;
@@ -41,7 +41,7 @@ public:
     }
 
 public:
-    virtual ValueCategory Category() const { return ValueCategory::Ref; }
+    virtual ValueCategory ValueCat() const { return ValueCategory::Ref; }
 
     virtual IVariate* Var() const { return _var; }
     virtual IRawValue* Original() const;

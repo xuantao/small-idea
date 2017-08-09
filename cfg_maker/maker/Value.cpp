@@ -66,10 +66,10 @@ IRawValue* RefValue::Original() const
     IValue* val = _var->Value();
     while (val)
     {
-        if (val->Category() == ValueCategory::Raw)
+        if (val->ValueCat() == ValueCategory::Raw)
             break;
 
-        if (val->Category() == ValueCategory::Ref)
+        if (val->ValueCat() == ValueCategory::Ref)
             val = static_cast<RefValue*>(val)->_var->Value();
         else
             val = nullptr;

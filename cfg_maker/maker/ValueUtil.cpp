@@ -15,11 +15,11 @@ namespace value_util
             return nullptr;
 
         const RawValue* raw = nullptr;
-        if (val->Category() == ValueCategory::Raw)
+        if (val->ValueCat() == ValueCategory::Raw)
         {
             raw = static_cast<const RawValue*>(val);
         }
-        else if (val->Category() == ValueCategory::Ref)
+        else if (val->ValueCat() == ValueCategory::Ref)
         {
             const RefValue* ref = static_cast<const RefValue*>(val);
             raw = static_cast<const RawValue*>(ref->Original());
@@ -33,25 +33,25 @@ namespace value_util
             return utility::EMPTY_STR;
 
         std::string str;
-        if (val->Raw() == RawCategory::Bool)
+        if (val->RawCat() == RawCategory::Bool)
         {
             bool b = false;
             val->Value(b);
             str = b ? "true" : "false";
         }
-        else if (val->Raw() == RawCategory::Int)
+        else if (val->RawCat() == RawCategory::Int)
         {
             int i = 0;
             val->Value(i);
             str = std::to_string(i);
         }
-        else if (val->Raw() == RawCategory::Float)
+        else if (val->RawCat() == RawCategory::Float)
         {
             float f = 0.0f;
             val->Value(f);
             str = std::to_string(f);
         }
-        else if (val->Raw() == RawCategory::String)
+        else if (val->RawCat() == RawCategory::String)
         {
             val->Value(str);
         }
@@ -64,9 +64,9 @@ namespace value_util
         if (val == nullptr)
             return false;
 
-        if (ref && val->Category() == ValueCategory::Ref)
+        if (ref && val->ValueCat() == ValueCategory::Ref)
             return IsRaw(static_cast<const RefValue*>(val)->Original(), raw);
-        else if (val->Category() == ValueCategory::Raw)
+        else if (val->ValueCat() == ValueCategory::Raw)
             return static_cast<const RawValue*>(val)->Raw() == raw;
         else
             assert(false);
@@ -110,9 +110,9 @@ namespace value_util
         if (val == nullptr)
             return std::string();
 
-        if (val->Category() == ValueCategory::Raw)
+        if (val->ValueCat() == ValueCategory::Raw)
             return sRawValue(static_cast<const RawValue*>(val));
-        else if (val->Category() == ValueCategory::Ref)
+        else if (val->ValueCat() == ValueCategory::Ref)
             return ToString(static_cast<const RefValue*>(val)->Var()->Value());
         else
             ERROR_NOT_ALLOW;

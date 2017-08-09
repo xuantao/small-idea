@@ -7,8 +7,7 @@ CFG_NAMESPACE_BEGIN
 
 //////////////////////////////////////////////////////////////////////////
 // TypeSetNormal
-TypeSetNormal::TypeSetNormal(IType* belong)
-    : _belong(belong)
+TypeSetNormal::TypeSetNormal()
 {
 }
 
@@ -45,7 +44,7 @@ bool TypeSetNormal::Add(IType* type)
 
 //////////////////////////////////////////////////////////////////////////
 // VarSetNormal
-VarSetNormal::VarSetNormal(IType* belong) : _belong(belong)
+VarSetNormal::VarSetNormal()
 {
 }
 
@@ -82,8 +81,8 @@ bool VarSetNormal::Add(IVariate* var)
 
 //////////////////////////////////////////////////////////////////////////
 // EnumVarSet
-EnumVarSet::EnumVarSet(EnumType* belong)
-    : VarSetNormal(belong)
+EnumVarSet::EnumVarSet()
+    : VarSetNormal()
 {
 }
 
@@ -114,19 +113,14 @@ bool EnumVarSet::Add(IVariate* var)
 
 //////////////////////////////////////////////////////////////////////////
 // StructVarSet
-StructVarSet::StructVarSet(StructType* belong)
-    : _self(belong), _struct(belong)
+StructVarSet::StructVarSet(IStructType* belong)
+    : _self(), _struct(belong)
 {
 }
 
 StructVarSet::~StructVarSet()
 {
     _struct = nullptr;
-}
-
-IType* StructVarSet::Belong() const
-{
-    return _struct;
 }
 
 IVariate* StructVarSet::Get(const std::string& name) const
@@ -169,6 +163,40 @@ int StructVarSet::Size() const
 bool StructVarSet::Add(IVariate* var)
 {
     return _self.Add(var);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// NsSet
+NsSet::~NsSet()
+{
+    std::for_each(_ns.rbegin(), _ns.rend(), [ ](INamespace* ns) { delete ns; });
+    _ns.clear();
+}
+
+
+INamespace* NsSet::Get(const std::string& name) const
+{
+    auto it = std::find_if(_ns.cbegin(), _ns.cend(),
+        [&name](INamespace* ns) { return ns->Name() == name; });
+    if (it == _ns.cend())
+        return nullptr;
+    return *it;
+}
+
+INamespace* NsSet::Get(int index) const
+{
+    if (index < 0 || index > Size())
+        return nullptr;
+    return _ns[index];
+}
+
+bool NsSet::Add(INamespace* ns)
+{
+    if (ns == nullptr || Get(ns->Name()))
+        return false;
+
+    _ns.push_back(ns);
+    return true;
 }
 
 CFG_NAMESPACE_END
