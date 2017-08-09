@@ -47,7 +47,7 @@ namespace cpp_util
         std::string name;
         if (ty->TypeCat() == TypeCategory::Raw)
         {
-            name = RawName(static_cast<const IRawType*>(ty)->Raw());
+            name = RawName(static_cast<const IRawType*>(ty)->RawCat());
         }
         else if (ty->TypeCat() == TypeCategory::Enum || ty->TypeCat() == TypeCategory::Struct)
         {
@@ -101,11 +101,11 @@ namespace cpp_util
         if (var->Value())
             out.value = Value(var->Belong(), var->Type(), var->Value());
         else if (var->Type()->TypeCat() == TypeCategory::Raw)
-            out.value = value_util::DefValue(static_cast<const IRawType*>(var->Type())->Raw());
+            out.value = value_util::DefValue(static_cast<const IRawType*>(var->Type())->RawCat());
 
         if (var->Type()->TypeCat() == TypeCategory::Raw &&
             !out.value.empty() &&
-            static_cast<const IRawType*>(var->Type())->Raw() == RawCategory::String)
+            static_cast<const IRawType*>(var->Type())->RawCat() == RawCategory::String)
         {
             out.value = "\"" + out.value + "\"";
         }

@@ -145,7 +145,7 @@ void Context::OnStructBegin(const std::string& name, CfgCategory cfg)
 
     _type = new StructType(newName, Scope(), cfg);
     if (Scope()->TypeSet() == nullptr)
-        _driver.Error("can not declare type");
+        _driver.Error("can not declare type int this scope:{0}", Scope()->Name());
     else
         Scope()->TypeSet()->Add(_type);
 
@@ -185,25 +185,26 @@ void Context::OnInherit(const std::string& name)
         return;
     }
 
+    IStructType* sType = static_cast<StructType*>(herit);
     if (_struct->Inherited() != nullptr)
     {
         _driver.Error("struct {0} has already inherit from", _struct->Name(), _struct->Inherited()->Name());
         return;
     }
 
-    if (_struct == herit)
+    if (_struct == sType)
     {
         _driver.Error("struct {0} can not inherit from self", name);
         return;
     }
 
-    if (_struct->IsInherited((IStructType*)herit))
+    if (_struct->IsInherited(sType))
     {
         _driver.Error("struct {0} is alreay inherit from {1}", _struct->Name(), name);
         return;
     }
 
-    _struct->Inherit(static_cast<StructType*>(herit));
+    _struct->Inherit(sType);
 }
 
 void Context::OnStructEnd()
@@ -220,17 +221,23 @@ void Context::OnEnumBegin(const std::string& name)
     if (_type != nullptr)
         _driver.Error("last type [{0}] define is not completed", _type->Name());
 
-    if (_scope->TypeSet()->Get(name) || _scope->VarSet()->Get(name))
+    std::string newName = name;
+    IElement* element = Scope()->Get(name);
+    if (element != nullptr)
     {
         _driver.Error("enum {0} name conflict", name);
-        _type = new EnumType(ConflictName(name), _scope);
-    }
-    else
-    {
-        _type = new EnumType(name, _scope);
+        newName = ConflictName(name);
     }
 
-    _scope->TypeSet()->Add(_type);
+    if (Scope()->TypeSet() == nullptr)
+    {
+        _driver.Error("can not declare type int this scope:{0}", Scope()->Name());
+        return;
+    }
+
+    _type = new EnumType(newName, Scope());
+    Scope()->TypeSet()->Add(_type);
+    _stackScope.push(_type->Scope());
     _stackFile.back()->Add(_type);
 }
 
@@ -245,7 +252,11 @@ void Context::OnEnumMember(const std::string& name)
     Variate* var = new Variate(_enum, _enum, name);
     var->SetConst();
 
-    if (!_enum->VarSet()->Add(var))
+    if (Scope()->VarSet() == nullptr)
+    {
+        _driver.Error("this scope can not declare member scope:{0}", Scope()->Name());
+    }
+    else if (!Scope()->VarSet()->Add(var))
     {
         _driver.Error("enum {0} member {1} conflict", _enum->Name(), name);
         delete var;
@@ -265,7 +276,7 @@ void Context::OnEnumMember(const std::string& name, const std::string& value, bo
     Variate* var = new Variate(_enum, _enum, name);
     if (refer)
     {
-        IVariate* ref = utility::FindVar(_enum, value);
+        IVariate* ref = utility::FindVar(Scope(), value);
         if (ref == nullptr)
         {
             _driver.Error("can not find reference value:{0}", value);
@@ -293,10 +304,13 @@ void Context::OnEnumMember(const std::string& name, const std::string& value, bo
         var->BindValue(val);
 
     var->SetConst();
-    if (!_enum->VarSet()->Add(var))
+    if (Scope()->VarSet() == nullptr)
+    {
+        _driver.Error("this scope can not declare member scope:{0}", Scope()->Name());
+    }
+    else if (!Scope()->VarSet()->Add(var))
     {
         _driver.Error("enum {0} member {1} conflict", _enum->Name(), name);
-
         delete var;
         var = nullptr;
     }
@@ -326,33 +340,24 @@ void Context::OnVariateBegin(const std::string& type, const std::string& name)
         return;
     }
 
-    if (_type == nullptr)
+    IElement* element = Scope()->Get(name);
+    if (element != nullptr)
     {
-        if (_scope->VarSet()->Get(name))
-        {
-            _driver.Error("var name:{0} conflict", name);
-            return;
-        }
-
-        _var = new Variate(_scope, varType, name);
-        _scope->VarSet()->Add(_var);
+        _driver.Error("var name:{0} conflict", name);
     }
-    else if (_type->TypeCat() == TypeCategory::Struct)
+    else if (Scope()->VarSet() == nullptr)
     {
-        if (_struct->Inherited() && _struct->Inherited()->VarSet()->Get(name))
-            _driver.Warning("var name:{0} conflict in base struct", name);
-
+        _driver.Error("this scope can not declare member scope:{0}", Scope()->Name());
+    }
+    else
+    {
         _var = new Variate(_struct, varType, name);
-        if (!_struct->VarSet()->Add(_var))
+        if (!Scope()->VarSet()->Add(_var))
         {
             delete _var;
             _var = nullptr;
             _driver.Error("var name:{0} conflict", name);
         }
-    }
-    else
-    {
-        _driver.Error("var {0} {1} known error", type, name);
     }
 }
 
@@ -384,7 +389,7 @@ void Context::OnVariateValue(const std::string& refer)
         return;
     }
 
-    IVariate* ref = utility::FindVar(_type ? _type : _scope, refer);
+    IVariate* ref = utility::FindVar(Scope(), refer);
     if (ref == nullptr)
     {
         _driver.Error("can not find reference value:{0}", refer);

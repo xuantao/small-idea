@@ -254,7 +254,7 @@ public:
     virtual ~IExporter() {}
 
 public:
-    virtual void OnBegin(const IScopeType* global, const std::string& file) = 0;
+    virtual void OnBegin(const IScope* global, const std::string& file) = 0;
     virtual void OnEnd() = 0;
 
     virtual void OnNamespaceBegin(const std::string& name) = 0;

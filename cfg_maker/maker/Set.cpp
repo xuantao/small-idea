@@ -129,18 +129,18 @@ IVariate* StructVarSet::Get(const std::string& name) const
     if (var)
         return var;
 
-    IType* inherit = _struct->Inherited();
-    if (inherit)
-        var = inherit->VarSet()->Get(name);
+    IStructType* inherit = _struct->Inherited();
+    if (inherit && inherit->Scope() && inherit->Scope()->VarSet())
+        var = inherit->Scope()->VarSet()->Get(name);
     return var;
 }
 
 IVariate* StructVarSet::Get(int index) const
 {
-    IType* inherit = _struct->Inherited();
-    if (inherit)
+    IStructType* inherit = _struct->Inherited();
+    if (inherit && inherit->Scope() && inherit->Scope()->VarSet())
     {
-        IVarSet* set = inherit->VarSet();
+        IVarSet* set = inherit->Scope()->VarSet();
         if (index < set->Size())
             return set->Get(index);
         else
@@ -153,10 +153,9 @@ IVariate* StructVarSet::Get(int index) const
 int StructVarSet::Size() const
 {
     int size = 0;
-    IType* inherit = _struct->Inherited();
-    if (inherit && inherit->VarSet())
-        size = inherit->VarSet()->Size();
-
+    IStructType* inherit = _struct->Inherited();
+    if (inherit && inherit->Scope() && inherit->Scope()->VarSet())
+        size = inherit->Scope()->VarSet()->Size();
     return _self.Size() + size;
 }
 

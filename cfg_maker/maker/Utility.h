@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "CfgDef.h"
+#include "Interface.h"
 #include <ostream>
 #include <functional>
 
@@ -7,22 +7,6 @@ CFG_NAMESPACE_BEGIN
 
 class IStructType;
 class ITabVisitor;
-
-struct UniqueVarName
-{
-    UniqueVarName()
-    {
-
-    }
-
-    UniqueVarName(const IVariate* _var, const std::string& _name)
-        : var(_var), name(_name)
-    {
-    }
-
-    const IVariate* var;
-    std::string name;
-};
 
 namespace utility
 {
@@ -50,12 +34,10 @@ namespace utility
     std::vector<std::string> Absolute(const IType* type);
     std::vector<std::string> Relative(const IType* self, const IType* other);
 
-    IType* FindType(IType* scope, const std::string& path);
-    IVariate* FindVar(IType* scope, const std::string& path);
+    IScope* FindType(IScope* scope, const std::string& path);
+    IVariate* FindVar(IScope* scope, const std::string& path);
 
     std::ostream& Tab(std::ostream& stream, int tab);
-
-    std::vector<UniqueVarName> UniqueName(const IStructType* sType, const std::string& owner = EMPTY_STR);
 
     void Traverse(const IStructType* sType, ITabVisitor* visitor);
 

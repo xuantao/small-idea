@@ -23,14 +23,14 @@ CFG_NAMESPACE_BEGIN
 static int sNeedTempMask(const IStructType* sType)
 {
     int mask = 0;
-    const IVarSet* vars = sType->VarSet();
+    const IVarSet* vars = sType->Scope()->VarSet();
     for (int i = 0; i < vars->Size(); ++i)
     {
         const IType* type = vars->Get(i)->Type();
         if (type->TypeCat() == TypeCategory::Array)
         {
             type = static_cast<const IArrayType*>(type)->Original();
-            if ((type->TypeCat() != TypeCategory::Raw || ((const IRawType*)type)->Raw() != RawCategory::String) ||
+            if ((type->TypeCat() != TypeCategory::Raw || ((const IRawType*)type)->RawCat() != RawCategory::String) ||
                 (type->TypeCat() != TypeCategory::Struct))
             {
                 mask |= _NEED_TEMP_ARRAY;
@@ -126,7 +126,7 @@ CppExporter::~CppExporter()
 {
 }
 
-void CppExporter::OnBegin(const IScopeType* global, const std::string& file)
+void CppExporter::OnBegin(const IScope* global, const std::string& file)
 {
     _global = global;
     _file = file;
@@ -260,7 +260,7 @@ bool CppExporter::Declare(const IEnumType* ty)
     _TAB_ << "{" << std::endl;
     ++tab;
 
-    const IVarSet* vars = ty->VarSet();
+    const IVarSet* vars = ty->Scope()->VarSet();
     for (int i = 0; i < vars->Size(); ++i)
     {
         CppVarData data;
@@ -280,7 +280,7 @@ bool CppExporter::Declare(const IEnumType* ty)
 bool CppExporter::Declare(const IStructType* sType)
 {
     int tab = _tab;
-    const IVarSet* varSet = sType->OwnVars();
+    const IVarSet* varSet = sType->OwnScope()->VarSet();
     std::vector<CppVarData> vars;
     bool constructor = false;
     int nConst = 0;
@@ -350,7 +350,7 @@ bool CppExporter::Declare(const IStructType* sType)
             if (data.value.empty())
             {
                 assert(type->TypeCat() == TypeCategory::Raw);
-                _OUTS_ << value_util::DefValue(static_cast<const IRawType*>(type)->Raw());
+                _OUTS_ << value_util::DefValue(static_cast<const IRawType*>(type)->RawCat());
             }
             else
             {
@@ -535,7 +535,7 @@ bool CppExporter::EnumData(const IEnumType* eType, int tab)
     std::string varName = "s_" + base + "_val";
     std::string strName = "s_" + base + "_str";
 
-    const IVarSet* varSet = eType->VarSet();
+    const IVarSet* varSet = eType->Scope()->VarSet();
 
     _TAB_ << "static const int " << varName << "[] = {" << std::endl;
     ++tab;
@@ -727,7 +727,7 @@ void CppExporter::TabLoadDetail(const IStructType* sType, int tab)
         _OUTS_ << _TAB_EX_(0) << "sLoad(iter, (" << tyName << "&)out);" << std::endl;
     }
 
-    const IVarSet* vars = sType->OwnVars();
+    const IVarSet* vars = sType->OwnScope()->VarSet();
     bool bnewLine = false;
     for (int i = 0; i < vars->Size(); ++i)
     {
@@ -924,7 +924,7 @@ void CppExporter::TabWriterStatic(const IStructType* sType, int tab)
 
 void CppExporter::TabWriterDetail(const IStructType* sType, int tab)
 {
-    const IVarSet* vars = sType->OwnVars();
+    const IVarSet* vars = sType->OwnScope()->VarSet();
     if (sType->Inherited())
     {
         std::string inherit = utility::Contact(utility::Absolute(sType->Inherited()), "::");
@@ -1023,7 +1023,7 @@ void CppExporter::JsonLoaderStatic(const IStructType* sType, int tab)
         _OUTS_ << _TAB_EX_(1) << "sLoad(node, (" << baseName << "&)out);" << std::endl << std::endl;
     }
 
-    const IVarSet* vars = sType->OwnVars();
+    const IVarSet* vars = sType->OwnScope()->VarSet();
     bool bnewLine = false;
     for (int i = 0; i < vars->Size(); ++i)
     {
@@ -1267,7 +1267,7 @@ void CppExporter::JsonWriterStatic(const IStructType* sType, int tab)
         _TAB_EX_(0) << "void sWrite(std::ostream& stream, const " << tyName << "& data, int tab)" << std::endl <<
         _TAB_EX_(0) << "{" << std::endl;
 
-    const IVarSet* vars = sType->OwnVars();
+    const IVarSet* vars = sType->OwnScope()->VarSet();
     if (sType->Inherited())
     {
         std::string baseName = utility::Contact(utility::Absolute(sType->Inherited()), "::");
@@ -1285,7 +1285,7 @@ void CppExporter::JsonWriterStatic(const IStructType* sType, int tab)
 
         if (ty->TypeCat() == TypeCategory::Raw)
         {
-            if (static_cast<const IRawType*>(ty)->Raw() == RawCategory::String)
+            if (static_cast<const IRawType*>(ty)->RawCat() == RawCategory::String)
                 _OUTS_ << _TAB_EX_(1) << "stream << \"\\\"\" << data." << var->Name() << "<< \"\\\"\";" << std::endl;
             else
                 _OUTS_ << _TAB_EX_(1) << "stream << data." << var->Name() << ";" << std::endl;
@@ -1314,7 +1314,7 @@ void CppExporter::JsonWriterStatic(const IStructType* sType, int tab)
 
             if (original->TypeCat() == TypeCategory::Raw)
             {
-                if (static_cast<const IRawType*>(ty)->Raw() == RawCategory::String)
+                if (static_cast<const IRawType*>(ty)->RawCat() == RawCategory::String)
                     _OUTS_ << _TAB_EX_(2) << "stream << \"\\\"\" << data." << var->Name() << "[i] << \"\\\"\";" << std::endl;
                 else
                     _OUTS_ << _TAB_EX_(2) << "stream << data." << var->Name() << "[i];" << std::endl;
@@ -1353,7 +1353,7 @@ void CppExporter::GetDepends(const IStructType* sType, std::vector<const IStruct
     if (sType->Inherited())
         GetDepends(sType->Inherited(), deps);
 
-    const IVarSet* vars = sType->OwnVars();
+    const IVarSet* vars = sType->OwnScope()->VarSet();
     for (int i = 0; i < vars->Size(); ++i)
     {
         const IType* type = vars->Get(i)->Type();

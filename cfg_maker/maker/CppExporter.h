@@ -20,7 +20,7 @@ public:
     ~CppExporter();
 
 public:
-    virtual void OnBegin(const IScopeType* global, const std::string& file);
+    virtual void OnBegin(const IScope* global, const std::string& file);
     virtual void OnEnd();
     virtual void OnFileBegin(const std::string& file);
     virtual void OnFileEnd();
@@ -78,7 +78,7 @@ protected:
     int _tab;
 
     bool _lastIsVar;
-    const IScopeType* _global;
+    const IScope* _global;
     std::string _file;
 
     std::vector<const IEnumType*> _enums;

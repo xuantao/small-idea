@@ -67,7 +67,7 @@ namespace value_util
         if (ref && val->ValueCat() == ValueCategory::Ref)
             return IsRaw(static_cast<const RefValue*>(val)->Original(), raw);
         else if (val->ValueCat() == ValueCategory::Raw)
-            return static_cast<const RawValue*>(val)->Raw() == raw;
+            return static_cast<const RawValue*>(val)->RawCat() == raw;
         else
             assert(false);
         return false;

@@ -52,7 +52,7 @@ bool JsonCreater::OnEnd()
 
 void JsonCreater::Create(const IStructType* sType, int tab)
 {
-    const IVarSet* vars = sType->VarSet();
+    const IVarSet* vars = sType->Scope()->VarSet();
 
     _OUTS_ << "{" << std::endl;
 
@@ -92,7 +92,7 @@ void JsonCreater::Create(const IStructType* sType, int tab)
                     for (int j = 0; j < aTy->Length(); ++j)
                     {
                         if (j) _OUTS_ << ",";
-                        _OUTS_ << value_util::DefValue(static_cast<const IRawType*>(original)->Raw());
+                        _OUTS_ << value_util::DefValue(static_cast<const IRawType*>(original)->RawCat());
                     }
                 }
             }

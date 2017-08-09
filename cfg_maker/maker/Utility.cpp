@@ -1,6 +1,5 @@
 ﻿#include "Utility.h"
 #include "Interface.h"
-#include "Type.h"
 #include <algorithm>
 #include <sstream>
 #include <iostream>
@@ -19,16 +18,16 @@ namespace utility
     /*
      * 使用递归可以从头开始向数组插入元素
     */
-    static void Absolute(const IType* type, std::vector<std::string>& path)
+    static void Absolute(const IScope* scope, std::vector<std::string>& path)
     {
-        if (type->Belong() == nullptr)
+        if (scope->Owner() == nullptr)
             return; // top scope
 
-        Absolute(type->Belong(), path);
-        path.push_back(type->Name());
+        Absolute(scope->Owner(), path);
+        path.push_back(scope->Name());
     }
 
-    static IType* FindType(IType* scope, const std::vector<std::string>& path, int begin = 0, int end = -1)
+    static IScope* FindType(IScope* scope, const std::vector<std::string>& path, int begin = 0, int end = -1)
     {
         if (end < 0)
             end = (int)path.size();
@@ -46,15 +45,28 @@ namespace utility
         */
         while (scope)
         {
-            IType* temp = scope;
-            if (temp->TypeSet())
+            IElement* element = scope->Get(path[begin]);
+            if (element)
             {
-                scope = temp->TypeSet()->Get(path[begin]);
-                if (scope)
+                if (element->ElementCat() == ElementCategory::Type)
+                {
+                    scope = static_cast<IType*>(element)->Scope();
                     break;
+                }
+                else if (element->ElementCat() == ElementCategory::Namespace)
+                {
+                    scope = static_cast<INamespace*>(element)->Scope();
+                    break;
+                }
+                else
+                {
+                    scope = nullptr;
+                }
             }
-
-            scope = temp->Belong();
+            else
+            {
+                scope = scope->Owner();
+            }
         }
 
         /*
@@ -64,65 +76,27 @@ namespace utility
         {
             if (scope == nullptr)
                 break;
-            else if (scope->TypeSet() == nullptr)
-                scope = nullptr;
+
+            IElement* element = scope->Get(path[begin]);
+            if (element == nullptr)
+                break;
+
+            if (element->ElementCat() == ElementCategory::Type)
+            {
+                scope = static_cast<IType*>(element)->Scope();
+            }
+            else if (element->ElementCat() == ElementCategory::Namespace)
+            {
+                scope = static_cast<INamespace*>(element)->Scope();
+            }
             else
-                scope = scope->TypeSet()->Get(path[i]);
+            {
+                scope = nullptr;
+            }
         }
         return scope;
     }
 
-    static bool sUniqueName(std::vector<UniqueVarName>& outNames, const IStructType* sType, const std::string& owner)
-    {
-        std::set<std::string> allVars;
-        std::set<std::string> conficts;
-        const IVarSet* varSet = sType->VarSet();
-
-        /* get name conflict */
-        for (int i = 0; i < varSet->Size(); ++i)
-        {
-            const IVariate* var = varSet->Get(i);
-            if (var->IsConst())
-                continue;
-
-            if (allVars.find(var->Name()) != allVars.end())
-                conficts.insert(var->Name());
-            else
-                allVars.insert(var->Name());
-        }
-
-        for (int i = 0; i < varSet->Size(); ++i)
-        {
-
-            const IVariate* var = varSet->Get(i);
-            if (var->IsConst())
-                continue;
-
-            TypeCategory typeCategory = var->Type()->TypeCat();
-            std::string uniqName;
-            if (conficts.find(var->Name()) != conficts.end())
-            {
-                if (owner.empty())
-                    uniqName = var->Belong()->Name() + "::" + var->Name();
-                else
-                    uniqName = owner + "." + var->Belong()->Name() + "::" + var->Name();
-            }
-            else
-            {
-                if (owner.empty())
-                    uniqName = var->Name();
-                else
-                    uniqName = owner + "." + var->Name();
-            }
-
-            if (var->Type()->TypeCat() == TypeCategory::Struct)
-                sUniqueName(outNames, static_cast<const StructType*>(var->Type()), uniqName);
-            else
-                outNames.push_back(UniqueVarName(var, uniqName));
-        }
-
-        return true;
-    }
 
     static bool TabTraverse(const IStructType* aType, ITabVisitor* visitor, const std::string& title, const std::string& path);
     static bool TabTraverse(const IVariate* var, const IArrayType* aType, ITabVisitor* visitor, const std::string& title, const std::string& path)
@@ -170,7 +144,7 @@ namespace utility
 
     static bool TabTraverse(const IStructType* sType, ITabVisitor* visitor, const std::string& title, const std::string& path)
     {
-        const IVarSet* vars = sType->VarSet();
+        const IVarSet* vars = sType->Scope()->VarSet();
         for (int i = 0; i < vars->Size(); ++i)
         {
             const IVariate* var = vars->Get(i);
@@ -398,7 +372,8 @@ namespace utility
             return EMPTY_VEC_STR;
 
         std::vector<std::string> path;
-        Absolute(type, path);
+        Absolute(type->Owner(), path);
+        path.push_back(type->Name());
 
         return std::move(path);
     }
@@ -424,7 +399,7 @@ namespace utility
         return std::vector<std::string>(op.begin() + beg, op.end());
     }
 
-    IType* FindType(IType* scope, const std::string& path)
+    IScope* FindType(IScope* scope, const std::string& path)
     {
         if (scope == nullptr)
             return nullptr;
@@ -433,23 +408,22 @@ namespace utility
         return FindType(scope, utility::Split(path, "."));
     }
 
-    IVariate* FindVar(IType* scope, const std::string& path)
+    IVariate* FindVar(IScope* scope, const std::string& path)
     {
         IVariate* var = nullptr;
-        const IType* type = scope;
         std::vector<std::string> vec = utility::Split(path, ".");
 
         if (vec.size() > 1)
-            type = FindType(scope, vec, 0, (int)vec.size() - 1);
+            scope = FindType(scope, vec, 0, (int)vec.size() - 1);
 
-        if (type == nullptr)
+        if (scope == nullptr)
             return nullptr;
 
-        while (type && !var)
+        while (scope && !var)
         {
-            if (type->VarSet())
-                var = type->VarSet()->Get(vec.back());
-            type = type->Belong();
+            if (scope->VarSet())
+                var = scope->VarSet()->Get(vec.back());
+            scope = scope->Owner();
         }
         return var;
     }
@@ -460,16 +434,6 @@ namespace utility
             return stream;
 
         return stream << std::string(tab * 4, ' ');
-    }
-
-    std::vector<UniqueVarName> UniqueName(const IStructType* sType, const std::string& owner/* = EMPTY_STR*/)
-    {
-        std::vector<UniqueVarName> varNames;
-        if (sType = nullptr)
-            return std::move(varNames);
-
-        sUniqueName(varNames, sType, owner);
-        return std::move(varNames);
     }
 
     void Traverse(const IStructType* sType, ITabVisitor* visitor)

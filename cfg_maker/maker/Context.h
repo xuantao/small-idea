@@ -68,7 +68,7 @@ public:
     void OnVariateEnd(bool isConst, const std::string& desc);
 
 protected:
-    IScope* Scope() const { _stackScope.top(); }
+    IScope* Scope() const { return _stackScope.top(); }
     std::string ConflictName(const std::string& name) const;
 
 protected:
