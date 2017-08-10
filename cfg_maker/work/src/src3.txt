@@ -1,0 +1,11 @@
+#include <prev.txt>
+
+enum Wtf
+{
+    Invalid = -1,
+    Bool,
+    Int,
+    Float,
+    String,
+};
+
