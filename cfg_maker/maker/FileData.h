@@ -19,6 +19,7 @@ public:
 
 public:
     const std::string& File() const { return _file; }
+    const std::string& Path() const { return _path; }
     void Export(IExporter* visitor, bool merge) const;
 
 public:
@@ -27,11 +28,12 @@ public:
 
     void Inlcude(const std::string& file);
 
-    void NamesapceBegin(const std::string& name);
-    void NamesapceEnd();
+    void NsBegin(const std::string& name);
+    void NsEnd();
 
 protected:
     std::string _file;
+    std::string _path;
     std::vector<detail::FileBlock*> _blocks;
 };
 CFG_NAMESPACE_END

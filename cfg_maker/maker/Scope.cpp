@@ -2,7 +2,7 @@
 
 CFG_NAMESPACE_BEGIN
 
-IElement* NormalScope::Get(const std::string& name) const
+IElement* NormalScope::GetElement(const std::string& name) const
 {
     IElement* element = nullptr;
 
@@ -16,6 +16,19 @@ IElement* NormalScope::Get(const std::string& name) const
         element = _nsSet->Get(name);
 
     return element;
+}
+
+IScope* NormalScope::GetScope(const std::string& name) const
+{
+    IElement* element = GetElement(name);
+    if (element)
+    {
+        if (element->ElementCat() == ElementCategory::Type)
+            return static_cast<IType*>(element)->Scope();
+        else if (element->ElementCat() == ElementCategory::Namespace)
+            return static_cast<INamespace*>(element)->Scope();
+    }
+    return nullptr;
 }
 
 CFG_NAMESPACE_END

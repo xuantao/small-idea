@@ -5,7 +5,7 @@ CFG_NAMESPACE_BEGIN
 
 namespace value_util
 {
-    bool IsRaw(const IValue* val, RawCategory raw, bool ref = true);
+    bool AsRaw(RawCategory raw, const IValue* val);
 
     bool Value(const IValue* val, bool& b);
     bool Value(const IValue* val, int& i);

@@ -18,10 +18,10 @@ enum GlobalType
     String = 3,
 };
 
-static const int g_1;
-static const float f_1;
-static const std::string s_1;
-static const bool b_1;
+static const int g_1 = 1;
+static const float f_1 = 2.000000;
+static const std::string s_1 = "xuantao";
+static const bool b_1 = true;
 
 enum Enum1
 {
@@ -50,7 +50,7 @@ struct Struct1 : public Struct0
         , s1c(0)
         , b1(false)
         , f1(0.0f)
-        , str2("s_1")
+        , str2(s_1)
         , str3("zouhui")
     {
     }
@@ -78,7 +78,7 @@ struct Struct2
         , b((int)Enum2::c)
         , c(0)
         , d(0)
-        , s("s_1")
+        , s(s_1)
     {
     }
 

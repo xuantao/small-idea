@@ -14,13 +14,8 @@ namespace utility
     static const std::vector<std::string> EMPTY_VEC_STR;
 
     bool Convert(const std::string& str, bool& out);
-    bool Convert(const std::string& str, bool& out, bool def);
-
     bool Convert(const std::string& str, int& out);
-    bool Convert(const std::string& str, int& out, int def);
-
     bool Convert(const std::string& str, float& out);
-    bool Convert(const std::string& str, float& out, float def);
 
     std::string TrimFileSuffix(const std::string& file, char c = '.');
     std::string TrimLeft(const std::string& str, const std::string& trim);
@@ -31,10 +26,18 @@ namespace utility
     std::string Contact(const std::vector<std::string>& path, const std::string& c);
     std::vector<std::string> Split(const std::string& str, const std::string& s);
 
+    std::vector<std::string> Absolute(const IScope* scope);
     std::vector<std::string> Absolute(const IType* type);
-    std::vector<std::string> Relative(const IType* self, const IType* other);
+    std::vector<std::string> Relative(const IType* self, const IScope* scope);
 
-    IScope* FindType(IScope* scope, const std::string& path);
+    /*
+     * 查找类型
+    */
+    IType* FindType(IScope* scope, const std::string& path);
+
+    /*
+     * 查找变量
+    */
     IVariate* FindVar(IScope* scope, const std::string& path);
 
     std::ostream& Tab(std::ostream& stream, int tab);
@@ -42,6 +45,7 @@ namespace utility
     void Traverse(const IStructType* sType, ITabVisitor* visitor);
 
     std::string AbsolutePath(const std::string& path);
+    std::string ContactPath(const std::string& l, const std::string& r);
     bool SplitPath(const std::string& src,
         std::string* p = nullptr, std::string* f = nullptr, std::string* e = nullptr);
     bool IsDir(const std::string& path);

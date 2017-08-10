@@ -27,15 +27,15 @@ namespace utility
         path.push_back(scope->Name());
     }
 
-    static IScope* FindType(IScope* scope, const std::vector<std::string>& path, int begin = 0, int end = -1)
+    static IScope* FindScope(IScope* scope, const std::vector<std::string>& path, size_t begin = 0, size_t end = -1)
     {
         if (end < 0)
             end = (int)path.size();
         else
-            end = std::min(end, (int)path.size());
+            end = std::min(end, path.size());
 
         // param check
-        if (end - begin < 0)
+        if (end < begin)
             return nullptr;
         if (begin >= (int)path.size())
             return nullptr;
@@ -45,54 +45,25 @@ namespace utility
         */
         while (scope)
         {
-            IElement* element = scope->Get(path[begin]);
-            if (element)
+            IScope* temp = scope->GetScope(path[begin]);
+            if (temp)
             {
-                if (element->ElementCat() == ElementCategory::Type)
-                {
-                    scope = static_cast<IType*>(element)->Scope();
-                    break;
-                }
-                else if (element->ElementCat() == ElementCategory::Namespace)
-                {
-                    scope = static_cast<INamespace*>(element)->Scope();
-                    break;
-                }
-                else
-                {
-                    scope = nullptr;
-                }
+                scope = temp;
+                break;
             }
-            else
-            {
-                scope = scope->Owner();
-            }
+
+            scope = scope->Owner();
         }
 
         /*
          * get the last own type
         */
-        for (int i = begin + 1; i < end; ++i)
+        for (size_t i = begin + 1; i < end; ++i)
         {
             if (scope == nullptr)
                 break;
 
-            IElement* element = scope->Get(path[begin]);
-            if (element == nullptr)
-                break;
-
-            if (element->ElementCat() == ElementCategory::Type)
-            {
-                scope = static_cast<IType*>(element)->Scope();
-            }
-            else if (element->ElementCat() == ElementCategory::Namespace)
-            {
-                scope = static_cast<INamespace*>(element)->Scope();
-            }
-            else
-            {
-                scope = nullptr;
-            }
+            scope = scope->GetScope(path[begin]);
         }
         return scope;
     }
@@ -194,12 +165,6 @@ namespace utility
 
     bool Convert(const std::string& str, bool& out)
     {
-        return Convert(str, out, out);
-    }
-
-    bool Convert(const std::string& str, bool& out, bool def)
-    {
-        out = def;
         if (str == "true")
             out = true;
         else if (str == "false")
@@ -211,12 +176,6 @@ namespace utility
 
     bool Convert(const std::string& str, int& out)
     {
-        return Convert(str, out, out);
-    }
-
-    bool Convert(const std::string& str, int& out, int def)
-    {
-        out = def;
         try
         {
             out = std::stoi(str);
@@ -230,12 +189,6 @@ namespace utility
 
     bool Convert(const std::string& str, float& out)
     {
-        return Convert(str, out, out);
-    }
-
-    bool Convert(const std::string& str, float& out, float def)
-    {
-        out = def;
         try
         {
             out = std::stof(str);
@@ -364,6 +317,17 @@ namespace utility
         return std::move(ret);
     }
 
+    std::vector<std::string> Absolute(const IScope* scope)
+    {
+        if (scope == nullptr)
+            return EMPTY_VEC_STR;
+
+        std::vector<std::string> path;
+        Absolute(scope, path);
+
+        return std::move(path);
+    }
+
     std::vector<std::string> Absolute(const IType* type)
     {
         if (type == nullptr)
@@ -378,15 +342,15 @@ namespace utility
         return std::move(path);
     }
 
-    std::vector<std::string> Relative(const IType* self, const IType* other)
+    std::vector<std::string> Relative(const IType* self, const IScope* scope)
     {
-        if (self == nullptr || other == nullptr)
+        if (self == nullptr || scope == nullptr)
             return EMPTY_VEC_STR;
-        if (self->TypeCat() == TypeCategory::Raw || other->TypeCat() == TypeCategory::Raw)
+        if (self->TypeCat() == TypeCategory::Raw || scope == nullptr)
             return EMPTY_VEC_STR;
 
         const std::vector<std::string> sp = Absolute(self);
-        const std::vector<std::string> op = Absolute(other);
+        const std::vector<std::string> op = Absolute(scope);
 
         size_t beg = 0;
         std::vector<std::string> path;
@@ -396,35 +360,70 @@ namespace utility
                 break;
         }
 
-        return std::vector<std::string>(op.begin() + beg, op.end());
+        return std::vector<std::string>(sp.begin() + beg, sp.end());
     }
 
-    IScope* FindType(IScope* scope, const std::string& path)
+    IType* FindType(IScope* scope, const std::string& path)
     {
         if (scope == nullptr)
             return nullptr;
-        if (scope->Name() == path)
-            return scope;
-        return FindType(scope, utility::Split(path, "."));
+
+        IType* type = nullptr;
+        std::vector<std::string> vec = utility::Split(path, ".");
+        if (vec.size() > 1)
+        {
+            // 固定查找地址
+            scope = FindScope(scope, vec, 0, vec.size() - 1);
+            if (scope && scope->TypeSet())
+                type = scope->TypeSet()->Get(vec.back());
+        }
+        else
+        {
+            // 一层一层向上层左右域查找
+            while (scope)
+            {
+                if (scope->TypeSet())
+                    type = scope->TypeSet()->Get(vec.back());
+
+                if (type)
+                    break;
+                else
+                    scope = scope->Owner();
+            }
+        }
+
+        return type;
     }
 
     IVariate* FindVar(IScope* scope, const std::string& path)
     {
-        IVariate* var = nullptr;
-        std::vector<std::string> vec = utility::Split(path, ".");
-
-        if (vec.size() > 1)
-            scope = FindType(scope, vec, 0, (int)vec.size() - 1);
-
         if (scope == nullptr)
             return nullptr;
 
-        while (scope && !var)
+        IVariate* var = nullptr;
+        std::vector<std::string> vec = utility::Split(path, ".");
+        if (vec.size() > 1)
         {
-            if (scope->VarSet())
+            // 固定查找地址
+            scope = FindScope(scope, vec, 0, (int)vec.size() - 1);
+            if (scope && scope->VarSet())
                 var = scope->VarSet()->Get(vec.back());
-            scope = scope->Owner();
         }
+        else
+        {
+            // 一层一层向上层左右域查找
+            while (scope)
+            {
+                if (scope->VarSet())
+                    var = scope->VarSet()->Get(vec.back());
+
+                if (var)
+                    break;
+                else
+                    scope = scope->Owner();
+            }
+        }
+
         return var;
     }
 
@@ -468,6 +467,18 @@ namespace utility
         }
 
         return Contact(ps, "/");
+    }
+
+    std::string ContactPath(const std::string& l, const std::string& r)
+    {
+        std::string nl = TrimRight(l, "/\\");
+        std::string nr = Trim(r, "/\\");
+        if (nl.empty())
+            return nr;
+        else if (nr.empty())
+            return nl;
+        else
+            return nl + "/" + nr;
     }
 
     bool SplitPath(const std::string& src, std::string* p/* = nullptr*/, std::string* f/* = nullptr*/, std::string* e/* = nullptr*/)
@@ -573,20 +584,24 @@ namespace utility
         std::queue<std::string> dirs;
         bool success = true;
 
-        dirs.push(TrimRight(path, "/\\"));
+        std::string root = TrimRight(path, "/\\");
+        dirs.push("");
+
         while (success && !dirs.empty())
         {
             std::string p = dirs.front();
             dirs.pop();
 
+            std::string abPath = ContactPath(path, p) + "/*";
             WIN32_FIND_DATAA ffd;
-            HANDLE hFind = ::FindFirstFileA((p + "/*").c_str(), &ffd);
+            HANDLE hFind = ::FindFirstFileA(abPath.c_str(), &ffd);
             if (hFind == INVALID_HANDLE_VALUE)
                 return false;
 
             while (success && ::FindNextFileA(hFind, &ffd) != 0)
             {
-                std::string f = p + "/" + ffd.cFileName;
+                std::string f = ContactPath(p, ffd.cFileName);
+
                 if (ffd.cFileName[0] == '.' && ffd.cFileName[1] == 0)
                     continue;
                 if (ffd.cFileName[0] == '.' && ffd.cFileName[1] == '.')

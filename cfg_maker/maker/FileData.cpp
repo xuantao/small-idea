@@ -1,4 +1,5 @@
 ﻿#include "FileData.h"
+#include "Utility.h"
 
 CFG_NAMESPACE_BEGIN
 
@@ -46,6 +47,7 @@ namespace detail
 FileData::FileData(const std::string& file)
     : _file(file)
 {
+    utility::SplitPath(file, &_path);
 }
 
 FileData::~FileData()
@@ -54,7 +56,6 @@ FileData::~FileData()
         [ ](detail::FileBlock* block) { delete block; });
     _blocks.clear();
 }
-
 
 void FileData::Export(IExporter* visitor, bool merge) const
 {
@@ -100,12 +101,12 @@ void FileData::Inlcude(const std::string& file)
     _blocks.push_back(new detail::FileBlock(detail::BlockType::Include, file));
 }
 
-void FileData::NamesapceBegin(const std::string& name)
+void FileData::NsBegin(const std::string& name)
 {
     _blocks.push_back(new detail::FileBlock(detail::BlockType::NamespaceBegin, name));
 }
 
-void FileData::NamesapceEnd()
+void FileData::NsEnd()
 {
     _blocks.push_back(new detail::FileBlock(detail::BlockType::NamespaceEnd));
 }

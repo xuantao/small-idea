@@ -9,7 +9,7 @@ CFG_NAMESPACE_BEGIN
 
 namespace cpp_util
 {
-    static std::string sRefValue(const IType* scope, const IType* type, const IRefValue* val)
+    static std::string sRefValue(const IScope* scope, const IType* type, const IRefValue* val)
     {
         const IVariate* var = val->Var();
         std::stringstream stream;
@@ -20,7 +20,7 @@ namespace cpp_util
         if (type != var->Type())
             stream << "(" << TypeName(scope, type) << ")";
 
-        const std::vector<std::string> ralative = utility::Relative(scope, var->Type());
+        const std::vector<std::string> ralative = utility::Relative(var->Type(), scope);
         stream << utility::Contact(ralative, "::");
         if (!ralative.empty())
             stream << "::";
@@ -42,20 +42,20 @@ namespace cpp_util
             return std::string();
     }
 
-    std::string TypeName(const IType* scope, const IType* ty)
+    std::string TypeName(const IScope* scope, const IType* type)
     {
         std::string name;
-        if (ty->TypeCat() == TypeCategory::Raw)
+        if (type->TypeCat() == TypeCategory::Raw)
         {
-            name = RawName(static_cast<const IRawType*>(ty)->RawCat());
+            name = RawName(static_cast<const IRawType*>(type)->RawCat());
         }
-        else if (ty->TypeCat() == TypeCategory::Enum || ty->TypeCat() == TypeCategory::Struct)
+        else if (type->TypeCat() == TypeCategory::Enum || type->TypeCat() == TypeCategory::Struct)
         {
-            name = utility::Contact(utility::Relative(scope, ty), "::");
+            name = utility::Contact(utility::Relative(type, scope), "::");
         }
-        else if (ty->TypeCat() == TypeCategory::Array)
+        else if (type->TypeCat() == TypeCategory::Array)
         {
-            const IArrayType* arTy = static_cast<const IArrayType*>(ty);
+            const IArrayType* arTy = static_cast<const IArrayType*>(type);
             name = TypeName(scope, arTy->Prev());
             if (arTy->Length() > 0)
             {
@@ -76,7 +76,7 @@ namespace cpp_util
         return name;
     }
 
-    std::string Value(const IType* scope, const IType* type, const IValue* val)
+    std::string Value(const IScope* scope, const IType* type, const IValue* val)
     {
         if (scope == nullptr || type == nullptr || val == nullptr)
             return std::string();
@@ -96,16 +96,19 @@ namespace cpp_util
         if (var == nullptr)
             return false;
 
-        out.type = TypeName(var->Belong(), var->Type());
+        out.type = TypeName(var->Owner(), var->Type());
         out.name = var->Name();
         if (var->Value())
-            out.value = Value(var->Belong(), var->Type(), var->Value());
+            out.value = Value(var->Owner(), var->Type(), var->Value());
         else if (var->Type()->TypeCat() == TypeCategory::Raw)
             out.value = value_util::DefValue(static_cast<const IRawType*>(var->Type())->RawCat());
 
-        if (var->Type()->TypeCat() == TypeCategory::Raw &&
+        if (
             !out.value.empty() &&
-            static_cast<const IRawType*>(var->Type())->RawCat() == RawCategory::String)
+            var->Type()->TypeCat() == TypeCategory::Raw &&
+            static_cast<const IRawType*>(var->Type())->RawCat() == RawCategory::String &&
+            var->Value()->ValueCat() == ValueCategory::Raw
+            )
         {
             out.value = "\"" + out.value + "\"";
         }

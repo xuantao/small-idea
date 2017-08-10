@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "CfgDef.h"
+#include "Interface.h"
 #include <ostream>
 
 CFG_NAMESPACE_BEGIN
@@ -16,8 +16,8 @@ struct CppVarData
 namespace cpp_util
 {
     std::string RawName(RawCategory raw);
-    std::string TypeName(const IType* scope, const IType* type);
-    std::string Value(const IType* scope, const IType* type, const IValue* val);
+    std::string TypeName(const IScope* scope, const IType* type);
+    std::string Value(const IScope* scope, const IType* type, const IValue* val);
 
     bool Convert(const IVariate* var, CppVarData& out);
 }

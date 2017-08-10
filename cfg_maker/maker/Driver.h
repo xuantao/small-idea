@@ -29,7 +29,7 @@ public:
 
 public:
     bool Parse(Context& context, const std::string& file);
-    bool Parse(Context& context, const std::vector<std::string>& files);
+    bool Parse(Context& context, const std::string& path, const std::vector<std::string>& files);
 
 public:
     Scanner* GetScanner() const { return m_pScanner; }

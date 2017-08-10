@@ -48,11 +48,12 @@ bool Scanner::Init(const std::string& file)
     return Push(file);
 }
 
-bool Scanner::Init(const std::vector<std::string>& files)
+bool Scanner::Init(const std::string& path, const std::vector<std::string>& files)
 {
     if (files.empty())
         return false;
 
+    _rootPath = path;
     _files.reserve(files.size());
     _files.assign(files.rbegin(), files.rend());
 
@@ -128,7 +129,7 @@ bool Scanner::Push(const std::string& file)
     std::string real;
     if (!_stack.empty())
     {
-        real = utility::AbsolutePath(_stack.back()->path + "/" + file);
+        real = utility::AbsolutePath(utility::ContactPath(_stack.back()->path, file));
         utility::SplitPath(real, &path);
     }
     else
@@ -146,8 +147,8 @@ bool Scanner::Push(const std::string& file)
     FilePtr ptr = std::make_shared<detail::ScanningFile>();
     ptr->file = real;
     ptr->path = path;
-    ptr->stream.open(real);
     ptr->loc.initialize(&ptr->file);
+    ptr->stream.open(utility::ContactPath(_rootPath, real));
 
     if (!ptr->stream.is_open())
     {

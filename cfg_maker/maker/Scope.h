@@ -30,7 +30,8 @@ public:
     virtual IVarSet* VarSet() const { return _varSet; }
     virtual INsSet* NsSet() const { return _nsSet; }
 
-    virtual IElement* Get(const std::string& name) const;
+    virtual IElement* GetElement(const std::string& name) const;
+    virtual IScope* GetScope(const std::string& name) const;
 
     void Bind(IType* type) { _binding = type; }
     void TypeSet(ITypeSet* set) { _tySet = set; }

@@ -12,7 +12,6 @@ class Variate;
 class IType;
 class EnumType;
 class StructType;
-class ScopeType;
 class FileData;
 
 struct Cfg
@@ -51,25 +50,32 @@ public:
     void OnIncludeBegin(const std::string& file);
     void OnIncludeEnd();
 
+    void OnNsBegin(const std::string& name);
+    void OnNsEnd();
+
     void OnPredefine(const std::string& name);
     void OnStructBegin(const std::string& name, CfgCategory cfg);
-    void OnInherit(const std::string& name);
+    void OnStructInherit(const std::string& name);
     void OnStructEnd();
 
     void OnEnumBegin(const std::string& name);
     void OnEnumMember(const std::string& name);
-    void OnEnumMember(const std::string& name, const std::string& value, bool refer);
+    void OnEnumMemberValue(const std::string& name, const std::string& value);
+    void OnEnumMemberRefer(const std::string& name, const std::string& refer);
     void OnEnumEnd();
 
     void OnVariateBegin(const std::string& type, const std::string& name);
     void OnVariateValue(RawCategory raw, const std::string& value);
     void OnVariateValue(const std::string& refer);
     void OnVariateArray(const std::string& length = "");
-    void OnVariateEnd(bool isConst, const std::string& desc);
+    void OnVariateConst();
+    void OnVariateDesc(const std::string& desc);
+    void OnVariateEnd();
 
 protected:
-    IScope* Scope() const { return _stackScope.top(); }
+    IVariate* AddEnumMember(const std::string& name);
     std::string ConflictName(const std::string& name) const;
+    bool IsTypeProcessing(IType* type) const;
 
 protected:
     Driver& _driver;
@@ -81,15 +87,9 @@ protected:
     std::vector<Cfg> _jsons;
 
     INamespace* _gloal;
-    std::stack<IScope*> _stackScope;
+    std::vector<IScope*> _stackScope;
 
     Variate* _var;
-    union
-    {
-        IType* _type;
-        EnumType* _enum;        // easy visit
-        StructType* _struct;    // easy visit
-    };
 };
 
 CFG_NAMESPACE_END

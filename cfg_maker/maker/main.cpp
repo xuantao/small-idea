@@ -75,7 +75,8 @@ static void LogInfo()
 
 static void DoWork(Args& arg)
 {
-    std::vector<std::string> srcs = utility::CollectDir(arg.srcPath);
+    std::string path = utility::TrimRight(arg.srcPath, "/\\");
+    std::vector<std::string> srcs = utility::CollectDir(path);
 
     if (srcs.empty())
     {
@@ -86,7 +87,7 @@ static void DoWork(Args& arg)
     Driver driver;
     Context context(driver);
 
-    if (!driver.Parse(context, srcs))
+    if (!driver.Parse(context, path, srcs))
     {
         std::cout << "parse src file failed" << std::endl;
         return;

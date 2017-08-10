@@ -13,19 +13,19 @@ namespace cfg
     class TabLineIter
     {
     public:
-        TabLineIter(const char* const * data, const char* const * title, size_t size, const char* chunk, int lineNO)
+        TabLineIter(const char* const * data, const char* const * title, size_t size, const char* chunk, size_t lineNO)
             : _data(data)
             , _title(title)
             , _size(size)
-            , _index(-1)
             , _chunk(chunk)
             , _lineNO(lineNO)
+            , _index(-1)
         {
         }
 
     public:
         const char* Chunk() const { return _chunk; }
-        int LineNO() const { return _lineNO; }
+        size_t LineNO() const { return _lineNO; }
 
         const char* Value() const
         {
@@ -55,9 +55,9 @@ namespace cfg
         const char* const * _data;
         const char* const * _title;
         const char* _chunk;
-        int _lineNO;
-        int _index;
+        size_t _lineNO;
         size_t _size;
+        int _index;
     };
 
     /*

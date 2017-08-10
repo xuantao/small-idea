@@ -114,10 +114,10 @@ public:
     virtual bool IsConst() const = 0;
     virtual const std::string& Name() const = 0;
     virtual const std::string& Desc() const = 0;
-    virtual IType* Belong() const = 0;
+    virtual IScope* Owner() const = 0;
     virtual IType* Type() const = 0;
     virtual IValue* Value() const = 0;
-    virtual void BindValue(IValue* value) = 0;
+    virtual bool BindValue(IValue* value) = 0;
 };
 
 /*
@@ -137,7 +137,8 @@ public:
     virtual IVarSet* VarSet() const = 0;
     virtual INsSet* NsSet() const = 0;
 
-    virtual IElement* Get(const std::string& name) const = 0;
+    virtual IElement* GetElement(const std::string& name) const = 0;
+    virtual IScope* GetScope(const std::string& name) const = 0;
 };
 
 /*

@@ -242,6 +242,9 @@ namespace  cfg  {
     /// An auxiliary type to compute the largest semantic type.
     union union_type
     {
+      // VarConst
+      char dummy1[sizeof(bool)];
+
       // "identifier"
       // "true"
       // "false"
@@ -252,9 +255,9 @@ namespace  cfg  {
       // BoolValue
       // IntValue
       // FloatValue
-      // ValueDesc
-      // RefValue
-      char dummy1[sizeof(std::string)];
+      // VarDesc
+      // RefName
+      char dummy2[sizeof(std::string)];
 };
 
     /// Symbol semantic values.
@@ -343,6 +346,8 @@ namespace  cfg  {
       /// Constructor for valueless symbols, and symbols from each type.
 
   basic_symbol (typename Base::kind_type t, const location_type& l);
+
+  basic_symbol (typename Base::kind_type t, const bool v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l);
 
@@ -603,7 +608,7 @@ namespace  cfg  {
     // Tables.
   // YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
   // STATE-NUM.
-  static const short int yypact_[];
+  static const signed char yypact_[];
 
   // YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
   // Performed when YYTABLE does not specify something else to do.  Zero
@@ -614,14 +619,14 @@ namespace  cfg  {
   static const short int yypgoto_[];
 
   // YYDEFGOTO[NTERM-NUM].
-  static const signed char yydefgoto_[];
+  static const short int yydefgoto_[];
 
   // YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
   // positive, shift that token.  If negative, reduce the rule whose
   // number is the opposite.  If YYTABLE_NINF, syntax error.
   static const short int yytable_[];
 
-  static const signed char yycheck_[];
+  static const short int yycheck_[];
 
   // YYSTOS[STATE-NUM] -- The (internal number of the) accessing
   // symbol of state STATE-NUM.
@@ -642,7 +647,7 @@ namespace  cfg  {
     static const char* const yytname_[];
 #if YYDEBUG
   // YYRLINE[YYN] -- Source line where rule number YYN was defined.
-  static const unsigned char yyrline_[];
+  static const unsigned short int yyrline_[];
     /// Report on the debug stream that the rule \a r is going to be reduced.
     virtual void yy_reduce_print_ (int r);
     /// Print the state stack on the debug stream.
@@ -736,8 +741,8 @@ namespace  cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 159,           //< Last index in yytable_.
-      yynnts_ = 30,  //< Number of nonterminal symbols.
+      yylast_ = 188,           //< Last index in yytable_.
+      yynnts_ = 42,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.
       yyterror_ = 1,
@@ -821,6 +826,10 @@ namespace  cfg  {
   {
       switch (other.type_get ())
     {
+      case 75: // VarConst
+        value.copy< bool > (other.value);
+        break;
+
       case 28: // "identifier"
       case 29: // "true"
       case 30: // "false"
@@ -828,11 +837,11 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 60: // BoolValue
-      case 61: // IntValue
-      case 62: // FloatValue
-      case 63: // ValueDesc
-      case 64: // RefValue
+      case 71: // BoolValue
+      case 72: // IntValue
+      case 73: // FloatValue
+      case 74: // VarDesc
+      case 76: // RefName
         value.copy< std::string > (other.value);
         break;
 
@@ -853,6 +862,10 @@ namespace  cfg  {
     (void) v;
       switch (this->type_get ())
     {
+      case 75: // VarConst
+        value.copy< bool > (v);
+        break;
+
       case 28: // "identifier"
       case 29: // "true"
       case 30: // "false"
@@ -860,11 +873,11 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 60: // BoolValue
-      case 61: // IntValue
-      case 62: // FloatValue
-      case 63: // ValueDesc
-      case 64: // RefValue
+      case 71: // BoolValue
+      case 72: // IntValue
+      case 73: // FloatValue
+      case 74: // VarDesc
+      case 76: // RefName
         value.copy< std::string > (v);
         break;
 
@@ -880,6 +893,13 @@ namespace  cfg  {
    Parser ::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const location_type& l)
     : Base (t)
     , value ()
+    , location (l)
+  {}
+
+  template <typename Base>
+   Parser ::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const bool v, const location_type& l)
+    : Base (t)
+    , value (v)
     , location (l)
   {}
 
@@ -906,6 +926,10 @@ namespace  cfg  {
     // Type destructor.
     switch (yytype)
     {
+      case 75: // VarConst
+        value.template destroy< bool > ();
+        break;
+
       case 28: // "identifier"
       case 29: // "true"
       case 30: // "false"
@@ -913,11 +937,11 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 60: // BoolValue
-      case 61: // IntValue
-      case 62: // FloatValue
-      case 63: // ValueDesc
-      case 64: // RefValue
+      case 71: // BoolValue
+      case 72: // IntValue
+      case 73: // FloatValue
+      case 74: // VarDesc
+      case 76: // RefName
         value.template destroy< std::string > ();
         break;
 
@@ -935,6 +959,10 @@ namespace  cfg  {
     super_type::move(s);
       switch (this->type_get ())
     {
+      case 75: // VarConst
+        value.move< bool > (s.value);
+        break;
+
       case 28: // "identifier"
       case 29: // "true"
       case 30: // "false"
@@ -942,11 +970,11 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 60: // BoolValue
-      case 61: // IntValue
-      case 62: // FloatValue
-      case 63: // ValueDesc
-      case 64: // RefValue
+      case 71: // BoolValue
+      case 72: // IntValue
+      case 73: // FloatValue
+      case 74: // VarDesc
+      case 76: // RefName
         value.move< std::string > (s.value);
         break;
 
@@ -1240,7 +1268,7 @@ namespace  cfg  {
 
 #line 11 "./fb/parser.y" // lalr1.cc:371
 } //  cfg 
-#line 1244 "Parser.hpp" // lalr1.cc:371
+#line 1272 "Parser.hpp" // lalr1.cc:371
 
 
 

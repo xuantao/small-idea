@@ -303,7 +303,7 @@ bool CppExporter::Declare(const IStructType* sType)
     /* struct define */
     _TAB_ << "struct " << sType->Name();
     if (sType->Inherited())
-        _OUTS_ << " : public " << cpp_util::TypeName(sType, sType->Inherited());
+        _OUTS_ << " : public " << cpp_util::TypeName(sType->Owner(), sType->Inherited());
     _OUTS_ << std::endl;
 
     _TAB_ << "{" << std::endl;

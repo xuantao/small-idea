@@ -31,7 +31,7 @@ public:
 
 public:
     bool Init(const std::string& file);
-    bool Init(const std::vector<std::string>& files);
+    bool Init(const std::string& path, const std::vector<std::string>& files);
     void UnInit();
 
 public:
@@ -59,6 +59,7 @@ private:
     std::vector<FilePtr>  _stack;
 
     std::vector<std::string> _files;
+    std::string _rootPath;
     std::string _path;
     std::set<std::string> _parsed;
 };

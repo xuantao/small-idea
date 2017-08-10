@@ -59,18 +59,18 @@ namespace value_util
         return str;
     }
 
-    bool IsRaw(const IValue* val, RawCategory raw, bool ref/* = true*/)
+    bool AsRaw(RawCategory raw, const IValue* val)
     {
         if (val == nullptr)
             return false;
 
-        if (ref && val->ValueCat() == ValueCategory::Ref)
-            return IsRaw(static_cast<const RefValue*>(val)->Original(), raw);
-        else if (val->ValueCat() == ValueCategory::Raw)
+        if (val->ValueCat() == ValueCategory::Raw)
             return static_cast<const RawValue*>(val)->RawCat() == raw;
-        else
-            assert(false);
-        return false;
+
+        assert(val->ValueCat() == ValueCategory::Ref);
+
+        const IRawValue* original = static_cast<const IRefValue*>(val)->Original();
+        return original->RawCat() == raw;
     }
 
     bool Value(const IValue* val, bool& b)

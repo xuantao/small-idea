@@ -32,13 +32,13 @@ bool Driver::Parse(Context& context, const std::string& file)
     return true;
 }
 
-bool Driver::Parse(Context& context, const std::vector<std::string>& files)
+bool Driver::Parse(Context& context, const std::string& path, const std::vector<std::string>& files)
 {
     m_pScanner = new Scanner(*this);
     m_pParser = new Parser(*this);
     m_pContext = &context;
 
-    if (!m_pScanner->Init(files))
+    if (!m_pScanner->Init(path, files))
         return false;
 
     m_pParser->parse();
