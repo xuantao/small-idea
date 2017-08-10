@@ -741,8 +741,8 @@ namespace  cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 188,           //< Last index in yytable_.
-      yynnts_ = 42,  //< Number of nonterminal symbols.
+      yylast_ = 159,           //< Last index in yytable_.
+      yynnts_ = 43,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.
       yyterror_ = 1,
@@ -826,7 +826,7 @@ namespace  cfg  {
   {
       switch (other.type_get ())
     {
-      case 75: // VarConst
+      case 76: // VarConst
         value.copy< bool > (other.value);
         break;
 
@@ -837,11 +837,11 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 71: // BoolValue
-      case 72: // IntValue
-      case 73: // FloatValue
-      case 74: // VarDesc
-      case 76: // RefName
+      case 72: // BoolValue
+      case 73: // IntValue
+      case 74: // FloatValue
+      case 75: // VarDesc
+      case 77: // RefName
         value.copy< std::string > (other.value);
         break;
 
@@ -862,7 +862,7 @@ namespace  cfg  {
     (void) v;
       switch (this->type_get ())
     {
-      case 75: // VarConst
+      case 76: // VarConst
         value.copy< bool > (v);
         break;
 
@@ -873,11 +873,11 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 71: // BoolValue
-      case 72: // IntValue
-      case 73: // FloatValue
-      case 74: // VarDesc
-      case 76: // RefName
+      case 72: // BoolValue
+      case 73: // IntValue
+      case 74: // FloatValue
+      case 75: // VarDesc
+      case 77: // RefName
         value.copy< std::string > (v);
         break;
 
@@ -926,7 +926,7 @@ namespace  cfg  {
     // Type destructor.
     switch (yytype)
     {
-      case 75: // VarConst
+      case 76: // VarConst
         value.template destroy< bool > ();
         break;
 
@@ -937,11 +937,11 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 71: // BoolValue
-      case 72: // IntValue
-      case 73: // FloatValue
-      case 74: // VarDesc
-      case 76: // RefName
+      case 72: // BoolValue
+      case 73: // IntValue
+      case 74: // FloatValue
+      case 75: // VarDesc
+      case 77: // RefName
         value.template destroy< std::string > ();
         break;
 
@@ -959,7 +959,7 @@ namespace  cfg  {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 75: // VarConst
+      case 76: // VarConst
         value.move< bool > (s.value);
         break;
 
@@ -970,11 +970,11 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 71: // BoolValue
-      case 72: // IntValue
-      case 73: // FloatValue
-      case 74: // VarDesc
-      case 76: // RefName
+      case 72: // BoolValue
+      case 73: // IntValue
+      case 74: // FloatValue
+      case 75: // VarDesc
+      case 77: // RefName
         value.move< std::string > (s.value);
         break;
 

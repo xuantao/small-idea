@@ -1,6 +1,4 @@
 ﻿#include "Context.h"
-#include <stdio.h>
-#include <cassert>
 #include "Driver.h"
 #include "Type.h"
 #include "Value.h"
@@ -8,6 +6,8 @@
 #include "Variate.h"
 #include "Utility.h"
 #include "FileData.h"
+#include <stdio.h>
+#include <cassert>
 
 #define _SCOPE_ _stackScope.back()
 
@@ -23,6 +23,7 @@ Context::Context(Driver& driver)
     , _gloal(nullptr)
     , _var(nullptr)
 {
+    _mergeFile = new FileData("");
     _gloal = new Namespace("", nullptr);
     _stackScope.push_back(_gloal->Scope());
 
@@ -39,6 +40,17 @@ Context::~Context()
 
     delete _var;
     _var = nullptr;
+
+    delete _mergeFile;
+    _mergeFile = nullptr;
+
+    std::for_each(_files.begin(), _files.end(), [](FileData* fd) {delete fd; });
+    _files.clear();
+
+    _stackScope.clear();
+    _stackFile.clear();
+    _tabs.clear();
+    _jsons.clear();
 }
 
 const IScope* Context::Global() const
@@ -58,10 +70,8 @@ bool Context::Export(IExporter* expoter, const std::string& file)
     if (fileName.empty() || fileName.back() == '/' || fileName.back() == '//')
         fileName = "unnamed";
 
-    //TODO: 这里还需要考虑include的情况
     expoter->OnBegin(Global(), fileName);
-    for (auto it = _files.begin(); it != _files.end(); ++it)
-        (*it)->Export(expoter, true);
+    _mergeFile->Export(expoter, true);
     expoter->OnEnd();
 
     return true;
@@ -71,7 +81,7 @@ bool Context::Export(ITabCreater* creator, const std::string& path)
 {
     for (auto it = _tabs.cbegin(); it != _tabs.cend(); ++it)
     {
-        creator->SetPath(path + "/" + it->path);
+        creator->SetPath(utility::ContactPath(path, it->path));
         utility::Traverse(it->sType, creator);
     }
     return true;
@@ -81,7 +91,7 @@ bool Context::Export(IJsonCreater* creator, const std::string& path)
 {
     for (auto it = _jsons.cbegin(); it != _jsons.cend(); ++it)
     {
-        creator->SetPath(path + "/" + it->path);
+        creator->SetPath(utility::ContactPath(path, it->path));
         creator->OnStart(it->sType);
         creator->OnEnd();
     }
@@ -100,7 +110,7 @@ void Context::OnParseEnd()
     _stackFile.pop_back();
 }
 
-void Context::OnIncludeBegin(const std::string& file)
+bool Context::OnIncludeBegin(const std::string& path, const std::string& file)
 {
     auto it = std::find_if(_files.begin(), _files.end(),
         [&file](FileData* fd) { return fd->File() == file; });
@@ -108,11 +118,12 @@ void Context::OnIncludeBegin(const std::string& file)
     _stackFile.back()->Inlcude(file);
 
     if (it != _files.end())
-        return; // already include
+        return false; // already include
 
     FileData* fd = new FileData(file);
     _files.push_back(fd);
     _stackFile.push_back(fd);
+    return true;
 }
 
 void Context::OnIncludeEnd()
@@ -127,12 +138,14 @@ void Context::OnPredefine(const std::string& name)
 
 void Context::OnNsBegin(const std::string& name)
 {
-
+    _mergeFile->NsBegin(name);
+    _stackFile.back()->NsBegin(name);
 }
 
 void Context::OnNsEnd()
 {
-
+    _mergeFile->NsEnd();
+    _stackFile.back()->NsEnd();
 }
 
 void Context::OnStructBegin(const std::string& name, CfgCategory cfg)
@@ -152,13 +165,18 @@ void Context::OnStructBegin(const std::string& name, CfgCategory cfg)
     else
         _SCOPE_->TypeSet()->Add(sType);
 
-    _stackScope.push_back(sType->Scope());
-    _stackFile.back()->Add(sType);
+    if (!IsTypeScope())
+    {
+        _stackFile.back()->Add(sType);
+        _mergeFile->Add(sType);
+    }
 
     if (cfg == CfgCategory::Tab)
         _tabs.push_back(Cfg(_stackFile.back()->Path(), sType));
     else if (cfg == CfgCategory::Json)
         _jsons.push_back(Cfg(_stackFile.back()->Path(), sType));
+
+    _stackScope.push_back(sType->Scope());
 }
 
 void Context::OnStructInherit(const std::string& name)
@@ -241,9 +259,14 @@ void Context::OnEnumBegin(const std::string& name)
 
     EnumType* eType = new EnumType(newName, _SCOPE_);
     _SCOPE_->TypeSet()->Add(eType);
-    _stackScope.push_back(eType->Scope());
 
-    _stackFile.back()->Add(eType);
+    if (!IsTypeScope())
+    {
+        _stackFile.back()->Add(eType);
+        _mergeFile->Add(eType);
+    }
+
+    _stackScope.push_back(eType->Scope());
 }
 
 void Context::OnEnumMember(const std::string& name)
@@ -296,8 +319,6 @@ void Context::OnEnumEnd()
 {
     if (_stackScope.size() > 1)
         _stackScope.pop_back();
-    else
-        _driver.Error("empty scope stack");
 }
 
 void Context::OnVariateBegin(const std::string& type, const std::string& name)
@@ -366,40 +387,45 @@ void Context::OnVariateValue(const std::string& refer)
     }
 }
 
-void Context::OnVariateArray(const std::string& length/* = ""*/)
+void Context::OnVariateArray()
 {
-    assert(_var);
+    UpgradeArray(0);
+}
 
-    if (_var->Type()->TypeCat() == TypeCategory::Array)
-    {
-        _driver.Error("var:{0} does not support  multi dimensional array", _var->Name());
-        return;
-    }
-
+void Context::OnVariateArrayLength(const std::string& length)
+{
     int len = 0;
-    if (!length.empty() && !utility::Convert(length, len))
-        _driver.Error("convert value:{0} to int failed", length);
+    if (!utility::Convert(length, len))
+        _driver.Error("convert array length[{0}] to length failed", length);
+    else if (len <= 0)
+        _driver.Warning("array with length is {0}", len);
 
-    if (len < 0)
-    {
-        len = 0;
-        _driver.Error("array length not allow less 0");
-    }
+    UpgradeArray(len);
+}
 
-    _var->UpgradeArray(len);
+void Context::OnVariateArrayRefer(const std::string& refer)
+{
+    int len = 0;
+    IVariate* var = utility::FindVar(_SCOPE_, refer);
+    if (var == nullptr)
+        _driver.Error("can not find any var with name:{0}", refer);
+    else if (!value_util::Value(var->Value(), len))
+        _driver.Error("var with name:{0} cant not convert to length", refer);
+    else if (len <= 0)
+        _driver.Warning("array with length is {0}", len);
+
+    UpgradeArray(len);
 }
 
 void Context::OnVariateConst()
 {
     assert(_var);
-
     _var->SetConst();
 }
 
 void Context::OnVariateDesc(const std::string& desc)
 {
     assert(_var);
-
     _var->SetDesc(utility::Replace(utility::Trim(desc, " \t"), "\t", " "));
 }
 
@@ -419,24 +445,6 @@ void Context::OnVariateEnd()
         return;
     }
 
-    //IType* varType = _var->Type();
-    //if (varType->TypeCat() == TypeCategory::Array)
-    //    varType = static_cast<IArrayType*>(varType)->Original();
-
-    //if (_var->Value() == nullptr)
-    //{
-    //    if (varType->TypeCat() == TypeCategory::Raw)
-    //    {
-    //        _var->BindValue(value_util::Create(static_cast<const RawType*>(varType)->Raw()));
-    //    }
-    //    else if (varType->TypeCat() == TypeCategory::Enum)
-    //    {
-    //        IEnumType* eType = static_cast<IEnumType*>(varType);
-    //        if (eType->VarSet()->Size())
-    //            _var->BindValue(value_util::Create(eType->VarSet()->Get(0)));
-    //    }
-    //}
-
     if (_SCOPE_->GetElement(var->Name()))
     {
         _driver.Error("var name:{0} conflict", var->Name());
@@ -449,8 +457,12 @@ void Context::OnVariateEnd()
         return;
     }
 
-    if (_SCOPE_ == Global())
+    if (!IsTypeScope())
+    {
         _stackFile.back()->Add(var.get());
+        _mergeFile->Add(var.get());
+    }
+
     var.release();
 }
 
@@ -481,6 +493,24 @@ IVariate* Context::AddEnumMember(const std::string& name)
     return var;
 }
 
+void Context::UpgradeArray(int length)
+{
+    assert(_var);
+    if (_var->Type()->TypeCat() == TypeCategory::Array)
+    {
+        _driver.Error("var:{0} does not support multi dimensional array", _var->Name());
+        return;
+    }
+
+    if (length < 0)
+    {
+        _driver.Error("array length:[{0}] not allow less 0", length);
+        length = 0;
+    }
+
+    _var->UpgradeArray(length);
+}
+
 std::string Context::ConflictName(const std::string& name) const
 {
     int index = 0;
@@ -497,6 +527,16 @@ bool Context::IsTypeProcessing(IType* type) const
     for (auto it = _stackScope.cbegin(); it != _stackScope.cend(); ++it)
     {
         if (type == (*it)->Binding())
+            return true;
+    }
+    return false;
+}
+
+bool Context::IsTypeScope() const
+{
+    for (auto it = _stackScope.cbegin(); it != _stackScope.cend(); ++it)
+    {
+        if ((*it)->Binding())
             return true;
     }
     return false;

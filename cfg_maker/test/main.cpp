@@ -97,12 +97,24 @@ int main(int argc, char* argv[])
 
     TestDrive td;
 
-    TabDataMap<int, Struct2, Keyfn> data;
-    if (data.Load("../work/out/Struct2.tab"))
+    int i = 0;
+
+    do 
     {
-        data.Find(1);
-        printf("xxxx\n");
-    }
+        if (++i < 10)
+        {
+            printf("i = %d\n", i);
+            continue;
+        }
+
+    } while (false);
+
+    //TabDataMap<int, Struct2, Keyfn> data;
+    //if (data.Load("../work/out/Struct2.tab"))
+    //{
+    //    data.Find(1);
+    //    printf("xxxx\n");
+    //}
 
     //ks.find(key);
 

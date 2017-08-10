@@ -9,7 +9,16 @@
 #include <array>
 #include <ostream>
 
-enum GlobalType
+enum class GlobalType
+{
+    Invalid = -1,
+    Bool = 0,
+    Int = 1,
+    Float = 2,
+    String = 3,
+};
+
+enum class Wtf
 {
     Invalid = -1,
     Bool = 0,
@@ -23,13 +32,13 @@ static const float f_1 = 2.000000;
 static const std::string s_1 = "xuantao";
 static const bool b_1 = true;
 
-enum Enum1
+enum class Enum1
 {
     a = 0,
     b = a,
 };
 
-enum Enum2
+enum class Enum2
 {
     c = 100,
     d = 101,
@@ -97,6 +106,11 @@ namespace Enum
     const char* const * Names(GlobalType);
     const char* ToString(GlobalType value);
     bool ToEnum(const char* name, GlobalType& out);
+
+    /* Wtf */
+    const char* const * Names(Wtf);
+    const char* ToString(Wtf value);
+    bool ToEnum(const char* name, Wtf& out);
 
     /* Enum1 */
     const char* const * Names(Enum1);

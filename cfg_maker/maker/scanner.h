@@ -4,6 +4,10 @@
 #include <vector>
 #include <set>
 
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#pragma warning( disable : 4065 )
+
 #define YY_BUF_SIZE 16384
 #ifndef yyFlexLexer
 #define yyFlexLexer CfgFlexLexer
@@ -11,6 +15,8 @@
 #endif
 
 #include "Parser.hpp"
+
+#pragma warning( pop )
 
 CFG_NAMESPACE_BEGIN
 

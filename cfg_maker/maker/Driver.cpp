@@ -1,7 +1,11 @@
 ﻿#include "Driver.h"
 #include "Scanner.h"
-#include "Parser.hpp"
 #include "Context.h"
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#pragma warning( disable : 4065 )
+#include "Parser.hpp"
+#pragma warning( pop )
 
 CFG_NAMESPACE_BEGIN
 

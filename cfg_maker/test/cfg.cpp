@@ -17,6 +17,11 @@ namespace Enum
     static const char* const  s_GlobalType_str[] = {
         "Invalid", "Bool", "Int", "Float", "String", nullptr }; // end of enum GlobalType
 
+    static const int s_Wtf_val[] = {
+        -1, 0, 1, 2, 3, CFG_INVALID_ENUM }; // end of enum Wtf
+    static const char* const  s_Wtf_str[] = {
+        "Invalid", "Bool", "Int", "Float", "String", nullptr }; // end of enum Wtf
+
     static const int s_Enum1_val[] = {
         0, 0, CFG_INVALID_ENUM }; // end of enum Enum1
     static const char* const  s_Enum1_str[] = {
@@ -36,7 +41,7 @@ namespace Enum
     {
         for (int i = 0; s_GlobalType_str[i]; ++i)
         {
-            if (s_GlobalType_val[i] == value)
+            if (s_GlobalType_val[i] == (int)value)
                 return s_GlobalType_str[i];
         }
 
@@ -57,6 +62,36 @@ namespace Enum
         return false;
     }
 
+    const char* const * Names(Wtf)
+    {
+        return s_Wtf_str;
+    }
+
+    const char* ToString(Wtf value)
+    {
+        for (int i = 0; s_Wtf_str[i]; ++i)
+        {
+            if (s_Wtf_val[i] == (int)value)
+                return s_Wtf_str[i];
+        }
+
+        return "";
+    }
+
+    bool ToEnum(const char* name, Wtf& out)
+    {
+        for (int i = 0; s_Wtf_str[i]; ++i)
+        {
+            if (std::strcmp(s_Wtf_str[i], name) == 0)
+            {
+                out = (Wtf)s_Wtf_val[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     const char* const * Names(Enum1)
     {
         return s_Enum1_str;
@@ -66,7 +101,7 @@ namespace Enum
     {
         for (int i = 0; s_Enum1_str[i]; ++i)
         {
-            if (s_Enum1_val[i] == value)
+            if (s_Enum1_val[i] == (int)value)
                 return s_Enum1_str[i];
         }
 
@@ -96,7 +131,7 @@ namespace Enum
     {
         for (int i = 0; s_Enum2_str[i]; ++i)
         {
-            if (s_Enum2_val[i] == value)
+            if (s_Enum2_val[i] == (int)value)
                 return s_Enum2_str[i];
         }
 
@@ -451,7 +486,7 @@ namespace Json
         for (size_t i = 0; i < data.s1arEnum.size(); ++i)
         {
             if (i) stream << ",";
-            stream << data.s1arEnum[i];
+            stream << (int)data.s1arEnum[i];
         }
         stream << "]";
         stream << "," << std::endl;
@@ -460,7 +495,7 @@ namespace Json
         for (size_t i = 0; i < data.s1arEnum2.size(); ++i)
         {
             if (i) stream << ",";
-            stream << data.s1arEnum2[i];
+            stream << (int)data.s1arEnum2[i];
         }
         stream << "]";
     }

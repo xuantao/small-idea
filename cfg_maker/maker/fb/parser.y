@@ -152,7 +152,7 @@ _EnumVar    : IDENTIFIER                        { CONTEXT.OnEnumMember($1); }
 
 /* structure declear */
 StructDecl  : STRUCT IDENTIFIER S_SEMICOLON { CONTEXT.OnPredefine($2); }
-            | StyBegin StyDetail StyEnd    { }
+            | StyBegin StyDetail StyEnd     { }
             ;
 
 StyBegin    : _StyBegin S_LBRACE                    { }
@@ -239,10 +239,13 @@ AssignStr   : S_ASSIGN VALUE_STRING { CONTEXT.OnVariateValue(RawCategory::String
             | AssignRefer           { }
             ;
 
-Array       : S_LBRACK S_RBRACK                      { CONTEXT.OnVariateArray(); }
-            | S_LBRACK VALUE_INT S_RBRACK           { CONTEXT.OnVariateArray($2); }
-            | Array S_LBRACK S_RBRACK               { CONTEXT.OnVariateArray(); }
-            | Array S_LBRACK VALUE_INT S_RBRACK     { CONTEXT.OnVariateArray($3); }
+Array       : ArrayImpl         { }
+            | Array ArrayImpl   { }
+            ;
+ArrayImpl   : S_LBRACK S_RBRACK                 { CONTEXT.OnVariateArray(); }
+            | S_LBRACK IntValue S_RBRACK        { CONTEXT.OnVariateArrayLength($2); }
+            | S_LBRACK RefName S_RBRACK         { CONTEXT.OnVariateArrayRefer($2); }
+            ;
 
 BoolValue   : VALUE_TRUE            { $$ = $1; }
             | VALUE_FALSE           { $$ = $1; }
@@ -268,7 +271,7 @@ VarConst    : /* empty */           { /* empty */ }
 
 /* gobal or enum value reference */
 RefName     : IDENTIFIER                { $$ = $1; }
-            | RefName  S_DOT IDENTIFIER { $$ = $1 + '.' + $3; }
+            | RefName S_DOT IDENTIFIER  { $$ = $1 + '.' + $3; }
             ;
 
 %%

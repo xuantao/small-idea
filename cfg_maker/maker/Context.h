@@ -9,9 +9,6 @@ CFG_NAMESPACE_BEGIN
 
 class Driver;
 class Variate;
-class IType;
-class EnumType;
-class StructType;
 class FileData;
 
 struct Cfg
@@ -43,11 +40,12 @@ public:
     bool Export(IExporter* expoter, const std::string& file);
     bool Export(ITabCreater* creator, const std::string& path);
     bool Export(IJsonCreater* creator, const std::string& path);
+
 public:
     void OnParseBegin(const std::string& file);
     void OnParseEnd();
 
-    void OnIncludeBegin(const std::string& file);
+    bool OnIncludeBegin(const std::string& path, const std::string& file);
     void OnIncludeEnd();
 
     void OnNsBegin(const std::string& name);
@@ -67,19 +65,23 @@ public:
     void OnVariateBegin(const std::string& type, const std::string& name);
     void OnVariateValue(RawCategory raw, const std::string& value);
     void OnVariateValue(const std::string& refer);
-    void OnVariateArray(const std::string& length = "");
+    void OnVariateArray();
+    void OnVariateArrayLength(const std::string& length);
+    void OnVariateArrayRefer(const std::string& refer);
     void OnVariateConst();
     void OnVariateDesc(const std::string& desc);
     void OnVariateEnd();
 
 protected:
     IVariate* AddEnumMember(const std::string& name);
+    void UpgradeArray(int length);
     std::string ConflictName(const std::string& name) const;
     bool IsTypeProcessing(IType* type) const;
+    bool IsTypeScope() const;
 
 protected:
     Driver& _driver;
-
+    FileData* _mergeFile;
     std::vector<FileData*> _files;
     std::vector<FileData*> _stackFile;
 

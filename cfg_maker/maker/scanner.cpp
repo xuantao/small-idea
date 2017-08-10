@@ -84,10 +84,18 @@ location& Scanner::Location()
 
 bool Scanner::Include(const std::string& file)
 {
-    if (!Push(file))
-        return false;
+    std::string real = utility::AbsolutePath(
+        utility::ContactPath(_stack.back()->path, file));
 
-    _driver.GetContext()->OnIncludeBegin(file);
+    if (_driver.GetContext()->OnIncludeBegin(_stack.back()->path, file))
+    {
+        if (!Push(real))
+        {
+            _driver.GetContext()->OnIncludeEnd();
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -95,64 +103,61 @@ bool Scanner::EndOfFile()
 {
     yypop_buffer_state();
 
-    if (Pop())
+    Pop();
+    if (_stack.empty())
+    {
+        _driver.GetContext()->OnParseEnd();
+        NextFile();
+    }
+    else
+    {
         _driver.GetContext()->OnIncludeEnd();
-    else if (!NextFile())
-        return false;
+    }
 
-    return true;
+    return !_stack.empty();
 }
 
 void Scanner::Unrecognized(char c)
 {
-    std::cerr << "unknown character:" << c << std::endl;
+    _driver.Error("unknown character:{0}", c);
 }
 
 bool Scanner::NextFile()
 {
-    while (!_files.empty() && !Push(_files.back()))
+    while (!_files.empty())
     {
+        std::string file(std::move(_files.back()));
         _files.pop_back();
+
+        if (_parsed.find(file) != _parsed.end())
+            continue;   // already scanned
+
+        if (!Push(file))
+            continue;   // parse failed
+
+        _driver.GetContext()->OnParseBegin(file);
+        break;
     }
 
-    if (_files.empty())
-        return false;
-
-    _driver.GetContext()->OnParseBegin(_files.back());
-    _files.pop_back();
     return true;
 }
 
 bool Scanner::Push(const std::string& file)
 {
-    std::string path;
-    std::string real;
-    if (!_stack.empty())
-    {
-        real = utility::AbsolutePath(utility::ContactPath(_stack.back()->path, file));
-        utility::SplitPath(real, &path);
-    }
-    else
-    {
-        real = file;
-        utility::SplitPath(file, &path);
-    }
+    _parsed.insert(file);
 
-    if (_parsed.find(real) != _parsed.end())
-    {
-        std::cerr << "include file already include " << real << std::endl;
-        return false;
-    }
+    std::string path;
+    utility::SplitPath(file, &path);
 
     FilePtr ptr = std::make_shared<detail::ScanningFile>();
-    ptr->file = real;
+    ptr->file = file;
     ptr->path = path;
     ptr->loc.initialize(&ptr->file);
-    ptr->stream.open(utility::ContactPath(_rootPath, real));
+    ptr->stream.open(utility::ContactPath(_rootPath, file));
 
     if (!ptr->stream.is_open())
     {
-        std::cerr << "open file:" << real << " failed" << std::endl;
+        _driver.Error("open file: {0} failed", file);
         return false;
     }
 
@@ -165,26 +170,21 @@ bool Scanner::Push(const std::string& file)
         yy_buffer_state* buffer = yy_create_buffer(ptr->stream, YY_BUF_SIZE);
         if (buffer == nullptr)
         {
-            std::cerr << "failed" << std::endl;
+            _driver.Error("create scanner buffer faile for file:{0}", file);
             return false;
         }
         yypush_buffer_state(buffer);
     }
 
     _stack.push_back(ptr);
-    _parsed.insert(real);
 
     return true;
 }
 
 bool Scanner::Pop()
 {
-    if (_stack.empty())
-        return false;
-
-    _stack.pop_back();
-    if (_stack.empty())
-        return false;
+    if (!_stack.empty())
+        _stack.pop_back();
 
     return true;
 }

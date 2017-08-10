@@ -256,7 +256,7 @@ void CppExporter::OnType(const IType* type)
 bool CppExporter::Declare(const IEnumType* ty)
 {
     int tab = _tab;
-    _TAB_ << "enum " << ty->Name() << std::endl;
+    _TAB_ << "enum class " << ty->Name() << std::endl;
     _TAB_ << "{" << std::endl;
     ++tab;
 
@@ -608,7 +608,7 @@ bool CppExporter::EnumHelper(const IEnumType* eType, int tab)
         _TAB_EX_(0) << "{" << std::endl <<
         _TAB_EX_(1) << "for (int i = 0; " << strName << "[i]; ++i)" << std::endl <<
         _TAB_EX_(1) << "{" << std::endl <<
-        _TAB_EX_(2) << "if (" << varName << "[i] == value)" << std::endl <<
+        _TAB_EX_(2) << "if (" << varName << "[i] == (int)value)" << std::endl <<
         _TAB_EX_(3) << "return " << strName << "[i];" << std::endl <<
         _TAB_EX_(1) << "}" << std::endl << std::endl <<
         _TAB_EX_(1) << "return \"\";" << std::endl <<
@@ -1292,7 +1292,7 @@ void CppExporter::JsonWriterStatic(const IStructType* sType, int tab)
         }
         else if (ty->TypeCat() == TypeCategory::Enum)
         {
-            _OUTS_ << _TAB_EX_(1) << "stream << data." << var->Name() << ";" << std::endl;
+            _OUTS_ << _TAB_EX_(1) << "stream << (int)data." << var->Name() << ";" << std::endl;
         }
         else if (ty->TypeCat() == TypeCategory::Struct)
         {
@@ -1321,7 +1321,7 @@ void CppExporter::JsonWriterStatic(const IStructType* sType, int tab)
             }
             else if (original->TypeCat() == TypeCategory::Enum)
             {
-                _OUTS_ << _TAB_EX_(2) << "stream << data." << var->Name() << "[i];" << std::endl;
+                _OUTS_ << _TAB_EX_(2) << "stream << (int)data." << var->Name() << "[i];" << std::endl;
             }
             else if (original->TypeCat() == TypeCategory::Struct)
             {
