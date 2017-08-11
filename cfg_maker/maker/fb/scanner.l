@@ -50,7 +50,7 @@ REG_FLOAT               ([0-9]*\.?[0-9]+[fF]?)
 REG_STRING              (\"[^\"\n]*\")
 REG_OPERATOR            ([-/+*()=,:;{}\[\]\.])
 REG_IDENTIFIER          ([_a-zA-Z][_a-zA-Z0-9]*)
-REG_DESC                (^[ \t]*///@)
+REG_DESC                (^[ \t]*///<)
 
 %%
 
@@ -60,10 +60,10 @@ REG_DESC                (^[ \t]*///@)
     Location().step();
 %}
 
-"//@"                       { yy_push_state(DESC); _desc = ""; }
+"//<"                       { yy_push_state(DESC); _desc.str(""); }
 <DESC>{
-    \n                      { yy_pop_state(); return Parser::make_VALUE_DESC(_desc, Location()); }
-    .                       { _desc += yytext[0]; }
+    \n                      { _NEW_LINE_; yy_pop_state(); return Parser::make_VALUE_DESC(_desc.str(), Location()); }
+    .                       { _desc << yytext[0]; }
 }
 
  /* include files */
@@ -89,7 +89,7 @@ REG_DESC                (^[ \t]*///@)
     "*/"            { yy_pop_state(); }
     \n              { _NEW_LINE_; }
     .               { }
-    <<EOF>>         { _driver.Error(Location(), "uncomplete in lines comment"); return yyterminate(); }
+    <<EOF>>         { _driver.Error("uncomplete in lines comment"); return yyterminate(); }
 }
 
  /* main */
@@ -131,6 +131,6 @@ int CfgFlexLexer::yylex()
         "%}"    { yy_pop_state(); }
         \n      { _NEW_LINE_; }
         .+      { }
-        <<EOF>> { _driver.Error(Location(), "uncomplete in src copy"); return yyterminate(); }
+        <<EOF>> { _driver.Error("uncomplete in src copy"); return yyterminate(); }
 }
 */

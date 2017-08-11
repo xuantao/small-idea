@@ -62,7 +62,8 @@ bool Scanner::Init(const std::string& path, const std::vector<std::string>& file
 
 void Scanner::UnInit()
 {
-    _desc = "";
+    _desc.str("");
+    _desc.clear();
     _stack.clear();
     _files.clear();
     _parsed.clear();

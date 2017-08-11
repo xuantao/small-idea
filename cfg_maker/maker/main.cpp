@@ -76,7 +76,7 @@ static void LogInfo()
 static void DoWork(Args& arg)
 {
     std::string path = utility::TrimRight(arg.srcPath, "/\\");
-    std::vector<std::string> srcs = utility::CollectDir(path);
+    std::vector<std::string> srcs = utility::CollectDir(path, CFG_FILE_SUFFIX);
 
     if (srcs.empty())
     {
@@ -87,9 +87,12 @@ static void DoWork(Args& arg)
     Driver driver;
     Context context(driver);
 
-    if (!driver.Parse(context, path, srcs))
+    bool success = driver.Parse(context, path, srcs);
+    utility::Log(std::cout, "parse completed, error:{0} warning:{1}", driver.ErrorNum(), driver.WarNum());
+
+    if (!success)
     {
-        std::cout << "parse src file failed" << std::endl;
+        std::cout << "parse failed, please fix the errors" << std::endl;
         return;
     }
 
@@ -117,18 +120,14 @@ static void DoWork(Args& arg)
 int main(int argc, char** argv)
 {
     Args arg;
-    if (!ParseArgs(argc, argv, arg))
+    if (ParseArgs(argc, argv, arg))
+    {
+        DoWork(arg);
+    }
+    else
     {
         LogInfo();
-        return 0;
     }
-
-    arg.srcPath = "../work/src";
-    arg.cfgPath = "../work/cfg";
-    arg.cppFile = "../test/Cfg";
-    arg.csFile = "../work/Cfg";
-
-    DoWork(arg);
 
     system("pause");
     return 1;

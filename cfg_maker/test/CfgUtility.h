@@ -85,7 +85,7 @@ namespace cfg
         size_t _size;
     };
 
-    template <class Ty, class Alloc = std::allocator<_Ty>>
+    template <class Ty, class Alloc = std::allocator<_Ty> >
     class TabDataList
     {
     public:
@@ -112,7 +112,7 @@ namespace cfg
 
         const value_type& operator[] (int index) const
         {
-            assert(index < size);
+            assert(index < (int)Size());
             return _data[index];
         }
 

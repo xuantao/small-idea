@@ -26,6 +26,9 @@ CFG_NAMESPACE_BEGIN
 #define TYPE_FLOAT  "float"
 #define TYPE_STRING "string"
 
+// file extend gcf = game configuration file
+#define CFG_FILE_SUFFIX ".gcf"
+
 enum class RawCategory
 {
     Bool,

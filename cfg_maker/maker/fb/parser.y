@@ -184,9 +184,13 @@ StyInner    : StyBegin StyDetail StyEnd { }
             ;
 
 /* common detect */
-VarDecl     : VarDesc VarConst VarDetail S_SEMICOLON {
-                    if (!$1.empty()) CONTEXT.OnVariateDesc($1);
-                    if ($2) CONTEXT.OnVariateConst();
+VarDecl     : VarConst VarDetail S_SEMICOLON {
+                    if ($1) CONTEXT.OnVariateConst();
+                    CONTEXT.OnVariateEnd();
+                }
+            | VarConst VarDetail S_SEMICOLON VALUE_DESC {
+                    if ($1) CONTEXT.OnVariateConst();
+                    if (!$4.empty()) CONTEXT.OnVariateDesc($4);
                     CONTEXT.OnVariateEnd();
                 }
             ;

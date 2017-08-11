@@ -7,7 +7,7 @@ const float f_1 = 2;
 const string s_1 = "xuantao";
 const bool b_1 = true;
 
-#include "prev.txt"
+#include "base.gcf"
 
 enum Enum1 {
     a,

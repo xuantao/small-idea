@@ -616,7 +616,7 @@ namespace  cfg  {
   static const unsigned char yydefact_[];
 
   // YYPGOTO[NTERM-NUM].
-  static const short int yypgoto_[];
+  static const signed char yypgoto_[];
 
   // YYDEFGOTO[NTERM-NUM].
   static const short int yydefgoto_[];
@@ -626,7 +626,7 @@ namespace  cfg  {
   // number is the opposite.  If YYTABLE_NINF, syntax error.
   static const short int yytable_[];
 
-  static const short int yycheck_[];
+  static const unsigned char yycheck_[];
 
   // YYSTOS[STATE-NUM] -- The (internal number of the) accessing
   // symbol of state STATE-NUM.
@@ -741,7 +741,7 @@ namespace  cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 159,           //< Last index in yytable_.
+      yylast_ = 156,           //< Last index in yytable_.
       yynnts_ = 43,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.

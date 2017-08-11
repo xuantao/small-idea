@@ -8,8 +8,8 @@
 #include <iostream>
 #include <type_traits>
 #include <regex>
-#include "TupleLogger.h"
 #include "Scanner.h"
+#include "Utility.h"
 
 CFG_NAMESPACE_BEGIN
 
@@ -32,65 +32,38 @@ public:
     bool Parse(Context& context, const std::string& path, const std::vector<std::string>& files);
 
 public:
-    Scanner* GetScanner() const { return m_pScanner; }
-    Parser* GetParser() const { return m_pParser; }
-    Context* GetContext() const { return m_pContext; }
+    int ErrorNum() const { return _errorNum; }
+    int WarNum() const { return _warNum; }
+
+    Scanner* GetScanner() const { return _scanner; }
+    Parser* GetParser() const { return _parser; }
+    Context* GetContext() const { return _context; }
 
 public:
     template <class... Types>
     void Warning(const char* format, Types&&... args)
     {
         std::cout << "[WAR]-<" << GetScanner()->Location() << ">:";
-        Log(std::cout, format, std::forward<Types>(args)...);
+        utility::Log(std::cout, format, std::forward<Types>(args)...);
+        ++_warNum;
     }
 
     template <class... Types>
     void Error(const char* format, Types&&... args)
     {
         std::cerr << "[ERR]-<" << GetScanner()->Location() << ">:";
-        Log(std::cerr, format, std::forward<Types>(args)...);
+        utility::Log(std::cerr, format, std::forward<Types>(args)...);
+        ++_errorNum;
     }
 
     void Error(const location& loc, const std::string& msg);
 
 protected:
-    template <class... Types>
-    void Log(std::ostream& out, const char* format, Types&&... args)
-    {
-        typedef detail::TupleLogger<sizeof...(Types)> Logger;
-        std::tuple<Types...> tp(args...);
-        std::regex reg("\\{\\d+\\}");
-        std::cmatch cm;
-        std::ptrdiff_t pos = 0;
-
-        while (std::regex_search(&format[pos], cm, reg))
-        {
-            int idx = 0;
-            std::cout.write(format + pos, cm.position());
-            pos += cm.position();
-            idx = atoi(format + pos + 1);
-
-            if (idx >= Logger::C)
-            {
-                out << "(out range at pos:" << pos << ", ";
-                out.write(format + pos, cm.length());
-                out << ")";
-            }
-            else
-            {
-                Logger::log(out, idx, tp);
-            }
-
-            pos += cm.length();
-        }
-
-        out << format + pos << std::endl;
-    }
-
-protected:
-    Scanner*    m_pScanner;
-    Parser*     m_pParser;
-    Context*    m_pContext;
+    int _errorNum;
+    int _warNum;
+    Scanner*    _scanner;
+    Parser*     _parser;
+    Context*    _context;
 };
 
 CFG_NAMESPACE_END

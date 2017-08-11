@@ -1,12 +1,10 @@
 ﻿#pragma once
-#include "Interface.h"
 #include <ostream>
 #include <functional>
+#include "Interface.h"
+#include "TupleLogger.h"
 
 CFG_NAMESPACE_BEGIN
-
-class IStructType;
-class ITabVisitor;
 
 namespace utility
 {
@@ -54,6 +52,40 @@ namespace utility
     bool TraverseDir(const std::string& path, const std::function<bool(const std::string&, bool)> visitor);
     std::vector<std::string> CollectDir(const std::string& path,
         const std::string& suffix = EMPTY_STR, bool ignoreDir = true);
+
+    // log
+    template <class... Types>
+    void Log(std::ostream& out, const char* format, Types&&... args)
+    {
+        typedef detail::TupleLogger<sizeof...(Types)> Logger;
+        std::tuple<Types...> tp(args...);
+        std::regex reg("\\{\\d+\\}");
+        std::cmatch cm;
+        std::ptrdiff_t pos = 0;
+
+        while (std::regex_search(&format[pos], cm, reg))
+        {
+            int idx = 0;
+            std::cout.write(format + pos, cm.position());
+            pos += cm.position();
+            idx = atoi(format + pos + 1);
+
+            if (idx >= Logger::C)
+            {
+                out << "(out range at pos:" << pos << ", ";
+                out.write(format + pos, cm.length());
+                out << ")";
+            }
+            else
+            {
+                Logger::log(out, idx, tp);
+            }
+
+            pos += cm.length();
+        }
+
+        out << format + pos << std::endl;
+    }
 }
 
 CFG_NAMESPACE_END

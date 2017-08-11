@@ -10,9 +10,11 @@
 CFG_NAMESPACE_BEGIN
 
 Driver::Driver()
-    : m_pScanner(nullptr)
-    , m_pParser(nullptr)
-    , m_pContext(nullptr)
+    : _errorNum(0)
+    , _warNum(0)
+    , _scanner(nullptr)
+    , _parser(nullptr)
+    , _context(nullptr)
 {
 }
 
@@ -22,39 +24,40 @@ Driver::~Driver()
 
 bool Driver::Parse(Context& context, const std::string& file)
 {
-    m_pScanner = new Scanner(*this);
-    m_pParser = new Parser(*this);
-    m_pContext = &context;
+    _scanner = new Scanner(*this);
+    _parser = new Parser(*this);
+    _context = &context;
 
-    if (!m_pScanner->Init(file))
+    if (!_scanner->Init(file))
         return false;
 
-    m_pParser->parse();
+    _parser->parse();
 
-    m_pScanner = nullptr;
-    m_pParser = nullptr;
+    _scanner = nullptr;
+    _parser = nullptr;
     return true;
 }
 
 bool Driver::Parse(Context& context, const std::string& path, const std::vector<std::string>& files)
 {
-    m_pScanner = new Scanner(*this);
-    m_pParser = new Parser(*this);
-    m_pContext = &context;
+    _scanner = new Scanner(*this);
+    _parser = new Parser(*this);
+    _context = &context;
 
-    if (!m_pScanner->Init(path, files))
+    if (!_scanner->Init(path, files))
         return false;
 
-    m_pParser->parse();
+    _parser->parse();
 
-    m_pScanner = nullptr;
-    m_pParser = nullptr;
-    return true;
+    _scanner = nullptr;
+    _parser = nullptr;
+    return _errorNum == 0;
 }
 
 void Driver::Error(const location& loc, const std::string& msg)
 {
     std::cerr << "error: loc:" << loc << "msg:" << msg << std::endl;
+    ++_errorNum;
 }
 
 CFG_NAMESPACE_END

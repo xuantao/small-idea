@@ -1,0 +1,17 @@
+#include <base.gcf>
+
+enum Wtf
+{
+    Invalid = -1,
+    Bool,
+    Int,
+    Float,
+    String,
+};
+
+tab struct Sr3
+{
+	int ID;			//< 模板ID
+	int StageID;	//< 关卡ID
+	string Name;	//< 名称
+}

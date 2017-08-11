@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <set>
+#include <sstream>
 
 #pragma warning( push )
 #pragma warning( disable : 4146 )
@@ -60,7 +61,7 @@ protected:
     bool Pop();
 
 private:
-    std::string _desc;
+    std::stringstream _desc;
     Driver& _driver;
     std::vector<FilePtr>  _stack;
 

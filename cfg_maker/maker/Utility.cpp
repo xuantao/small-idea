@@ -379,7 +379,7 @@ namespace utility
         }
         else
         {
-            // 一层一层向上层左右域查找
+            // 一层一层向上层作用域查找
             while (scope)
             {
                 if (scope->TypeSet())

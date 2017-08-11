@@ -18,15 +18,6 @@ enum class GlobalType
     String = 3,
 };
 
-enum class Wtf
-{
-    Invalid = -1,
-    Bool = 0,
-    Int = 1,
-    Float = 2,
-    String = 3,
-};
-
 static const int g_1 = 1;
 static const float f_1 = 2.000000;
 static const std::string s_1 = "xuantao";
@@ -46,8 +37,9 @@ enum class Enum2
 
 struct Struct0
 {
+    static const std::array<int, 10> s0b = ;
+
     std::vector<int> s0a;
-    std::array<int, 10> s0b;
     std::array<int, 10> s0c;
 };
 
@@ -100,17 +92,34 @@ struct Struct2
     std::array<Struct1, 2> s2;
 };
 
+enum class Wtf
+{
+    Invalid = -1,
+    Bool = 0,
+    Int = 1,
+    Float = 2,
+    String = 3,
+};
+
+struct Sr3
+{
+    Sr3()
+        : ID(0)
+        , StageID(0)
+    {
+    }
+
+    int ID;
+    int StageID;
+    std::string Name;
+};
+
 namespace Enum
 {
     /* GlobalType */
     const char* const * Names(GlobalType);
     const char* ToString(GlobalType value);
     bool ToEnum(const char* name, GlobalType& out);
-
-    /* Wtf */
-    const char* const * Names(Wtf);
-    const char* ToString(Wtf value);
-    bool ToEnum(const char* name, Wtf& out);
 
     /* Enum1 */
     const char* const * Names(Enum1);
@@ -121,6 +130,11 @@ namespace Enum
     const char* const * Names(Enum2);
     const char* ToString(Enum2 value);
     bool ToEnum(const char* name, Enum2& out);
+
+    /* Wtf */
+    const char* const * Names(Wtf);
+    const char* ToString(Wtf value);
+    bool ToEnum(const char* name, Wtf& out);
 } // end of namespace Enum
 
 namespace Tab
@@ -128,6 +142,9 @@ namespace Tab
     void WriteHeader(std::ostream& stream, const Struct2& def);
     void Write(std::ostream& stream, const Struct2& data);
     bool Load(const char* data, size_t size, std::vector<Struct2>& out, const char* chunk = nullptr);
+    void WriteHeader(std::ostream& stream, const Sr3& def);
+    void Write(std::ostream& stream, const Sr3& data);
+    bool Load(const char* data, size_t size, std::vector<Sr3>& out, const char* chunk = nullptr);
 } // end of namespace Tab
 
 namespace Json
