@@ -42,6 +42,16 @@ bool TypeSetNormal::Add(IType* type)
     return true;
 }
 
+bool TypeSetNormal::Traverse(const std::function<bool(IType *)>& func) const
+{
+    for (auto it = _types.cbegin(); it != _types.cend(); ++it)
+    {
+        if (!func(*it))
+            return false;
+    }
+    return true;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // VarSetNormal
 VarSetNormal::VarSetNormal()
@@ -76,6 +86,16 @@ bool VarSetNormal::Add(IVariate* var)
         return false;
 
     _vars.push_back(var);
+    return true;
+}
+
+bool VarSetNormal::Traverse(const std::function<bool(IVariate *)>& func) const
+{
+    for (auto it = _vars.cbegin(); it != _vars.cend(); ++it)
+    {
+        if (!func(*it))
+            return false;
+    }
     return true;
 }
 
@@ -164,6 +184,18 @@ bool StructVarSet::Add(IVariate* var)
     return _self.Add(var);
 }
 
+bool StructVarSet::Traverse(const std::function<bool(IVariate *)>& func) const
+{
+    bool needStop = true;
+    IStructType* inherit = _struct->Inherited();
+    if (inherit && inherit->Scope() && inherit->Scope()->VarSet())
+        needStop = inherit->Scope()->VarSet()->Traverse(func);
+
+    if (needStop)
+        needStop = _self.Traverse(func);
+    return needStop;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // NsSet
 NsSet::~NsSet()
@@ -195,6 +227,16 @@ bool NsSet::Add(INamespace* ns)
         return false;
 
     _ns.push_back(ns);
+    return true;
+}
+
+bool NsSet::Traverse(const std::function<bool(INamespace *)>& func) const
+{
+    for (auto it = _ns.cbegin(); it != _ns.cend(); ++it)
+    {
+        if (!func(*it))
+            return false;
+    }
     return true;
 }
 

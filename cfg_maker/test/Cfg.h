@@ -37,9 +37,8 @@ enum class Enum2
 
 struct Struct0
 {
-    static const std::array<int, 10> s0b = ;
-
     std::vector<int> s0a;
+    std::array<int, 10> s0b;
     std::array<int, 10> s0c;
 };
 
@@ -89,7 +88,8 @@ struct Struct2
     int d;
     std::string s;
     Struct1 s1;
-    std::array<Struct1, 2> s2;
+    std::vector<Struct1> s2;
+    std::array<Struct1, 2> s3;
 };
 
 enum class Wtf

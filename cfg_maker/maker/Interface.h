@@ -2,23 +2,19 @@
  * 各种基础接口类定义
 */
 #pragma once
-
+#include <functional>
 #include "CfgDef.h"
 
 CFG_NAMESPACE_BEGIN
 
+class IType;
+class IValue;
+class IVariate;
 class ITypeSet;
 class IVarSet;
 class INsSet;
 class IScope;
 class INamespace;
-
-enum class ElementCategory
-{
-    Type,
-    Var,
-    Namespace,
-};
 
 class IElement
 {
@@ -154,6 +150,7 @@ public:
     virtual int Size() const = 0;
 
     virtual bool Add(IType* type) = 0;
+    virtual bool Traverse(const std::function<bool(IType*)>& func) const = 0;
 };
 
 class IVarSet
@@ -166,6 +163,7 @@ public:
     virtual int Size() const = 0;
 
     virtual bool Add(IVariate* var) = 0;
+    virtual bool Traverse(const std::function<bool(IVariate*)>& func) const = 0;
 };
 
 class INsSet
@@ -178,6 +176,7 @@ public:
     virtual int Size() const = 0;
 
     virtual bool Add(INamespace* ns) = 0;
+    virtual bool Traverse(const std::function<bool(INamespace*)>& func) const = 0;
 };
 
 /*

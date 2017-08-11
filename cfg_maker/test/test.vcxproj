@@ -140,7 +140,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="cfg.cpp" />
+    <ClCompile Include="Cfg.cpp" />
     <ClCompile Include="CfgUtility.cpp" />
     <ClCompile Include="json\src\lib_json\json_reader.cpp" />
     <ClCompile Include="json\src\lib_json\json_value.cpp" />
@@ -148,7 +148,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cfg.h" />
+    <ClInclude Include="Cfg.h" />
     <ClInclude Include="CfgUtility.h" />
     <ClInclude Include="CfgTabParser.h" />
     <ClInclude Include="json\include\json\allocator.h" />

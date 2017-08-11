@@ -22,6 +22,7 @@ enum Enum2
     d,
 };
 
+//< ssssss
 struct Struct0
 {
  int s0a[];
@@ -32,15 +33,12 @@ struct Struct0
 json struct Struct1 : Struct0
 {
  int s1a = 1;
- int s1b = 2;
- int s1c;
- bool b1;
  float f1;
- string str1;
  string str2 = s_1;
  string str3 = "zouhui";
  Struct0 s1;
- Struct0 s11[2];
+ Struct0 s2[];
+ Struct0 s3[2];
  Enum2 s1arEnum[];
  Enum2 s1arEnum2[2];
 }
@@ -56,5 +54,6 @@ tab struct Struct2
  int d;
  string s = s_1;
  Struct1 s1;
- Struct1 s2[2];
+ Struct1 s2[];
+ Struct1 s3[2];
 }

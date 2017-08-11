@@ -164,6 +164,13 @@ namespace Tab
         }
         stream << "\t";
 
+        for (size_t i = 0; i < data.s0b.size(); ++i)
+        {
+            if (i) stream << "\t";
+            stream << data.s0b[i];
+        }
+        stream << "\t";
+
         for (size_t i = 0; i < data.s0c.size(); ++i)
         {
             if (i) stream << "\t";
@@ -235,6 +242,13 @@ namespace Tab
             if (i) stream << "\t";
             sWrite(stream, data.s2[i]);
         }
+        stream << "\t";
+
+        for (size_t i = 0; i < data.s3.size(); ++i)
+        {
+            if (i) stream << "\t";
+            sWrite(stream, data.s3[i]);
+        }
     }
 
     void sWrite(std::ostream& stream, const Sr3& data)
@@ -255,6 +269,11 @@ namespace Tab
         out.s0a.resize(vec.size());
         for (size_t i = 0; i < vec.size(); ++i)
             utility::Convert(vec[i].c_str(), out.s0a[i]);
+
+        iter.MoveNext();
+        vec = utility::Split(iter.Value(), ",");
+        for (size_t i = 0; i < std::min(vec.size(), out.s0b.size()); ++i)
+            utility::Convert(vec[i].c_str(), out.s0b[i]);
 
         iter.MoveNext();
         vec = utility::Split(iter.Value(), ",");
@@ -341,6 +360,9 @@ namespace Tab
 
         for (size_t i = 0; i < out.s2.size(); ++i)
             sLoad(iter, out.s2[i]);
+
+        for (size_t i = 0; i < out.s3.size(); ++i)
+            sLoad(iter, out.s3[i]);
         return true;
     }
 
@@ -358,9 +380,9 @@ namespace Tab
 
     void WriteHeader(std::ostream& stream, const Struct2& def)
     {
-        static const char* title = "a\tb\tc\td\ts\ts1.s0a\ts1.s0c\ts1.s1a\ts1.s1b\ts1.s1c\ts1.b1\ts1.f1\ts1.str1\ts1.str2\ts1.str3\ts1.s1.s0a\ts1.s1.s0c\ts1.s11.s0a\ts1.s11.s0c\ts1.s11.s0a\ts1.s11.s0c\ts1.s1arEnum\ts1.s1arEnum2\ts2.s0a\ts2.s0c\ts2.s1a\ts2.s1b\ts2.s1c\ts2.b1\ts2.f1\ts2.str1\ts2.str2\ts2.str3\ts2.s1.s0a\ts2.s1.s0c\ts2.s11.s0a\ts2.s11.s0c\ts2.s11.s0a\ts2.s11.s0c\ts2.s1arEnum\ts2.s1arEnum2\ts2.s0a\ts2.s0c\ts2.s1a\ts2.s1b\ts2.s1c\ts2.b1\ts2.f1\ts2.str1\ts2.str2\ts2.str3\ts2.s1.s0a\ts2.s1.s0c\ts2.s11.s0a\ts2.s11.s0c\ts2.s11.s0a\ts2.s11.s0c\ts2.s1arEnum\ts2.s1arEnum2";
-        static const char* type = "int\tint\tint\tint\tstring\tint[]\tint[10]\tint\tint\tint\tbool\tfloat\tstring\tstring\tstring\tint[]\tint[10]\tint[]\tint[10]\tint[]\tint[10]\tEnum2[]\tEnum2[2]\tint[]\tint[10]\tint\tint\tint\tbool\tfloat\tstring\tstring\tstring\tint[]\tint[10]\tint[]\tint[10]\tint[]\tint[10]\tEnum2[]\tEnum2[2]\tint[]\tint[10]\tint\tint\tint\tbool\tfloat\tstring\tstring\tstring\tint[]\tint[10]\tint[]\tint[10]\tint[]\tint[10]\tEnum2[]\tEnum2[2]";
-        static const char* desc = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
+        static const char* title = "a\tb\tc\td\ts\ts1.s0a\ts1.s0b\ts1.s0c\ts1.s1a\ts1.s1b\ts1.s1c\ts1.b1\ts1.f1\ts1.str1\ts1.str2\ts1.str3\ts1.s1.s0a\ts1.s1.s0b\ts1.s1.s0c\ts1.s11.s0a\ts1.s11.s0b\ts1.s11.s0c\ts1.s11.s0a\ts1.s11.s0b\ts1.s11.s0c\ts1.s1arEnum\ts1.s1arEnum2\ts3.s0a\ts3.s0b\ts3.s0c\ts3.s1a\ts3.s1b\ts3.s1c\ts3.b1\ts3.f1\ts3.str1\ts3.str2\ts3.str3\ts3.s1.s0a\ts3.s1.s0b\ts3.s1.s0c\ts3.s11.s0a\ts3.s11.s0b\ts3.s11.s0c\ts3.s11.s0a\ts3.s11.s0b\ts3.s11.s0c\ts3.s1arEnum\ts3.s1arEnum2\ts3.s0a\ts3.s0b\ts3.s0c\ts3.s1a\ts3.s1b\ts3.s1c\ts3.b1\ts3.f1\ts3.str1\ts3.str2\ts3.str3\ts3.s1.s0a\ts3.s1.s0b\ts3.s1.s0c\ts3.s11.s0a\ts3.s11.s0b\ts3.s11.s0c\ts3.s11.s0a\ts3.s11.s0b\ts3.s11.s0c\ts3.s1arEnum\ts3.s1arEnum2";
+        static const char* type = "int\tint\tint\tint\tstring\tint[]\tint[10]\tint[10]\tint\tint\tint\tbool\tfloat\tstring\tstring\tstring\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tEnum2[]\tEnum2[2]\tint[]\tint[10]\tint[10]\tint\tint\tint\tbool\tfloat\tstring\tstring\tstring\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tEnum2[]\tEnum2[2]\tint[]\tint[10]\tint[10]\tint\tint\tint\tbool\tfloat\tstring\tstring\tstring\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tEnum2[]\tEnum2[2]";
+        static const char* desc = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 
         stream << title << std::endl << type << std::endl << desc << std::endl;
         Write(stream, def);
@@ -374,24 +396,27 @@ namespace Tab
 
     bool Load(const char* data, size_t size, std::vector<Struct2>& out, const char* chunk /*= nullptr*/)
     {
-        static const std::array<const char*, 59> titles = {
+        static const std::array<const char*, 71> titles = {
             "a", "b", "c", "d", "s",
-            "s1.s0a", "s1.s0c", "s1.s1a", "s1.s1b", "s1.s1c",
-            "s1.b1", "s1.f1", "s1.str1", "s1.str2", "s1.str3",
-            "s1.s1.s0a", "s1.s1.s0c", "s1.s11.s0a", "s1.s11.s0c", "s1.s11.s0a",
-            "s1.s11.s0c", "s1.s1arEnum", "s1.s1arEnum2", "s2.s0a", "s2.s0c",
-            "s2.s1a", "s2.s1b", "s2.s1c", "s2.b1", "s2.f1",
-            "s2.str1", "s2.str2", "s2.str3", "s2.s1.s0a", "s2.s1.s0c",
-            "s2.s11.s0a", "s2.s11.s0c", "s2.s11.s0a", "s2.s11.s0c", "s2.s1arEnum",
-            "s2.s1arEnum2", "s2.s0a", "s2.s0c", "s2.s1a", "s2.s1b",
-            "s2.s1c", "s2.b1", "s2.f1", "s2.str1", "s2.str2",
-            "s2.str3", "s2.s1.s0a", "s2.s1.s0c", "s2.s11.s0a", "s2.s11.s0c",
-            "s2.s11.s0a", "s2.s11.s0c", "s2.s1arEnum", "s2.s1arEnum2"
+            "s1.s0a", "s1.s0b", "s1.s0c", "s1.s1a", "s1.s1b",
+            "s1.s1c", "s1.b1", "s1.f1", "s1.str1", "s1.str2",
+            "s1.str3", "s1.s1.s0a", "s1.s1.s0b", "s1.s1.s0c", "s1.s11.s0a",
+            "s1.s11.s0b", "s1.s11.s0c", "s1.s11.s0a", "s1.s11.s0b", "s1.s11.s0c",
+            "s1.s1arEnum", "s1.s1arEnum2", "s3.s0a", "s3.s0b", "s3.s0c",
+            "s3.s1a", "s3.s1b", "s3.s1c", "s3.b1", "s3.f1",
+            "s3.str1", "s3.str2", "s3.str3", "s3.s1.s0a", "s3.s1.s0b",
+            "s3.s1.s0c", "s3.s11.s0a", "s3.s11.s0b", "s3.s11.s0c", "s3.s11.s0a",
+            "s3.s11.s0b", "s3.s11.s0c", "s3.s1arEnum", "s3.s1arEnum2", "s3.s0a",
+            "s3.s0b", "s3.s0c", "s3.s1a", "s3.s1b", "s3.s1c",
+            "s3.b1", "s3.f1", "s3.str1", "s3.str2", "s3.str3",
+            "s3.s1.s0a", "s3.s1.s0b", "s3.s1.s0c", "s3.s11.s0a", "s3.s11.s0b",
+            "s3.s11.s0c", "s3.s11.s0a", "s3.s11.s0b", "s3.s11.s0c", "s3.s1arEnum",
+            "s3.s1arEnum2"
         };
 
         std::vector<std::string> vec;
 
-        TabParser<59> parser(titles);
+        TabParser<71> parser(titles);
         if (!parser.Parse(data, size, chunk))
             return false;
 

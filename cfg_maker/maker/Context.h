@@ -42,6 +42,8 @@ public:
     bool Export(IJsonCreater* creator, const std::string& path);
 
 public:
+    bool IsVarDeclaring() const { return _var != nullptr; }
+
     void OnParseBegin(const std::string& file);
     void OnParseEnd();
 
@@ -78,6 +80,8 @@ protected:
     std::string ConflictName(const std::string& name) const;
     bool IsTypeProcessing(IType* type) const;
     bool IsTypeScope() const;
+    void CheckTab(IStructType* type);
+    bool TabVarChecker(const std::string& path, IVariate* var);
 
 protected:
     Driver& _driver;

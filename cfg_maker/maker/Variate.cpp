@@ -17,7 +17,7 @@ Variate::~Variate()
     delete _value;
     _value = nullptr;
 
-    if (_type->TypeCat() == TypeCategory::Array)
+    if (_type && _type->TypeCat() == TypeCategory::Array)
         delete _type;
     _type = nullptr;
 }

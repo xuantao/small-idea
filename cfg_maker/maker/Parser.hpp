@@ -242,9 +242,6 @@ namespace  cfg  {
     /// An auxiliary type to compute the largest semantic type.
     union union_type
     {
-      // VarConst
-      char dummy1[sizeof(bool)];
-
       // "identifier"
       // "true"
       // "false"
@@ -255,9 +252,8 @@ namespace  cfg  {
       // BoolValue
       // IntValue
       // FloatValue
-      // VarDesc
       // RefName
-      char dummy2[sizeof(std::string)];
+      char dummy1[sizeof(std::string)];
 };
 
     /// Symbol semantic values.
@@ -346,8 +342,6 @@ namespace  cfg  {
       /// Constructor for valueless symbols, and symbols from each type.
 
   basic_symbol (typename Base::kind_type t, const location_type& l);
-
-  basic_symbol (typename Base::kind_type t, const bool v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l);
 
@@ -608,7 +602,7 @@ namespace  cfg  {
     // Tables.
   // YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
   // STATE-NUM.
-  static const signed char yypact_[];
+  static const short int yypact_[];
 
   // YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
   // Performed when YYTABLE does not specify something else to do.  Zero
@@ -616,7 +610,7 @@ namespace  cfg  {
   static const unsigned char yydefact_[];
 
   // YYPGOTO[NTERM-NUM].
-  static const signed char yypgoto_[];
+  static const short int yypgoto_[];
 
   // YYDEFGOTO[NTERM-NUM].
   static const short int yydefgoto_[];
@@ -624,9 +618,9 @@ namespace  cfg  {
   // YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
   // positive, shift that token.  If negative, reduce the rule whose
   // number is the opposite.  If YYTABLE_NINF, syntax error.
-  static const short int yytable_[];
+  static const unsigned char yytable_[];
 
-  static const unsigned char yycheck_[];
+  static const short int yycheck_[];
 
   // YYSTOS[STATE-NUM] -- The (internal number of the) accessing
   // symbol of state STATE-NUM.
@@ -741,8 +735,8 @@ namespace  cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 156,           //< Last index in yytable_.
-      yynnts_ = 43,  //< Number of nonterminal symbols.
+      yylast_ = 184,           //< Last index in yytable_.
+      yynnts_ = 45,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.
       yyterror_ = 1,
@@ -826,10 +820,6 @@ namespace  cfg  {
   {
       switch (other.type_get ())
     {
-      case 76: // VarConst
-        value.copy< bool > (other.value);
-        break;
-
       case 28: // "identifier"
       case 29: // "true"
       case 30: // "false"
@@ -837,11 +827,10 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 72: // BoolValue
-      case 73: // IntValue
-      case 74: // FloatValue
-      case 75: // VarDesc
-      case 77: // RefName
+      case 76: // BoolValue
+      case 77: // IntValue
+      case 78: // FloatValue
+      case 79: // RefName
         value.copy< std::string > (other.value);
         break;
 
@@ -862,10 +851,6 @@ namespace  cfg  {
     (void) v;
       switch (this->type_get ())
     {
-      case 76: // VarConst
-        value.copy< bool > (v);
-        break;
-
       case 28: // "identifier"
       case 29: // "true"
       case 30: // "false"
@@ -873,11 +858,10 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 72: // BoolValue
-      case 73: // IntValue
-      case 74: // FloatValue
-      case 75: // VarDesc
-      case 77: // RefName
+      case 76: // BoolValue
+      case 77: // IntValue
+      case 78: // FloatValue
+      case 79: // RefName
         value.copy< std::string > (v);
         break;
 
@@ -893,13 +877,6 @@ namespace  cfg  {
    Parser ::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const location_type& l)
     : Base (t)
     , value ()
-    , location (l)
-  {}
-
-  template <typename Base>
-   Parser ::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const bool v, const location_type& l)
-    : Base (t)
-    , value (v)
     , location (l)
   {}
 
@@ -926,10 +903,6 @@ namespace  cfg  {
     // Type destructor.
     switch (yytype)
     {
-      case 76: // VarConst
-        value.template destroy< bool > ();
-        break;
-
       case 28: // "identifier"
       case 29: // "true"
       case 30: // "false"
@@ -937,11 +910,10 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 72: // BoolValue
-      case 73: // IntValue
-      case 74: // FloatValue
-      case 75: // VarDesc
-      case 77: // RefName
+      case 76: // BoolValue
+      case 77: // IntValue
+      case 78: // FloatValue
+      case 79: // RefName
         value.template destroy< std::string > ();
         break;
 
@@ -959,10 +931,6 @@ namespace  cfg  {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 76: // VarConst
-        value.move< bool > (s.value);
-        break;
-
       case 28: // "identifier"
       case 29: // "true"
       case 30: // "false"
@@ -970,11 +938,10 @@ namespace  cfg  {
       case 32: // "0.0f"
       case 33: // "empty"
       case 34: // "desc"
-      case 72: // BoolValue
-      case 73: // IntValue
-      case 74: // FloatValue
-      case 75: // VarDesc
-      case 77: // RefName
+      case 76: // BoolValue
+      case 77: // IntValue
+      case 78: // FloatValue
+      case 79: // RefName
         value.move< std::string > (s.value);
         break;
 
@@ -1268,7 +1235,7 @@ namespace  cfg  {
 
 #line 11 "./fb/parser.y" // lalr1.cc:371
 } //  cfg 
-#line 1272 "Parser.hpp" // lalr1.cc:371
+#line 1239 "Parser.hpp" // lalr1.cc:371
 
 
 

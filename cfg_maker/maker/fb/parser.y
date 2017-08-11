@@ -81,8 +81,7 @@ static cfg::Parser::symbol_type yylex(cfg::Driver& driver)
 %token <std::string> VALUE_STRING   "empty"
 %token <std::string> VALUE_DESC     "desc"
 
-%type <std::string> BoolValue IntValue FloatValue RefName VarDesc
-%type <bool>        VarConst
+%type <std::string> BoolValue IntValue FloatValue RefName
 
 //%printer { yyoutput << $$; }
 
@@ -99,11 +98,15 @@ Program : /* empty */           { }
         ;
 
 /* const value */
-ConstValue  : VarDesc _ConstValue S_SEMICOLON         { CONTEXT.OnVariateEnd(); }
-            | VarDesc CONST _ConstValue S_SEMICOLON   { CONTEXT.OnVariateConst(); CONTEXT.OnVariateEnd(); }
+ConstValue  : ConstVal_1            { CONTEXT.OnVariateEnd(); }
             ;
-
-_ConstValue : DefBool S_ASSIGN BoolValue        { CONTEXT.OnVariateValue(RawCategory::Bool, $3); }
+ConstVal_1  : ConstVal_2            { }
+            | ConstVal_2 VALUE_DESC { CONTEXT.OnVariateDesc($2); }
+            ;
+ConstVal_2  : ConstVal_3 S_SEMICOLON        { }
+            | CONST ConstVal_3 S_SEMICOLON  { CONTEXT.OnVariateConst(); }
+            ;
+ConstVal_3  : DefBool S_ASSIGN BoolValue        { CONTEXT.OnVariateValue(RawCategory::Bool, $3); }
             | DefInt S_ASSIGN IntValue          { CONTEXT.OnVariateValue(RawCategory::Int, $3); }
             | DefFloat S_ASSIGN FloatValue      { CONTEXT.OnVariateValue(RawCategory::Float, $3); }
             | DefString S_ASSIGN VALUE_STRING   { CONTEXT.OnVariateValue(RawCategory::String, $3); }
@@ -184,15 +187,13 @@ StyInner    : StyBegin StyDetail StyEnd { }
             ;
 
 /* common detect */
-VarDecl     : VarConst VarDetail S_SEMICOLON {
-                    if ($1) CONTEXT.OnVariateConst();
-                    CONTEXT.OnVariateEnd();
-                }
-            | VarConst VarDetail S_SEMICOLON VALUE_DESC {
-                    if ($1) CONTEXT.OnVariateConst();
-                    if (!$4.empty()) CONTEXT.OnVariateDesc($4);
-                    CONTEXT.OnVariateEnd();
-                }
+VarDecl     : VarDecl_1                     { CONTEXT.OnVariateEnd(); }
+            ;
+VarDecl_1   : VarDecl_2                     { }
+            | VarDecl_2 VALUE_DESC          { CONTEXT.OnVariateDesc($2); }
+            ;
+VarDecl_2   : VarDetail S_SEMICOLON         { }
+            | CONST VarDetail S_SEMICOLON   { CONTEXT.OnVariateConst(); }
             ;
 
 VarDetail   : DefBool                       { }
@@ -265,14 +266,6 @@ FloatValue  : VALUE_INT             { $$ = $1; }
             | S_MINUS VALUE_FLOAT   { $$ = '-' + $2; }
             ;
 
-VarDesc     : /* empty */           { /* empty */ }
-            | VALUE_DESC            { $$ = $1; }
-            ;
-
-VarConst    : /* empty */           { /* empty */ }
-            | CONST                 { $$ = true; }
-            ;
-
 /* gobal or enum value reference */
 RefName     : IDENTIFIER                { $$ = $1; }
             | RefName S_DOT IDENTIFIER  { $$ = $1 + '.' + $3; }
@@ -282,5 +275,5 @@ RefName     : IDENTIFIER                { $$ = $1; }
 
 void cfg::Parser::error(const location_type& l, const std::string& m)
 {
-    driver.Error(l, m);
+    driver.Error(m.c_str());
 }

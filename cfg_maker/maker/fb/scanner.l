@@ -11,6 +11,7 @@
 #include "Scanner.h"
 #include "Parser.hpp"
 #include "Driver.h"
+#include "Context.h"
 
 CFG_NAMESPACE_USING;
 
@@ -60,7 +61,15 @@ REG_DESC                (^[ \t]*///<)
     Location().step();
 %}
 
-"//<"                       { yy_push_state(DESC); _desc.str(""); }
+"//<"                       {
+                                if (_driver.GetContext()->IsVarDeclaring()) {
+                                    yy_push_state(DESC);
+                                    _desc.str("");
+                                    _desc.clear();
+                                } else {
+                                    yy_push_state(COMMENT);
+                                }
+                            }
 <DESC>{
     \n                      { _NEW_LINE_; yy_pop_state(); return Parser::make_VALUE_DESC(_desc.str(), Location()); }
     .                       { _desc << yytext[0]; }
@@ -124,13 +133,3 @@ int CfgFlexLexer::yylex()
     return 0;
 }
 
- /* copy source text copy to dest file */
-/*
-^[ \t]*"%{"     { yy_push_state(COPY_SRC); }
-<COPY_SRC>{
-        "%}"    { yy_pop_state(); }
-        \n      { _NEW_LINE_; }
-        .+      { }
-        <<EOF>> { _driver.Error("uncomplete in src copy"); return yyterminate(); }
-}
-*/

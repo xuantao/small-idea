@@ -10,9 +10,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cfg.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="CfgUtility.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -28,11 +25,11 @@
     <ClCompile Include="json\src\lib_json\json_writer.cpp">
       <Filter>src\json</Filter>
     </ClCompile>
+    <ClCompile Include="Cfg.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cfg.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="CfgUtility.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -74,6 +71,9 @@
     </ClInclude>
     <ClInclude Include="json\src\lib_json\json_tool.h">
       <Filter>src\json</Filter>
+    </ClInclude>
+    <ClInclude Include="Cfg.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

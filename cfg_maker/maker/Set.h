@@ -18,7 +18,7 @@ public:
     virtual IType* Get(int index) const;
     virtual int Size() const { return (int)_types.size(); }
     virtual bool Add(IType* type);
-
+    virtual bool Traverse(const std::function<bool(IType*)>& func) const;
 private:
     std::vector<IType*> _types;
 };
@@ -38,7 +38,7 @@ public:
     virtual IVariate* Get(int index) const;
     virtual int Size() const { return (int)_vars.size(); }
     virtual bool Add(IVariate* var);
-
+    virtual bool Traverse(const std::function<bool(IVariate*)>& func) const;
 protected:
     std::vector<IVariate*> _vars;
 };
@@ -72,7 +72,7 @@ public:
     virtual IVariate* Get(int index) const;
     virtual int Size() const;
     virtual bool Add(IVariate* var);
-
+    virtual bool Traverse(const std::function<bool(IVariate*)>& func) const;
 public:
     IVarSet* OwnVars() { return &_self; }
     const IVarSet* OwnVars() const { return &_self; }
@@ -95,7 +95,7 @@ public:
     virtual int Size() const { return (int)_ns.size(); }
 
     virtual bool Add(INamespace* ns);
-
+    virtual bool Traverse(const std::function<bool(INamespace*)>& func) const;
 protected:
     std::vector<INamespace*> _ns;
 };

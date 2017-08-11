@@ -235,10 +235,21 @@ void Context::OnStructInherit(const std::string& name)
 
 void Context::OnStructEnd()
 {
-    if (_stackScope.size() > 1)
-        _stackScope.pop_back();
-    else
+    if (_stackScope.size() <= 1)
+    {
         _driver.Error("empty scope stack");
+        return;
+    }
+
+    IType* type = _stackScope.back()->Binding();
+    if (type && type->TypeCat() == TypeCategory::Struct)
+    {
+        IStructType* sType = static_cast<IStructType*>(type);
+        if (sType->CfgCat() == CfgCategory::Tab)
+            CheckTab(sType);
+    }
+
+    _stackScope.pop_back();
 }
 
 void Context::OnEnumBegin(const std::string& name)
@@ -420,6 +431,20 @@ void Context::OnVariateArrayRefer(const std::string& refer)
 void Context::OnVariateConst()
 {
     assert(_var);
+
+    IType* type = _var->Type();
+    if (type == nullptr)
+    {
+        _driver.Error("current variate is invalid var:{0}", _var->Name());
+        return;
+    }
+
+    if (type->TypeCat() != TypeCategory::Raw)
+    {
+        _driver.Error("only raw type variate can be const, var:{0} type:{1}", _var->Name(), type->Name());
+        return;
+    }
+
     _var->SetConst();
 }
 
@@ -496,6 +521,9 @@ IVariate* Context::AddEnumMember(const std::string& name)
 void Context::UpgradeArray(int length)
 {
     assert(_var);
+    if (_var->Type() == nullptr)
+        return; // invalid variate
+
     if (_var->Type()->TypeCat() == TypeCategory::Array)
     {
         _driver.Error("var:{0} does not support multi dimensional array", _var->Name());
@@ -540,6 +568,40 @@ bool Context::IsTypeScope() const
             return true;
     }
     return false;
+}
+
+void Context::CheckTab(IStructType* type)
+{
+    type->Scope()->VarSet()->Traverse([&](IVariate* var) {
+        TabVarChecker(type->Name(), var);
+        return true;
+    });
+}
+
+bool Context::TabVarChecker(const std::string& path, IVariate* var)
+{
+    IType* type = var->Type();
+    if (type->TypeCat() == TypeCategory::Array)
+    {
+        IArrayType* arType = static_cast<IArrayType*>(type);
+        IType* original = arType->Original();
+        if (original->TypeCat() == TypeCategory::Struct)
+        {
+            if (arType->Length() == 0)
+                _driver.Error("tab file only allow struct array with fixed length, var:{0}.{1} type:{2}", path, var->Name(), type->Name());
+            type = original;
+        }
+    }
+
+    if (type->TypeCat() == TypeCategory::Struct)
+    {
+        std::string p = path + '.' + var->Name();
+        type->Scope()->VarSet()->Traverse([&](IVariate* v) {
+            TabVarChecker(p, v);
+            return true;
+        });
+    }
+    return true;
 }
 
 CFG_NAMESPACE_END

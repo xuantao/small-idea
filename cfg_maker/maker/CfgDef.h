@@ -29,12 +29,11 @@ CFG_NAMESPACE_BEGIN
 // file extend gcf = game configuration file
 #define CFG_FILE_SUFFIX ".gcf"
 
-enum class RawCategory
+enum class ElementCategory
 {
-    Bool,
-    Int,
-    Float,
-    String
+    Type,
+    Var,
+    Namespace,
 };
 
 enum class TypeCategory
@@ -43,7 +42,14 @@ enum class TypeCategory
     Enum,
     Struct,
     Array,
-    Scope,
+};
+
+enum class RawCategory
+{
+    Bool,
+    Int,
+    Float,
+    String
 };
 
 enum class ValueCategory
@@ -66,14 +72,5 @@ enum class CfgCategory
     Tab,
     Json,
 };
-
-class IType;
-class ITypeSet;
-class IVarSet;
-class IVariate;
-class IValue;
-class IBlock;
-class IFileData;
-class IExporter;
 
 CFG_NAMESPACE_END

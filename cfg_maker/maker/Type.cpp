@@ -109,7 +109,7 @@ ArrayType::ArrayType(IType* prev, int length)
     : _prev(prev)
     , _length(length)
 {
-    if (length >= 0)
+    if (length > 0)
         _name = prev->Name() + "[" + std::to_string(length) + "]";
     else
         _name = prev->Name() + "[" + "]";
