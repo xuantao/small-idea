@@ -5,9 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="src\json">
-      <UniqueIdentifier>{f53b2e5e-5b99-4b8d-8025-fe0f161aabed}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CfgUtility.cpp">
@@ -15,15 +12,6 @@
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="json\src\lib_json\json_reader.cpp">
-      <Filter>src\json</Filter>
-    </ClCompile>
-    <ClCompile Include="json\src\lib_json\json_value.cpp">
-      <Filter>src\json</Filter>
-    </ClCompile>
-    <ClCompile Include="json\src\lib_json\json_writer.cpp">
-      <Filter>src\json</Filter>
     </ClCompile>
     <ClCompile Include="Cfg.cpp">
       <Filter>src</Filter>
@@ -35,42 +23,6 @@
     </ClInclude>
     <ClInclude Include="CfgTabParser.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="json\include\json\allocator.h">
-      <Filter>src\json</Filter>
-    </ClInclude>
-    <ClInclude Include="json\include\json\assertions.h">
-      <Filter>src\json</Filter>
-    </ClInclude>
-    <ClInclude Include="json\include\json\autolink.h">
-      <Filter>src\json</Filter>
-    </ClInclude>
-    <ClInclude Include="json\include\json\config.h">
-      <Filter>src\json</Filter>
-    </ClInclude>
-    <ClInclude Include="json\include\json\features.h">
-      <Filter>src\json</Filter>
-    </ClInclude>
-    <ClInclude Include="json\include\json\forwards.h">
-      <Filter>src\json</Filter>
-    </ClInclude>
-    <ClInclude Include="json\include\json\json.h">
-      <Filter>src\json</Filter>
-    </ClInclude>
-    <ClInclude Include="json\include\json\reader.h">
-      <Filter>src\json</Filter>
-    </ClInclude>
-    <ClInclude Include="json\include\json\value.h">
-      <Filter>src\json</Filter>
-    </ClInclude>
-    <ClInclude Include="json\include\json\version.h">
-      <Filter>src\json</Filter>
-    </ClInclude>
-    <ClInclude Include="json\include\json\writer.h">
-      <Filter>src\json</Filter>
-    </ClInclude>
-    <ClInclude Include="json\src\lib_json\json_tool.h">
-      <Filter>src\json</Filter>
     </ClInclude>
     <ClInclude Include="Cfg.h">
       <Filter>src</Filter>
