@@ -22,9 +22,9 @@ namespace Enum
     static const char* const  s_Enum1_str[] = {
         "a", "b", nullptr }; // end of enum Enum1
 
-    static const int s_Enum2_val[] = {
+    static const int s_Detail_Enum2_val[] = {
         100, 101, CFG_INVALID_ENUM }; // end of enum Enum2
-    static const char* const  s_Enum2_str[] = {
+    static const char* const  s_Detail_Enum2_str[] = {
         "c", "d", nullptr }; // end of enum Enum2
 
     static const int s_Wtf_val[] = {
@@ -92,29 +92,29 @@ namespace Enum
         return false;
     }
 
-    const char* const * Names(Enum2)
+    const char* const * Names(Detail::Enum2)
     {
-        return s_Enum2_str;
+        return s_Detail_Enum2_str;
     }
 
-    const char* ToString(Enum2 value)
+    const char* ToString(Detail::Enum2 value)
     {
-        for (int i = 0; s_Enum2_str[i]; ++i)
+        for (int i = 0; s_Detail_Enum2_str[i]; ++i)
         {
-            if (s_Enum2_val[i] == (int)value)
-                return s_Enum2_str[i];
+            if (s_Detail_Enum2_val[i] == (int)value)
+                return s_Detail_Enum2_str[i];
         }
 
         return "";
     }
 
-    bool ToEnum(const char* name, Enum2& out)
+    bool ToEnum(const char* name, Detail::Enum2& out)
     {
-        for (int i = 0; s_Enum2_str[i]; ++i)
+        for (int i = 0; s_Detail_Enum2_str[i]; ++i)
         {
-            if (std::strcmp(s_Enum2_str[i], name) == 0)
+            if (std::strcmp(s_Detail_Enum2_str[i], name) == 0)
             {
-                out = (Enum2)s_Enum2_val[i];
+                out = (Detail::Enum2)s_Detail_Enum2_val[i];
                 return true;
             }
         }
@@ -184,15 +184,7 @@ namespace Tab
         stream << "\t";
         stream << data.s1a;
         stream << "\t";
-        stream << data.s1b;
-        stream << "\t";
-        stream << data.s1c;
-        stream << "\t";
-        stream << data.b1;
-        stream << "\t";
         stream << data.f1;
-        stream << "\t";
-        stream << data.str1;
         stream << "\t";
         stream << data.str2;
         stream << "\t";
@@ -201,10 +193,17 @@ namespace Tab
         sWrite(stream, data.s1);
         stream << "\t";
 
-        for (size_t i = 0; i < data.s11.size(); ++i)
+        for (size_t i = 0; i < data.s2.size(); ++i)
         {
             if (i) stream << "\t";
-            sWrite(stream, data.s11[i]);
+            sWrite(stream, data.s2[i]);
+        }
+        stream << "\t";
+
+        for (size_t i = 0; i < data.s3.size(); ++i)
+        {
+            if (i) stream << "\t";
+            sWrite(stream, data.s3[i]);
         }
         stream << "\t";
 
@@ -291,16 +290,7 @@ namespace Tab
         iter.MoveNext();
         utility::Convert(iter.Value(), out.s1a);
         iter.MoveNext();
-        utility::Convert(iter.Value(), out.s1b);
-        iter.MoveNext();
-        utility::Convert(iter.Value(), out.s1c);
-        iter.MoveNext();
-        utility::Convert(iter.Value(), out.b1);
-        iter.MoveNext();
         utility::Convert(iter.Value(), out.f1);
-        iter.MoveNext();
-        if (iter.Value() && iter.Value()[0])
-            out.str1 = iter.Value();
         iter.MoveNext();
         if (iter.Value() && iter.Value()[0])
             out.str2 = iter.Value();
@@ -309,8 +299,11 @@ namespace Tab
             out.str3 = iter.Value();
         sLoad(iter, out.s1);
 
-        for (size_t i = 0; i < out.s11.size(); ++i)
-            sLoad(iter, out.s11[i]);
+        for (size_t i = 0; i < out.s2.size(); ++i)
+            sLoad(iter, out.s2[i]);
+
+        for (size_t i = 0; i < out.s3.size(); ++i)
+            sLoad(iter, out.s3[i]);
 
         iter.MoveNext();
         vec = utility::Split(iter.Value(), ",");
@@ -319,10 +312,10 @@ namespace Tab
         {
             if (!Enum::ToEnum(vec[i].c_str(), out.s1arEnum[i]))
             {
-                if (utility::Convert(vec[i].c_str(), val) && Enum::ToString((Enum2)val))
-                    out.s1arEnum[i] = (Enum2)val;
+                if (utility::Convert(vec[i].c_str(), val) && Enum::ToString((Detail::Enum2)val))
+                    out.s1arEnum[i] = (Detail::Enum2)val;
                 else
-                    utility::Log("chunk:%s line:%d title:%s Convert failed from type:%s value:%s", iter.Chunk(), iter.LineNO(), iter.Title(), "Enum2", vec[i].c_str());
+                    utility::Log("chunk:%s line:%d title:%s Convert failed from type:%s value:%s", iter.Chunk(), iter.LineNO(), iter.Title(), "Detail::Enum2", vec[i].c_str());
             }
         }
 
@@ -332,10 +325,10 @@ namespace Tab
         {
             if (!Enum::ToEnum(vec[i].c_str(), out.s1arEnum2[i]))
             {
-                if (utility::Convert(vec[i].c_str(), val) && Enum::ToString((Enum2)val))
-                    out.s1arEnum2[i] = (Enum2)val;
+                if (utility::Convert(vec[i].c_str(), val) && Enum::ToString((Detail::Enum2)val))
+                    out.s1arEnum2[i] = (Detail::Enum2)val;
                 else
-                    utility::Log("chunk:%s line:%d title:%s Convert failed from type:%s value:%s", iter.Chunk(), iter.LineNO(), iter.Title(), "Enum2", vec[i].c_str());
+                    utility::Log("chunk:%s line:%d title:%s Convert failed from type:%s value:%s", iter.Chunk(), iter.LineNO(), iter.Title(), "Detail::Enum2", vec[i].c_str());
             }
         }
         return true;
@@ -380,9 +373,9 @@ namespace Tab
 
     void WriteHeader(std::ostream& stream, const Struct2& def)
     {
-        static const char* title = "a\tb\tc\td\ts\ts1.s0a\ts1.s0b\ts1.s0c\ts1.s1a\ts1.s1b\ts1.s1c\ts1.b1\ts1.f1\ts1.str1\ts1.str2\ts1.str3\ts1.s1.s0a\ts1.s1.s0b\ts1.s1.s0c\ts1.s11.s0a\ts1.s11.s0b\ts1.s11.s0c\ts1.s11.s0a\ts1.s11.s0b\ts1.s11.s0c\ts1.s1arEnum\ts1.s1arEnum2\ts3.s0a\ts3.s0b\ts3.s0c\ts3.s1a\ts3.s1b\ts3.s1c\ts3.b1\ts3.f1\ts3.str1\ts3.str2\ts3.str3\ts3.s1.s0a\ts3.s1.s0b\ts3.s1.s0c\ts3.s11.s0a\ts3.s11.s0b\ts3.s11.s0c\ts3.s11.s0a\ts3.s11.s0b\ts3.s11.s0c\ts3.s1arEnum\ts3.s1arEnum2\ts3.s0a\ts3.s0b\ts3.s0c\ts3.s1a\ts3.s1b\ts3.s1c\ts3.b1\ts3.f1\ts3.str1\ts3.str2\ts3.str3\ts3.s1.s0a\ts3.s1.s0b\ts3.s1.s0c\ts3.s11.s0a\ts3.s11.s0b\ts3.s11.s0c\ts3.s11.s0a\ts3.s11.s0b\ts3.s11.s0c\ts3.s1arEnum\ts3.s1arEnum2";
-        static const char* type = "int\tint\tint\tint\tstring\tint[]\tint[10]\tint[10]\tint\tint\tint\tbool\tfloat\tstring\tstring\tstring\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tEnum2[]\tEnum2[2]\tint[]\tint[10]\tint[10]\tint\tint\tint\tbool\tfloat\tstring\tstring\tstring\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tEnum2[]\tEnum2[2]\tint[]\tint[10]\tint[10]\tint\tint\tint\tbool\tfloat\tstring\tstring\tstring\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tEnum2[]\tEnum2[2]";
-        static const char* desc = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
+        static const char* title = "a\tb\tc\td\ts\ts1.s0a\ts1.s0b\ts1.s0c\ts1.s1a\ts1.f1\ts1.str2\ts1.str3\ts1.s1.s0a\ts1.s1.s0b\ts1.s1.s0c\ts1.s2.s0a\ts1.s2.s0b\ts1.s2.s0c\ts1.s3.s0a\ts1.s3.s0b\ts1.s3.s0c\ts1.s3.s0a\ts1.s3.s0b\ts1.s3.s0c\ts1.s1arEnum\ts1.s1arEnum2\ts2.s0a\ts2.s0b\ts2.s0c\ts2.s1a\ts2.f1\ts2.str2\ts2.str3\ts2.s1.s0a\ts2.s1.s0b\ts2.s1.s0c\ts2.s2.s0a\ts2.s2.s0b\ts2.s2.s0c\ts2.s3.s0a\ts2.s3.s0b\ts2.s3.s0c\ts2.s3.s0a\ts2.s3.s0b\ts2.s3.s0c\ts2.s1arEnum\ts2.s1arEnum2\ts3.s0a\ts3.s0b\ts3.s0c\ts3.s1a\ts3.f1\ts3.str2\ts3.str3\ts3.s1.s0a\ts3.s1.s0b\ts3.s1.s0c\ts3.s2.s0a\ts3.s2.s0b\ts3.s2.s0c\ts3.s3.s0a\ts3.s3.s0b\ts3.s3.s0c\ts3.s3.s0a\ts3.s3.s0b\ts3.s3.s0c\ts3.s1arEnum\ts3.s1arEnum2\ts3.s0a\ts3.s0b\ts3.s0c\ts3.s1a\ts3.f1\ts3.str2\ts3.str3\ts3.s1.s0a\ts3.s1.s0b\ts3.s1.s0c\ts3.s2.s0a\ts3.s2.s0b\ts3.s2.s0c\ts3.s3.s0a\ts3.s3.s0b\ts3.s3.s0c\ts3.s3.s0a\ts3.s3.s0b\ts3.s3.s0c\ts3.s1arEnum\ts3.s1arEnum2";
+        static const char* type = "int\tint\tint\tint\tstring\tint[]\tint[10]\tint[10]\tint\tfloat\tstring\tstring\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tEnum2[]\tEnum2[2]\tint[]\tint[10]\tint[10]\tint\tfloat\tstring\tstring\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tEnum2[]\tEnum2[2]\tint[]\tint[10]\tint[10]\tint\tfloat\tstring\tstring\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tEnum2[]\tEnum2[2]\tint[]\tint[10]\tint[10]\tint\tfloat\tstring\tstring\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tint[]\tint[10]\tint[10]\tEnum2[]\tEnum2[2]";
+        static const char* desc = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 
         stream << title << std::endl << type << std::endl << desc << std::endl;
         Write(stream, def);
@@ -396,27 +389,30 @@ namespace Tab
 
     bool Load(const char* data, size_t size, std::vector<Struct2>& out, const char* chunk /*= nullptr*/)
     {
-        static const std::array<const char*, 71> titles = {
+        static const std::array<const char*, 89> titles = {
             "a", "b", "c", "d", "s",
-            "s1.s0a", "s1.s0b", "s1.s0c", "s1.s1a", "s1.s1b",
-            "s1.s1c", "s1.b1", "s1.f1", "s1.str1", "s1.str2",
-            "s1.str3", "s1.s1.s0a", "s1.s1.s0b", "s1.s1.s0c", "s1.s11.s0a",
-            "s1.s11.s0b", "s1.s11.s0c", "s1.s11.s0a", "s1.s11.s0b", "s1.s11.s0c",
-            "s1.s1arEnum", "s1.s1arEnum2", "s3.s0a", "s3.s0b", "s3.s0c",
-            "s3.s1a", "s3.s1b", "s3.s1c", "s3.b1", "s3.f1",
-            "s3.str1", "s3.str2", "s3.str3", "s3.s1.s0a", "s3.s1.s0b",
-            "s3.s1.s0c", "s3.s11.s0a", "s3.s11.s0b", "s3.s11.s0c", "s3.s11.s0a",
-            "s3.s11.s0b", "s3.s11.s0c", "s3.s1arEnum", "s3.s1arEnum2", "s3.s0a",
-            "s3.s0b", "s3.s0c", "s3.s1a", "s3.s1b", "s3.s1c",
-            "s3.b1", "s3.f1", "s3.str1", "s3.str2", "s3.str3",
-            "s3.s1.s0a", "s3.s1.s0b", "s3.s1.s0c", "s3.s11.s0a", "s3.s11.s0b",
-            "s3.s11.s0c", "s3.s11.s0a", "s3.s11.s0b", "s3.s11.s0c", "s3.s1arEnum",
-            "s3.s1arEnum2"
+            "s1.s0a", "s1.s0b", "s1.s0c", "s1.s1a", "s1.f1",
+            "s1.str2", "s1.str3", "s1.s1.s0a", "s1.s1.s0b", "s1.s1.s0c",
+            "s1.s2.s0a", "s1.s2.s0b", "s1.s2.s0c", "s1.s3.s0a", "s1.s3.s0b",
+            "s1.s3.s0c", "s1.s3.s0a", "s1.s3.s0b", "s1.s3.s0c", "s1.s1arEnum",
+            "s1.s1arEnum2", "s2.s0a", "s2.s0b", "s2.s0c", "s2.s1a",
+            "s2.f1", "s2.str2", "s2.str3", "s2.s1.s0a", "s2.s1.s0b",
+            "s2.s1.s0c", "s2.s2.s0a", "s2.s2.s0b", "s2.s2.s0c", "s2.s3.s0a",
+            "s2.s3.s0b", "s2.s3.s0c", "s2.s3.s0a", "s2.s3.s0b", "s2.s3.s0c",
+            "s2.s1arEnum", "s2.s1arEnum2", "s3.s0a", "s3.s0b", "s3.s0c",
+            "s3.s1a", "s3.f1", "s3.str2", "s3.str3", "s3.s1.s0a",
+            "s3.s1.s0b", "s3.s1.s0c", "s3.s2.s0a", "s3.s2.s0b", "s3.s2.s0c",
+            "s3.s3.s0a", "s3.s3.s0b", "s3.s3.s0c", "s3.s3.s0a", "s3.s3.s0b",
+            "s3.s3.s0c", "s3.s1arEnum", "s3.s1arEnum2", "s3.s0a", "s3.s0b",
+            "s3.s0c", "s3.s1a", "s3.f1", "s3.str2", "s3.str3",
+            "s3.s1.s0a", "s3.s1.s0b", "s3.s1.s0c", "s3.s2.s0a", "s3.s2.s0b",
+            "s3.s2.s0c", "s3.s3.s0a", "s3.s3.s0b", "s3.s3.s0c", "s3.s3.s0a",
+            "s3.s3.s0b", "s3.s3.s0c", "s3.s1arEnum", "s3.s1arEnum2"
         };
 
         std::vector<std::string> vec;
 
-        TabParser<71> parser(titles);
+        TabParser<89> parser(titles);
         if (!parser.Parse(data, size, chunk))
             return false;
 
@@ -515,20 +511,8 @@ namespace Json
         stream << std::string(" ", tab * 4) << "\"s1a\":";
         stream << data.s1a;
         stream << "," << std::endl;
-        stream << std::string(" ", tab * 4) << "\"s1b\":";
-        stream << data.s1b;
-        stream << "," << std::endl;
-        stream << std::string(" ", tab * 4) << "\"s1c\":";
-        stream << data.s1c;
-        stream << "," << std::endl;
-        stream << std::string(" ", tab * 4) << "\"b1\":";
-        stream << data.b1;
-        stream << "," << std::endl;
         stream << std::string(" ", tab * 4) << "\"f1\":";
         stream << data.f1;
-        stream << "," << std::endl;
-        stream << std::string(" ", tab * 4) << "\"str1\":";
-        stream << "\"" << data.str1<< "\"";
         stream << "," << std::endl;
         stream << std::string(" ", tab * 4) << "\"str2\":";
         stream << "\"" << data.str2<< "\"";
@@ -541,13 +525,24 @@ namespace Json
         sWrite(stream, data.s1, tab + 1);
         stream << std::endl << std::string(" ", tab * 4) << "}";
         stream << "," << std::endl;
-        stream << std::string(" ", tab * 4) << "\"s11\":";
+        stream << std::string(" ", tab * 4) << "\"s2\":";
         stream << "[";
-        for (size_t i = 0; i < data.s11.size(); ++i)
+        for (size_t i = 0; i < data.s2.size(); ++i)
         {
             if (i) stream << ",";
             stream << "{" << std::endl;
-            sWrite(stream, data.s11[i], tab + 1);
+            sWrite(stream, data.s2[i], tab + 1);
+            stream << std::endl << std::string(" ", tab * 4) << "}";
+        }
+        stream << "]";
+        stream << "," << std::endl;
+        stream << std::string(" ", tab * 4) << "\"s3\":";
+        stream << "[";
+        for (size_t i = 0; i < data.s3.size(); ++i)
+        {
+            if (i) stream << ",";
+            stream << "{" << std::endl;
+            sWrite(stream, data.s3[i], tab + 1);
             stream << std::endl << std::string(" ", tab * 4) << "}";
         }
         stream << "]";
@@ -625,24 +620,6 @@ namespace Json
             if (mem.type() == Json::ValueType::intValue || mem.type() == Json::ValueType::uintValue)
                 out.s1a = mem.asInt();
         }
-        if (node.isMember("s1b"))
-        {
-            const Json::Value& mem = node["s1b"];
-            if (mem.type() == Json::ValueType::intValue || mem.type() == Json::ValueType::uintValue)
-                out.s1b = mem.asInt();
-        }
-        if (node.isMember("s1c"))
-        {
-            const Json::Value& mem = node["s1c"];
-            if (mem.type() == Json::ValueType::intValue || mem.type() == Json::ValueType::uintValue)
-                out.s1c = mem.asInt();
-        }
-        if (node.isMember("b1"))
-        {
-            const Json::Value& mem = node["b1"];
-            if (mem.type() == Json::ValueType::booleanValue)
-                out.b1 = mem.asBool();
-        }
         if (node.isMember("f1"))
         {
             const Json::Value& mem = node["f1"];
@@ -650,12 +627,6 @@ namespace Json
                 out.f1 = (float)mem.asInt();
             else if (mem.type() == Json::ValueType::realValue)
                 out.f1 = (float)mem.asDouble();
-        }
-        if (node.isMember("str1"))
-        {
-            const Json::Value& mem = node["str1"];
-            if (mem.type() == Json::ValueType::stringValue)
-                out.str1 = mem.asString();
         }
         if (node.isMember("str2"))
         {
@@ -676,15 +647,28 @@ namespace Json
                 sLoad(mem, out.s1);
         }
 
-        if (node.isMember("s11"))
+        if (node.isMember("s2"))
         {
-            const Json::Value& mem = node["s11"];
+            const Json::Value& mem = node["s2"];
             if (mem.type() == Json::ValueType::arrayValue)
             {
-                for (int i = 0; i < std::min((int)mem.size(), (int)out.s11.size()); ++i)
+                for (int i = 0; i < std::min((int)mem.size(), (int)out.s2.size()); ++i)
                 {
                     if (mem[i].type() == Json::ValueType::objectValue)
-                        sLoad(mem[i], out.s11[i]);
+                        sLoad(mem[i], out.s2[i]);
+                }
+            }
+        }
+
+        if (node.isMember("s3"))
+        {
+            const Json::Value& mem = node["s3"];
+            if (mem.type() == Json::ValueType::arrayValue)
+            {
+                for (int i = 0; i < std::min((int)mem.size(), (int)out.s3.size()); ++i)
+                {
+                    if (mem[i].type() == Json::ValueType::objectValue)
+                        sLoad(mem[i], out.s3[i]);
                 }
             }
         }
@@ -698,7 +682,7 @@ namespace Json
                 for (int i = 0; i < (int)mem.size(); ++i)
                 {
                     if (mem[i].type() == Json::ValueType::intValue || mem[i].type() == Json::ValueType::uintValue)
-                        out.s1arEnum[i] = (Enum2)mem[i].asInt();
+                        out.s1arEnum[i] = (Detail::Enum2)mem[i].asInt();
                 }
             }
         }
@@ -711,7 +695,7 @@ namespace Json
                 for (int i = 0; i < std::min((int)mem.size(), (int)out.s1arEnum2.size()); ++i)
                 {
                     if (mem[i].type() == Json::ValueType::intValue || mem[i].type() == Json::ValueType::uintValue)
-                        out.s1arEnum2[i] = (Enum2)mem[i].asInt();
+                        out.s1arEnum2[i] = (Detail::Enum2)mem[i].asInt();
                 }
             }
         }

@@ -186,12 +186,21 @@ void CppExporter::OnFileEnd()
 {
 }
 
-void CppExporter::OnNamespaceBegin(const std::string& name)
+void CppExporter::OnNsBegin(const std::string& name)
 {
+    int tab = _tab;
+    _OUTS_ <<
+        _TAB_EX_(0) << "namespace " << name << std::endl <<
+        _TAB_EX_(0) << "{" << std::endl;
+    ++_tab;
 }
 
-void CppExporter::OnNamesapceEnd()
+void CppExporter::OnNsEnd()
 {
+    --_tab;
+    int tab = _tab;
+
+    _OUTS_ << _TAB_EX_(0) << "}" << std::endl;
 }
 
 void CppExporter::OnInclude(const std::string& file)

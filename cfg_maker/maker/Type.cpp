@@ -136,6 +136,8 @@ Namespace::Namespace(const std::string& name, IScope* owner)
     , _owner(owner)
 {
     NormalScope* scope = new NormalScope(name, owner);
+    scope->Bind(this);
+
     _scope = scope;
 
     _tySet = new TypeSetNormal();
@@ -153,14 +155,14 @@ Namespace::~Namespace()
     delete _scope;
     _scope = nullptr;
 
-    delete _nsSet;
-    _nsSet = nullptr;
-
     delete _varSet;
     _varSet = nullptr;
 
     delete _tySet;
     _tySet = nullptr;
+
+    delete _nsSet;
+    _nsSet = nullptr;
 
     _owner = nullptr;
 }

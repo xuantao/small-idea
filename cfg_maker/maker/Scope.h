@@ -12,7 +12,8 @@ public:
     NormalScope(const std::string& name, IScope* owner)
         : _name(name)
         , _owner(owner)
-        , _binding(nullptr)
+        , _bindType(nullptr)
+        , _bindNs(nullptr)
         , _tySet(nullptr)
         , _varSet(nullptr)
         , _nsSet(nullptr)
@@ -23,7 +24,8 @@ public:
 
 public:
     virtual const std::string& Name() const { return _name; }
-    virtual IType* Binding() const { return _binding; }
+    virtual IType* BindType() const { return _bindType; }
+    virtual INamespace* BindNs() const { return _bindNs; }
     virtual IScope* Owner() const { return _owner; }
 
     virtual ITypeSet* TypeSet() const { return _tySet; }
@@ -33,7 +35,8 @@ public:
     virtual IElement* GetElement(const std::string& name) const;
     virtual IScope* GetScope(const std::string& name) const;
 
-    void Bind(IType* type) { _binding = type; }
+    void Bind(IType* type) { _bindType = type; }
+    void Bind(INamespace* ns) { _bindNs = ns; }
     void TypeSet(ITypeSet* set) { _tySet = set; }
     void VarSet(IVarSet* set) { _varSet = set; }
     void NsSet(INsSet* set) { _nsSet = set; }
@@ -41,7 +44,8 @@ public:
 protected:
     std::string _name;
     IScope* _owner;
-    IType* _binding;
+    IType* _bindType;
+    INamespace* _bindNs;
     ITypeSet* _tySet;
     IVarSet* _varSet;
     INsSet* _nsSet;

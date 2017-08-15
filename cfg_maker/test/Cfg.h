@@ -1,4 +1,4 @@
-/*
+﻿/*
  * this file is auto generated.
  * please does not edit it manual!
 */
@@ -29,11 +29,14 @@ enum class Enum1
     b = a,
 };
 
-enum class Enum2
+namespace Detail
 {
-    c = 100,
-    d = 101,
-};
+    enum class Enum2
+    {
+        c = 100,
+        d = 101,
+    };
+}
 
 struct Struct0
 {
@@ -46,9 +49,6 @@ struct Struct1 : public Struct0
 {
     Struct1()
         : s1a(1)
-        , s1b(2)
-        , s1c(0)
-        , b1(false)
         , f1(0.0f)
         , str2(s_1)
         , str3("zouhui")
@@ -56,17 +56,14 @@ struct Struct1 : public Struct0
     }
 
     int s1a;
-    int s1b;
-    int s1c;
-    bool b1;
     float f1;
-    std::string str1;
     std::string str2;
     std::string str3;
     Struct0 s1;
-    std::array<Struct0, 2> s11;
-    std::vector<Enum2> s1arEnum;
-    std::array<Enum2, 2> s1arEnum2;
+    std::array<Struct0, 1> s2;
+    std::array<Struct0, 2> s3;
+    std::vector<Detail::Enum2> s1arEnum;
+    std::array<Detail::Enum2, 2> s1arEnum2;
 };
 
 struct Struct2
@@ -75,7 +72,7 @@ struct Struct2
 
     Struct2()
         : a(1)
-        , b((int)Enum2::c)
+        , b((int)Detail::Enum2::c)
         , c(0)
         , d(0)
         , s(s_1)
@@ -88,7 +85,7 @@ struct Struct2
     int d;
     std::string s;
     Struct1 s1;
-    std::vector<Struct1> s2;
+    std::array<Struct1, 1> s2;
     std::array<Struct1, 2> s3;
 };
 
@@ -126,10 +123,10 @@ namespace Enum
     const char* ToString(Enum1 value);
     bool ToEnum(const char* name, Enum1& out);
 
-    /* Enum2 */
-    const char* const * Names(Enum2);
-    const char* ToString(Enum2 value);
-    bool ToEnum(const char* name, Enum2& out);
+    /* Detail::Enum2 */
+    const char* const * Names(Detail::Enum2);
+    const char* ToString(Detail::Enum2 value);
+    bool ToEnum(const char* name, Detail::Enum2& out);
 
     /* Wtf */
     const char* const * Names(Wtf);

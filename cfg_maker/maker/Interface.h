@@ -126,7 +126,8 @@ public:
 
 public:
     virtual const std::string& Name() const = 0;
-    virtual IType* Binding() const = 0;
+    virtual IType* BindType() const = 0;
+    virtual INamespace* BindNs() const = 0;
     virtual IScope* Owner() const = 0;
 
     virtual ITypeSet* TypeSet() const = 0;
@@ -153,6 +154,9 @@ public:
     virtual bool Traverse(const std::function<bool(IType*)>& func) const = 0;
 };
 
+/*
+ * variate set
+*/
 class IVarSet
 {
 public:
@@ -166,6 +170,9 @@ public:
     virtual bool Traverse(const std::function<bool(IVariate*)>& func) const = 0;
 };
 
+/*
+ * namespace set
+*/
 class INsSet
 {
 public:
@@ -257,8 +264,8 @@ public:
     virtual void OnBegin(const IScope* global, const std::string& file) = 0;
     virtual void OnEnd() = 0;
 
-    virtual void OnNamespaceBegin(const std::string& name) = 0;
-    virtual void OnNamesapceEnd() = 0;
+    virtual void OnNsBegin(const std::string& name) = 0;
+    virtual void OnNsEnd() = 0;
 
     virtual void OnInclude(const std::string& file) = 0;
 

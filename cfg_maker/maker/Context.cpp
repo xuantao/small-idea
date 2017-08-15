@@ -44,7 +44,7 @@ Context::~Context()
     delete _mergeFile;
     _mergeFile = nullptr;
 
-    std::for_each(_files.begin(), _files.end(), [](FileData* fd) {delete fd; });
+    std::for_each(_files.begin(), _files.end(), [ ](FileData* fd) {delete fd; });
     _files.clear();
 
     _stackScope.clear();
@@ -138,14 +138,27 @@ void Context::OnPredefine(const std::string& name)
 
 void Context::OnNsBegin(const std::string& name)
 {
+    Namespace* ns = new Namespace(name, _SCOPE_);
+    if (_SCOPE_->NsSet())
+        _SCOPE_->NsSet()->Add(ns);
+    else
+        _driver.Error("current scope:{0} does not allow declare namespace:{1}", _SCOPE_->Name(), name);
+
+    _stackScope.push_back(ns->Scope());
     _mergeFile->NsBegin(name);
     _stackFile.back()->NsBegin(name);
 }
 
 void Context::OnNsEnd()
 {
+    assert(_SCOPE_->BindNs());
+
     _mergeFile->NsEnd();
     _stackFile.back()->NsEnd();
+    _stackScope.pop_back();
+
+    if (_SCOPE_->NsSet() == nullptr)
+        delete _SCOPE_->BindNs();
 }
 
 void Context::OnStructBegin(const std::string& name, CfgCategory cfg)
@@ -181,7 +194,7 @@ void Context::OnStructBegin(const std::string& name, CfgCategory cfg)
 
 void Context::OnStructInherit(const std::string& name)
 {
-    IType* type = _SCOPE_->Binding();
+    IType* type = _SCOPE_->BindType();
     if (type == nullptr)
     {
         _driver.Error("current scope is not define a struct, can not inherit from {0}", name);
@@ -241,7 +254,7 @@ void Context::OnStructEnd()
         return;
     }
 
-    IType* type = _stackScope.back()->Binding();
+    IType* type = _stackScope.back()->BindType();
     if (type && type->TypeCat() == TypeCategory::Struct)
     {
         IStructType* sType = static_cast<IStructType*>(type);
@@ -349,7 +362,7 @@ void Context::OnVariateBegin(const std::string& type, const std::string& name)
         return;
     }
 
-    if (varType == _SCOPE_->Binding())
+    if (varType == _SCOPE_->BindType())
     {
         _driver.Error("current type:{0} is not completed", type);
         return;
@@ -499,7 +512,7 @@ IVariate* Context::AddEnumMember(const std::string& name)
         return nullptr;
     }
 
-    IType* ty = _SCOPE_->Binding();
+    IType* ty = _SCOPE_->BindType();
     if (ty == nullptr || ty->TypeCat() != TypeCategory::Enum)
         return nullptr;
 
@@ -554,7 +567,7 @@ bool Context::IsTypeProcessing(IType* type) const
 {
     for (auto it = _stackScope.cbegin(); it != _stackScope.cend(); ++it)
     {
-        if (type == (*it)->Binding())
+        if (type == (*it)->BindType())
             return true;
     }
     return false;
@@ -564,7 +577,7 @@ bool Context::IsTypeScope() const
 {
     for (auto it = _stackScope.cbegin(); it != _stackScope.cend(); ++it)
     {
-        if ((*it)->Binding())
+        if ((*it)->BindType())
             return true;
     }
     return false;

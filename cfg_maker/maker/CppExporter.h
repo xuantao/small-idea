@@ -24,8 +24,8 @@ public:
     virtual void OnEnd();
     virtual void OnFileBegin(const std::string& file);
     virtual void OnFileEnd();
-    virtual void OnNamespaceBegin(const std::string& name);
-    virtual void OnNamesapceEnd();
+    virtual void OnNsBegin(const std::string& name);
+    virtual void OnNsEnd();
     virtual void OnInclude(const std::string& file);
     virtual void OnVariate(const IVariate* var);
     virtual void OnType(const IType* type);

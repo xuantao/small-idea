@@ -75,10 +75,10 @@ void FileData::Export(IExporter* visitor, bool merge) const
                 visitor->OnInclude(block->_str);
             break;
         case detail::BlockType::NamespaceBegin:
-            visitor->OnNamespaceBegin(block->_str);
+            visitor->OnNsBegin(block->_str);
             break;
         case detail::BlockType::NamespaceEnd:
-            visitor->OnNamesapceEnd();
+            visitor->OnNsEnd();
             break;
         default:
             break;

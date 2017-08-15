@@ -63,7 +63,7 @@ namespace utility
             if (scope == nullptr)
                 break;
 
-            scope = scope->GetScope(path[begin]);
+            scope = scope->GetScope(path[i]);
         }
         return scope;
     }
