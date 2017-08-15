@@ -16,27 +16,79 @@ struct Keyfn
     int Key(Struct2& test) { return test.a; }
 };
 
+class Region
+{
+public:
+    void Activate()
+    {
+        // scene object activate
+    }
+};
+
+class Scene
+{
+public:
+    void Activate()
+    {
+        int regionCount = m_nRegionWidth * m_nRegionHeight;
+        for (int i = 0; i < regionCount; ++i)
+        {
+            m_pRegions[i].Activate();
+        }
+
+        // other scene system activate
+    }
+
+    int m_nRegionWidth;
+    int m_nRegionHeight;
+    Region* m_pRegions;
+};
+
+class GameWorld
+{
+public:
+    static const int LOGIC_FPS = 20;
+    static const int FRAME_LENGTH = 50;
+
+public:
+    void Run()
+    {
+        while (true)
+        {
+            int64_t now = TimeNow();
+            while (m_nGameTime < now)
+            {
+                m_nGameTime += FRAME_LENGTH;
+                ++m_nGameLoop;
+
+                Activate();
+            }
+        }
+    }
+
+protected:
+    void Activate()
+    {
+        for (auto pair : m_mapScenes)
+        {
+            pair.second->Activate();
+        }
+
+        // other system activate
+    }
+
+    int64_t TimeNow() { return 0; }
+
+protected:
+    int m_nGameLoop;
+    int64_t m_nGameTime;
+    std::map<int, Scene*> m_mapScenes;
+};
+
 int main(int argc, char* argv[])
 {
-    //TabDataMap<int, Struct2, Keyfn> data;
-    //if (data.Load("../work/out/Struct2.tab"))
-    //{
-    //    data.Find(1);
-    //    printf("xxxx\n");
-    //}
-
-    //ks.find(key);
-
-    //Struct1 s1;
-    //Json::Write(std::cout, s1);
-
-    //Struct2 s2;
-    //Tab::Write(std::cout, s2);
-
-    //TestTab();
-    //TestJson();
-
-    system("pause");
+    GameWorld gameWorld;
+    gameWorld.Run();
 
     return 1;
 }
