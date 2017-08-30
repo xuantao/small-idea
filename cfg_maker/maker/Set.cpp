@@ -53,6 +53,18 @@ bool TypeSetNormal::Traverse(const std::function<bool(IType *)>& func) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// function type set
+ModuleSetType::ModuleSetType() {}
+ModuleSetType::~ModuleSetType() {}
+
+bool ModuleSetType::Add(IType* type)
+{
+    if (type == nullptr || type->TypeCat() != TypeCategory::Fucntion)
+        return false;
+    return TypeSetNormal::Add(type);
+}
+
+//////////////////////////////////////////////////////////////////////////
 // VarSetNormal
 VarSetNormal::VarSetNormal()
 {

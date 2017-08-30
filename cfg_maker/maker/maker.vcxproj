@@ -148,6 +148,7 @@
     <ClCompile Include="CfgFlexLexer.cpp" />
     <ClCompile Include="CppExporter.cpp" />
     <ClCompile Include="CppUtil.cpp" />
+    <ClCompile Include="CsharpExporter.cpp" />
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="FileData.cpp" />
     <ClCompile Include="JsonCreater.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="CfgDef.h" />
     <ClInclude Include="CppExporter.h" />
     <ClInclude Include="CppUtil.h" />
+    <ClInclude Include="CsharpExporter.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="FileData.h" />
     <ClInclude Include="FlexLexer.h" />

@@ -71,7 +71,7 @@ static cfg::Parser::symbol_type yylex(cfg::Driver& driver)
     ;
 
 /* key words */
-%token TAB JSON ENUM STRUCT CONST BOOL INT FLOAT STRING NAMESPACE
+%token TAB JSON ENUM STRUCT CONST BOOL INT FLOAT STRING NAMESPACE VOID MODULE
 
 %token <std::string> IDENTIFIER     "identifier"
 %token <std::string> VALUE_TRUE     "true"
@@ -184,6 +184,49 @@ StyMember   : VarDecl   { }
             ;
 
 StyInner    : StyBegin StyDetail StyEnd { }
+            ;
+
+/* structure declear */
+ModuleDecl  : ModuleBegin ModuleFunc ModuleEnd  { }
+            ;
+
+ModuleBegin : MODULE IDENTIFIER S_LBRACE    { CONTEXT.OnModuleBegin($2) }
+            ;
+
+ModuleEnd   : S_RBRACE                  { CONTEXT.OnModuleEnd(); }
+            | S_RBRACE S_SEMICOLON      { CONTEXT.OnModuleEnd(); }
+            ;
+
+ModuleFunc  :  /* empty */           { }
+            | ModuleFunc FuncBegin FuncParam FuncEnd { }
+            ;
+
+FuncBegin   : VOID IDENTIFIER S_LPAREN          { CONTEXT.OnFuncBegin($2); }
+            | IDENTIFIER IDENTIFIER S_LPAREN    { CONTEXT.OnFuncBegin($1, $2); }
+            ;
+
+FuncEnd     : S_RPAREN              { CONTEXT.OnFuncEnd(); }
+            | S_RPAREN S_SEMICOLON  { CONTEXT.OnFuncEnd(); }
+            ;
+
+FuncParam   : /* empty */           { }
+            | FuncParam FuncVar     { }
+            ;
+
+FuncVar     : FuncVarDef                    { /* empty */ }
+            | FuncVar S_COMMA FuncVarDef    { /* empty */ }
+            ;
+
+FuncVarDef  : DefBool                       { }
+            | DefBool Array                 { }
+            | DefInt                        { }
+            | DefInt Array                  { }
+            | DefFloat                      { }
+            | DefFloat Array                { }
+            | DefString                     { }
+            | DefString Array               { }
+            | DefCustom                     { }
+            | DefCustom Array               { }
             ;
 
 /* common detect */

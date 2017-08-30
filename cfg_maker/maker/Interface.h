@@ -76,14 +76,16 @@ public:
     virtual ~IEnumType() {}
 };
 
-class INamespace : public IElement
+/*
+ * function
+*/
+class IFunction : public IType
 {
 public:
-    virtual ~INamespace() {}
+    virtual ~IFunction() {}
+
 public:
-    virtual const std::string& Name() const = 0;
-    virtual IScope* Owner() const = 0;
-    virtual IScope* Scope() const = 0;
+    virtual IType* RetType() const = 0;
 };
 
 /*
@@ -97,6 +99,32 @@ public:
     virtual IType* Original() const = 0;
     virtual IType* Prev() const = 0;
     virtual int Length() const = 0;
+};
+
+/*
+ * namesapce
+*/
+class INamespace : public IElement
+{
+public:
+    virtual ~INamespace() {}
+public:
+    virtual const std::string& Name() const = 0;
+    virtual IScope* Owner() const = 0;
+    virtual IScope* Scope() const = 0;
+};
+
+/*
+ * i need a name~
+*/
+class IModule : public IElement
+{
+public:
+    virtual ~IModule() {}
+public:
+    virtual const std::string& Name() const = 0;
+    virtual IScope* Owner() const = 0;
+    virtual IScope* Scope() const = 0;
 };
 
 /*
@@ -117,7 +145,7 @@ public:
 };
 
 /*
-* 范围/域
+ * 范围/域
 */
 class IScope
 {

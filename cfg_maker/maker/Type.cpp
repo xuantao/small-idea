@@ -104,6 +104,23 @@ bool StructType::Inherit(IStructType* type)
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Function
+Function::Function(const std::string& name, IType* ret, IScope* owner)
+    : _name(name)
+    , _ret(ret)
+    , _owner(owner)
+{
+    NormalScope* scope = new NormalScope(name, owner);
+    scope->TypeSet(new ModuleSetType());
+    _scope = scope;
+}
+
+Function::~Function()
+{
+    delete _scope->TypeSet();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // ArrayType
 ArrayType::ArrayType(IType* prev, int length)
     : _prev(prev)

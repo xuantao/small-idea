@@ -114,6 +114,8 @@ REG_DESC                (^[ \t]*///<)
 "tab"           { return Parser::make_TAB(Location()); }
 "json"          { return Parser::make_JSON(Location()); }
 "namespace"     { return Parser::make_NAMESPACE(Location()); }
+"void"          { return Parser::make_VOID(Location()); }
+"module"        { return Parser::make_MODULE(Location()); }
 {REG_OPERATOR}  { return Parser::symbol_type((Parser::token_type)yytext[0], Location()); }
 {REG_INTEGER}   { return Parser::make_VALUE_INT(yytext, Location()); }
 {REG_FLOAT}     { return Parser::make_VALUE_FLOAT(yytext, Location()); }

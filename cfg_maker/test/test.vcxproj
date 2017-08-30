@@ -150,6 +150,7 @@
     <ClInclude Include="Cfg.h" />
     <ClInclude Include="CfgUtility.h" />
     <ClInclude Include="CfgTabParser.h" />
+    <ClInclude Include="common.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

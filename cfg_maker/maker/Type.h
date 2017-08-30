@@ -127,6 +127,30 @@ protected:
 };
 
 /*
+ * 函数
+*/
+class Function : public IFunction
+{
+public:
+    Function(const std::string& name, IType* ret, IScope* owner);
+    ~Function();
+
+public:
+    virtual ElementCategory ElementCat() const { return ElementCategory::Type; }
+    virtual TypeCategory TypeCat() const { return TypeCategory::Fucntion; }
+    virtual const std::string& Name() const { return _name; }
+    virtual IType* RetType() const { return _ret; }
+    virtual IScope* Owner() const { return _owner; }
+    virtual IScope* Scope() const { return _scope; }
+
+protected:
+    std::string _name;
+    IType* _ret = nullptr;
+    IScope* _scope = nullptr;
+    IScope* _owner = nullptr;
+};
+
+/*
  * 名字空间
 */
 class Namespace : public INamespace
@@ -148,6 +172,28 @@ protected:
     INsSet* _nsSet;
     IScope* _owner;
     IScope* _scope;
+};
+
+/*
+ * module
+*/
+class Module : public IModule
+{
+public:
+    Module(const std::string& name, IScope* owner);
+    ~Module();
+
+public:
+    virtual ElementCategory ElementCat() const { return ElementCategory::Module; }
+    virtual const std::string& Name() const { return _name; }
+    virtual IScope* Owner() const { return _owner; }
+    virtual IScope* Scope() const { return _scope; }
+
+protected:
+    std::string _name;
+    ITypeSet* _tySet = nullptr;
+    IScope* _owner = nullptr;
+    IScope* _scope = nullptr;
 };
 
 CFG_NAMESPACE_END

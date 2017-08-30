@@ -26,6 +26,9 @@
     <Filter Include="src\utility">
       <UniqueIdentifier>{144d3f3e-71ea-4961-abfa-654a5e3a51c0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\exporter\csharp">
+      <UniqueIdentifier>{303dc1a9-14ff-4fc6-9270-e184de50361d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -84,6 +87,9 @@
     </ClCompile>
     <ClCompile Include="Scope.cpp">
       <Filter>src\context</Filter>
+    </ClCompile>
+    <ClCompile Include="CsharpExporter.cpp">
+      <Filter>src\exporter\csharp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -158,6 +164,9 @@
     </ClInclude>
     <ClInclude Include="Scope.h">
       <Filter>src\context</Filter>
+    </ClInclude>
+    <ClInclude Include="CsharpExporter.h">
+      <Filter>src\exporter\csharp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

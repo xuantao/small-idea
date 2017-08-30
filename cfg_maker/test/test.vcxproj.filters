@@ -27,5 +27,6 @@
     <ClInclude Include="Cfg.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="common.h" />
   </ItemGroup>
 </Project>

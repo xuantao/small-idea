@@ -23,6 +23,19 @@ private:
     std::vector<IType*> _types;
 };
 
+/*
+ * function type set
+ * for module
+*/
+class ModuleSetType : public TypeSetNormal
+{
+public:
+    ModuleSetType();
+    ~ModuleSetType();
+
+public:
+    virtual bool Add(IType* type);
+};
 
 /*
  * 成员变量集合

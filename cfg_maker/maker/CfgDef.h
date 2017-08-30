@@ -34,6 +34,7 @@ enum class ElementCategory
     Type,
     Var,
     Namespace,
+    Module,
 };
 
 enum class TypeCategory
@@ -42,6 +43,7 @@ enum class TypeCategory
     Enum,
     Struct,
     Array,
+    Fucntion,
 };
 
 enum class RawCategory
