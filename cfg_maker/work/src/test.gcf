@@ -61,3 +61,8 @@ tab struct Struct2
  Struct1 s2[1];
  Struct1 s3[2];
 }
+
+module Invoker {
+	void Call_A(int a, int b);
+	int Call_B(string str)
+}

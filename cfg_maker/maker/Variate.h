@@ -7,6 +7,7 @@ CFG_NAMESPACE_BEGIN
 class Variate : public IVariate
 {
 public:
+    Variate(const std::string& name, IScope* owner);
     Variate(IScope* owner);
     ~Variate();
 
@@ -29,12 +30,12 @@ public:
     void UpgradeArray(int length = 0);
 
 protected:
-    IScope* _owner;
-    IType* _type;
     std::string _name;
     std::string _desc;
-    IValue* _value;
-    bool _const;
+    IScope* _owner = nullptr;
+    IType* _type = nullptr;
+    IValue* _value = nullptr;
+    bool _const = false;
 };
 
 CFG_NAMESPACE_END

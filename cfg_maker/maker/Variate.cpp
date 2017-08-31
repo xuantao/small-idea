@@ -4,11 +4,14 @@
 
 CFG_NAMESPACE_BEGIN
 
+Variate::Variate(const std::string& name, IScope* owner)
+    : _name(name)
+    , _owner(owner)
+{
+}
+
 Variate::Variate(IScope* owner)
     : _owner(owner)
-    , _type(nullptr)
-    , _value(nullptr)
-    , _const(false)
 {
 }
 

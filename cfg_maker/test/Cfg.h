@@ -1,4 +1,4 @@
-﻿/*
+/*
  * this file is auto generated.
  * please does not edit it manual!
 */
@@ -36,8 +36,8 @@ namespace Detail
         c = 100,
         d = 101,
     };
-}
 
+}
 struct Struct0
 {
     std::vector<int> s0a;

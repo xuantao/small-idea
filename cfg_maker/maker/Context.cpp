@@ -58,6 +58,25 @@ const IScope* Context::Global() const
     return _gloal->Scope();
 }
 
+IType* Context::GetType(RawCategory raw) const
+{
+    ITypeSet* set = _gloal->Scope()->TypeSet();
+    switch (raw)
+    {
+    case cfg::RawCategory::Bool:
+        return set->Get(TYPE_BOOL);
+    case cfg::RawCategory::Int:
+        return set->Get(TYPE_INT);
+    case cfg::RawCategory::Float:
+        return set->Get(TYPE_FLOAT);
+    case cfg::RawCategory::String:
+        return set->Get(TYPE_STRING);
+    default:
+        break;
+    }
+    return nullptr;
+}
+
 IType* Context::GetType(const std::string& name) const
 {
     IType* type = Global()->TypeSet()->Get(name);
@@ -159,6 +178,44 @@ void Context::OnNsEnd()
 
     if (_SCOPE_->NsSet() == nullptr)
         delete _SCOPE_->BindNs();
+}
+
+void Context::OnModuleBegin(const std::string& name)
+{
+    Module* module = new Module(name, _SCOPE_);
+    // do need a module set?
+    _stackScope.push_back(module->Scope());
+}
+
+void Context::OnModuleEnd()
+{
+    //assert(_SCOPE_->BindNs());
+
+    _stackScope.pop_back();
+}
+
+void Context::OnFuncBegin(const std::string& name)
+{
+    Function* func = new Function(name, _data.type, _SCOPE_);
+    _data.type = nullptr;
+
+    _SCOPE_->TypeSet()->Add(func);
+
+    _stackScope.push_back(func->Scope());
+}
+
+void Context::OnFuncBegin(const std::string& ret, const std::string& name)
+{
+    IType* retTy = utility::FindType(_SCOPE_, ret);
+    Function* func = new Function(name, retTy, _SCOPE_);
+
+    _SCOPE_->TypeSet()->Add(func);
+    _stackScope.push_back(func->Scope());
+}
+
+void Context::OnFuncEnd()
+{
+    _stackScope.pop_back();
 }
 
 void Context::OnStructBegin(const std::string& name, CfgCategory cfg)
@@ -344,79 +401,230 @@ void Context::OnEnumEnd()
     if (_stackScope.size() > 1)
         _stackScope.pop_back();
 }
+//
+//void Context::OnVariateBegin(const std::string& type, const std::string& name)
+//{
+//    if (_var)
+//    {
+//        _driver.Error("last var has not completed");
+//        delete _var;
+//    }
+//
+//    _var = new Variate(_SCOPE_);
+//
+//    IType* varType = utility::FindType(_SCOPE_, type);
+//    if (varType == nullptr)
+//    {
+//        _driver.Error("var type:{0} name:{1}, type is not defined", type, name);
+//        return;
+//    }
+//
+//    if (varType == _SCOPE_->BindType())
+//    {
+//        _driver.Error("current type:{0} is not completed", type);
+//        return;
+//    }
+//
+//    _var->SetType(varType);
+//    _var->SetName(name);
+//}
+//
+//void Context::OnVariateValue(RawCategory raw, const std::string& value)
+//{
+//    assert(_var);
+//
+//    IValue* val = nullptr;
+//    // string need remove the first and end /"
+//    if (raw == RawCategory::String)
+//        val = value_util::Create(raw, value.substr(1, value.length() - 2));
+//    else
+//        val = value_util::Create(raw, value);
+//
+//    if (val == nullptr || !_var->BindValue(val))
+//        _driver.Error("convert value:{0} to raw:{1} failed", value, raw);
+//}
+//
+//void Context::OnVariateValue(const std::string& refer)
+//{
+//    assert(_var);
+//
+//    IVariate* ref = utility::FindVar(_SCOPE_, refer);
+//    if (ref == nullptr)
+//    {
+//        _driver.Error("can not find reference value:{0}", refer);
+//        return;
+//    }
+//
+//    if (!ref->IsConst())
+//    {
+//        _driver.Error("reference value:{0} must be constant", refer);
+//    }
+//
+//    IValue* val = value_util::Create(ref);
+//    if (!_var->BindValue(val))
+//    {
+//        _driver.Error("bind variate failed");
+//        delete val;
+//    }
+//}
+//
+//void Context::OnVariateArray()
+//{
+//    UpgradeArray(0);
+//}
+//
+//void Context::OnVariateArrayLength(const std::string& length)
+//{
+//    int len = 0;
+//    if (!utility::Convert(length, len))
+//        _driver.Error("convert array length[{0}] to length failed", length);
+//    else if (len <= 0)
+//        _driver.Warning("array with length is {0}", len);
+//
+//    UpgradeArray(len);
+//}
+//
+//void Context::OnVariateArrayRefer(const std::string& refer)
+//{
+//    int len = 0;
+//    IVariate* var = utility::FindVar(_SCOPE_, refer);
+//    if (var == nullptr)
+//        _driver.Error("can not find any var with name:{0}", refer);
+//    else if (!value_util::Value(var->Value(), len))
+//        _driver.Error("var with name:{0} cant not convert to length", refer);
+//    else if (len <= 0)
+//        _driver.Warning("array with length is {0}", len);
+//
+//    UpgradeArray(len);
+//}
+//
+//void Context::OnVariateConst()
+//{
+//    assert(_var);
+//
+//    IType* type = _var->Type();
+//    if (type == nullptr)
+//    {
+//        _driver.Error("current variate is invalid var:{0}", _var->Name());
+//        return;
+//    }
+//
+//    if (type->TypeCat() != TypeCategory::Raw)
+//    {
+//        _driver.Error("only raw type variate can be const, var:{0} type:{1}", _var->Name(), type->Name());
+//        return;
+//    }
+//
+//    _var->SetConst();
+//}
+//
+//void Context::OnVariateDesc(const std::string& desc)
+//{
+//    assert(_var);
+//    _var->SetDesc(utility::Replace(utility::Trim(desc, " \t"), "\t", " "));
+//}
+//
+//void Context::OnVariateEnd()
+//{
+//    assert(_var);
+//
+//    std::auto_ptr<Variate> var(_var);
+//    _var = nullptr;
+//
+//    if (var->Type() == nullptr)
+//        return;
+//
+//    if (_SCOPE_->VarSet() == nullptr)
+//    {
+//        _driver.Error("current scope does not allow declare variate scope:{0} var:{1}", _SCOPE_->Name(), var->Name());
+//        return;
+//    }
+//
+//    if (_SCOPE_->GetElement(var->Name()))
+//    {
+//        _driver.Error("var name:{0} conflict", var->Name());
+//        return;
+//    }
+//
+//    if (!_SCOPE_->VarSet()->Add(var.get()))
+//    {
+//        _driver.Error("var name:{0} conflict", var->Name());
+//        return;
+//    }
+//
+//    if (!IsTypeScope())
+//    {
+//        _stackFile.back()->Add(var.get());
+//        _mergeFile->Add(var.get());
+//    }
+//
+//    var.release();
+//}
 
-void Context::OnVariateBegin(const std::string& type, const std::string& name)
+void Context::OnVariate(const std::string& name)
 {
-    if (_var)
+    if (_data.type == nullptr)
     {
-        _driver.Error("last var has not completed");
-        delete _var;
+        // error
     }
 
-    _var = new Variate(_SCOPE_);
+    // check whether value match type
 
-    IType* varType = utility::FindType(_SCOPE_, type);
-    if (varType == nullptr)
+    if (_SCOPE_->VarSet() == nullptr)
     {
-        _driver.Error("var type:{0} name:{1}, type is not defined", type, name);
-        return;
+        // error
     }
 
-    if (varType == _SCOPE_->BindType())
-    {
-        _driver.Error("current type:{0} is not completed", type);
-        return;
-    }
+    Variate* var = new Variate(name, _SCOPE_);
+    var->SetType(_data.type);
+    var->BindValue(_data.value);
+    var->SetDesc(_data.desc);
+    if (_data.isConst)
+        var->SetConst();
 
-    _var->SetType(varType);
-    _var->SetName(name);
+    _SCOPE_->VarSet()->Add(var);
+
+    _data.desc = "";
+    _data.isConst = false;
+    _data.type = nullptr;
+    _data.value = nullptr;
 }
 
-void Context::OnVariateValue(RawCategory raw, const std::string& value)
+void Context::SetConst()
 {
-    assert(_var);
-
-    IValue* val = nullptr;
-    // string need remove the first and end /"
-    if (raw == RawCategory::String)
-        val = value_util::Create(raw, value.substr(1, value.length() - 2));
-    else
-        val = value_util::Create(raw, value);
-
-    if (val == nullptr || !_var->BindValue(val))
-        _driver.Error("convert value:{0} to raw:{1} failed", value, raw);
+    assert(_data.isConst == false);
+    _data.isConst = true;
 }
 
-void Context::OnVariateValue(const std::string& refer)
+void Context::SetDesc(const std::string& desc)
 {
-    assert(_var);
-
-    IVariate* ref = utility::FindVar(_SCOPE_, refer);
-    if (ref == nullptr)
-    {
-        _driver.Error("can not find reference value:{0}", refer);
-        return;
-    }
-
-    if (!ref->IsConst())
-    {
-        _driver.Error("reference value:{0} must be constant", refer);
-    }
-
-    IValue* val = value_util::Create(ref);
-    if (!_var->BindValue(val))
-    {
-        _driver.Error("bind variate failed");
-        delete val;
-    }
+    _data.desc = desc;
 }
 
-void Context::OnVariateArray()
+void Context::SetType(RawCategory raw)
+{
+    assert(_data.type == nullptr);
+
+    _data.type = GetType(raw);
+    if (_data.type == nullptr)
+        _driver.Error("Can't find Raw type:{0}", raw);
+}
+
+void Context::SetType(const std::string& type)
+{
+    assert(_data.type == nullptr);
+
+    _data.type  = utility::FindType(_SCOPE_, type);
+    if (_data.type == nullptr)
+        _driver.Error("Can't find type type:{0}", type);
+}
+
+void Context::SetArray()
 {
     UpgradeArray(0);
 }
 
-void Context::OnVariateArrayLength(const std::string& length)
+void Context::SetArrayLength(const std::string& length)
 {
     int len = 0;
     if (!utility::Convert(length, len))
@@ -427,7 +635,7 @@ void Context::OnVariateArrayLength(const std::string& length)
     UpgradeArray(len);
 }
 
-void Context::OnVariateArrayRefer(const std::string& refer)
+void Context::SetArrayRefer(const std::string& refer)
 {
     int len = 0;
     IVariate* var = utility::FindVar(_SCOPE_, refer);
@@ -441,67 +649,67 @@ void Context::OnVariateArrayRefer(const std::string& refer)
     UpgradeArray(len);
 }
 
-void Context::OnVariateConst()
+void Context::SetValue(RawCategory raw, const std::string& value)
 {
-    assert(_var);
+    assert(_data.value == nullptr);
 
-    IType* type = _var->Type();
-    if (type == nullptr)
+    IType* type = _data.type;
+    if (type->TypeCat() == TypeCategory::Array)
+        type = static_cast<IArrayType*>(type)->Original();
+
+    if (
+        type->TypeCat() != TypeCategory::Raw
+        || static_cast<IRawType*>(type)->RawCat() != raw
+        )
     {
-        _driver.Error("current variate is invalid var:{0}", _var->Name());
+        _driver.Error("current type:{0} cant not match value:{1}", type->Name(), value);
         return;
     }
 
-    if (type->TypeCat() != TypeCategory::Raw)
-    {
-        _driver.Error("only raw type variate can be const, var:{0} type:{1}", _var->Name(), type->Name());
-        return;
-    }
+    if (raw == RawCategory::String)
+        _data.value = value_util::Create(raw, value.substr(1, value.length() - 2));
+    else
+        _data.value = value_util::Create(raw, value);
 
-    _var->SetConst();
+    if (_data.value == nullptr)
+        _driver.Error("create with type:{0} value:{1} failed", raw, value);
 }
 
-void Context::OnVariateDesc(const std::string& desc)
+void Context::SetValue(const std::string& refer)
 {
-    assert(_var);
-    _var->SetDesc(utility::Replace(utility::Trim(desc, " \t"), "\t", " "));
-}
+    assert(_data.value == nullptr);
 
-void Context::OnVariateEnd()
-{
-    assert(_var);
-
-    std::auto_ptr<Variate> var(_var);
-    _var = nullptr;
-
-    if (var->Type() == nullptr)
-        return;
-
-    if (_SCOPE_->VarSet() == nullptr)
+    IVariate* ref = utility::FindVar(_SCOPE_, refer);
+    if (ref == nullptr)
     {
-        _driver.Error("current scope does not allow declare variate scope:{0} var:{1}", _SCOPE_->Name(), var->Name());
+        _driver.Error("can not find reference value:{0}", refer);
         return;
     }
 
-    if (_SCOPE_->GetElement(var->Name()))
+    if (!ref->IsConst())
     {
-        _driver.Error("var name:{0} conflict", var->Name());
+        _driver.Error("reference value:{0} must be constant", refer);
+    }
+
+    if (_data.type == nullptr)
+    {
+        _driver.Error("current type is empty value:{0}", refer);
         return;
     }
 
-    if (!_SCOPE_->VarSet()->Add(var.get()))
+    IType* type = _data.type;
+    if (type->TypeCat() == TypeCategory::Array)
+        type = static_cast<IArrayType*>(type)->Original();
+
+    if (ref->Type() != type)
     {
-        _driver.Error("var name:{0} conflict", var->Name());
+        _driver.Error("current type:{0} cant not match value:{1}", type->Name(), refer);
         return;
     }
 
-    if (!IsTypeScope())
-    {
-        _stackFile.back()->Add(var.get());
-        _mergeFile->Add(var.get());
-    }
-
-    var.release();
+    _data.value = value_util::Create(ref);
+    if (_data.value == nullptr)
+        _driver.Error("create reference value:{0} failed", refer);
 }
 
 IVariate* Context::AddEnumMember(const std::string& name)
@@ -533,23 +741,18 @@ IVariate* Context::AddEnumMember(const std::string& name)
 
 void Context::UpgradeArray(int length)
 {
-    assert(_var);
-    if (_var->Type() == nullptr)
-        return; // invalid variate
+    assert(_data.type);
 
-    if (_var->Type()->TypeCat() == TypeCategory::Array)
-    {
-        _driver.Error("var:{0} does not support multi dimensional array", _var->Name());
-        return;
-    }
+    //if (_var->Type()->TypeCat() == TypeCategory::Array)
+    //{
+    //    _driver.Error("does not support multi dimensional array");
+    //    return;
+    //}
 
     if (length < 0)
-    {
-        _driver.Error("array length:[{0}] not allow less 0", length);
         length = 0;
-    }
 
-    _var->UpgradeArray(length);
+    _data.type = new ArrayType(_data.type, length);
 }
 
 std::string Context::ConflictName(const std::string& name) const
@@ -615,6 +818,16 @@ bool Context::TabVarChecker(const std::string& path, IVariate* var)
         });
     }
     return true;
+}
+
+void Context::OnCommonBegin()
+{
+
+}
+
+void Context::OnCommonEnd()
+{
+
 }
 
 CFG_NAMESPACE_END

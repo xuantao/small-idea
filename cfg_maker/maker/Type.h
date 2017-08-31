@@ -191,7 +191,6 @@ public:
 
 protected:
     std::string _name;
-    ITypeSet* _tySet = nullptr;
     IScope* _owner = nullptr;
     IScope* _scope = nullptr;
 };

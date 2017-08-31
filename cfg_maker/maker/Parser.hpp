@@ -249,9 +249,6 @@ namespace  cfg  {
       // "0.0f"
       // "empty"
       // "desc"
-      // BoolValue
-      // IntValue
-      // FloatValue
       // RefName
       char dummy1[sizeof(std::string)];
 };
@@ -302,13 +299,15 @@ namespace  cfg  {
         TOK_FLOAT = 265,
         TOK_STRING = 266,
         TOK_NAMESPACE = 267,
-        TOK_IDENTIFIER = 268,
-        TOK_VALUE_TRUE = 269,
-        TOK_VALUE_FALSE = 270,
-        TOK_VALUE_INT = 271,
-        TOK_VALUE_FLOAT = 272,
-        TOK_VALUE_STRING = 273,
-        TOK_VALUE_DESC = 274
+        TOK_VOID = 268,
+        TOK_MODULE = 269,
+        TOK_IDENTIFIER = 270,
+        TOK_VALUE_TRUE = 271,
+        TOK_VALUE_FALSE = 272,
+        TOK_VALUE_INT = 273,
+        TOK_VALUE_FLOAT = 274,
+        TOK_VALUE_STRING = 275,
+        TOK_VALUE_DESC = 276
       };
     };
 
@@ -509,6 +508,14 @@ namespace  cfg  {
 
     static inline
     symbol_type
+    make_VOID (const location_type& l);
+
+    static inline
+    symbol_type
+    make_MODULE (const location_type& l);
+
+    static inline
+    symbol_type
     make_IDENTIFIER (const std::string& v, const location_type& l);
 
     static inline
@@ -602,7 +609,7 @@ namespace  cfg  {
     // Tables.
   // YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
   // STATE-NUM.
-  static const short int yypact_[];
+  static const signed char yypact_[];
 
   // YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
   // Performed when YYTABLE does not specify something else to do.  Zero
@@ -610,17 +617,17 @@ namespace  cfg  {
   static const unsigned char yydefact_[];
 
   // YYPGOTO[NTERM-NUM].
-  static const short int yypgoto_[];
+  static const signed char yypgoto_[];
 
   // YYDEFGOTO[NTERM-NUM].
-  static const short int yydefgoto_[];
+  static const signed char yydefgoto_[];
 
   // YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
   // positive, shift that token.  If negative, reduce the rule whose
   // number is the opposite.  If YYTABLE_NINF, syntax error.
-  static const unsigned char yytable_[];
+  static const short int yytable_[];
 
-  static const short int yycheck_[];
+  static const unsigned char yycheck_[];
 
   // YYSTOS[STATE-NUM] -- The (internal number of the) accessing
   // symbol of state STATE-NUM.
@@ -641,7 +648,7 @@ namespace  cfg  {
     static const char* const yytname_[];
 #if YYDEBUG
   // YYRLINE[YYN] -- Source line where rule number YYN was defined.
-  static const unsigned short int yyrline_[];
+  static const unsigned char yyrline_[];
     /// Report on the debug stream that the rule \a r is going to be reduced.
     virtual void yy_reduce_print_ (int r);
     /// Print the state stack on the debug stream.
@@ -735,13 +742,13 @@ namespace  cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 184,           //< Last index in yytable_.
-      yynnts_ = 45,  //< Number of nonterminal symbols.
+      yylast_ = 118,           //< Last index in yytable_.
+      yynnts_ = 38,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
-      yyntokens_ = 35    //< Number of tokens.
+      yyntokens_ = 37    //< Number of tokens.
     };
 
 
@@ -785,9 +792,9 @@ namespace  cfg  {
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,    18,    19,
       20,    21,    22,    23,    24,    25,    26,    27,    28,    29,
-      30,    31,    32,    33,    34
+      30,    31,    32,    33,    34,    35,    36
     };
-    const unsigned int user_token_number_max_ = 274;
+    const unsigned int user_token_number_max_ = 276;
     const token_number_type undef_token_ = 2;
 
     if (static_cast<int>(t) <= yyeof_)
@@ -820,17 +827,14 @@ namespace  cfg  {
   {
       switch (other.type_get ())
     {
-      case 28: // "identifier"
-      case 29: // "true"
-      case 30: // "false"
-      case 31: // "0"
-      case 32: // "0.0f"
-      case 33: // "empty"
-      case 34: // "desc"
-      case 76: // BoolValue
-      case 77: // IntValue
-      case 78: // FloatValue
-      case 79: // RefName
+      case 30: // "identifier"
+      case 31: // "true"
+      case 32: // "false"
+      case 33: // "0"
+      case 34: // "0.0f"
+      case 35: // "empty"
+      case 36: // "desc"
+      case 69: // RefName
         value.copy< std::string > (other.value);
         break;
 
@@ -851,17 +855,14 @@ namespace  cfg  {
     (void) v;
       switch (this->type_get ())
     {
-      case 28: // "identifier"
-      case 29: // "true"
-      case 30: // "false"
-      case 31: // "0"
-      case 32: // "0.0f"
-      case 33: // "empty"
-      case 34: // "desc"
-      case 76: // BoolValue
-      case 77: // IntValue
-      case 78: // FloatValue
-      case 79: // RefName
+      case 30: // "identifier"
+      case 31: // "true"
+      case 32: // "false"
+      case 33: // "0"
+      case 34: // "0.0f"
+      case 35: // "empty"
+      case 36: // "desc"
+      case 69: // RefName
         value.copy< std::string > (v);
         break;
 
@@ -903,17 +904,14 @@ namespace  cfg  {
     // Type destructor.
     switch (yytype)
     {
-      case 28: // "identifier"
-      case 29: // "true"
-      case 30: // "false"
-      case 31: // "0"
-      case 32: // "0.0f"
-      case 33: // "empty"
-      case 34: // "desc"
-      case 76: // BoolValue
-      case 77: // IntValue
-      case 78: // FloatValue
-      case 79: // RefName
+      case 30: // "identifier"
+      case 31: // "true"
+      case 32: // "false"
+      case 33: // "0"
+      case 34: // "0.0f"
+      case 35: // "empty"
+      case 36: // "desc"
+      case 69: // RefName
         value.template destroy< std::string > ();
         break;
 
@@ -931,17 +929,14 @@ namespace  cfg  {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 28: // "identifier"
-      case 29: // "true"
-      case 30: // "false"
-      case 31: // "0"
-      case 32: // "0.0f"
-      case 33: // "empty"
-      case 34: // "desc"
-      case 76: // BoolValue
-      case 77: // IntValue
-      case 78: // FloatValue
-      case 79: // RefName
+      case 30: // "identifier"
+      case 31: // "true"
+      case 32: // "false"
+      case 33: // "0"
+      case 34: // "0.0f"
+      case 35: // "empty"
+      case 36: // "desc"
+      case 69: // RefName
         value.move< std::string > (s.value);
         break;
 
@@ -996,7 +991,7 @@ namespace  cfg  {
        0,   256,   257,    40,    41,    42,    43,    44,    45,    46,
       47,    58,    59,    61,    91,    93,   123,   125,   258,   259,
      260,   261,   262,   263,   264,   265,   266,   267,   268,   269,
-     270,   271,   272,   273,   274
+     270,   271,   272,   273,   274,   275,   276
     };
     return static_cast<token_type> (yytoken_number_[type]);
   }
@@ -1184,6 +1179,20 @@ namespace  cfg  {
   }
 
    Parser ::symbol_type
+   Parser ::make_VOID (const location_type& l)
+  {
+    return symbol_type (token::TOK_VOID, l);
+
+  }
+
+   Parser ::symbol_type
+   Parser ::make_MODULE (const location_type& l)
+  {
+    return symbol_type (token::TOK_MODULE, l);
+
+  }
+
+   Parser ::symbol_type
    Parser ::make_IDENTIFIER (const std::string& v, const location_type& l)
   {
     return symbol_type (token::TOK_IDENTIFIER, v, l);
@@ -1235,7 +1244,7 @@ namespace  cfg  {
 
 #line 11 "./fb/parser.y" // lalr1.cc:371
 } //  cfg 
-#line 1239 "Parser.hpp" // lalr1.cc:371
+#line 1248 "Parser.hpp" // lalr1.cc:371
 
 
 

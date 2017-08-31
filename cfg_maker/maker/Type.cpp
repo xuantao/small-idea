@@ -111,13 +111,15 @@ Function::Function(const std::string& name, IType* ret, IScope* owner)
     , _owner(owner)
 {
     NormalScope* scope = new NormalScope(name, owner);
-    scope->TypeSet(new ModuleSetType());
+    scope->VarSet(new VarSetNormal());
     _scope = scope;
 }
 
 Function::~Function()
 {
-    delete _scope->TypeSet();
+    delete _scope->VarSet();
+    delete _scope;
+    _scope = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -184,4 +186,20 @@ Namespace::~Namespace()
     _owner = nullptr;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Module
+Module::Module(const std::string& name, IScope* owner)
+    : _name(name), _owner(owner)
+{
+    NormalScope* scope = new NormalScope(name, owner);
+    scope->TypeSet(new ModuleSetType());
+    _scope = scope;
+}
+
+Module::~Module()
+{
+    delete _scope->TypeSet();
+    delete _scope;
+    _scope = nullptr;
+}
 CFG_NAMESPACE_END

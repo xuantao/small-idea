@@ -81,7 +81,7 @@ static cfg::Parser::symbol_type yylex(cfg::Driver& driver)
 %token <std::string> VALUE_STRING   "empty"
 %token <std::string> VALUE_DESC     "desc"
 
-%type <std::string> BoolValue IntValue FloatValue RefName
+%type <std::string> RefName Variate
 
 //%printer { yyoutput << $$; }
 
@@ -94,22 +94,12 @@ Program : /* empty */           { }
         | Program ConstValue    { }
         | Program EnumDecl      { }
         | Program StructDecl    { }
+        | Program ModuleDecl    { }
         | Program NsDecl        { }
         ;
 
 /* const value */
-ConstValue  : ConstVal_1            { CONTEXT.OnVariateEnd(); }
-            ;
-ConstVal_1  : ConstVal_2            { }
-            | ConstVal_2 VALUE_DESC { CONTEXT.OnVariateDesc($2); }
-            ;
-ConstVal_2  : ConstVal_3 S_SEMICOLON        { }
-            | CONST ConstVal_3 S_SEMICOLON  { CONTEXT.OnVariateConst(); }
-            ;
-ConstVal_3  : DefBool S_ASSIGN BoolValue        { CONTEXT.OnVariateValue(RawCategory::Bool, $3); }
-            | DefInt S_ASSIGN IntValue          { CONTEXT.OnVariateValue(RawCategory::Int, $3); }
-            | DefFloat S_ASSIGN FloatValue      { CONTEXT.OnVariateValue(RawCategory::Float, $3); }
-            | DefString S_ASSIGN VALUE_STRING   { CONTEXT.OnVariateValue(RawCategory::String, $3); }
+ConstValue  : VarConst Variate VarDesc      { CONTEXT.OnVariate(); }
             ;
 
  /* name space */
@@ -127,6 +117,7 @@ NsDetail    : /* empty */           { }
             | NsDetail EnumDecl     { }
             | NsDetail StructDecl   { }
             | NsDetail NsDecl       { }
+            | NsDetail ModuleDecl   { }
             ;
 
 /* enum declear */
@@ -148,9 +139,10 @@ EnumMember  : /* empty */                       { }
 _EnumMem    : _EnumVar                          { /* empty */ }
             | _EnumMem S_COMMA _EnumVar         { /* empty */ }
 
-_EnumVar    : IDENTIFIER                        { CONTEXT.OnEnumMember($1); }
-            | IDENTIFIER S_ASSIGN IntValue      { CONTEXT.OnEnumMemberValue($1, $3); }
-            | IDENTIFIER S_ASSIGN RefName       { CONTEXT.OnEnumMemberRefer($1, $3); }
+_EnumVar    : IDENTIFIER                            { CONTEXT.OnEnumMember($1); }
+            | IDENTIFIER S_ASSIGN VALUE_INT         { CONTEXT.OnEnumMemberValue($1, $3); }
+            | IDENTIFIER S_ASSIGN S_MINUS VALUE_INT { CONTEXT.OnEnumMemberValue($1, "-" + $4); }
+            | IDENTIFIER S_ASSIGN RefName           { CONTEXT.OnEnumMemberRefer($1, $3); }
             ;
 
 /* structure declear */
@@ -180,17 +172,17 @@ StyDetail   : /* empty */           { }
             | StyDetail StyInner    { }
             ;
 
-StyMember   : VarDecl   { }
+StyMember   : VarConst Variate VarDesc  { CONTEXT.OnVariate($2); }
             ;
 
 StyInner    : StyBegin StyDetail StyEnd { }
             ;
 
-/* structure declear */
+/* module declear */
 ModuleDecl  : ModuleBegin ModuleFunc ModuleEnd  { }
             ;
 
-ModuleBegin : MODULE IDENTIFIER S_LBRACE    { CONTEXT.OnModuleBegin($2) }
+ModuleBegin : MODULE IDENTIFIER S_LBRACE    { CONTEXT.OnModuleBegin($2); }
             ;
 
 ModuleEnd   : S_RBRACE                  { CONTEXT.OnModuleEnd(); }
@@ -201,8 +193,8 @@ ModuleFunc  :  /* empty */           { }
             | ModuleFunc FuncBegin FuncParam FuncEnd { }
             ;
 
-FuncBegin   : VOID IDENTIFIER S_LPAREN          { CONTEXT.OnFuncBegin($2); }
-            | IDENTIFIER IDENTIFIER S_LPAREN    { CONTEXT.OnFuncBegin($1, $2); }
+FuncBegin   : VOID IDENTIFIER S_LPAREN    { CONTEXT.OnFuncBegin($2); }
+            | Type IDENTIFIER S_LPAREN    { CONTEXT.OnFuncBegin($2); }
             ;
 
 FuncEnd     : S_RPAREN              { CONTEXT.OnFuncEnd(); }
@@ -210,108 +202,54 @@ FuncEnd     : S_RPAREN              { CONTEXT.OnFuncEnd(); }
             ;
 
 FuncParam   : /* empty */           { }
-            | FuncParam FuncVar     { }
+            | FuncParam FuncParam1  { }
             ;
 
-FuncVar     : FuncVarDef                    { /* empty */ }
-            | FuncVar S_COMMA FuncVarDef    { /* empty */ }
-            ;
-
-FuncVarDef  : DefBool                       { }
-            | DefBool Array                 { }
-            | DefInt                        { }
-            | DefInt Array                  { }
-            | DefFloat                      { }
-            | DefFloat Array                { }
-            | DefString                     { }
-            | DefString Array               { }
-            | DefCustom                     { }
-            | DefCustom Array               { }
+FuncParam1  : Variate                       { CONTEXT.OnVariate($1); }
+            | FuncParam1 S_COMMA Variate    { CONTEXT.OnVariate($3); }
             ;
 
 /* common detect */
-VarDecl     : VarDecl_1                     { CONTEXT.OnVariateEnd(); }
+VarConst    : /* empty */   { }
+            | CONST         { CONTEXT.SetConst(); }
             ;
-VarDecl_1   : VarDecl_2                     { }
-            | VarDecl_2 VALUE_DESC          { CONTEXT.OnVariateDesc($2); }
-            ;
-VarDecl_2   : VarDetail S_SEMICOLON         { }
-            | CONST VarDetail S_SEMICOLON   { CONTEXT.OnVariateConst(); }
-            ;
-
-VarDetail   : DefBool                       { }
-            | DefBool AssignBool            { }
-            | DefBool Array                 { }
-            | DefBool Array AssignBool      { }
-            | DefInt                        { }
-            | DefInt AssignInt              { }
-            | DefInt Array                  { }
-            | DefInt Array AssignInt        { }
-            | DefFloat                      { }
-            | DefFloat AssignFloat          { }
-            | DefFloat Array                { }
-            | DefFloat Array AssignFloat    { }
-            | DefString                     { }
-            | DefString AssignStr           { }
-            | DefString Array               { }
-            | DefString Array AssignStr     { }
-            | DefCustom                     { }
-            | DefCustom AssignRefer         { }
-            | DefCustom Array               { }
-            | DefCustom Array AssignRefer   { }
-            ;
-
-DefCustom   : RefName IDENTIFIER    { CONTEXT.OnVariateBegin($1, $2); }
-            ;
-DefBool     : BOOL IDENTIFIER       { CONTEXT.OnVariateBegin(TYPE_BOOL, $2); }
-            ;
-DefInt      : INT IDENTIFIER        { CONTEXT.OnVariateBegin(TYPE_INT, $2); }
-            ;
-DefFloat    : FLOAT IDENTIFIER      { CONTEXT.OnVariateBegin(TYPE_FLOAT, $2); }
-            ;
-DefString   : STRING IDENTIFIER     { CONTEXT.OnVariateBegin(TYPE_STRING, $2); }
-            ;
-
-AssignRefer : S_ASSIGN RefName      {  CONTEXT.OnVariateValue($2); }
-            ;
-AssignBool  : S_ASSIGN BoolValue    { CONTEXT.OnVariateValue(RawCategory::Bool, $2); }
-            | AssignRefer           { }
-            ;
-AssignInt   : S_ASSIGN IntValue     { CONTEXT.OnVariateValue(RawCategory::Int, $2); }
-            | AssignRefer           { }
-            ;
-AssignFloat : S_ASSIGN FloatValue   { CONTEXT.OnVariateValue(RawCategory::Float, $2); }
-            | AssignRefer           { }
-            ;
-AssignStr   : S_ASSIGN VALUE_STRING { CONTEXT.OnVariateValue(RawCategory::String, $2); }
-            | AssignRefer           { }
-            ;
-
-Array       : ArrayImpl         { }
-            | Array ArrayImpl   { }
-            ;
-ArrayImpl   : S_LBRACK S_RBRACK                 { CONTEXT.OnVariateArray(); }
-            | S_LBRACK IntValue S_RBRACK        { CONTEXT.OnVariateArrayLength($2); }
-            | S_LBRACK RefName S_RBRACK         { CONTEXT.OnVariateArrayRefer($2); }
-            ;
-
-BoolValue   : VALUE_TRUE            { $$ = $1; }
-            | VALUE_FALSE           { $$ = $1; }
-            ;
-
-IntValue    : VALUE_INT             { $$ = $1; }
-            | S_MINUS VALUE_INT     { $$ = '-' + $2; }
-            ;
-
-FloatValue  : VALUE_INT             { $$ = $1; }
-            | VALUE_FLOAT           { $$ = $1; }
-            | S_MINUS VALUE_INT     { $$ = '-' + $2; }
-            | S_MINUS VALUE_FLOAT   { $$ = '-' + $2; }
+VarDesc     : /* empty */   { }
+            | VALUE_DESC    { CONTEXT.SetDesc($1); }
             ;
 
 /* gobal or enum value reference */
 RefName     : IDENTIFIER                { $$ = $1; }
             | RefName S_DOT IDENTIFIER  { $$ = $1 + '.' + $3; }
+            ;
+
+Type        : BOOL      { CONTEXT.SetType(RawCategory::Bool); }
+            | INT       { CONTEXT.SetType(RawCategory::Int); }
+            | FLOAT     { CONTEXT.SetType(RawCategory::Float); }
+            | STRING    { CONTEXT.SetType(RawCategory::String); }
+            | RefName   { CONTEXT.SetType($1); }
+            ;
+
+Value       : VALUE_TRUE            { CONTEXT.SetValue(RawCategory::Bool, $1); }
+            | VALUE_FALSE           { CONTEXT.SetValue(RawCategory::Bool, $1); }
+            | VALUE_INT             { CONTEXT.SetValue(RawCategory::Int, $1); }
+            | S_MINUS VALUE_INT     { CONTEXT.SetValue(RawCategory::Int, "-" + $2); }
+            | VALUE_FLOAT           { CONTEXT.SetValue(RawCategory::Float, $1); }
+            | S_MINUS VALUE_FLOAT   { CONTEXT.SetValue(RawCategory::Float, "-" + $2); }
+            | VALUE_STRING          { CONTEXT.SetValue(RawCategory::String, $1); }
+            | RefName               { CONTEXT.SetValue($1); }
+            ;
+
+Array22     : Array222_             { }
+            | Array22 Array222_     { }
+            ;
+Array222_   : S_LBRACK S_RBRACK             { CONTEXT.SetArray(); }
+            | S_LBRACK VALUE_INT S_RBRACK   { CONTEXT.SetArrayLength($2); }
+            | S_LBRACK RefName S_RBRACK     { CONTEXT.SetArrayRefer($2); }
+            ;
+
+Variate     : Type IDENTIFIER                   { $$= $2; }
+            | Type IDENTIFIER S_ASSIGN Value    { $$= $2; }
+            | Type IDENTIFIER Array22           { $$= $2; }
             ;
 
 %%
