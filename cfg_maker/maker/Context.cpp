@@ -20,8 +20,6 @@ static std::ostream& operator << (std::ostream& out, RawCategory raw)
 
 Context::Context(Driver& driver)
     : _driver(driver)
-    , _gloal(nullptr)
-    , _var(nullptr)
 {
     _mergeFile = new FileData("");
     _gloal = new Namespace("", nullptr);
@@ -37,9 +35,6 @@ Context::~Context()
 {
     delete _gloal;
     _gloal = nullptr;
-
-    delete _var;
-    _var = nullptr;
 
     delete _mergeFile;
     _mergeFile = nullptr;
@@ -117,6 +112,11 @@ bool Context::Export(IJsonCreater* creator, const std::string& path)
     return true;
 }
 
+bool Context::IsVarDeclaring() const
+{
+    return _data.type;
+}
+
 void Context::OnParseBegin(const std::string& file)
 {
     FileData* fd = new FileData(file);
@@ -185,12 +185,12 @@ void Context::OnModuleBegin(const std::string& name)
     Module* module = new Module(name, _SCOPE_);
     // do need a module set?
     _stackScope.push_back(module->Scope());
+
+    _modules.push_back(module);
 }
 
 void Context::OnModuleEnd()
 {
-    //assert(_SCOPE_->BindNs());
-
     _stackScope.pop_back();
 }
 

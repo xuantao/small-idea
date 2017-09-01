@@ -91,6 +91,9 @@
     <ClCompile Include="CsharpExporter.cpp">
       <Filter>src\exporter\csharp</Filter>
     </ClCompile>
+    <ClCompile Include="CppModule.cpp">
+      <Filter>src\exporter\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CfgDef.h">
@@ -167,6 +170,9 @@
     </ClInclude>
     <ClInclude Include="CsharpExporter.h">
       <Filter>src\exporter\csharp</Filter>
+    </ClInclude>
+    <ClInclude Include="CppModule.h">
+      <Filter>src\exporter\cpp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -43,7 +43,7 @@ public:
     bool Export(IJsonCreater* creator, const std::string& path);
 
 public:
-    bool IsVarDeclaring() const { return _var != nullptr; }
+    bool IsVarDeclaring() const;
 
     void OnParseBegin(const std::string& file);
     void OnParseEnd();
@@ -108,19 +108,16 @@ protected:
 
 protected:
     Driver& _driver;
-    FileData* _mergeFile;
+    FileData* _mergeFile = nullptr;
     std::vector<FileData*> _files;
     std::vector<FileData*> _stackFile;
 
     std::vector<Cfg> _tabs;
     std::vector<Cfg> _jsons;
+    std::vector<IModule*> _modules;
 
-    INamespace* _gloal;
+    INamespace* _gloal = nullptr;
     std::vector<IScope*> _stackScope;
-
-    Variate* _var;
-
-    std::map<std::string, IArrayType*> _arrayTypes;
 
     struct
     {
