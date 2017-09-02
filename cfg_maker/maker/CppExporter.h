@@ -5,30 +5,32 @@
 
 CFG_NAMESPACE_BEGIN
 
+namespace cpp
+{
+    class Declare;
+}
+
 class CppExporter : public IExporter
 {
 public:
-    struct VarData
-    {
-        std::string type;
-        std::string name;
-        std::string value;
-    };
+    static CppExporter* GetInstance();
 
 public:
     CppExporter();
-    ~CppExporter();
+    virtual ~CppExporter();
 
 public:
     virtual void OnBegin(const IScope* global, const std::string& file);
     virtual void OnEnd();
-    virtual void OnFileBegin(const std::string& file);
-    virtual void OnFileEnd();
+
     virtual void OnNsBegin(const std::string& name);
     virtual void OnNsEnd();
+
     virtual void OnInclude(const std::string& file);
+
     virtual void OnVariate(const IVariate* var);
     virtual void OnType(const IType* type);
+    virtual void OnModule(const IModule* module);
 
 protected:
     bool Declare(const IEnumType* ty);
@@ -80,6 +82,8 @@ protected:
     bool _lastIsVar;
     const IScope* _global;
     std::string _file;
+
+    cpp::Declare* _declare = nullptr;
 
     std::vector<const IEnumType*> _enums;
     std::vector<const IStructType*> _structs;

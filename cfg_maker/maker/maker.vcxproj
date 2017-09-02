@@ -146,10 +146,10 @@
   <ItemGroup>
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="CfgFlexLexer.cpp" />
+    <ClCompile Include="CppDeclare.cpp" />
     <ClCompile Include="CppExporter.cpp" />
     <ClCompile Include="CppModule.cpp" />
     <ClCompile Include="CppUtil.cpp" />
-    <ClCompile Include="CsharpExporter.cpp" />
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="FileData.cpp" />
     <ClCompile Include="JsonCreater.cpp" />
@@ -169,10 +169,14 @@
   <ItemGroup>
     <ClInclude Include="Context.h" />
     <ClInclude Include="CfgDef.h" />
+    <ClInclude Include="CppDeclare.h" />
     <ClInclude Include="CppExporter.h" />
+    <ClInclude Include="CppJson.h" />
+    <ClInclude Include="CppLogger.h" />
     <ClInclude Include="CppModule.h" />
+    <ClInclude Include="CppSerialize.h" />
+    <ClInclude Include="CppTab.h" />
     <ClInclude Include="CppUtil.h" />
-    <ClInclude Include="CsharpExporter.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="FileData.h" />
     <ClInclude Include="FlexLexer.h" />

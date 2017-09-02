@@ -9,9 +9,10 @@ CFG_NAMESPACE_BEGIN
 class RawType : public IRawType
 {
 public:
-    RawType(const std::string& name, RawCategory raw)
+    RawType(const std::string& name, RawCategory raw, IScope* owner)
         : _name(name)
         , _raw(raw)
+        , _owner(owner)
     {
     }
 
@@ -22,7 +23,7 @@ public:
     /* IType */
     virtual TypeCategory TypeCat() const { return TypeCategory::Raw; }
     virtual const std::string& Name() const { return _name; }
-    virtual IScope* Owner() const { return nullptr; }
+    virtual IScope* Owner() const { return _owner; }
     virtual IScope* Scope() const { return nullptr; }
 
     /* IRawType */
@@ -31,6 +32,7 @@ public:
 protected:
     std::string _name;
     RawCategory _raw;
+    IScope* _owner = nullptr;
 };
 
 /*
@@ -87,13 +89,12 @@ public:
 
 protected:
     std::string _name;
-    IScope* _owner;
     CfgCategory _cfg;
-    IStructType* _inherit;
+    IScope* _owner = nullptr;
+    IStructType* _inherit = nullptr;
 
-    IVarSet* _vars;
-    IScope* _scope;
-    IScope* _ownScope;
+    IScope* _scope = nullptr;
+    IScope* _ownScope = nullptr;
 };
 
 /*

@@ -99,7 +99,7 @@ Program : /* empty */           { }
         ;
 
 /* const value */
-ConstValue  : VarConst Variate VarDesc      { CONTEXT.OnVariate(); }
+ConstValue  : VarConst Variate S_SEMICOLON VarDesc      { CONTEXT.OnVariate($2); }
             ;
 
  /* name space */
@@ -172,7 +172,7 @@ StyDetail   : /* empty */           { }
             | StyDetail StyInner    { }
             ;
 
-StyMember   : VarConst Variate VarDesc  { CONTEXT.OnVariate($2); }
+StyMember   : VarConst Variate S_SEMICOLON VarDesc  { CONTEXT.OnVariate($2); }
             ;
 
 StyInner    : StyBegin StyDetail StyEnd { }

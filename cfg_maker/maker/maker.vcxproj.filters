@@ -88,10 +88,10 @@
     <ClCompile Include="Scope.cpp">
       <Filter>src\context</Filter>
     </ClCompile>
-    <ClCompile Include="CsharpExporter.cpp">
-      <Filter>src\exporter\csharp</Filter>
-    </ClCompile>
     <ClCompile Include="CppModule.cpp">
+      <Filter>src\exporter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="CppDeclare.cpp">
       <Filter>src\exporter\cpp</Filter>
     </ClCompile>
   </ItemGroup>
@@ -168,10 +168,22 @@
     <ClInclude Include="Scope.h">
       <Filter>src\context</Filter>
     </ClInclude>
-    <ClInclude Include="CsharpExporter.h">
-      <Filter>src\exporter\csharp</Filter>
-    </ClInclude>
     <ClInclude Include="CppModule.h">
+      <Filter>src\exporter\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="CppDeclare.h">
+      <Filter>src\exporter\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="CppTab.h">
+      <Filter>src\exporter\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="CppJson.h">
+      <Filter>src\exporter\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="CppLogger.h">
+      <Filter>src\exporter\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="CppSerialize.h">
       <Filter>src\exporter\cpp</Filter>
     </ClInclude>
   </ItemGroup>

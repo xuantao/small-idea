@@ -4,19 +4,46 @@
 
 CFG_NAMESPACE_BEGIN
 
-class CppModule
+namespace cpp
 {
-public:
-    CppModule();
+    class Module
+    {
+    protected:
+        Module(const IModule* module, const std::string& path, const std::string& name);
+        ~Module();
+    public:
+        static bool Export(const IModule* module, const std::string& path, const std::string& name);
 
-public:
-    void Export(const IModule* module);
+    protected:
+        bool Export();
 
-protected:
-    void DeclareFunc(const IFunction* func);
+        void CreateFile();
+        void DeclHeader();
+        void ImplCpp();
 
+        void DeclMessage();
+        void DeclExecutor();
+        void DeclInvoker();
+        void DeclProcessor();
 
-    std::ostream& Write(int tab = 0);
-};
+        void ImplInvoker();
+        void ImplInvokerFunc(IFunction* func);
+        void ImplProcessor();
+        void ImplProcessorDetail();
+        void ImplProcessorFunc(IFunction* func);
+
+        void DeclFunc(std::ostream& stream, IFunction* func, const std::string& ClassName);
+        bool NeedRef(const IType* ty) const;
+
+    protected:
+        std::string _path;
+        std::string _name;
+
+        int _tab = 0;
+        const IModule* _module = nullptr;
+        std::ostream* _header = nullptr;
+        std::ostream* _cpp = nullptr;
+    };
+}
 
 CFG_NAMESPACE_END

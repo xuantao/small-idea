@@ -299,6 +299,7 @@ public:
 
     virtual void OnVariate(const IVariate* var) = 0;
     virtual void OnType(const IType* type) = 0;
+    virtual void OnModule(const IModule* module) = 0;
 };
 
 /*

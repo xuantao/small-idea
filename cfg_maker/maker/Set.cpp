@@ -53,6 +53,71 @@ bool TypeSetNormal::Traverse(const std::function<bool(IType *)>& func) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// StructTypeSet
+StructTypeSet::StructTypeSet(IStructType* belong)
+    : _self(), _struct(belong)
+{
+}
+
+StructTypeSet::~StructTypeSet()
+{
+    _struct = nullptr;
+}
+
+IType* StructTypeSet::Get(const std::string& name) const
+{
+    IType* ty = _self.Get(name);
+    if (ty)
+        return ty;
+
+    IStructType* inherit = _struct->Inherited();
+    if (inherit && inherit->Scope() && inherit->Scope()->TypeSet())
+        ty = inherit->Scope()->TypeSet()->Get(name);
+    return ty;
+}
+
+IType* StructTypeSet::Get(int index) const
+{
+    IStructType* inherit = _struct->Inherited();
+    if (inherit && inherit->Scope() && inherit->Scope()->TypeSet())
+    {
+        ITypeSet* set = inherit->Scope()->TypeSet();
+        if (index < set->Size())
+            return set->Get(index);
+        else
+            index -= set->Size();
+    }
+
+    return _self.Get(index);
+}
+
+int StructTypeSet::Size() const
+{
+    int size = 0;
+    IStructType* inherit = _struct->Inherited();
+    if (inherit && inherit->Scope() && inherit->Scope()->TypeSet())
+        size = inherit->Scope()->TypeSet()->Size();
+    return _self.Size() + size;
+}
+
+bool StructTypeSet::Add(IType* ty)
+{
+    return _self.Add(ty);
+}
+
+bool StructTypeSet::Traverse(const std::function<bool(IType *)>& func) const
+{
+    bool needStop = true;
+    IStructType* inherit = _struct->Inherited();
+    if (inherit && inherit->Scope() && inherit->Scope()->TypeSet())
+        needStop = inherit->Scope()->TypeSet()->Traverse(func);
+
+    if (needStop)
+        needStop = _self.Traverse(func);
+    return needStop;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // function type set
 ModuleSetType::ModuleSetType() {}
 ModuleSetType::~ModuleSetType() {}

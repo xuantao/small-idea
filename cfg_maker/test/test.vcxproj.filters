@@ -30,5 +30,11 @@
     <ClInclude Include="common.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="CrossCall.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Serialize.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

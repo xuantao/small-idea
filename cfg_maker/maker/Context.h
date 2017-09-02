@@ -37,6 +37,7 @@ public:
 
     const std::vector<Cfg>& TabCfgs() const { return _tabs; }
     const std::vector<Cfg>& JsonCfgs() const { return _jsons; }
+    const std::vector<IModule*>& Modules() const { return _modules; }
 
     bool Export(IExporter* expoter, const std::string& file);
     bool Export(ITabCreater* creator, const std::string& path);

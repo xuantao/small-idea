@@ -16,7 +16,9 @@ struct CppVarData
 namespace cpp_util
 {
     std::string RawName(RawCategory raw);
+    std::string TypeName(const IType* type);
     std::string TypeName(const IScope* scope, const IType* type);
+    //std::string Value(const iv)
     std::string Value(const IScope* scope, const IType* type, const IValue* val);
 
     bool Convert(const IVariate* var, CppVarData& out);

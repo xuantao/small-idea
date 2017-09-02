@@ -42,6 +42,18 @@ namespace cpp_util
             return std::string();
     }
 
+    std::string TypeName(const IType* type)
+    {
+        if (type == nullptr)
+            return utility::EMPTY_STR;
+
+        IScope* scope = type->Owner();
+        while (scope && scope->Owner())
+            scope = scope->Owner();
+
+        return TypeName(scope, type);
+    }
+
     std::string TypeName(const IScope* scope, const IType* type)
     {
         std::string name;

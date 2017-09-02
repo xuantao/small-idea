@@ -25,10 +25,10 @@ Context::Context(Driver& driver)
     _gloal = new Namespace("", nullptr);
     _stackScope.push_back(_gloal->Scope());
 
-    _SCOPE_->TypeSet()->Add(new RawType(TYPE_BOOL, RawCategory::Bool));
-    _SCOPE_->TypeSet()->Add(new RawType(TYPE_INT, RawCategory::Int));
-    _SCOPE_->TypeSet()->Add(new RawType(TYPE_FLOAT, RawCategory::Float));
-    _SCOPE_->TypeSet()->Add(new RawType(TYPE_STRING, RawCategory::String));
+    _SCOPE_->TypeSet()->Add(new RawType(TYPE_BOOL, RawCategory::Bool, _gloal->Scope()));
+    _SCOPE_->TypeSet()->Add(new RawType(TYPE_INT, RawCategory::Int, _gloal->Scope()));
+    _SCOPE_->TypeSet()->Add(new RawType(TYPE_FLOAT, RawCategory::Float, _gloal->Scope()));
+    _SCOPE_->TypeSet()->Add(new RawType(TYPE_STRING, RawCategory::String, _gloal->Scope()));
 }
 
 Context::~Context()
@@ -187,6 +187,9 @@ void Context::OnModuleBegin(const std::string& name)
     _stackScope.push_back(module->Scope());
 
     _modules.push_back(module);
+
+    _mergeFile->Add(module);
+    _stackFile.back()->Add(module);
 }
 
 void Context::OnModuleEnd()
@@ -231,7 +234,7 @@ void Context::OnStructBegin(const std::string& name, CfgCategory cfg)
 
     StructType* sType = new StructType(newName, _SCOPE_, cfg);
     if (_SCOPE_->TypeSet() == nullptr)
-        _driver.Error("can not declare type int this scope:{0}", _SCOPE_->Name());
+        _driver.Error("can not declare type in this scope:{0}", _SCOPE_->Name());
     else
         _SCOPE_->TypeSet()->Add(sType);
 
@@ -588,6 +591,12 @@ void Context::OnVariate(const std::string& name)
     _data.isConst = false;
     _data.type = nullptr;
     _data.value = nullptr;
+
+    if (nullptr == _SCOPE_->BindType())
+    {
+        _stackFile.back()->Add(var);
+        _mergeFile->Add(var);
+    }
 }
 
 void Context::SetConst()
@@ -598,7 +607,7 @@ void Context::SetConst()
 
 void Context::SetDesc(const std::string& desc)
 {
-    _data.desc = desc;
+    _data.desc = utility::Trim(desc, " \t");
 }
 
 void Context::SetType(RawCategory raw)
@@ -662,8 +671,8 @@ void Context::SetValue(RawCategory raw, const std::string& value)
         || static_cast<IRawType*>(type)->RawCat() != raw
         )
     {
-        _driver.Error("current type:{0} cant not match value:{1}", type->Name(), value);
-        return;
+        //_driver.Error("current type:{0} cant not match value:{1}", type->Name(), value);
+        //return;
     }
 
     if (raw == RawCategory::String)
@@ -703,8 +712,8 @@ void Context::SetValue(const std::string& refer)
 
     if (ref->Type() != type)
     {
-        _driver.Error("current type:{0} cant not match value:{1}", type->Name(), refer);
-        return;
+        //_driver.Error("current type:{0} cant not match value:{1}", type->Name(), refer);
+        //return;
     }
 
     _data.value = value_util::Create(ref);

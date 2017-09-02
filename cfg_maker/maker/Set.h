@@ -24,6 +24,31 @@ private:
 };
 
 /*
+* 针对struct的成员变量集合
+* struct含有继承
+*/
+class StructTypeSet : public ITypeSet
+{
+public:
+    StructTypeSet(IStructType* belong);
+    ~StructTypeSet();
+
+public:
+    virtual IType* Get(const std::string& name) const;
+    virtual IType* Get(int index) const;
+    virtual int Size() const;
+    virtual bool Add(IType* var);
+    virtual bool Traverse(const std::function<bool(IType*)>& func) const;
+public:
+    ITypeSet* OwnTys() { return &_self; }
+    const ITypeSet* OwnTys() const { return &_self; }
+
+protected:
+    TypeSetNormal _self;
+    IStructType* _struct;
+};
+
+/*
  * function type set
  * for module
 */

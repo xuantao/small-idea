@@ -9,6 +9,7 @@ namespace detail
     {
         Type,
         Var,
+        Module,
         Include,
         NamespaceBegin,
         NamespaceEnd,
@@ -70,6 +71,9 @@ void FileData::Export(IExporter* visitor, bool merge) const
         case detail::BlockType::Type:
             visitor->OnType(static_cast<const IType*>(block->_data));
             break;
+        case detail::BlockType::Module:
+            visitor->OnModule(static_cast<const IModule*>(block->_data));
+            break;
         case detail::BlockType::Include:
             if (!merge)
                 visitor->OnInclude(block->_str);
@@ -94,6 +98,11 @@ void FileData::Add(const IType* type)
 void FileData::Add(const IVariate* var)
 {
     _blocks.push_back(new detail::FileBlock(detail::BlockType::Var, var));
+}
+
+void FileData::Add(const IModule* var)
+{
+    _blocks.push_back(new detail::FileBlock(detail::BlockType::Module, var));
 }
 
 void FileData::Inlcude(const std::string& file)

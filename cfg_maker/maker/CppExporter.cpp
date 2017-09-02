@@ -3,6 +3,8 @@
 #include "Utility.h"
 #include "CppUtil.h"
 #include "ValueUtil.h"
+#include "CppDeclare.h"
+#include "CppModule.h"
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -19,6 +21,8 @@ CFG_NAMESPACE_BEGIN
 #define _OUTS_          (*_stream)
 #define _TAB_           utility::Tab(*_stream, tab)
 #define _TAB_EX_(ex)    std::string((tab + ex) * 4, ' ')
+
+static CppExporter* _s_cppExporter = nullptr;
 
 static int sNeedTempMask(const IStructType* sType)
 {
@@ -120,10 +124,19 @@ CppExporter::CppExporter()
     , _tab(0)
     , _lastIsVar(false)
 {
+    if (_s_cppExporter == nullptr)
+        _s_cppExporter = this;
 }
 
 CppExporter::~CppExporter()
 {
+    if (_s_cppExporter == this)
+        _s_cppExporter = nullptr;
+}
+
+CppExporter* CppExporter::GetInstance()
+{
+    return _s_cppExporter;
 }
 
 void CppExporter::OnBegin(const IScope* global, const std::string& file)
@@ -131,76 +144,81 @@ void CppExporter::OnBegin(const IScope* global, const std::string& file)
     _global = global;
     _file = file;
 
-    std::ofstream* header = new std::ofstream();
-    header->open(file + ".h");
-    if (header->is_open())
-        _stream = header;
-    else
-        delete header;
+    //std::ofstream* header = new std::ofstream();
+    //header->open(file + ".h");
+    //if (header->is_open())
+    //    _stream = header;
+    //else
+    //    delete header;
 
-    _OUTS_ << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl <<
-        "#pragma once" << std::endl << std::endl <<
-        "#include <vector>" << std::endl <<
-        "#include <string>" << std::endl <<
-        "#include <array>" << std::endl <<
-        "#include <ostream>" << std::endl << std::endl;
+    //_OUTS_ << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl <<
+    //    "#pragma once" << std::endl << std::endl <<
+    //    "#include <vector>" << std::endl <<
+    //    "#include <string>" << std::endl <<
+    //    "#include <array>" << std::endl <<
+    //    "#include <ostream>" << std::endl << std::endl;
+
+
+    std::string path;
+    std::string name;
+    utility::SplitPath(file, &path, &name);
+
+    _declare = new cpp::Declare(global, path, name);
 }
 
 void CppExporter::OnEnd()
 {
+    _declare->DoExport();
+    delete _declare;
+    _declare = nullptr;
+
     // api declare
-    HeaderDeclare();
+    //HeaderDeclare();
 
-    if (_stream != _DEF_STREAM_)
-    {
-        static_cast<std::ofstream*>(_stream)->close();
-        delete _stream;
-        _stream = _DEF_STREAM_;
-    }
+    //if (_stream != _DEF_STREAM_)
+    //{
+    //    static_cast<std::ofstream*>(_stream)->close();
+    //    delete _stream;
+    //    _stream = _DEF_STREAM_;
+    //}
 
-    // build cpp file, api implementation
-    std::ofstream cpp;
-    cpp.open(_file + ".cpp");
-    if (cpp.is_open())
-        _stream = &cpp;
+    //// build cpp file, api implementation
+    //std::ofstream cpp;
+    //cpp.open(_file + ".cpp");
+    //if (cpp.is_open())
+    //    _stream = &cpp;
 
-    CppImpl();
+    //CppImpl();
 
-    _stream = _DEF_STREAM_;
-    cpp.close();
+    //_stream = _DEF_STREAM_;
+    //cpp.close();
 
-    // clear
-    _structs.clear();
-    _enums.clear();
-    _file = "";
-    _global = nullptr;
-    _tab = 0;
-    _lastIsVar = false;
-}
-
-void CppExporter::OnFileBegin(const std::string& file)
-{
-}
-
-void CppExporter::OnFileEnd()
-{
+    //// clear
+    //_structs.clear();
+    //_enums.clear();
+    //_file = "";
+    //_global = nullptr;
+    //_tab = 0;
+    //_lastIsVar = false;
 }
 
 void CppExporter::OnNsBegin(const std::string& name)
 {
-    int tab = _tab;
-    _OUTS_ <<
-        _TAB_EX_(0) << "namespace " << name << std::endl <<
-        _TAB_EX_(0) << "{" << std::endl;
-    ++_tab;
+    //int tab = _tab;
+    //_OUTS_ <<
+    //    _TAB_EX_(0) << "namespace " << name << std::endl <<
+    //    _TAB_EX_(0) << "{" << std::endl;
+    //++_tab;
+    _declare->OnNsBegin(name);
 }
 
 void CppExporter::OnNsEnd()
 {
-    --_tab;
-    int tab = _tab;
+    //--_tab;
+    //int tab = _tab;
 
-    _OUTS_ << _TAB_EX_(0) << "}" << std::endl;
+    //_OUTS_ << _TAB_EX_(0) << "}" << std::endl;
+    _declare->OnNsEnd();
 }
 
 void CppExporter::OnInclude(const std::string& file)
@@ -209,57 +227,67 @@ void CppExporter::OnInclude(const std::string& file)
 
 void CppExporter::OnVariate(const IVariate* var)
 {
-    CppVarData data;
-    if (!cpp_util::Convert(var, data))
-        return;
+    //CppVarData data;
+    //if (!cpp_util::Convert(var, data))
+    //    return;
 
-    int tab = _tab;
-    _OUTS_ <<
-        _TAB_EX_(0) << "static const " << data.type << " " << data.name;
-    if (!data.value.empty())
-        _OUTS_ << " = " << data.value;
-    _OUTS_ << ";" << std::endl;
+    //int tab = _tab;
+    //_OUTS_ <<
+    //    _TAB_EX_(0) << "static const " << data.type << " " << data.name;
+    //if (!data.value.empty())
+    //    _OUTS_ << " = " << data.value;
+    //_OUTS_ << ";" << std::endl;
 
-    _lastIsVar = true;
+    //_lastIsVar = true;
+    _declare->OnVariate(var);
 }
 
 void CppExporter::OnType(const IType* type)
 {
-    if (_lastIsVar)
-    {
-        _OUTS_ << std::endl;
-        _lastIsVar = false;
-    }
+    _declare->OnType(type);
+    //if (_lastIsVar)
+    //{
+    //    _OUTS_ << std::endl;
+    //    _lastIsVar = false;
+    //}
 
-    if (type->TypeCat() == TypeCategory::Enum)
-    {
-        const IEnumType* eType = static_cast<const IEnumType*>(type);
-        Declare(eType);
-        _enums.push_back(eType);
-    }
-    else if (type->TypeCat() == TypeCategory::Struct)
-    {
-        const IStructType* sType = static_cast<const IStructType*>(type);
-        Declare(sType);
+    //if (type->TypeCat() == TypeCategory::Enum)
+    //{
+    //    const IEnumType* eType = static_cast<const IEnumType*>(type);
+    //    Declare(eType);
+    //    _enums.push_back(eType);
+    //}
+    //else if (type->TypeCat() == TypeCategory::Struct)
+    //{
+    //    const IStructType* sType = static_cast<const IStructType*>(type);
+    //    Declare(sType);
 
-        if (sType->CfgCat() == CfgCategory::Tab)
-        {
-            GetDepends(sType, _tabDepends);
-            _tabs.push_back(sType);
-        }
-        else if (sType->CfgCat() == CfgCategory::Json)
-        {
-            GetDepends(sType, _jsonDepends);
-            _jsons.push_back(sType);;
-        }
-    }
-    else
-    {
-        std::cerr << "does not support export type:" << type->Name() << std::endl;
-        ERROR_NOT_ALLOW;
-    }
+    //    if (sType->CfgCat() == CfgCategory::Tab)
+    //    {
+    //        GetDepends(sType, _tabDepends);
+    //        _tabs.push_back(sType);
+    //    }
+    //    else if (sType->CfgCat() == CfgCategory::Json)
+    //    {
+    //        GetDepends(sType, _jsonDepends);
+    //        _jsons.push_back(sType);;
+    //    }
+    //}
+    //else
+    //{
+    //    std::cerr << "does not support export type:" << type->Name() << std::endl;
+    //    ERROR_NOT_ALLOW;
+    //}
 
-    _OUTS_ << std::endl;
+    //_OUTS_ << std::endl;
+}
+
+void CppExporter::OnModule(const IModule* module)
+{
+    std::string path;
+    std::string name;
+    utility::SplitPath(_file, &path, &name);
+    cpp::Module::Export(module, path, name);
 }
 
 bool CppExporter::Declare(const IEnumType* ty)

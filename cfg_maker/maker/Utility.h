@@ -11,6 +11,10 @@ namespace utility
     static const std::string EMPTY_STR;
     static const std::vector<std::string> EMPTY_VEC_STR;
 
+    uint32_t HashValue(const char* str);
+    uint32_t HashValue(const IType* ty);
+    uint32_t HashValue(const IModule* module);
+
     bool Convert(const std::string& str, bool& out);
     bool Convert(const std::string& str, int& out);
     bool Convert(const std::string& str, float& out);

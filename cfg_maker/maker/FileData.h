@@ -25,6 +25,7 @@ public:
 public:
     void Add(const IType* type);
     void Add(const IVariate* var);
+    void Add(const IModule* var);
 
     void Inlcude(const std::string& file);
 

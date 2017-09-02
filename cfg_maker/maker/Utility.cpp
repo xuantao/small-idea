@@ -163,6 +163,111 @@ namespace utility
         return true;
     }
 
+
+    static void Traverse(const IType* ty, std::stringstream& stream)
+    {
+        if (ty == nullptr) return;
+
+        if (ty->TypeCat() == TypeCategory::Array)
+        {
+            stream << ty->Name() << ":";
+            Traverse(((IArrayType*)ty)->Original(), stream);
+            return;
+        }
+
+        IVarSet* varSet = nullptr;
+        if (ty->TypeCat() == TypeCategory::Struct)
+        {
+            IStructType* sTy = (IStructType*)ty;
+            varSet = sTy->Scope()->VarSet();
+        }
+        else if (ty->TypeCat() == TypeCategory::Fucntion)
+        {
+            IFunction* sFunc = (IFunction*)ty;
+            Traverse(sFunc->RetType(), stream);
+            varSet = sFunc->Scope()->VarSet();
+        }
+
+        if (varSet == nullptr)
+        {
+            stream << ty->Name() << ";";
+        }
+        else
+        {
+            stream << ty->Name() << "{";
+            for (int i = 0; i < varSet->Size(); ++i)
+            {
+                IVariate* var = varSet->Get(i);
+                IType* type = var->Type();
+
+                if (ty->TypeCat() == TypeCategory::Array)
+                {
+                    stream << ty->Name() << ":";
+                    Traverse(((IArrayType*)ty)->Original(), stream);
+                }
+                else if (type->TypeCat() == TypeCategory::Struct)
+                {
+                    // 理论上不允许自己引用自己
+                    Traverse((IStructType*)type, stream);
+                }
+                else
+                {
+                    stream << type->Name() << ";";
+                }
+            }
+        }
+
+        stream << "}";
+    }
+
+    uint32_t HashValue(const char* str)
+    {
+        if (str == nullptr || *str)
+            return 0;
+
+        uint32_t value = 1315423911;
+        while (*str)
+        {
+            value ^= ((value << 5) + *str + (value >> 2));
+            ++str;
+        }
+
+        return value;
+    }
+
+    uint32_t HashValue(const IType* ty)
+    {
+        if (ty == nullptr)
+            return 0;
+        if (ty->TypeCat() == TypeCategory::Raw || ty->TypeCat() == TypeCategory::Enum)
+            return 0;
+
+        std::string str;
+        std::stringstream stream;
+
+        Traverse(ty, stream);
+        str = stream.str();
+
+        return HashValue(str.c_str());
+    }
+
+    uint32_t HashValue(const IModule* module)
+    {
+        if (module == nullptr) return 0;
+
+        std::string str;
+        std::stringstream stream;
+
+        ITypeSet* tySet = module->Scope()->TypeSet();
+        stream << module->Name() << "{";
+        for (int i = 0; i < tySet->Size(); ++i)
+            Traverse(tySet->Get(i), stream);
+        stream << "}";
+        str = stream.str();
+
+        return HashValue(str.c_str());
+    }
+
     bool Convert(const std::string& str, bool& out)
     {
         if (str == "true")

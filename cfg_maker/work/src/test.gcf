@@ -32,6 +32,12 @@ struct Struct0
  int s0a[];
  int s0b[10];
  int s0c[10];
+
+ struct Innser
+ {
+ int a;
+ int b;
+ }
 }
 
 json struct Struct1 : Struct0

@@ -250,6 +250,7 @@ namespace  cfg  {
       // "empty"
       // "desc"
       // RefName
+      // Variate
       char dummy1[sizeof(std::string)];
 };
 
@@ -627,7 +628,7 @@ namespace  cfg  {
   // number is the opposite.  If YYTABLE_NINF, syntax error.
   static const short int yytable_[];
 
-  static const unsigned char yycheck_[];
+  static const signed char yycheck_[];
 
   // YYSTOS[STATE-NUM] -- The (internal number of the) accessing
   // symbol of state STATE-NUM.
@@ -742,7 +743,7 @@ namespace  cfg  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 118,           //< Last index in yytable_.
+      yylast_ = 124,           //< Last index in yytable_.
       yynnts_ = 38,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.
@@ -835,6 +836,7 @@ namespace  cfg  {
       case 35: // "empty"
       case 36: // "desc"
       case 69: // RefName
+      case 74: // Variate
         value.copy< std::string > (other.value);
         break;
 
@@ -863,6 +865,7 @@ namespace  cfg  {
       case 35: // "empty"
       case 36: // "desc"
       case 69: // RefName
+      case 74: // Variate
         value.copy< std::string > (v);
         break;
 
@@ -912,6 +915,7 @@ namespace  cfg  {
       case 35: // "empty"
       case 36: // "desc"
       case 69: // RefName
+      case 74: // Variate
         value.template destroy< std::string > ();
         break;
 
@@ -937,6 +941,7 @@ namespace  cfg  {
       case 35: // "empty"
       case 36: // "desc"
       case 69: // RefName
+      case 74: // Variate
         value.move< std::string > (s.value);
         break;
 
@@ -1244,7 +1249,7 @@ namespace  cfg  {
 
 #line 11 "./fb/parser.y" // lalr1.cc:371
 } //  cfg 
-#line 1248 "Parser.hpp" // lalr1.cc:371
+#line 1253 "Parser.hpp" // lalr1.cc:371
 
 
 

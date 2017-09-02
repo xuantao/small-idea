@@ -39,36 +39,35 @@ StructType::StructType(const std::string& name, IScope* owner, CfgCategory cfg)
     : _name(name)
     , _owner(owner)
     , _cfg(cfg)
-    , _inherit(nullptr)
-    , _vars(nullptr)
-    , _scope(nullptr)
-    , _ownScope(nullptr)
 {
+    StructTypeSet* tySet = new StructTypeSet(this);
     StructVarSet* vars = new StructVarSet(this);
+
     NormalScope* scope = new NormalScope(name, owner);
     NormalScope* ownScope = new NormalScope(name, owner);
 
     scope->Bind(this);
+    scope->TypeSet(tySet);
     scope->VarSet(vars);
 
     ownScope->Bind(this);
+    ownScope->TypeSet(tySet->OwnTys());
     ownScope->VarSet(vars->OwnVars());
 
-    _vars = vars;
     _scope = scope;
     _ownScope = ownScope;
 }
 
 StructType::~StructType()
 {
+    delete _scope->VarSet();
+    delete _scope->TypeSet();
+
     delete _ownScope;
     _ownScope = nullptr;
 
     delete _scope;
     _scope = nullptr;
-
-    delete _vars;
-    _vars = nullptr;
 
     _owner = nullptr;
     _inherit = nullptr;
@@ -112,6 +111,7 @@ Function::Function(const std::string& name, IType* ret, IScope* owner)
 {
     NormalScope* scope = new NormalScope(name, owner);
     scope->VarSet(new VarSetNormal());
+    scope->Bind(this);
     _scope = scope;
 }
 
