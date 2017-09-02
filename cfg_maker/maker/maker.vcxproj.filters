@@ -94,6 +94,9 @@
     <ClCompile Include="CppDeclare.cpp">
       <Filter>src\exporter\cpp</Filter>
     </ClCompile>
+    <ClCompile Include="CppSerialize.cpp">
+      <Filter>src\exporter\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CfgDef.h">

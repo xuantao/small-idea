@@ -5,35 +5,53 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="src\cfg">
+      <UniqueIdentifier>{cbc388f9-f01d-45a0-8ec4-454e46e3c215}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CfgUtility.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="Cfg.cpp">
-      <Filter>src</Filter>
+      <Filter>src\cfg</Filter>
+    </ClCompile>
+    <ClCompile Include="CfgUtility.cpp">
+      <Filter>src\cfg</Filter>
+    </ClCompile>
+    <ClCompile Include="Cfg_Ser.cpp">
+      <Filter>src\cfg</Filter>
+    </ClCompile>
+    <ClCompile Include="Caller.cpp">
+      <Filter>src\cfg</Filter>
+    </ClCompile>
+    <ClCompile Include="Serialize.cpp">
+      <Filter>src\cfg</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CfgUtility.h">
-      <Filter>src</Filter>
+    <ClInclude Include="Cfg.h">
+      <Filter>src\cfg</Filter>
     </ClInclude>
     <ClInclude Include="CfgTabParser.h">
-      <Filter>src</Filter>
+      <Filter>src\cfg</Filter>
     </ClInclude>
-    <ClInclude Include="Cfg.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="common.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="CrossCall.h">
-      <Filter>src</Filter>
+    <ClInclude Include="CfgUtility.h">
+      <Filter>src\cfg</Filter>
     </ClInclude>
     <ClInclude Include="Serialize.h">
+      <Filter>src\cfg</Filter>
+    </ClInclude>
+    <ClInclude Include="Cfg_Ser.h">
+      <Filter>src\cfg</Filter>
+    </ClInclude>
+    <ClInclude Include="Caller.h">
+      <Filter>src\cfg</Filter>
+    </ClInclude>
+    <ClInclude Include="CrossCallDef.h">
+      <Filter>src\cfg</Filter>
+    </ClInclude>
+    <ClInclude Include="CrossCall.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

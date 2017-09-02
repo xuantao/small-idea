@@ -5,6 +5,7 @@
 #include "ValueUtil.h"
 #include "CppDeclare.h"
 #include "CppModule.h"
+#include "CppSerialize.h"
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -164,6 +165,9 @@ void CppExporter::OnBegin(const IScope* global, const std::string& file)
     utility::SplitPath(file, &path, &name);
 
     _declare = new cpp::Declare(global, path, name);
+
+    _serialize = new cpp::Serialize();
+    _serialize->Begin(global, path, name);
 }
 
 void CppExporter::OnEnd()
@@ -172,6 +176,9 @@ void CppExporter::OnEnd()
     delete _declare;
     _declare = nullptr;
 
+    _serialize->End();
+    delete _serialize;
+    _serialize = nullptr;
     // api declare
     //HeaderDeclare();
 
@@ -245,6 +252,7 @@ void CppExporter::OnVariate(const IVariate* var)
 void CppExporter::OnType(const IType* type)
 {
     _declare->OnType(type);
+    _serialize->OnType(type);
     //if (_lastIsVar)
     //{
     //    _OUTS_ << std::endl;

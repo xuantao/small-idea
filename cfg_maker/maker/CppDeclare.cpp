@@ -56,7 +56,7 @@ namespace cpp
     void Declare::OnNsEnd()
     {
         --_tab;
-        *_header << _TAB(0) << "}" << std::endl;
+        *_header << _TAB(0) << "}" << std::endl << std::endl;
     }
 
     void Declare::OnInclude(const std::string& file)
@@ -69,7 +69,7 @@ namespace cpp
         if (!cpp_util::Convert(var, data))
             return;
 
-        *_header << _TAB(0);
+        *_header << _TAB(0) << "extern ";
         if (var->IsConst())
             *_header << "const ";
         *_header << data.type << " " << data.name << ";" << std::endl;
@@ -132,16 +132,24 @@ namespace cpp
         const IVarSet* varSet = sType->OwnScope()->VarSet();
         const ITypeSet* tySet = sType->OwnScope()->TypeSet();
 
+        /* struct define */
+        *_header << _TAB(0) << "struct " << sType->Name();
+        if (sType->Inherited())
+            *_header << _TAB(0) << " : public " << cpp_util::TypeName(sType->Owner(), sType->Inherited());
+        *_header << std::endl << _TAB(0) << "{" << std::endl;
+
         // inner struct
         for (int i = 0; i < tySet->Size(); ++i)
         {
             ++_tab;
             Decl((IStructType*)tySet->Get(i));
             --_tab;
+            *_header << std::endl;
         }
 
+        *_header << _TAB(1) << "static const uint32_t HASH_CODE = " << utility::HashValue(sType) << ";" << std::endl;
+
         std::vector<CppVarData> vars;
-        int nConst = 0;
         for (int i = 0; i < varSet->Size(); ++i)
         {
             CppVarData data;
@@ -151,15 +159,6 @@ namespace cpp
             else
                 std::cerr << "convert var failed" << std::endl;
         }
-
-        /* struct define */
-        *_header << _TAB(0) << "struct " << sType->Name();
-        if (sType->Inherited())
-            *_header << _TAB(0) << " : public " << cpp_util::TypeName(sType->Owner(), sType->Inherited());
-        *_header << std::endl << _TAB(0) << "{" << std::endl;
-
-        *_header << _TAB(0) << "uint32_t HASH_CODE = " << utility::HashValue(sType) << ";" << std::endl;
-
         /* const values */
         for (size_t i = 0; i < vars.size(); i++)
         {
@@ -167,7 +166,6 @@ namespace cpp
             if (!data.var->IsConst())
                 continue;
 
-            ++nConst;
             *_header << _TAB(1) << "static const " << data.type << " " << data.name;
 
             IType* ty = data.var->Type();
@@ -185,7 +183,7 @@ namespace cpp
             }
         }
 
-        if (nConst) *_header << std::endl;
+        *_header << std::endl;
 
         /* member data */
         for (size_t i = 0; i < vars.size(); i++)
@@ -249,11 +247,11 @@ namespace cpp
                 !data.value.empty()
                 )
             {
-                *_header << " = ";
+                file << " = ";
                 if (!data.value.empty())
-                    *_header << data.value;
+                    file << data.value;
                 else if (type->TypeCat() == TypeCategory::Raw)
-                    *_header << value_util::DefValue(((const IRawType*)type)->RawCat());
+                    file << value_util::DefValue(((const IRawType*)type)->RawCat());
             }
 
             file << ";" << std::endl;

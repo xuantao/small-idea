@@ -17,10 +17,10 @@ enum class GlobalType
     String = 3,
 };
 
-const int g_1;
-const float f_1;
-const std::string s_1;
-const bool b_1;
+extern const int g_1;
+extern const float f_1;
+extern const std::string s_1;
+extern const bool b_1;
 
 enum class Enum1
 {
@@ -37,15 +37,19 @@ namespace Detail
     };
 
 }
+
+struct Struct0
+{
     struct Innser
     {
-    uint32_t HASH_CODE = 0;
+        static const uint32_t HASH_CODE = 0;
+
         int a = 0;
         int b = 0;
     };
-struct Struct0
-{
-uint32_t HASH_CODE = 0;
+
+    static const uint32_t HASH_CODE = 0;
+
     std::vector<int> s0a;
     std::array<int, 10> s0b;
     std::array<int, 10> s0c;
@@ -53,7 +57,8 @@ uint32_t HASH_CODE = 0;
 
 struct Struct1 : public Struct0
 {
-uint32_t HASH_CODE = 0;
+    static const uint32_t HASH_CODE = 0;
+
     int s1a = 1;
     float f1 = 0.0f;
     std::string str2 = s_1;
@@ -67,7 +72,7 @@ uint32_t HASH_CODE = 0;
 
 struct Struct2
 {
-uint32_t HASH_CODE = 0;
+    static const uint32_t HASH_CODE = 0;
     static const int MAX = 100;
 
     int a = 1;
@@ -91,10 +96,11 @@ enum class Wtf
 
 struct Sr3
 {
-uint32_t HASH_CODE = 0;
+    static const uint32_t HASH_CODE = 0;
+
     int ID = 0; //< 模板ID
     int StageID = 0; //< 关卡ID
     std::string Name; //< 名称
 };
 
- = 1 = 0.0f = "xuantao" = true
+

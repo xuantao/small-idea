@@ -5,8 +5,9 @@
 #pragma once
 
 #include "Cfg.h"
+#include "CrossCallDef.h"
 
-class Invoker
+class Caller
 {
 public:
     static const uint32_t MODULE_ID = 1;
@@ -15,14 +16,14 @@ public:
     enum class Message
     {
         Invalid,
-        Call_A,
-        Call_B,
+        Msg_Call_A,
+        Msg_Call_B,
     };
 
     class IExecutor
     {
     public:
-        virtual IExecutor() {}
+        virtual ~IExecutor() {}
 
     public:
         virtual void Call_A(int a, int b) = 0;
@@ -32,17 +33,17 @@ public:
     class Invoker
     {
     public:
-        Invoker(ICrossCaller* caller) : _caller(caller)
+        Invoker(cross_call::ICrossCaller* caller) : _caller(caller)
         { }
 
     public:
         void Call_A(int a, int b);
         int Call_B(const std::string& str);
     protected:
-        ICrossCaller* _caller = nullptr;
+        cross_call::ICrossCaller* _caller = nullptr;
     };
 
-    class Processor : public IProcessor
+    class Processor : public cross_call::IProcessor
     {
     public:
         Processor(IExecutor* executor) : _executor(executor)
@@ -50,13 +51,13 @@ public:
         virtual ~Processor() { }
 
     public:
-        virtual int GetModuleID() const { return MODULE_ID; }
-        virtual int GetHashCode() const { return HASH_CODE; }
-        virtual void Process(IReader* reader, IWriter* writer)
+        virtual uint32_t GetModuleID() const { return MODULE_ID; }
+        virtual uint32_t GetHashCode() const { return HASH_CODE; }
+        virtual void Process(serialize::IReader* reader, serialize::IWriter* writer);
 
     protected:
-        void OnCall_A(IReader* reader, IWriter* writer);
-        void OnCall_B(IReader* reader, IWriter* writer);
+        void OnCall_A(serialize::IReader* reader, serialize::IWriter* writer);
+        void OnCall_B(serialize::IReader* reader, serialize::IWriter* writer);
     protected:
         IExecutor* _executor = nullptr;
     };

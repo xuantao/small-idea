@@ -1,7 +1,5 @@
-﻿#include <stdio.h>
-#include "CfgTabParser.h"
-#include "Cfg.h"
-#include "CfgUtility.h"
+﻿#include "Caller.h"
+#include <stdio.h>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -9,38 +7,27 @@
 #include <map>
 #include <sstream>
 
-using namespace cfg;
-
-template <class Ty>
-void print(std::vector<Ty>& vec)
+class Exe : public Caller::IExecutor
 {
-    printf("std::vector\n");
-}
+public:
+    virtual ~Exe() {}
 
-template <class Ty, size_t N>
-void print(std::array<Ty, N>& arr)
-{
-    printf("std::array\n");
-}
+public:
+    virtual void Call_A(int a, int b)
+    {
+        printf("call_a(a:%d, b%d)\n", a, b);
+    }
 
-enum class TestConvert
-{
-    A,
-    B,
+    virtual int Call_B(const std::string& str)
+    {
+        printf("call_b(str:%s)\n", str.c_str());
+        return 101;
+    }
 };
 
 int main(int argc, char* argv[])
 {
-    std::vector<int> vec;
-    std::array<int, 10> arr;
 
-    print(vec);
-    print(arr);
-
-    TestConvert tc;
-    int& temp = (int&)tc;
-
-    temp = (int)TestConvert::B;
 
     return 1;
 }

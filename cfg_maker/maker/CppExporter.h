@@ -8,6 +8,7 @@ CFG_NAMESPACE_BEGIN
 namespace cpp
 {
     class Declare;
+    class Serialize;
 }
 
 class CppExporter : public IExporter
@@ -84,6 +85,7 @@ protected:
     std::string _file;
 
     cpp::Declare* _declare = nullptr;
+    cpp::Serialize* _serialize = nullptr;
 
     std::vector<const IEnumType*> _enums;
     std::vector<const IStructType*> _structs;

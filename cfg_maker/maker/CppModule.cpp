@@ -49,7 +49,8 @@ namespace cpp
 
         *_header << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl <<
             "#pragma once" << std::endl << std::endl <<
-            "#include \"" << _name << ".h\"" << std::endl << std::endl;
+            "#include \"" << _name << ".h\"" << std::endl <<
+            "#include \"CrossCallDef.h\"" << std::endl << std::endl;
 
         // cpp
         file = new std::ofstream(utility::ContactPath(_path, _module->Name()) + ".cpp");
@@ -57,7 +58,9 @@ namespace cpp
         else _cpp = &std::cout;
 
         *_cpp << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl <<
-            "#include \"" << _module->Name() << ".h\"" << std::endl << std::endl;
+            "#include \"" << _module->Name() << ".h\"" << std::endl <<
+            "#include \"" << _name << "_Ser.h\"" << std::endl << 
+            "#include <cassert>" << std::endl << std::endl;
         //TODO: need include more file
     }
 
@@ -108,7 +111,7 @@ namespace cpp
             if (func == nullptr)
                 continue;
 
-            *_header << _TAB(1) << func->Name() << "," << std::endl;
+            *_header << _TAB(1) << "Msg_" << func->Name() << "," << std::endl;
         }
 
         *_header <<
@@ -121,7 +124,7 @@ namespace cpp
             _TAB(0) << "class IExecutor" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(0) << "public:" << std::endl <<
-            _TAB(1) << "virtual IExecutor() {}" << std::endl << std::endl <<
+            _TAB(1) << "virtual ~IExecutor() {}" << std::endl << std::endl <<
             _TAB(0) << "public:" << std::endl;
 
         ITypeSet* tySet = _module->Scope()->TypeSet();
@@ -146,7 +149,7 @@ namespace cpp
             _TAB(0) << "class Invoker" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(0) << "public:" << std::endl <<
-            _TAB(1) << "Invoker(ICrossCaller* caller) : _caller(caller)" << std::endl <<
+            _TAB(1) << "Invoker(cross_call::ICrossCaller* caller) : _caller(caller)" << std::endl <<
             _TAB(1) << "{ }" << std::endl << std::endl <<
             _TAB(0) << "public:" << std::endl;
 
@@ -164,23 +167,23 @@ namespace cpp
 
         *_header <<
             _TAB(0) << "protected:" << std::endl <<
-            _TAB(1) << "ICrossCaller* _caller = nullptr;" << std::endl <<
+            _TAB(1) << "cross_call::ICrossCaller* _caller = nullptr;" << std::endl <<
             _TAB(0) << "};" << std::endl;
     }
 
     void Module::DeclProcessor()
     {
         *_header <<
-            _TAB(0) << "class Processor : public IProcessor" << std::endl <<
+            _TAB(0) << "class Processor : public cross_call::IProcessor" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(0) << "public:" << std::endl <<
             _TAB(1) << "Processor(IExecutor* executor) : _executor(executor)" << std::endl <<
             _TAB(1) << "{ }" << std::endl <<
             _TAB(1) << "virtual ~Processor() { }" << std::endl << std::endl <<
             _TAB(0) << "public:" << std::endl <<
-            _TAB(1) << "virtual int GetModuleID() const { return MODULE_ID; }" << std::endl <<
-            _TAB(1) << "virtual int GetHashCode() const { return HASH_CODE; }" << std::endl <<
-            _TAB(1) << "virtual void Process(IReader* reader, IWriter* writer)" << std::endl << std::endl <<
+            _TAB(1) << "virtual uint32_t GetModuleID() const { return MODULE_ID; }" << std::endl <<
+            _TAB(1) << "virtual uint32_t GetHashCode() const { return HASH_CODE; }" << std::endl <<
+            _TAB(1) << "virtual void Process(serialize::IReader* reader, serialize::IWriter* writer);" << std::endl << std::endl <<
             _TAB(0) << "protected:" << std::endl;
 
         ITypeSet* tySet = _module->Scope()->TypeSet();
@@ -190,7 +193,7 @@ namespace cpp
             if (func == nullptr)
                 continue;
 
-            *_header << _TAB(1) << "void On" << func->Name() << "(IReader* reader, IWriter* writer);" << std::endl;
+            *_header << _TAB(1) << "void On" << func->Name() << "(serialize::IReader* reader, serialize::IWriter* writer);" << std::endl;
         }
 
         *_header <<
@@ -229,23 +232,23 @@ namespace cpp
             *_cpp << _TAB(0) << cpp_util::TypeName(func->RetType()) << " ret;" << std::endl;
 
         *_cpp <<
-            _TAB(0) << "IWriter* writer = _caller->BeginCall(MODULE_ID, HASH_CODE);" << std::endl <<
-            _TAB(0) << "writer->Write((int)Message::" << func->Name() << ")" << std::endl << std::endl;
+            _TAB(0) << "serialize::IWriter* writer = _caller->BeginCall(MODULE_ID, HASH_CODE);" << std::endl <<
+            _TAB(0) << "writer->Write((int)Message::Msg_" << func->Name() << ");" << std::endl << std::endl;
 
         IVarSet* varSet = func->Scope()->VarSet();
         for (int i = 0; i < varSet->Size(); ++i)
         {
             IVariate* var = varSet->Get(i);
             *_cpp <<
-                _TAB(0) << "writer->Write(" << func->Name() << ");" << std::endl;
+                _TAB(0) << "serialize::utility::Write(writer, " << var->Name() << ");" << std::endl;
         }
 
         *_cpp << std::endl;
         if (func->RetType())
         {
             *_cpp <<
-                _TAB(0) << "IReader* reader = _caller->EndCall();" << std::endl <<
-                _TAB(0) << "Read(reader, ret);" << std::endl <<
+                _TAB(0) << "serialize::IReader* reader = _caller->EndCall();" << std::endl <<
+                _TAB(0) << "serialize::utility::Read(reader, ret);" << std::endl <<
                 _TAB(0) << "return ret;" << std::endl;
         }
         else
@@ -268,7 +271,8 @@ namespace cpp
             if (func == nullptr)
                 continue;
 
-            DeclFunc(*_cpp, func, className);
+            *_cpp << _TAB(0) << "void "<< className << "::On" << func->Name() << "(serialize::IReader* reader, serialize::IWriter* writer)" << std::endl;
+
             *_cpp << std::endl <<
                 _TAB(0) << "{" << std::endl;
             ++_tab;
@@ -284,10 +288,10 @@ namespace cpp
     void Module::ImplProcessorDetail()
     {
         *_cpp <<
-            _TAB(0) << "void " << _module->Name() << "::Processor::Process(IReader* reader, IWriter* writer)" << std::endl <<
+            _TAB(0) << "void " << _module->Name() << "::Processor::Process(serialize::IReader* reader, serialize::IWriter* writer)" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(1) << "Message msg = Message::Invalid;" << std::endl <<
-            _TAB(1) << "reader->Read((int&)msg)" << std::endl << std::endl <<
+            _TAB(1) << "reader->Read((int&)msg);" << std::endl << std::endl <<
             _TAB(1) << "switch (msg)" << std::endl <<
             _TAB(1) << "{" << std::endl;
 
@@ -299,7 +303,7 @@ namespace cpp
                 continue;
 
             *_cpp <<
-                _TAB(1) << "case Message:" << func->Name() << ": On" << func->Name() << "(reader, writer); break;" << std::endl;
+                _TAB(1) << "case Message::Msg_" << func->Name() << ": On" << func->Name() << "(reader, writer); break;" << std::endl;
         }
 
         *_cpp <<
@@ -321,14 +325,14 @@ namespace cpp
         for (int i = 0; i < varSet->Size(); ++i)
         {
             IVariate* var = varSet->Get(i);
-            *_cpp << _TAB(0) << "Read(reader, " << var->Name() << ");" << std::endl;
+            *_cpp << _TAB(0) << "serialize::utility::Read(reader, " << var->Name() << ");" << std::endl;
         }
         *_cpp << std::endl;
 
         // do call
         *_cpp << _TAB(0);
-        if (func->RetType()) *_cpp << "Write(writer, ";
-        *_cpp << "On" << func->Name() << "(";
+        if (func->RetType()) *_cpp << "serialize::utility::Write(writer, ";
+        *_cpp << "_executor->" << func->Name() << "(";
         for (int i = 0; i < varSet->Size(); ++i)
         {
             IVariate* var = varSet->Get(i);

@@ -149,6 +149,7 @@
     <ClCompile Include="CppDeclare.cpp" />
     <ClCompile Include="CppExporter.cpp" />
     <ClCompile Include="CppModule.cpp" />
+    <ClCompile Include="CppSerialize.cpp" />
     <ClCompile Include="CppUtil.cpp" />
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="FileData.cpp" />
