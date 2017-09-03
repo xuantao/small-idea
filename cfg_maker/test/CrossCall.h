@@ -1,48 +1,40 @@
 #pragma once
 #include "CrossCallDef.h"
+#include "SerializeNormal.h"
+#include <map>
 
 namespace cross_call
 {
-    class SwapMemory : public serialize::IReader, serialize::IWriter
+    class SwapMemory : public serialize::IBuffer
     {
     public:
         SwapMemory(void* buffer, uint32_t size);
         ~SwapMemory();
 
     public:
-        virtual bool StructBegin(uint32_t code);
-        virtual bool StructEnd();
-        virtual bool Read(bool& val);
-        virtual bool Read(int32_t& val);
-        virtual bool Read(uint32_t& val);
-        virtual bool Read(float& val);
-        virtual bool Read(std::string& val);
-
-        virtual bool StructBegin(uint32_t code);
-        virtual bool StructEnd();
-        virtual bool Write(bool val);
-        virtual bool Write(int32_t val);
-        virtual bool Write(uint32_t val);
-        virtual bool Write(float val);
-        virtual bool Write(const std::string& val);
+        serialize::IReader* GetReader() { return &_reader; }
+        serialize::IWriter* GetWriter() { return &_writer; }
+        uint32_t GetDataSize() const;
+        uint32_t GetFreeSize() const { return _size - GetDataSize(); }
+        void Clear();
 
     public:
-        void Clean();
-
-    protected:
-        void Read(byte* buf, uint32_t size);
-        void Write(const byte* buf, uint32_t size);
+        virtual bool Read(void* buf, uint32_t size);
+        virtual bool Write(const void* buf, uint32_t size);
 
     protected:
         struct Header
         {
-            uint32_t read;
-            uint32_t write;
-            byte data[0];
+            uint32_t ds;
+            uint32_t rp;
+            uint32_t wp;
+            char m[0];
         };
 
-        uint32_t _size;
-        Header* _header;
+        uint32_t _size = 0;
+        Header* _header = nullptr;
+        serialize::NormalReader _reader;
+        serialize::NormalWriter _writer;
     };
 
     class CrossCallManager
@@ -53,31 +45,36 @@ namespace cross_call
 
     public:
         bool Init();
-        ICrossCaller* GetCaller();
+        ICrossCaller* GetCaller() { return _caller; }
         IProcessor* GetProcessor(uint32_t module) const;
         bool Register(IProcessor* processor);
+        IProcessor* Unregister(uint32_t module);
 
     protected:
-        void OnCall();
-        void DoCall();
+        serialize::IWriter* BeginCall(uint32_t module, uint32_t code);
+        serialize::IReader* EndCall();
 
     protected:
-        class CrossCaller : public: ICrossCaller
+        class CrossCaller : public ICrossCaller
         {
         public:
             CrossCaller(CrossCallManager& manager) : _manager(manager) {}
             virtual ~CrossCaller() {}
 
         public:
-            virtual serialize::IWriter* BeginCall(uint32_t module, uint32_t code);
-            virtual serialize::IReader* EndCall();
+            virtual serialize::IWriter* BeginCall(uint32_t module, uint32_t code)
+            { return _manager.BeginCall(module, code); }
+            virtual serialize::IReader* EndCall()
+            { return _manager.EndCall(); }
 
         protected:
             CrossCallManager& _manager;
         };
 
         std::map<uint32_t, IProcessor*> _processor;
-        SwapMemory _memory;
-        CrossCaller _caller;
+
+        char* _buffer = nullptr;
+        SwapMemory* _memory = nullptr;
+        CrossCaller* _caller = nullptr;
     };
 }

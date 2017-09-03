@@ -28,6 +28,12 @@
     <ClCompile Include="Serialize.cpp">
       <Filter>src\cfg</Filter>
     </ClCompile>
+    <ClCompile Include="CrossCall.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="SerializeNormal.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cfg.h">
@@ -52,6 +58,9 @@
       <Filter>src\cfg</Filter>
     </ClInclude>
     <ClInclude Include="CrossCall.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="SerializeNormal.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

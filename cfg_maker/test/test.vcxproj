@@ -146,8 +146,10 @@
     <ClCompile Include="Cfg.cpp" />
     <ClCompile Include="CfgUtility.cpp" />
     <ClCompile Include="Cfg_Ser.cpp" />
+    <ClCompile Include="CrossCall.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Serialize.cpp" />
+    <ClCompile Include="SerializeNormal.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Caller.h" />
@@ -157,6 +159,7 @@
     <ClInclude Include="Cfg_Ser.h" />
     <ClInclude Include="CrossCall.h" />
     <ClInclude Include="CrossCallDef.h" />
+    <ClInclude Include="SerializeNormal.h" />
     <ClInclude Include="Serialize.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
