@@ -1,5 +1,5 @@
-/*
- * µ¼³öÊı¾İ½á¹¹
+ï»¿/*
+ * å¯¼å‡ºæ•°æ®ç»“æ„
 */
 #pragma once
 
@@ -22,13 +22,13 @@ namespace cs
         void OnType(const IType* type);
 
     protected:
-        void Export(std::ostream& stream, const IScope* scope);
-        void ExportType(std::ostream& stream, const IType* type);
+        void ExportType(std::ostream& stream, const IEnumType* type);
+        void ExportType(std::ostream& stream, const IStructType* type);
         void ExportNs(std::ostream& stream, const INamespace* ns);
-        void ExportGlobal(std::ostream& stream, const IVarSet* vars);
+        void ExportVars(std::ostream& stream, const IVarSet* vars, bool isGlobal);
 
     protected:
-        IScope* _global = nullptr;
+        const IScope* _global = nullptr;
         std::string _path;
         std::string _name;
         int _tab = 0;

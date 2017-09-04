@@ -1,4 +1,6 @@
-#include "CsExporter.h"
+﻿#include "CsExporter.h"
+#include "CsDeclare.h"
+#include "Utility.h"
 
 CFG_NAMESPACE_BEGIN
 
@@ -12,6 +14,13 @@ CsExporter::~CsExporter()
 
 void CsExporter::OnBegin(const IScope* global, const std::string& file)
 {
+    std::string path;
+    std::string name;
+    utility::SplitPath(file, &path, &name);
+
+    cs::CsDeclare decl;
+    decl.Init(global, path, name);
+    decl.DoExport();
 }
 
 void CsExporter::OnEnd()

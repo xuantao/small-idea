@@ -7,6 +7,7 @@
 #include "TabCreater.h"
 #include "JsonCreater.h"
 #include "Utility.h"
+#include "CsExporter.h"
 
 CFG_NAMESPACE_USING;
 
@@ -113,7 +114,9 @@ static void DoWork(Args& arg)
 
     if (!arg.csFile.empty())
     {
-        std::cout << "Csharp exporter has not completed" << std::endl;
+        //std::cout << "Csharp exporter has not completed" << std::endl;
+        CsExporter cs;
+        context.Export(&cs, arg.cppFile);
     }
 }
 
