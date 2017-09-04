@@ -151,6 +151,8 @@
     <ClCompile Include="CppModule.cpp" />
     <ClCompile Include="CppSerialize.cpp" />
     <ClCompile Include="CppUtil.cpp" />
+    <ClCompile Include="CsDeclare.cpp" />
+    <ClCompile Include="CsExporter.cpp" />
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="FileData.cpp" />
     <ClCompile Include="JsonCreater.cpp" />
@@ -178,6 +180,8 @@
     <ClInclude Include="CppSerialize.h" />
     <ClInclude Include="CppTab.h" />
     <ClInclude Include="CppUtil.h" />
+    <ClInclude Include="CsDeclare.h" />
+    <ClInclude Include="CsExporter.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="FileData.h" />
     <ClInclude Include="FlexLexer.h" />

@@ -97,6 +97,12 @@
     <ClCompile Include="CppSerialize.cpp">
       <Filter>src\exporter\cpp</Filter>
     </ClCompile>
+    <ClCompile Include="CsExporter.cpp">
+      <Filter>src\exporter\csharp</Filter>
+    </ClCompile>
+    <ClCompile Include="CsDeclare.cpp">
+      <Filter>src\exporter\csharp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CfgDef.h">
@@ -188,6 +194,12 @@
     </ClInclude>
     <ClInclude Include="CppSerialize.h">
       <Filter>src\exporter\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="CsExporter.h">
+      <Filter>src\exporter\csharp</Filter>
+    </ClInclude>
+    <ClInclude Include="CsDeclare.h">
+      <Filter>src\exporter\csharp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
