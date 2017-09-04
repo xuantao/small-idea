@@ -449,9 +449,9 @@ namespace utility
 
     std::vector<std::string> Relative(const IType* self, const IScope* scope)
     {
-        if (self == nullptr || scope == nullptr)
+        if (self == nullptr)
             return EMPTY_VEC_STR;
-        if (self->TypeCat() == TypeCategory::Raw || scope == nullptr)
+        if (self->TypeCat() == TypeCategory::Raw)
             return EMPTY_VEC_STR;
 
         const std::vector<std::string> sp = Absolute(self);
@@ -467,6 +467,26 @@ namespace utility
 
         return std::vector<std::string>(sp.begin() + beg, sp.end());
     }
+
+    std::vector<std::string> Relative(const IScope* self, const IScope* scope)
+    {
+        if (self == nullptr)
+            return EMPTY_VEC_STR;
+
+        const std::vector<std::string> sp = Absolute(self);
+        const std::vector<std::string> op = Absolute(scope);
+
+        size_t beg = 0;
+        std::vector<std::string> path;
+        for (; beg < std::min(sp.size(), op.size()); ++beg)
+        {
+            if (sp[beg] != op[beg])
+                break;
+        }
+
+        return std::vector<std::string>(sp.begin() + beg, sp.end());
+    }
+
 
     IType* FindType(IScope* scope, const std::string& path)
     {

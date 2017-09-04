@@ -25,7 +25,7 @@ namespace cs
         void ExportType(std::ostream& stream, const IEnumType* type);
         void ExportType(std::ostream& stream, const IStructType* type);
         void ExportNs(std::ostream& stream, const INamespace* ns);
-        void ExportVars(std::ostream& stream, const IVarSet* vars, bool isGlobal);
+        void ExportVars(std::ostream& stream, const IVarSet* vars, const IScope* scope, bool isGlobal);
 
     protected:
         const IScope* _global = nullptr;

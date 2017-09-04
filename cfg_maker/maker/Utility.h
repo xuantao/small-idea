@@ -31,6 +31,7 @@ namespace utility
     std::vector<std::string> Absolute(const IScope* scope);
     std::vector<std::string> Absolute(const IType* type);
     std::vector<std::string> Relative(const IType* self, const IScope* scope);
+    std::vector<std::string> Relative(const IScope* self, const IScope* scope);
 
     /*
      * 查找类型

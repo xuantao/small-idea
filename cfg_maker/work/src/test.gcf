@@ -16,6 +16,7 @@ enum Enum1 {
 
 namespace Detail {
 
+
 enum Enum2
 
 

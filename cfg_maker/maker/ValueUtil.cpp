@@ -119,6 +119,13 @@ namespace value_util
         return std::string();
     }
 
+    std::string ToString(const IRawValue* val)
+    {
+        if (val == nullptr)
+            return std::string();
+        return sRawValue(static_cast<const RawValue*>(val));
+    }
+
     std::string DefValue(RawCategory raw)
     {
         if (raw == RawCategory::Bool)

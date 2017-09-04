@@ -54,7 +54,7 @@ namespace cs
         INsSet* nsSet = _global->NsSet();
 
         if (varSet && varSet->Size())
-            ExportVars(file, varSet, true);
+            ExportVars(file, varSet, nullptr, true);
 
         if (tySet)
         {
@@ -85,14 +85,18 @@ namespace cs
     void CsDeclare::ExportType(std::ostream& stream, const IEnumType* type)
     {
         stream <<
-            _TAB(0) << "enum " << type->Name() << std::endl <<
+            _TAB(0) << "public enum " << type->Name() << std::endl <<
             _TAB(0) << "{" << std::endl;
 
         IVarSet* varSet = type->Scope()->VarSet();
         for (int i = 0; i < varSet->Size(); ++i)
         {
             const IVariate* var = varSet->Get(i);
-            stream << _TAB(1) << var->Name() << "," << std::endl;
+            stream << _TAB(1) << var->Name();
+            std::string strVal = cs_util::Value(var, type->Scope());
+            if (!strVal.empty())
+                stream << " = " << strVal;
+            stream << "," << std::endl;
         }
 
         stream << _TAB(0) << "}" << std::endl;
@@ -101,7 +105,7 @@ namespace cs
     void CsDeclare::ExportType(std::ostream& stream, const IStructType* type)
     {
         stream <<
-            _TAB(0) << "class " << type->Name() << std::endl <<
+            _TAB(0) << "public class " << type->Name() << std::endl <<
             _TAB(0) << "{" << std::endl;
         ++_tab;
 
@@ -121,7 +125,7 @@ namespace cs
 
         IVarSet* varSet = type->OwnScope()->VarSet();
         if (varSet && varSet->Size())
-            ExportVars(stream, varSet, false);
+            ExportVars(stream, varSet, type->Scope(), false);
 
         --_tab;
         stream << _TAB(0) << "}" << std::endl;
@@ -148,7 +152,7 @@ namespace cs
         ++_tab;
 
         if (varSet && varSet->Size())
-            ExportVars(stream, varSet, true);
+            ExportVars(stream, varSet, ns->Scope(), true);
 
         if (tySet)
         {
@@ -175,12 +179,12 @@ namespace cs
         stream << _TAB(0) << "}" << std::endl;
     }
 
-    void CsDeclare::ExportVars(std::ostream& stream, const IVarSet* vars, bool isGlobal)
+    void CsDeclare::ExportVars(std::ostream& stream, const IVarSet* vars, const IScope* scope, bool isGlobal)
     {
         if (isGlobal)
         {
             stream <<
-                _TAB(0) << "static class GlobalVar" << std::endl <<
+                _TAB(0) << "public static class GlobalVar" << std::endl <<
                 _TAB(0) << "{" << std::endl;
             ++_tab;
         }
@@ -196,9 +200,9 @@ namespace cs
                 stream << "const ";
             else if (isGlobal)
                 stream << "static ";
-            stream << cs_util::TypeName(var->Type());
+            stream << cs_util::TypeName(var->Type()) << " " << var->Name();
 
-            std::string val = cs_util::Value(var);
+            std::string val = cs_util::Value(var, scope);
             if (!val.empty())
                 stream << " = " << val;
             stream << ";" << std::endl;
@@ -213,7 +217,7 @@ namespace cs
                 _TAB(0) << "public " <<
                 cs_util::TypeName(var->Type()) << " " << var->Name();
 
-            std::string val = cs_util::Value(var);
+            std::string val = cs_util::Value(var, scope);
             if (!val.empty())
                 stream << " = " << val;
             stream << ";" << std::endl;

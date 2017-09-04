@@ -13,6 +13,7 @@ namespace value_util
     bool Value(const IValue* val, std::string& str);
 
     std::string ToString(const IValue* val);
+    std::string ToString(const IRawValue* val);
     std::string DefValue(RawCategory raw);
 
     /*
