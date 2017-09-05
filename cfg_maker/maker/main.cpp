@@ -116,7 +116,7 @@ static void DoWork(Args& arg)
     {
         //std::cout << "Csharp exporter has not completed" << std::endl;
         CsExporter cs;
-        context.Export(&cs, arg.cppFile);
+        context.Export(&cs, arg.csFile);
     }
 }
 

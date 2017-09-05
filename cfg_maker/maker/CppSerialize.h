@@ -2,7 +2,6 @@
 
 #include "Interface.h"
 #include <ostream>
-#include <memory>
 
 CFG_NAMESPACE_BEGIN
 

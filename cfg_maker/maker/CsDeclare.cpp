@@ -46,8 +46,8 @@ namespace cs
 
         file << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl <<
             "using System;" << std::endl <<
-            "using System.Collection;" << std::endl <<
-            "using System.Collection.Generic;" << std::endl << std::endl;
+            "using System.Collections;" << std::endl <<
+            "using System.Collections.Generic;" << std::endl << std::endl;
 
         IVarSet* varSet = _global->VarSet();
         ITypeSet* tySet = _global->TypeSet();
@@ -104,13 +104,14 @@ namespace cs
 
     void CsDeclare::ExportType(std::ostream& stream, const IStructType* type)
     {
-        stream <<
-            _TAB(0) << "public class " << type->Name() << std::endl <<
-            _TAB(0) << "{" << std::endl;
+        stream << _TAB(0) << "public class " << type->Name();
+        if (type->Inherited())
+            stream << _TAB(0) << " : " << cs_util::TypeName(type->Inherited(), type->Owner());
+        stream << std::endl << _TAB(0) << "{" << std::endl;
         ++_tab;
 
         ITypeSet* tySet = type->OwnScope()->TypeSet();
-        if (tySet)
+        if (tySet && tySet->Size())
         {
             for (int i = 0; i < tySet->Size(); ++i)
             {
@@ -122,6 +123,12 @@ namespace cs
             }
             stream << std::endl;
         }
+
+        stream <<
+            _TAB(0) << "public ";
+        if (type->Inherited()) stream << "new ";
+        stream << "static uint HASH_CODE = " << utility::HashValue(type) << ";" <<
+            std::endl << std::endl;
 
         IVarSet* varSet = type->OwnScope()->VarSet();
         if (varSet && varSet->Size())
@@ -203,6 +210,8 @@ namespace cs
             stream << cs_util::TypeName(var->Type()) << " " << var->Name();
 
             std::string val = cs_util::Value(var, scope);
+            if (val.empty())
+                val = cs_util::DefValue(var->Type());
             if (!val.empty())
                 stream << " = " << val;
             stream << ";" << std::endl;
@@ -218,8 +227,11 @@ namespace cs
                 cs_util::TypeName(var->Type()) << " " << var->Name();
 
             std::string val = cs_util::Value(var, scope);
+            if (val.empty())
+                val = cs_util::DefValue(var->Type());
             if (!val.empty())
                 stream << " = " << val;
+
             stream << ";" << std::endl;
         }
 

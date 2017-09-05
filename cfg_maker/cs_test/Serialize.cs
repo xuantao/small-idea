@@ -98,5 +98,77 @@ namespace Serialize
 
             return true;
         }
+
+        public static bool Write(IWriter writer, bool val)
+        {
+            return writer.Write(val);
+        }
+
+        public static bool Write(IWriter writer, int val)
+        {
+            return writer.Write(val);
+        }
+
+        public static bool Write(IWriter writer, uint val)
+        {
+            return writer.Write(val);
+        }
+
+        public static bool Write(IWriter writer, float val)
+        {
+            return writer.Write(val);
+        }
+
+        public static bool Write(IWriter writer, string val)
+        {
+            return writer.Write(val);
+        }
+
+        private static bool Write<T>(IWriter writer, T tmp)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static bool Write<T>(IWriter writer, List<T> lst)
+        {
+            int size = 0;
+            if (!Write(writer, size)) return false;
+            if (size < 0) return false;
+
+            if (lst == null)
+                lst = new List<T>(size);
+
+            for (int i = lst.Count; i < size; ++i)
+                lst.Add(default(T));
+
+            for (int i = 0; i < size; ++i)
+            {
+                T tmp = default(T);
+                if (!Write(writer, tmp))
+                    return false;
+
+                lst[i] = tmp;
+            }
+
+            return true;
+        }
+
+        public static bool Write<T>(IWriter writer, T[] arr)
+        {
+            int size = 0;
+            if (!Write(writer, size)) return false;
+            if (size < 0) return false;
+
+            if (arr == null || arr.Length != size)
+                arr = new T[size];
+
+            for (int i = 0; i < size; ++i)
+            {
+                if (!Write(writer, arr[i]))
+                    return false;
+            }
+
+            return true;
+        }
     }
 }

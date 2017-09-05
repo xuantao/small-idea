@@ -7,6 +7,11 @@
 
 CFG_NAMESPACE_BEGIN
 
+namespace cs
+{
+    class Serialize;
+}
+
 class CsExporter : public IExporter
 {
 public:
@@ -29,6 +34,7 @@ public:
 protected:
     std::vector<const IVariate*> _vars;
     std::vector<const IType*> _types;
+    cs::Serialize* _ser = nullptr;
 };
 
 CFG_NAMESPACE_END

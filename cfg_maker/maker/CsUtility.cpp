@@ -18,7 +18,19 @@ namespace cs_util
         if (arTy->Length())
             return prev + "[]";
         else
-            return "list<" + prev + ">";
+            return "List<" + prev + ">";
+    }
+
+    std::string sDefRawValue(RawCategory raw)
+    {
+        if (raw == RawCategory::Bool)
+            return "false";
+        else if (raw == RawCategory::Int)
+            return "0";
+        else if (raw == RawCategory::Float)
+            return "0.0f";
+        else
+            return "\"\"";
     }
 
     std::string RawName(RawCategory raw)
@@ -92,9 +104,39 @@ namespace cs_util
                 path = path + ".GlobalVar";
         }
 
+        std::string strVal;
         if (path.empty())
-            return refVal->Var()->Name();
-        return path + "." + refVal->Var()->Name();
+            strVal = refVal->Var()->Name();
+        else
+            strVal = path + "." + refVal->Var()->Name();
+        if (var->Type() != refVal->Var()->Type())
+            strVal = "(" + cs_util::TypeName(var->Type()) + ")" + strVal;
+        return strVal;
+    }
+
+    std::string DefValue(const IType* type)
+    {
+        if (type->TypeCat() == TypeCategory::Raw)
+            return sDefRawValue(((const IRawType*)type)->RawCat());
+
+        if (type->TypeCat() == TypeCategory::Enum)
+        {
+            const IEnumType* eTy = (const IEnumType*)type;
+            if (eTy->Scope()->VarSet()->Size())
+                return Value(eTy->Scope()->VarSet()->Get(0));
+            return "";
+        }
+        else if (type->TypeCat() == TypeCategory::Struct)
+        {
+            return "new " + TypeName(type) + "()";
+        }
+        else if (type->TypeCat() == TypeCategory::Array)
+        {
+            const IArrayType* eTy = (const IArrayType*)type;
+        }
+
+
+        return "";
     }
 }
 

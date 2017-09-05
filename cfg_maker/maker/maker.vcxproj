@@ -153,6 +153,7 @@
     <ClCompile Include="CppUtil.cpp" />
     <ClCompile Include="CsDeclare.cpp" />
     <ClCompile Include="CsExporter.cpp" />
+    <ClCompile Include="CsSerialize.cpp" />
     <ClCompile Include="CsUtility.cpp" />
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="FileData.cpp" />
@@ -183,6 +184,7 @@
     <ClInclude Include="CppUtil.h" />
     <ClInclude Include="CsDeclare.h" />
     <ClInclude Include="CsExporter.h" />
+    <ClInclude Include="CsSerialize.h" />
     <ClInclude Include="CsUtility.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="FileData.h" />
