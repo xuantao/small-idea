@@ -1,41 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System;
 
 namespace cs_test
 {
-
-    class FixAr
-    {
-        public int this[int index]
-        {
-            get { return a[index]; }
-            set { a[index] = value; }
-        }
-
-        public int[] a = new int[10];
-    }
-
-    //public class FixArray<T, int>
-    //{
-    //}
-
-    static class Utility
-    {
-        public static void Read<T>(List<T> lst)
-        {
-
-        }
-
-        public static void Read<T>(T[] arr)
-        {
-
-        }
-    }
-
     class Program
     {
+
+        static void WriteArrayLength(int count)
+        {
+            for (int i = 1; i < count; ++i)
+            {
+                Console.WriteLine("public class ArrayLength_{0} : IArrayLength", i);
+                Console.WriteLine("{");
+                Console.WriteLine("    public int Length {{ get {{ return {0}; }} }}", i);
+                Console.WriteLine("}");
+                Console.WriteLine();
+            }
+        }
+
         static void Main(string[] args)
         {
-            int[] ar = new int[10];
 
         }
     }

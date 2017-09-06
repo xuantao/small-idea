@@ -1,4 +1,4 @@
-#include "CsSerialize.h"
+﻿#include "CsSerialize.h"
 #include "CsUtility.h"
 #include "Utility.h"
 #include <iostream>
@@ -10,7 +10,8 @@ CFG_NAMESPACE_BEGIN
 namespace cs
 {
     Serialize::Serialize()
-    { }
+    {
+    }
 
     Serialize::~Serialize()
     {
@@ -72,14 +73,14 @@ namespace cs
         std::string tyName = cs_util::TypeName(type);
 
         *_stream <<
-            _TAB(0) << "public static bool Read(IReader reader, ref " << tyName << " val)" << std::endl <<
+            _TAB(0) << "public static bool Read(IReader reader, ref " << tyName << " val, string name = null)" << std::endl <<
             _TAB(0) << "{" << std::endl;
 
         if (type->TypeCat() == TypeCategory::Enum)
         {
             *_stream <<
                 _TAB(1) << "int tmp = 0;" << std::endl <<
-                _TAB(1) << "if (!reader.Read(ref tmp))" << std::endl <<
+                _TAB(1) << "if (!reader.Read(ref tmp, name))" << std::endl <<
                 _TAB(2) << "return false;" << std::endl << std::endl <<
                 _TAB(1) << "val = (" << tyName << ")tmp;" << std::endl <<
                 _TAB(1) << "return true;" << std::endl;
@@ -87,25 +88,22 @@ namespace cs
         else if (type->TypeCat() == TypeCategory::Struct)
         {
             *_stream <<
-                _TAB(1) << "if (!reader.StructBegin(" << tyName << ".HASH_CODE))" << std::endl <<
-                _TAB(2) << "return false;" << std::endl << std::endl <<
-                _TAB(1) << "if (val == null)" << std::endl <<
-                _TAB(2) << "val = new " << tyName << "();" << std::endl << std::endl;
+                _TAB(1) << "if (!reader.StructBegin(" << tyName << ".HASH_CODE, name))" << std::endl <<
+                _TAB(2) << "return false;" << std::endl << std::endl;
 
             IVarSet* varSet = ((const IStructType*)type)->Scope()->VarSet();
             for (int i = 0; i < varSet->Size(); ++i)
             {
-                if (varSet->Get(i)->IsConst())
+                IVariate* var = varSet->Get(i);
+                if (var->IsConst())
                     continue;
 
                 *_stream <<
-                    _TAB(1) << "if (!Read(reader, ref val." << varSet->Get(i)->Name() << ")) return false;" << std::endl;
+                    _TAB(1) << "if (!Read(reader, ref val." << var->Name() << ", \"" << var->Name() << "\")) return false;" << std::endl;
             }
 
             *_stream << std::endl <<
-                _TAB(1) << "if (!reader.StructEnd())" << std::endl <<
-                _TAB(2) << "return false;" << std::endl << std::endl <<
-                _TAB(1) << "return true;" << std::endl;
+                _TAB(1) << "return reader.StructEnd();" << std::endl;
         }
         else
         {
@@ -120,34 +118,33 @@ namespace cs
         std::string tyName = cs_util::TypeName(type);
 
         *_stream <<
-            _TAB(0) << "public static bool Write(IWriter writer, " << tyName << " val)" << std::endl <<
+            _TAB(0) << "public static bool Write(IWriter writer, " << tyName << " val, string name = null)" << std::endl <<
             _TAB(0) << "{" << std::endl;
 
         if (type->TypeCat() == TypeCategory::Enum)
         {
             *_stream <<
-                _TAB(1) << "return writer.Write((int)val);" << std::endl;
+                _TAB(1) << "return writer.Write((int)val, name);" << std::endl;
         }
         else if (type->TypeCat() == TypeCategory::Struct)
         {
             *_stream <<
-                _TAB(1) << "if (!writer.StructBegin(" << tyName << ".HASH_CODE))" << std::endl <<
+                _TAB(1) << "if (!writer.StructBegin(" << tyName << ".HASH_CODE, name))" << std::endl <<
                 _TAB(2) << "return false;" << std::endl << std::endl;
 
             IVarSet* varSet = ((const IStructType*)type)->Scope()->VarSet();
             for (int i = 0; i < varSet->Size(); ++i)
             {
-                if (varSet->Get(i)->IsConst())
+                IVariate* var = varSet->Get(i);
+                if (var->IsConst())
                     continue;
 
                 *_stream <<
-                    _TAB(1) << "if (!Write(writer, val." << varSet->Get(i)->Name() << ")) return false;" << std::endl;
+                    _TAB(1) << "if (!Write(writer, val." << var->Name() << ", \"" << var->Name() << "\")) return false;" << std::endl;
             }
 
             *_stream << std::endl <<
-                _TAB(1) << "if (!writer.StructEnd())" << std::endl <<
-                _TAB(2) << "return false;" << std::endl << std::endl <<
-                _TAB(1) << "return true;" << std::endl;
+                _TAB(1) << "return writer.StructEnd();" << std::endl;
         }
         else
         {
@@ -165,7 +162,6 @@ namespace cs
         _stream = nullptr;
         _tab = 0;
     }
-
 }
 
 CFG_NAMESPACE_END

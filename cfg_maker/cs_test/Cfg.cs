@@ -50,7 +50,7 @@ public class Struct1 : Struct0
     public float f1 = 0.0f;
     public string str2 = GlobalVar.s_1;
     public string str3 = "zouhui";
-    public Struct0 s1;
+    public Struct0 s1 = new Struct0();
     public Struct0[] s2;
     public Struct0[] s3;
     public List<Detail.Enum2> s1arEnum;
@@ -66,7 +66,7 @@ public class Struct2
     public int c = 0;
     public int d = 0;
     public string s = GlobalVar.s_1;
-    public Struct1 s1;
+    public Struct1 s1 = new Struct1();
     public Struct1[] s2;
     public Struct1[] s3;
 }
