@@ -43,9 +43,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArrayLength.cs" />
+    <Compile Include="Caller.cs" />
     <Compile Include="Cfg.cs" />
     <Compile Include="Cfg_Ser.cs" />
     <Compile Include="FixedArray.cs" />
+    <Compile Include="ICrossCall.cs" />
     <Compile Include="ISerialize.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

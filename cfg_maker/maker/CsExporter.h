@@ -35,6 +35,8 @@ protected:
     std::vector<const IVariate*> _vars;
     std::vector<const IType*> _types;
     cs::Serialize* _ser = nullptr;
+    std::string _path;
+    std::string _name;
 };
 
 CFG_NAMESPACE_END

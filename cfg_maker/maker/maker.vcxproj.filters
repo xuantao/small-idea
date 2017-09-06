@@ -109,6 +109,9 @@
     <ClCompile Include="CsSerialize.cpp">
       <Filter>src\exporter\csharp</Filter>
     </ClCompile>
+    <ClCompile Include="CsModule.cpp">
+      <Filter>src\exporter\csharp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CfgDef.h">
@@ -211,6 +214,9 @@
       <Filter>src\exporter\csharp</Filter>
     </ClInclude>
     <ClInclude Include="CsSerialize.h">
+      <Filter>src\exporter\csharp</Filter>
+    </ClInclude>
+    <ClInclude Include="CsModule.h">
       <Filter>src\exporter\csharp</Filter>
     </ClInclude>
   </ItemGroup>

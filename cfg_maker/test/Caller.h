@@ -11,7 +11,7 @@ class Caller
 {
 public:
     static const uint32_t MODULE_ID = 1;
-    static const uint32_t HASH_CODE = 0;
+    static const uint32_t HASH_CODE = 456984651;
 
     enum class Message
     {

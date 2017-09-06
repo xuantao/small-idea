@@ -42,13 +42,13 @@ struct Struct0
 {
     struct Innser
     {
-        static const uint32_t HASH_CODE = 0;
+        static const uint32_t HASH_CODE = 3334548982;
 
         int a = 0;
         int b = 0;
     };
 
-    static const uint32_t HASH_CODE = 0;
+    static const uint32_t HASH_CODE = 778842033;
 
     std::vector<int> s0a;
     std::array<int, 10> s0b;
@@ -57,7 +57,7 @@ struct Struct0
 
 struct Struct1 : public Struct0
 {
-    static const uint32_t HASH_CODE = 0;
+    static const uint32_t HASH_CODE = 70717381;
 
     int s1a = 1;
     float f1 = 0.0f;
@@ -72,7 +72,7 @@ struct Struct1 : public Struct0
 
 struct Struct2
 {
-    static const uint32_t HASH_CODE = 0;
+    static const uint32_t HASH_CODE = 1416237547;
     static const int MAX = 100;
 
     int a = 1;
@@ -96,7 +96,7 @@ enum class Wtf
 
 struct Sr3
 {
-    static const uint32_t HASH_CODE = 0;
+    static const uint32_t HASH_CODE = 133125830;
 
     int ID = 0; //< 模板ID
     int StageID = 0; //< 关卡ID

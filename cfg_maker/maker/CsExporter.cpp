@@ -1,6 +1,7 @@
 ﻿#include "CsExporter.h"
 #include "CsDeclare.h"
 #include "CsSerialize.h"
+#include "CsModule.h"
 #include "Utility.h"
 
 CFG_NAMESPACE_BEGIN
@@ -15,16 +16,14 @@ CsExporter::~CsExporter()
 
 void CsExporter::OnBegin(const IScope* global, const std::string& file)
 {
-    std::string path;
-    std::string name;
-    utility::SplitPath(file, &path, &name);
+    utility::SplitPath(file, &_path, &_name);
 
     cs::CsDeclare decl;
-    decl.Init(global, path, name);
+    decl.Init(global, _path, _name);
     decl.DoExport();
 
     _ser = new cs::Serialize();
-    _ser->Begin(global, path, name);
+    _ser->Begin(global, _path, _name);
 }
 
 void CsExporter::OnEnd()
@@ -57,6 +56,7 @@ void CsExporter::OnType(const IType* type)
 
 void CsExporter::OnModule(const IModule* module)
 {
+    cs::Module::Export(module, _path, _name);
 }
 
 CFG_NAMESPACE_END

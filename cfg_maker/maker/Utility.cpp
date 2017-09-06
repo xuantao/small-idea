@@ -222,7 +222,7 @@ namespace utility
 
     uint32_t HashValue(const char* str)
     {
-        if (str == nullptr || *str)
+        if (str == nullptr || *str == 0)
             return 0;
 
         uint32_t value = 1315423911;

@@ -30,35 +30,35 @@ public class Struct0
 {
     public class Innser
     {
-        public static uint HASH_CODE = 0;
+        public static uint HASH_CODE = 3334548982;
 
         public int a = 0;
         public int b = 0;
     }
 
-    public static uint HASH_CODE = 0;
+    public static uint HASH_CODE = 778842033;
 
-    public List<int> s0a;
-    public int[] s0b;
-    public int[] s0c;
+    public List<int> s0a = new List<int>();
+    public FixedArray<int, ArrayLength_10> s0b = new FixedArray<int, ArrayLength_10>();
+    public FixedArray<int, ArrayLength_10> s0c = new FixedArray<int, ArrayLength_10>();
 }
 public class Struct1 : Struct0
 {
-    public new static uint HASH_CODE = 0;
+    public new static uint HASH_CODE = 70717381;
 
     public int s1a = 1;
     public float f1 = 0.0f;
     public string str2 = GlobalVar.s_1;
     public string str3 = "zouhui";
     public Struct0 s1 = new Struct0();
-    public Struct0[] s2;
-    public Struct0[] s3;
-    public List<Detail.Enum2> s1arEnum;
-    public Detail.Enum2[] s1arEnum2;
+    public FixedArray<Struct0, ArrayLength_1> s2 = new FixedArray<Struct0, ArrayLength_1>();
+    public FixedArray<Struct0, ArrayLength_2> s3 = new FixedArray<Struct0, ArrayLength_2>();
+    public List<Detail.Enum2> s1arEnum = new List<Detail.Enum2>();
+    public FixedArray<Detail.Enum2, ArrayLength_2> s1arEnum2 = new FixedArray<Detail.Enum2, ArrayLength_2>();
 }
 public class Struct2
 {
-    public static uint HASH_CODE = 0;
+    public static uint HASH_CODE = 1416237547;
 
     public const int MAX = 100;
     public int a = 1;
@@ -67,8 +67,8 @@ public class Struct2
     public int d = 0;
     public string s = GlobalVar.s_1;
     public Struct1 s1 = new Struct1();
-    public Struct1[] s2;
-    public Struct1[] s3;
+    public FixedArray<Struct1, ArrayLength_1> s2 = new FixedArray<Struct1, ArrayLength_1>();
+    public FixedArray<Struct1, ArrayLength_2> s3 = new FixedArray<Struct1, ArrayLength_2>();
 }
 public enum Wtf
 {
@@ -80,7 +80,7 @@ public enum Wtf
 }
 public class Sr3
 {
-    public static uint HASH_CODE = 0;
+    public static uint HASH_CODE = 133125830;
 
     public int ID = 0;
     public int StageID = 0;

@@ -16,7 +16,7 @@ namespace cs_util
             prev = tName;
 
         if (arTy->Length())
-            return prev + "[]";
+            return "FixedArray<" + prev + ", ArrayLength_" + std::to_string(arTy->Length()) + ">";
         else
             return "List<" + prev + ">";
     }
@@ -132,9 +132,9 @@ namespace cs_util
         }
         else if (type->TypeCat() == TypeCategory::Array)
         {
-            const IArrayType* eTy = (const IArrayType*)type;
+            const IArrayType* arTy = (const IArrayType*)type;
+            return "new " + TypeName(type) + "()";
         }
-
 
         return "";
     }
