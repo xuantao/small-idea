@@ -1,9 +1,19 @@
-#pragma once
+﻿#pragma once
 
 #include "Serialize.h"
 
 namespace serialize
 {
+    class IBinaryStream
+    {
+    public:
+        virtual ~IBinaryStream() {}
+
+    public:
+        virtual bool Read(void* buf, uint32_t size) = 0;
+        virtual bool Write(const void* buf, uint32_t size) = 0;
+    };
+
     class IBuffer
     {
     public:
@@ -51,5 +61,7 @@ namespace serialize
     protected:
         IBuffer* _buffer = nullptr;
     };
-}
 
+    typedef NormalReader BinaryReader;
+    typedef NormalWriter BinaryWriter;
+}

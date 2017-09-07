@@ -43,9 +43,9 @@ namespace cs
         else _stream = &std::cout;
 
         *_stream <<
-            _TAB(0) << "/*" << std::endl << 
+            _TAB(0) << "/*" << std::endl <<
             _TAB(0) << " * this file is auto generated." << std::endl <<
-            _TAB(0) << " * please does not edit it manual!" << std::endl<<
+            _TAB(0) << " * please does not edit it manual!" << std::endl <<
             _TAB(0) << "*/" << std::endl <<
             _TAB(0) << "using System;" << std::endl <<
             _TAB(0) << "using System.Collections;" << std::endl <<
@@ -126,8 +126,8 @@ namespace cs
         *_stream <<
             _TAB(0) << "public class Invoker" << std::endl <<
             _TAB(0) << "{" << std::endl <<
-            _TAB(1) << "protected CrossCall.ICrossCaller _caller = null;" << std::endl << std::endl <<
-            _TAB(1) << "public Invoker(CrossCall.ICrossCaller caller)" << std::endl <<
+            _TAB(1) << "protected CrossCall.ICaller _caller = null;" << std::endl << std::endl <<
+            _TAB(1) << "public Invoker(CrossCall.ICaller caller)" << std::endl <<
             _TAB(1) << "{" << std::endl <<
             _TAB(2) << "_caller = caller;" << std::endl <<
             _TAB(1) << "}" << std::endl << std::endl;
@@ -158,9 +158,7 @@ namespace cs
             _TAB(1) << "public Processor(IExecutor executor)" << std::endl <<
             _TAB(1) << "{" << std::endl <<
             _TAB(2) << "_executor = executor;" << std::endl <<
-            _TAB(1) << "}" << std::endl << std::endl <<
-            _TAB(1) << "public uint ModuleID() { return MODULE_ID; }" << std::endl <<
-            _TAB(1) << "public uint HashCode() { return HASH_CODE; }" << std::endl << std::endl;
+            _TAB(1) << "}" << std::endl << std::endl;
         ++_tab;
 
         ImplProcessorDetail();
@@ -184,21 +182,14 @@ namespace cs
 
     void Module::ImplInvokerFunc(IFunction* func)
     {
-        *_stream << _TAB(0);
+        *_stream << _TAB(0) << "public ";
         DeclFunc(*_stream, func);
         *_stream << std::endl <<
             _TAB(0) << "{" << std::endl;
 
-        if (func->RetType())
-        {
-            std::string defVal = cs_util::DefValue(func->RetType());
-            *_stream << _TAB(1) << cs_util::TypeName(func->RetType()) << " ret";
-            if (!defVal.empty()) *_stream << " = " << defVal;
-            *_stream << ";" << std::endl;
-        }
-
         *_stream <<
-            _TAB(1) << "Serialize.IWriter writer = _caller.BeginCall(MODULE_ID, HASH_CODE);" << std::endl <<
+            _TAB(1) << "Serialize.IWriter writer = _caller.BeginCall(MODULE_ID);" << std::endl <<
+            _TAB(1) << "writer.Write(HASH_CODE);" << std::endl <<
             _TAB(1) << "writer.Write((int)Message.Msg_" << func->Name() << ");" << std::endl << std::endl;
 
         IVarSet* varSet = func->Scope()->VarSet();
@@ -212,10 +203,16 @@ namespace cs
         *_stream << std::endl;
         if (func->RetType())
         {
+            std::string defVal = cs_util::DefValue(func->RetType());
+
+            *_stream << _TAB(1) << cs_util::TypeName(func->RetType()) << " __ret__";
+            if (!defVal.empty()) *_stream << " = " << defVal;
+            *_stream << ";" << std::endl;
+
             *_stream <<
                 _TAB(1) << "Serialize.IReader reader = _caller.EndCall();" << std::endl <<
-                _TAB(1) << "Serialize.Utility.Read(reader, ref ret);" << std::endl <<
-                _TAB(1) << "return ret;" << std::endl;
+                _TAB(1) << "Serialize.Utility.Read(reader, ref __ret__);" << std::endl <<
+                _TAB(1) << "return __ret__;" << std::endl;
         }
         else
         {
@@ -229,11 +226,14 @@ namespace cs
     void Module::ImplProcessorDetail()
     {
         *_stream <<
-            _TAB(0) << "public void Process(Serialize.IReader reader, Serialize.IWriter writer)" << std::endl <<
+            _TAB(0) << "public void Process(CrossCall.IContext context)" << std::endl <<
             _TAB(0) << "{" << std::endl <<
+            _TAB(1) << "uint code = 0;" << std::endl <<
             _TAB(1) << "int tmp = 0;" << std::endl <<
-            _TAB(1) << "reader.Read(ref tmp);" << std::endl <<
-            _TAB(1) << "Message msg = (Message)tmp;" << std::endl << std::endl <<
+            _TAB(1) << "context.Param.Read(ref code);" << std::endl <<
+            _TAB(1) << "context.Param.Read(ref tmp);" << std::endl <<
+            _TAB(1) << "//TODO: check code == HASH_CODE" << std::endl << std::endl <<
+            _TAB(1) << "Message msg = (Message)tmp;" << std::endl <<
             _TAB(1) << "switch (msg)" << std::endl <<
             _TAB(1) << "{" << std::endl;
 
@@ -245,7 +245,7 @@ namespace cs
                 continue;
 
             *_stream <<
-                _TAB(1) << "case Message.Msg_" << func->Name() << ": On" << func->Name() << "(reader, writer); break;" << std::endl;
+                _TAB(1) << "case Message.Msg_" << func->Name() << ": On" << func->Name() << "(context); break;" << std::endl;
         }
 
         *_stream <<
@@ -256,8 +256,8 @@ namespace cs
 
     void Module::ImplProcessorFunc(IFunction* func)
     {
-        *_stream << 
-            _TAB(0) << "void On" << func->Name() << "(Serialize.IReader reader, Serialize.IWriter writer)" << std::endl <<
+        *_stream <<
+            _TAB(0) << "void On" << func->Name() << "(CrossCall.IContext context)" << std::endl <<
             _TAB(0) << "{" << std::endl;
 
         IVarSet* varSet = func->Scope()->VarSet();
@@ -276,13 +276,14 @@ namespace cs
         for (int i = 0; i < varSet->Size(); ++i)
         {
             IVariate* var = varSet->Get(i);
-            *_stream << _TAB(1) << "Serialize.Utility.Read(reader, ref " << var->Name() << ");" << std::endl;
+            *_stream << _TAB(1) << "Serialize.Utility.Read(context.Param, ref " << var->Name() << ");" << std::endl;
         }
         *_stream << std::endl;
 
         // do call
         *_stream << _TAB(1);
-        if (func->RetType()) *_stream << "Serialize.Utility.Write(writer, ";
+        if (func->RetType()) *_stream << "var __ret__ = ";
+
         *_stream << "_executor." << func->Name() << "(";
         for (int i = 0; i < varSet->Size(); ++i)
         {
@@ -291,8 +292,9 @@ namespace cs
             if (i + 1 != varSet->Size())
                 *_stream << ", ";
         }
-        if (func->RetType()) *_stream << ")";
         *_stream << ");" << std::endl;
+
+        if (func->RetType()) *_stream << _TAB(1) << "Serialize.Utility.Write(context.Ret(), __ret__);" << std::endl;
 
         *_stream <<
             _TAB(0) << "}" << std::endl;

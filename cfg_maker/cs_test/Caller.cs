@@ -26,16 +26,17 @@ public class Caller
 
     public class Invoker
     {
-        protected CrossCall.ICrossCaller _caller = null;
+        protected CrossCall.ICaller _caller = null;
 
-        public Invoker(CrossCall.ICrossCaller caller)
+        public Invoker(CrossCall.ICaller caller)
         {
             _caller = caller;
         }
 
-        void Call_A(int a, int b)
+        public void Call_A(int a, int b)
         {
-            Serialize.IWriter writer = _caller.BeginCall(MODULE_ID, HASH_CODE);
+            Serialize.IWriter writer = _caller.BeginCall(MODULE_ID);
+            writer.Write(HASH_CODE);
             writer.Write((int)Message.Msg_Call_A);
 
             Serialize.Utility.Write(writer, a);
@@ -44,17 +45,18 @@ public class Caller
             _caller.EndCall();
         }
 
-        int Call_B(string str)
+        public int Call_B(string str)
         {
-            int ret = 0;
-            Serialize.IWriter writer = _caller.BeginCall(MODULE_ID, HASH_CODE);
+            Serialize.IWriter writer = _caller.BeginCall(MODULE_ID);
+            writer.Write(HASH_CODE);
             writer.Write((int)Message.Msg_Call_B);
 
             Serialize.Utility.Write(writer, str);
 
+            int __ret__ = 0;
             Serialize.IReader reader = _caller.EndCall();
-            Serialize.Utility.Read(reader, ref ret);
-            return ret;
+            Serialize.Utility.Read(reader, ref __ret__);
+            return __ret__;
         }
     }
 
@@ -67,41 +69,42 @@ public class Caller
             _executor = executor;
         }
 
-        public uint ModuleID() { return MODULE_ID; }
-        public uint HashCode() { return HASH_CODE; }
-
-        public void Process(Serialize.IReader reader, Serialize.IWriter writer)
+        public void Process(CrossCall.IContext context)
         {
+            uint code = 0;
             int tmp = 0;
-            reader.Read(ref tmp);
-            Message msg = (Message)tmp;
+            context.Param.Read(ref code);
+            context.Param.Read(ref tmp);
+            //TODO: check code == HASH_CODE
 
+            Message msg = (Message)tmp;
             switch (msg)
             {
-            case Message.Msg_Call_A: OnCall_A(reader, writer); break;
-            case Message.Msg_Call_B: OnCall_B(reader, writer); break;
+            case Message.Msg_Call_A: OnCall_A(context); break;
+            case Message.Msg_Call_B: OnCall_B(context); break;
             default: break;
             }
         }
 
-        void OnCall_A(Serialize.IReader reader, Serialize.IWriter writer)
+        void OnCall_A(CrossCall.IContext context)
         {
             int a = 0;
             int b = 0;
 
-            Serialize.Utility.Read(reader, ref a);
-            Serialize.Utility.Read(reader, ref b);
+            Serialize.Utility.Read(context.Param, ref a);
+            Serialize.Utility.Read(context.Param, ref b);
 
             _executor.Call_A(a, b);
         }
 
-        void OnCall_B(Serialize.IReader reader, Serialize.IWriter writer)
+        void OnCall_B(CrossCall.IContext context)
         {
             string str = "";
 
-            Serialize.Utility.Read(reader, ref str);
+            Serialize.Utility.Read(context.Param, ref str);
 
-            Serialize.Utility.Write(writer, _executor.Call_B(str));
+            var __ret__ = _executor.Call_B(str);
+            Serialize.Utility.Write(context.Ret(), __ret__);
         }
     }
 }

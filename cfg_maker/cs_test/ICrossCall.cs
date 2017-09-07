@@ -4,16 +4,25 @@
 
 namespace CrossCall
 {
-    public interface IProcessor
+    public interface IContext
     {
-        uint ModuleID();
-        uint HashCode();
-        void Process(Serialize.IReader reader, Serialize.IWriter writer);
+        Serialize.IReader Param { get; }
+        Serialize.IWriter Ret();
     }
 
-    public interface ICrossCaller
+    public interface ICaller
     {
-        Serialize.IWriter BeginCall(uint module, uint code);
+        Serialize.IWriter BeginCall(uint module);
         Serialize.IReader EndCall();
+    }
+
+    public interface IProcessor
+    {
+        void Process(IContext context);
+    }
+
+    public interface InternalCall
+    {
+        void DoCall();
     }
 }

@@ -34,6 +34,9 @@
     <ClCompile Include="SerializeNormal.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="Station.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cfg.h">
@@ -61,6 +64,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="SerializeNormal.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Station.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

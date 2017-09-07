@@ -9,15 +9,38 @@
 
 namespace cross_call
 {
+    class IContext
+    {
+    public:
+        virtual ~IContext() {}
+    public:
+        virtual serialize::IReader* Param() = 0;
+        virtual serialize::IWriter* Ret() = 0;
+    };
+
     class IProcessor
     {
     public:
         virtual ~IProcessor() {}
-
     public:
-        virtual uint32_t GetModuleID() const = 0;
-        virtual uint32_t GetHashCode() const = 0;
         virtual void Process(serialize::IReader* reader, serialize::IWriter* writer) = 0;
+    };
+
+    class ICross
+    {
+    public:
+        virtual ~ICross() {}
+    public:
+        virtual serialize::IWriter* BeginCall(uint32_t module) = 0;
+        virtual serialize::IReader* EndCall() = 0;
+    };
+
+    class ICaller
+    {
+    public:
+        virtual ~ICaller() {}
+    public:
+        virtual void DoCall() = 0;
     };
 
     class ICrossCaller
