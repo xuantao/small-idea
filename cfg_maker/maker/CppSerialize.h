@@ -19,8 +19,8 @@ namespace cpp
         void End();
 
     protected:
-        std::ostream& DeclRead(std::ostream& stream, const IType* type);
-        std::ostream& DeclWrite(std::ostream& stream, const IType* type);
+        std::ostream& DeclRead(std::ostream& stream, const IType* type, bool isDecl);
+        std::ostream& DeclWrite(std::ostream& stream, const IType* type, bool isDecl);
         void ImplRead(const IType* type);
         void ImplWrite(const IType* type);
         void Clear();

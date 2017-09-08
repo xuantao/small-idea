@@ -1,5 +1,5 @@
 ﻿#include "Caller.h"
-#include "CrossCall.h"
+#include "Station.h"
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
@@ -8,7 +8,7 @@
 #include <map>
 #include <sstream>
 
-using namespace cross_call;
+//using namespace cross_call;
 
 class Exe : public Caller::IExecutor
 {
@@ -30,43 +30,54 @@ public:
 
 void TestMemory()
 {
-    char buffer[20] = { 0 };
-    SwapMemory mem(buffer, 20);
-    serialize::IReader* reader = mem.GetReader();
-    serialize::IWriter* writer = mem.GetWriter();
+    char buffer[20] = {0};
+    //SwapMemory mem(buffer, 20);
+    //serialize::IReader* reader = mem.GetReader();
+    //serialize::IWriter* writer = mem.GetWriter();
 
-    uint32_t src = 1;
-    uint32_t dst;
+    //uint32_t src = 1;
+    //uint32_t dst;
 
-    std::cout << writer->Write(src) << std::endl;
-    std::cout << reader->Read(dst) << std::endl;
+    //std::cout << writer->Write(src) << std::endl;
+    //std::cout << reader->Read(dst) << std::endl;
 
-    std::cout << writer->Write(src) << std::endl;
-    ++src;
-    std::cout << writer->Write(src) << std::endl;
-    ++src;
-    std::cout << writer->Write(src) << std::endl;
+    //std::cout << writer->Write(src) << std::endl;
+    //++src;
+    //std::cout << writer->Write(src) << std::endl;
+    //++src;
+    //std::cout << writer->Write(src) << std::endl;
 
-    std::cout << reader->Read(dst) << std::endl;
-    std::cout << reader->Read(dst) << std::endl;
-    std::cout << reader->Read(dst) << std::endl;
+    //std::cout << reader->Read(dst) << std::endl;
+    //std::cout << reader->Read(dst) << std::endl;
+    //std::cout << reader->Read(dst) << std::endl;
 }
+
+cross_call::Station* p_Station = nullptr;
+
+struct CrossCaller : public cross_call::ICaller
+{
+    void DoCall()
+    {
+        if (p_Station)
+            p_Station->OnCall();
+    }
+};
 
 void TestCrossCall()
 {
+    char buffer[1024] = {0};
     Exe excutor;
-    CrossCallManager manager;
-    manager.Init();
+    CrossCaller caller;
+    cross_call::Station station(&caller, buffer, 1024);
+    p_Station = &station;
 
-    /*Exe* exe = new Exe(manager.GetCaller());*/
-    Caller::Invoker invoker(manager.GetCaller());
+    Caller::Invoker invoker(station.GetCross());
     Caller::Processor proc(&excutor);
 
-    manager.Register(&proc);
+    station.Register(Caller::MODULE_ID, &proc);
 
     invoker.Call_A(1, 2);
     printf("call_b:%d", invoker.Call_B("xuantao"));
-
 }
 
 int main(int argc, char* argv[])

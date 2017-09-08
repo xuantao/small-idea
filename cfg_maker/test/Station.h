@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "CrossCallDef.h"
-#include "SerializeNormal.h"
+#include "ICrossCall.h"
+#include "SerBinary.h"
 #include <map>
 
 namespace cross_call
@@ -26,14 +26,14 @@ namespace cross_call
         virtual bool Write(const void* buf, uint32_t size);
 
     protected:
-        union Header
+        struct Header
         {
             int32_t  ds;
-            char*    base;
         };
 
         BufferMode _mode = BufferMode::Read;
         Header* _header = nullptr;
+        char* _base = nullptr;
         int _size = 0;
         int _rp = 0;
         int _wp = 0;
@@ -48,7 +48,7 @@ namespace cross_call
             Context(Station& station) : _staion(station) {}
         public:
             virtual serialize::IReader* Param() { return _staion._reader; }
-            virtual serialize::IWriter* Ret() { Ret() _staion.RetParam(); }
+            virtual serialize::IWriter* Ret() { return _staion.RetParam(); }
         protected:
             Station& _staion;
         };
@@ -58,8 +58,8 @@ namespace cross_call
         public:
             Cross(Station& station) : _staion(station) {}
         public:
-            virtual serialize::IWriter* BeginCall(uint32_t module) { _staion.BeginCall(module); }
-            virtual serialize::IReader* EndCall() { _staion.EndCall(); }
+            virtual serialize::IWriter* BeginCall(uint32_t module) { return _staion.BeginCall(module); }
+            virtual serialize::IReader* EndCall() { return _staion.EndCall(); }
         protected:
             Station& _staion;
         };
@@ -71,7 +71,7 @@ namespace cross_call
     public:
         ICross* GetCross() { return &_cross; }
 
-        bool Register(IProcessor* processor);
+        bool Register(uint32_t module, IProcessor* processor);
         IProcessor* Unregister(uint32_t module);
         IProcessor* GetProcessor(uint32_t module) const;
 
@@ -79,8 +79,8 @@ namespace cross_call
 
     protected:
         serialize::IWriter* RetParam();
-        serialize::IReader* BeginCall(uint32_t module);
-        serialize::IWriter* EndCall();
+        serialize::IWriter* BeginCall(uint32_t module);
+        serialize::IReader* EndCall();
 
     protected:
         ICaller* _caller = nullptr;
@@ -88,7 +88,7 @@ namespace cross_call
         Cross _cross;
         std::map<uint32_t, IProcessor*> _procs;
 
-        SwapBuffer _buffer;
+        SwapBuffer* _buffer = nullptr;
         serialize::BinaryReader* _reader = nullptr;
         serialize::BinaryWriter* _writer = nullptr;
     };

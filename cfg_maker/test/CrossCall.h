@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "CrossCallDef.h"
 #include "SerializeNormal.h"
 #include <map>
@@ -33,8 +33,8 @@ namespace cross_call
 
         uint32_t _size = 0;
         Header* _header = nullptr;
-        serialize::NormalReader _reader;
-        serialize::NormalWriter _writer;
+        serialize::BinaryReader _reader;
+        serialize::BinaryWriter _writer;
     };
 
     class CrossCallManager
@@ -63,9 +63,13 @@ namespace cross_call
 
         public:
             virtual serialize::IWriter* BeginCall(uint32_t module, uint32_t code)
-            { return _manager.BeginCall(module, code); }
+            {
+                return _manager.BeginCall(module, code);
+            }
             virtual serialize::IReader* EndCall()
-            { return _manager.EndCall(); }
+            {
+                return _manager.EndCall();
+            }
 
         protected:
             CrossCallManager& _manager;

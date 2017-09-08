@@ -1,4 +1,4 @@
-#include "CppSerialize.h"
+﻿#include "CppSerialize.h"
 #include "CppUtil.h"
 #include "Utility.h"
 #include <iostream>
@@ -10,7 +10,8 @@ CFG_NAMESPACE_BEGIN
 namespace cpp
 {
     Serialize::Serialize()
-    { }
+    {
+    }
 
     Serialize::~Serialize()
     {
@@ -23,10 +24,14 @@ namespace cpp
         std::ofstream* file = new std::ofstream(fileName + ".h");
         if (file->is_open()) _header = file;
         else _header = &std::cout;
-        *_header << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl <<
-            "#pragma once" << std::endl << std::endl <<
-            "#include \"" << name << ".h\"" << std::endl <<
-            "#include \"Serialize.h\"" << std::endl << std::endl <<
+        *_header <<
+            _TAB(0) << "/*" << std::endl <<
+            _TAB(0) << " * this file is auto generated." << std::endl <<
+            _TAB(0) << " * please does not edit it manual!" << std::endl <<
+            _TAB(0) << "*/" << std::endl <<
+            _TAB(0) << "#pragma once" << std::endl << std::endl <<
+            _TAB(0) << "#include \"" << name << ".h\"" << std::endl <<
+            _TAB(0) << "#include \"ISerialize.h\"" << std::endl << std::endl <<
             _TAB(0) << "namespace serialize" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(1) << "namespace utility" << std::endl <<
@@ -35,8 +40,13 @@ namespace cpp
         file = new std::ofstream(fileName + ".cpp");
         if (file->is_open()) _cpp = file;
         else _cpp = &std::cout;
-        *_cpp << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl <<
-            "#include \"" << name << "_Ser.h\"" << std::endl << std::endl <<
+        *_cpp <<
+            _TAB(0) << "/*" << std::endl <<
+            _TAB(0) << " * this file is auto generated." << std::endl <<
+            _TAB(0) << " * please does not edit it manual!" << std::endl <<
+            _TAB(0) << "*/" << std::endl <<
+            _TAB(0) << "#include \"" << name << "_Ser.h\"" << std::endl <<
+            _TAB(0) << "#include \"SerUtility.h\"" << std::endl << std::endl <<
             _TAB(0) << "namespace serialize" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(1) << "namespace utility" << std::endl <<
@@ -52,8 +62,8 @@ namespace cpp
             return true;
 
         if (!_isFirst) *_header << std::endl;
-        DeclRead(*_header, type) << ";" << std::endl;
-        DeclWrite(*_header, type) << ";" << std::endl;
+        DeclRead(*_header, type, true) << std::endl;
+        DeclWrite(*_header, type, true) << std::endl;
 
         if (!_isFirst) *_cpp << std::endl;
 
@@ -79,51 +89,60 @@ namespace cpp
         Clear();
     }
 
-    std::ostream& Serialize::DeclRead(std::ostream& stream, const IType* type)
+    std::ostream& Serialize::DeclRead(std::ostream& stream, const IType* type, bool isDecl)
     {
-        stream << _TAB(0) << "bool Read(IReader* reader, " << cpp_util::TypeName(type) << "& val)";
+        stream << _TAB(0) << "bool Read(IReader* reader, " << cpp_util::TypeName(type) << "& val, const char* name";
+        if (isDecl)
+            stream << " = nullptr);";
+        else
+            stream << "/* = nullptr*/)";
         return stream;
     }
 
-    std::ostream& Serialize::DeclWrite(std::ostream& stream, const IType* type)
+    std::ostream& Serialize::DeclWrite(std::ostream& stream, const IType* type, bool isDecl)
     {
         stream << _TAB(0) << "bool Write(IWriter* writer, ";
         if (type->TypeCat() == TypeCategory::Enum)
-            stream << cpp_util::TypeName(type) << " val)";
+            stream << cpp_util::TypeName(type) << " val, const char* name";
         else if (type->TypeCat() == TypeCategory::Struct)
-            stream << "const " << cpp_util::TypeName(type) << "& val)";
+            stream << "const " << cpp_util::TypeName(type) << "& val, const char* name";
         else
             assert(false);
+
+        if (isDecl)
+            stream << " = nullptr);";
+        else
+            stream << "/* = nullptr*/)";
 
         return stream;
     }
 
     void Serialize::ImplRead(const IType* type)
     {
-        DeclRead(*_cpp, type) << std::endl << _TAB(0) << "{" << std::endl;
+        DeclRead(*_cpp, type, false) << std::endl << _TAB(0) << "{" << std::endl;
         if (type->TypeCat() == TypeCategory::Enum)
         {
             *_cpp <<
-                _TAB(1) << "return reader->Read((int&)val);" << std::endl;
+                _TAB(1) << "return reader->Read((int&)val, name);" << std::endl;
         }
         else if (type->TypeCat() == TypeCategory::Struct)
         {
             *_cpp <<
-                _TAB(1) << "if (!reader->StructBegin(" << cpp_util::TypeName(type) << "::HASH_CODE)) return false;" << std::endl;
+                _TAB(1) << "if (!reader->StructBegin(" << cpp_util::TypeName(type) << "::HASH_CODE, name)) return false;" << std::endl << std::endl;
 
             IVarSet* varSet = ((const IStructType*)type)->Scope()->VarSet();
             for (int i = 0; i < varSet->Size(); ++i)
             {
-                if (varSet->Get(i)->IsConst())
+                IVariate* var = varSet->Get(i);
+                if (var->IsConst())
                     continue;
 
                 *_cpp <<
-                    _TAB(1) << "if (!Read(reader, val." << varSet->Get(i)->Name() << ")) return false;" << std::endl;
+                    _TAB(1) << "if (!Read(reader, val." << var->Name() << ", \"" << var->Name() << "\")) return false;" << std::endl;
             }
 
-            *_cpp <<
-                _TAB(1) << "if (!reader->StructEnd()) return false;" << std::endl << std::endl <<
-                _TAB(1) << "return true;" << std::endl;
+            *_cpp << std::endl <<
+                _TAB(1) << "return reader->StructEnd();" << std::endl;
         }
         else
         {
@@ -135,30 +154,30 @@ namespace cpp
 
     void Serialize::ImplWrite(const IType* type)
     {
-        DeclWrite(*_cpp, type) << std::endl << _TAB(0) << "{" << std::endl;
+        DeclWrite(*_cpp, type, false) << std::endl << _TAB(0) << "{" << std::endl;
         if (type->TypeCat() == TypeCategory::Enum)
         {
             *_cpp <<
-                _TAB(1) << "return writer->Write((int)val);" << std::endl;
+                _TAB(1) << "return writer->Write((int)val, name);" << std::endl;
         }
         else if (type->TypeCat() == TypeCategory::Struct)
         {
             *_cpp <<
-                _TAB(1) << "if (!writer->StructBegin(" << cpp_util::TypeName(type) << "::HASH_CODE)) return false;" << std::endl;
+                _TAB(1) << "if (!writer->StructBegin(" << cpp_util::TypeName(type) << "::HASH_CODE, name)) return false;" << std::endl << std::endl;
 
             IVarSet* varSet = ((const IStructType*)type)->Scope()->VarSet();
             for (int i = 0; i < varSet->Size(); ++i)
             {
-                if (varSet->Get(i)->IsConst())
+                IVariate* var = varSet->Get(i);
+                if (var->IsConst())
                     continue;
 
                 *_cpp <<
-                    _TAB(1) << "if (!Write(writer, val." << varSet->Get(i)->Name() << ")) return false;" << std::endl;
+                    _TAB(1) << "if (!Write(writer, val." << var->Name() << "), \"" << var->Name() << "\") return false;" << std::endl;
             }
 
-            *_cpp <<
-                _TAB(1) << "if (!writer->StructEnd()) return false;" << std::endl << std::endl <<
-                _TAB(1) << "return true;" << std::endl;
+            *_cpp << std::endl <<
+                _TAB(1) << "return writer->StructEnd();" << std::endl;
         }
         else
         {

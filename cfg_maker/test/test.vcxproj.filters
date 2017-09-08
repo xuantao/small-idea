@@ -25,17 +25,14 @@
     <ClCompile Include="Caller.cpp">
       <Filter>src\cfg</Filter>
     </ClCompile>
-    <ClCompile Include="Serialize.cpp">
-      <Filter>src\cfg</Filter>
-    </ClCompile>
-    <ClCompile Include="CrossCall.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="SerializeNormal.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="Station.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="SerBinary.cpp">
+      <Filter>src\cfg</Filter>
+    </ClCompile>
+    <ClCompile Include="SerUtility.cpp">
+      <Filter>src\cfg</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -48,25 +45,25 @@
     <ClInclude Include="CfgUtility.h">
       <Filter>src\cfg</Filter>
     </ClInclude>
-    <ClInclude Include="Serialize.h">
-      <Filter>src\cfg</Filter>
-    </ClInclude>
     <ClInclude Include="Cfg_Ser.h">
       <Filter>src\cfg</Filter>
     </ClInclude>
     <ClInclude Include="Caller.h">
       <Filter>src\cfg</Filter>
     </ClInclude>
-    <ClInclude Include="CrossCallDef.h">
+    <ClInclude Include="Station.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="ISerialize.h">
       <Filter>src\cfg</Filter>
     </ClInclude>
-    <ClInclude Include="CrossCall.h">
-      <Filter>src</Filter>
+    <ClInclude Include="SerBinary.h">
+      <Filter>src\cfg</Filter>
     </ClInclude>
-    <ClInclude Include="SerializeNormal.h">
-      <Filter>src</Filter>
+    <ClInclude Include="SerUtility.h">
+      <Filter>src\cfg</Filter>
     </ClInclude>
-    <ClInclude Include="Station.h">
+    <ClInclude Include="ICrossCall.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

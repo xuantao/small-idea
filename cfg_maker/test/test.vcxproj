@@ -146,10 +146,9 @@
     <ClCompile Include="Cfg.cpp" />
     <ClCompile Include="CfgUtility.cpp" />
     <ClCompile Include="Cfg_Ser.cpp" />
-    <ClCompile Include="CrossCall.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Serialize.cpp" />
-    <ClCompile Include="SerializeNormal.cpp" />
+    <ClCompile Include="SerBinary.cpp" />
+    <ClCompile Include="SerUtility.cpp" />
     <ClCompile Include="Station.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -158,10 +157,10 @@
     <ClInclude Include="CfgUtility.h" />
     <ClInclude Include="CfgTabParser.h" />
     <ClInclude Include="Cfg_Ser.h" />
-    <ClInclude Include="CrossCall.h" />
-    <ClInclude Include="CrossCallDef.h" />
-    <ClInclude Include="SerializeNormal.h" />
-    <ClInclude Include="Serialize.h" />
+    <ClInclude Include="ICrossCall.h" />
+    <ClInclude Include="ISerialize.h" />
+    <ClInclude Include="SerBinary.h" />
+    <ClInclude Include="SerUtility.h" />
     <ClInclude Include="Station.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

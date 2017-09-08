@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Cfg.h"
-#include "CrossCallDef.h"
+#include "ICrossCall.h"
 
 class Caller
 {
@@ -33,31 +33,29 @@ public:
     class Invoker
     {
     public:
-        Invoker(cross_call::ICrossCaller* caller) : _caller(caller)
-        { }
+        Invoker(cross_call::ICross* cross) : _cross(cross) { }
 
     public:
         void Call_A(int a, int b);
         int Call_B(const std::string& str);
+
     protected:
-        cross_call::ICrossCaller* _caller = nullptr;
+        cross_call::ICross* _cross = nullptr;
     };
 
     class Processor : public cross_call::IProcessor
     {
     public:
-        Processor(IExecutor* executor) : _executor(executor)
-        { }
+        Processor(IExecutor* executor) : _executor(executor) { }
         virtual ~Processor() { }
 
     public:
-        virtual uint32_t GetModuleID() const { return MODULE_ID; }
-        virtual uint32_t GetHashCode() const { return HASH_CODE; }
-        virtual void Process(serialize::IReader* reader, serialize::IWriter* writer);
+        virtual void Process(cross_call::IContext* context);
 
     protected:
-        void OnCall_A(serialize::IReader* reader, serialize::IWriter* writer);
-        void OnCall_B(serialize::IReader* reader, serialize::IWriter* writer);
+        void OnCall_A(cross_call::IContext* context);
+        void OnCall_B(cross_call::IContext* context);
+
     protected:
         IExecutor* _executor = nullptr;
     };

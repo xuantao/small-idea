@@ -5,7 +5,7 @@
 */
 #pragma once
 
-#include "Serialize.h"
+#include "ISerialize.h"
 
 namespace cross_call
 {
@@ -23,7 +23,7 @@ namespace cross_call
     public:
         virtual ~IProcessor() {}
     public:
-        virtual void Process(serialize::IReader* reader, serialize::IWriter* writer) = 0;
+        virtual void Process(IContext* context) = 0;
     };
 
     class ICross
@@ -41,15 +41,5 @@ namespace cross_call
         virtual ~ICaller() {}
     public:
         virtual void DoCall() = 0;
-    };
-
-    class ICrossCaller
-    {
-    public:
-        virtual ~ICrossCaller() {}
-
-    public:
-        virtual serialize::IWriter* BeginCall(uint32_t module, uint32_t code) = 0;
-        virtual serialize::IReader* EndCall() = 0;
     };
 }
