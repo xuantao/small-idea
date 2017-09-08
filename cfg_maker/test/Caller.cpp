@@ -16,7 +16,7 @@ void Caller::Invoker::Call_A(int a, int b)
     serialize::utility::Write(writer, a);
     serialize::utility::Write(writer, b);
 
-    _caller->EndCall();
+    _cross->EndCall();
 }
 
 int Caller::Invoker::Call_B(const std::string& str)
@@ -34,10 +34,10 @@ int Caller::Invoker::Call_B(const std::string& str)
 
 void Caller::Processor::Process(cross_call::IContext* context)
 {
-    uint32_t code = 0
+    uint32_t code = 0;
     Message msg = Message::Invalid;
-    reader->Read(code);
-    reader->Read((int&)msg);
+    context->Param()->Read(code);
+    context->Param()->Read((int&)msg);
     assert(code == HASH_CODE);
 
     switch (msg)
@@ -66,6 +66,6 @@ void Caller::Processor::OnCall_B(cross_call::IContext* context)
     serialize::utility::Read(context->Param(), str);
 
     auto __ret__ = _executor->Call_B(str);
-    serialize::utility::Read(context->Ret(), __ret__);
+    serialize::utility::Write(context->Ret(), __ret__);
 }
 

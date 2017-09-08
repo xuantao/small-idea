@@ -257,7 +257,7 @@ namespace cpp
         else
         {
             *_cpp <<
-                _TAB(0) << "_caller->EndCall();" << std::endl;
+                _TAB(0) << "_cross->EndCall();" << std::endl;
         }
     }
 
@@ -292,10 +292,10 @@ namespace cpp
         *_cpp <<
             _TAB(0) << "void " << _module->Name() << "::Processor::Process(cross_call::IContext* context)" << std::endl <<
             _TAB(0) << "{" << std::endl <<
-            _TAB(1) << "uint32_t code = 0" << std::endl <<
+            _TAB(1) << "uint32_t code = 0;" << std::endl <<
             _TAB(1) << "Message msg = Message::Invalid;" << std::endl <<
-            _TAB(1) << "reader->Read(code);" << std::endl <<
-            _TAB(1) << "reader->Read((int&)msg);" << std::endl <<
+            _TAB(1) << "context->Param()->Read(code);" << std::endl <<
+            _TAB(1) << "context->Param()->Read((int&)msg);" << std::endl <<
             _TAB(1) << "assert(code == HASH_CODE);" << std::endl << std::endl <<
             _TAB(1) << "switch (msg)" << std::endl <<
             _TAB(1) << "{" << std::endl;
@@ -350,7 +350,7 @@ namespace cpp
         *_cpp << ");" << std::endl;
 
         if (func->RetType())
-            *_cpp << _TAB(0) << "serialize::utility::Read(context->Ret(), __ret__);" << std::endl;
+            *_cpp << _TAB(0) << "serialize::utility::Write(context->Ret(), __ret__);" << std::endl;
     }
 
     void Module::DeclFunc(std::ostream& stream, IFunction* func, const std::string& ClassName)

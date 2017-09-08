@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="cross">
+      <UniqueIdentifier>{a03ec665-dd0d-449f-93ae-b97483b28d2b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="cross\Caller.cpp">
+      <Filter>cross</Filter>
+    </ClCompile>
+    <ClCompile Include="cross\Cfg.cpp">
+      <Filter>cross</Filter>
+    </ClCompile>
+    <ClCompile Include="cross\Cfg_Ser.cpp">
+      <Filter>cross</Filter>
+    </ClCompile>
+    <ClCompile Include="cross\CfgUtility.cpp">
+      <Filter>cross</Filter>
+    </ClCompile>
+    <ClCompile Include="cross\SerBinary.cpp">
+      <Filter>cross</Filter>
+    </ClCompile>
+    <ClCompile Include="cross\SerUtility.cpp">
+      <Filter>cross</Filter>
+    </ClCompile>
+    <ClCompile Include="cross\Station.cpp">
+      <Filter>cross</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cross\Caller.h">
+      <Filter>cross</Filter>
+    </ClInclude>
+    <ClInclude Include="cross\Cfg.h">
+      <Filter>cross</Filter>
+    </ClInclude>
+    <ClInclude Include="cross\Cfg_Ser.h">
+      <Filter>cross</Filter>
+    </ClInclude>
+    <ClInclude Include="cross\CfgUtility.h">
+      <Filter>cross</Filter>
+    </ClInclude>
+    <ClInclude Include="cross\ICrossCall.h">
+      <Filter>cross</Filter>
+    </ClInclude>
+    <ClInclude Include="cross\ISerialize.h">
+      <Filter>cross</Filter>
+    </ClInclude>
+    <ClInclude Include="cross\SerBinary.h">
+      <Filter>cross</Filter>
+    </ClInclude>
+    <ClInclude Include="cross\SerUtility.h">
+      <Filter>cross</Filter>
+    </ClInclude>
+    <ClInclude Include="cross\Station.h">
+      <Filter>cross</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
