@@ -85,6 +85,25 @@ struct Struct2
     std::array<Struct1, 2> s3;
 };
 
+struct Inner
+{
+    static const uint32_t HASH_CODE = 3004470948;
+
+    int ii = 0;
+    std::string name = "inner";
+};
+
+struct Msg
+{
+    static const uint32_t HASH_CODE = 2322483568;
+
+    bool b = false;
+    int i = 0;
+    float f = 0.0f;
+    std::string s = "msg";
+    Inner inner;
+};
+
 enum class Wtf
 {
     Invalid = -1,

@@ -59,7 +59,7 @@ public:
     virtual ~IStructType() {}
 public:
     virtual CfgCategory CfgCat() const = 0;
-
+    virtual uint32_t HashCode() const = 0;
     virtual bool IsInherited(const IStructType* type) const = 0;
     virtual bool Inherit(IStructType* parent) = 0;
     virtual IStructType* Inherited() const = 0;
@@ -85,6 +85,8 @@ public:
     virtual ~IFunction() {}
 
 public:
+    virtual const std::string& RawName() const = 0;
+    virtual uint32_t HashCode() const = 0;
     virtual IType* RetType() const = 0;
 };
 
@@ -123,6 +125,7 @@ public:
     virtual ~IModule() {}
 public:
     virtual const std::string& Name() const = 0;
+    virtual uint32_t ID() const = 0;
     virtual IScope* Owner() const = 0;
     virtual IScope* Scope() const = 0;
 };

@@ -34,6 +34,12 @@
     <ClCompile Include="cross\Station.cpp">
       <Filter>cross</Filter>
     </ClCompile>
+    <ClCompile Include="cross\TestC2S.cpp">
+      <Filter>cross</Filter>
+    </ClCompile>
+    <ClCompile Include="cross\TestS2C.cpp">
+      <Filter>cross</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cross\Caller.h">
@@ -61,6 +67,12 @@
       <Filter>cross</Filter>
     </ClInclude>
     <ClInclude Include="cross\Station.h">
+      <Filter>cross</Filter>
+    </ClInclude>
+    <ClInclude Include="cross\TestC2S.h">
+      <Filter>cross</Filter>
+    </ClInclude>
+    <ClInclude Include="cross\TestS2C.h">
       <Filter>cross</Filter>
     </ClInclude>
   </ItemGroup>

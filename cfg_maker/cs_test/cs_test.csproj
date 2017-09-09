@@ -13,11 +13,11 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\x64\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -42,18 +42,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ArrayLength.cs" />
-    <Compile Include="Caller.cs" />
-    <Compile Include="Cfg.cs" />
-    <Compile Include="Cfg_Ser.cs" />
-    <Compile Include="Station.cs" />
-    <Compile Include="FixedArray.cs" />
-    <Compile Include="ICrossCall.cs" />
-    <Compile Include="ISerialize.cs" />
+    <Compile Include="cross\ArrayLength.cs" />
+    <Compile Include="cross\Caller.cs" />
+    <Compile Include="cross\Cfg.cs" />
+    <Compile Include="cross\Cfg_Ser.cs" />
+    <Compile Include="cross\FixedArray.cs" />
+    <Compile Include="cross\ICrossCall.cs" />
+    <Compile Include="cross\ISerialize.cs" />
+    <Compile Include="cross\SerBinary.cs" />
+    <Compile Include="cross\SerUtility.cs" />
+    <Compile Include="cross\Station.cs" />
+    <Compile Include="cross\SwapBuffer.cs" />
+    <Compile Include="cross\TestC2S.cs" />
+    <Compile Include="cross\TestS2C.cs" />
+    <Compile Include="DllApi.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SerBinary.cs" />
-    <Compile Include="SerUtility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

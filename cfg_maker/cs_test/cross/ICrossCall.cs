@@ -4,16 +4,19 @@
 
 namespace CrossCall
 {
+    /*
+     * 调用传递的参数和用于返回值传递
+    */
     public interface IContext
     {
         Serialize.IReader Param { get; }
         Serialize.IWriter Ret();
     }
 
-    public interface ICaller
+    public interface IInvoker
     {
-        Serialize.IWriter BeginCall(uint module);
-        Serialize.IReader EndCall();
+        Serialize.IWriter Begin(uint module);
+        Serialize.IReader End();
     }
 
     public interface IProcessor
@@ -21,7 +24,7 @@ namespace CrossCall
         void Process(IContext context);
     }
 
-    public interface InternalCall
+    public interface ICrossCall
     {
         void DoCall();
     }

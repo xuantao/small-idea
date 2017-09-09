@@ -55,6 +55,28 @@ namespace Serialize
             return writer.Write((int)val, name);
         }
 
+        public static bool Read(IReader reader, ref Struct0.Innser val, string name = null)
+        {
+            if (!reader.StructBegin(Struct0.Innser.HASH_CODE, name))
+                return false;
+
+            if (!Read(reader, ref val.a, "a")) return false;
+            if (!Read(reader, ref val.b, "b")) return false;
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, Struct0.Innser val, string name = null)
+        {
+            if (!writer.StructBegin(Struct0.Innser.HASH_CODE, name))
+                return false;
+
+            if (!Write(writer, val.a, "a")) return false;
+            if (!Write(writer, val.b, "b")) return false;
+
+            return writer.StructEnd();
+        }
+
         public static bool Read(IReader reader, ref Struct0 val, string name = null)
         {
             if (!reader.StructBegin(Struct0.HASH_CODE, name))
@@ -151,6 +173,56 @@ namespace Serialize
             if (!Write(writer, val.s1, "s1")) return false;
             if (!Write(writer, val.s2, "s2")) return false;
             if (!Write(writer, val.s3, "s3")) return false;
+
+            return writer.StructEnd();
+        }
+
+        public static bool Read(IReader reader, ref Inner val, string name = null)
+        {
+            if (!reader.StructBegin(Inner.HASH_CODE, name))
+                return false;
+
+            if (!Read(reader, ref val.ii, "ii")) return false;
+            if (!Read(reader, ref val.name, "name")) return false;
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, Inner val, string name = null)
+        {
+            if (!writer.StructBegin(Inner.HASH_CODE, name))
+                return false;
+
+            if (!Write(writer, val.ii, "ii")) return false;
+            if (!Write(writer, val.name, "name")) return false;
+
+            return writer.StructEnd();
+        }
+
+        public static bool Read(IReader reader, ref Msg val, string name = null)
+        {
+            if (!reader.StructBegin(Msg.HASH_CODE, name))
+                return false;
+
+            if (!Read(reader, ref val.b, "b")) return false;
+            if (!Read(reader, ref val.i, "i")) return false;
+            if (!Read(reader, ref val.f, "f")) return false;
+            if (!Read(reader, ref val.s, "s")) return false;
+            if (!Read(reader, ref val.inner, "inner")) return false;
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, Msg val, string name = null)
+        {
+            if (!writer.StructBegin(Msg.HASH_CODE, name))
+                return false;
+
+            if (!Write(writer, val.b, "b")) return false;
+            if (!Write(writer, val.i, "i")) return false;
+            if (!Write(writer, val.f, "f")) return false;
+            if (!Write(writer, val.s, "s")) return false;
+            if (!Write(writer, val.inner, "inner")) return false;
 
             return writer.StructEnd();
         }

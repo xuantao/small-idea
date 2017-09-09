@@ -69,7 +69,48 @@ tab struct Struct2
  Struct1 s3[2];
 }
 
+	struct Inner
+	{
+		int ii;
+		string name="inner";
+	}
+	
+struct Msg
+{
+
+
+	bool b;
+	int i;
+	float f;
+	string s = "msg";
+	
+	Inner inner;
+}
+
 module Caller {
 	void Call_A(int a, int b);
 	int Call_B(string str)
+}
+
+module TestC2S
+{
+	bool Test(bool b);
+	int Test(int a);
+	float Test(float f);
+	string Test(string s);
+
+	Msg Test(Msg msg);
+	void Test(int ar[10][]);
+}
+
+module TestS2C
+{
+	bool Test(bool b);
+	int Test(int a);
+	float Test(float f);
+	string Test(string s);
+
+	Msg Test(Msg msg);
+
+	void CallBack();
 }

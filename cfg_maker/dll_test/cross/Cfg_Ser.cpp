@@ -39,6 +39,26 @@ namespace serialize
             return writer->Write((int)val, name);
         }
 
+        bool Read(IReader* reader, Struct0::Innser& val, const char* name/* = nullptr*/)
+        {
+            if (!reader->StructBegin(Struct0::Innser::HASH_CODE, name)) return false;
+
+            if (!Read(reader, val.a, "a")) return false;
+            if (!Read(reader, val.b, "b")) return false;
+
+            return reader->StructEnd();
+        }
+
+        bool Write(IWriter* writer, const Struct0::Innser& val, const char* name/* = nullptr*/)
+        {
+            if (!writer->StructBegin(Struct0::Innser::HASH_CODE, name)) return false;
+
+            if (!Write(writer, val.a), "a") return false;
+            if (!Write(writer, val.b), "b") return false;
+
+            return writer->StructEnd();
+        }
+
         bool Read(IReader* reader, Struct0& val, const char* name/* = nullptr*/)
         {
             if (!reader->StructBegin(Struct0::HASH_CODE, name)) return false;
@@ -129,6 +149,52 @@ namespace serialize
             if (!Write(writer, val.s1), "s1") return false;
             if (!Write(writer, val.s2), "s2") return false;
             if (!Write(writer, val.s3), "s3") return false;
+
+            return writer->StructEnd();
+        }
+
+        bool Read(IReader* reader, Inner& val, const char* name/* = nullptr*/)
+        {
+            if (!reader->StructBegin(Inner::HASH_CODE, name)) return false;
+
+            if (!Read(reader, val.ii, "ii")) return false;
+            if (!Read(reader, val.name, "name")) return false;
+
+            return reader->StructEnd();
+        }
+
+        bool Write(IWriter* writer, const Inner& val, const char* name/* = nullptr*/)
+        {
+            if (!writer->StructBegin(Inner::HASH_CODE, name)) return false;
+
+            if (!Write(writer, val.ii), "ii") return false;
+            if (!Write(writer, val.name), "name") return false;
+
+            return writer->StructEnd();
+        }
+
+        bool Read(IReader* reader, Msg& val, const char* name/* = nullptr*/)
+        {
+            if (!reader->StructBegin(Msg::HASH_CODE, name)) return false;
+
+            if (!Read(reader, val.b, "b")) return false;
+            if (!Read(reader, val.i, "i")) return false;
+            if (!Read(reader, val.f, "f")) return false;
+            if (!Read(reader, val.s, "s")) return false;
+            if (!Read(reader, val.inner, "inner")) return false;
+
+            return reader->StructEnd();
+        }
+
+        bool Write(IWriter* writer, const Msg& val, const char* name/* = nullptr*/)
+        {
+            if (!writer->StructBegin(Msg::HASH_CODE, name)) return false;
+
+            if (!Write(writer, val.b), "b") return false;
+            if (!Write(writer, val.i), "i") return false;
+            if (!Write(writer, val.f), "f") return false;
+            if (!Write(writer, val.s), "s") return false;
+            if (!Write(writer, val.inner), "inner") return false;
 
             return writer->StructEnd();
         }

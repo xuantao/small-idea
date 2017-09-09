@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace cs_test
@@ -37,11 +38,11 @@ namespace cs_test
 
     public class Global
     {
-        public class InternalCall : CrossCall.InternalCall
+        public class InternalCall : CrossCall.ICrossCall
         {
             public void DoCall()
             {
-                s_instance.Station.OnCall();
+                DllApi.OnCall();
             }
         }
 
@@ -62,19 +63,32 @@ namespace cs_test
                 _pool = Marshal.AllocHGlobal(1024);
                 _call = new InternalCall();
                 _station = new CrossCall.Station(_call, _pool, 1024);
+                s2c = new TestS2C.Requester(_station.Invoker);
+
+                _station.Register(TestC2S.MODULE_ID, new TestC2S.Processor(new ExecutorC2S()));
             }
         }
 
         public CrossCall.Station Station { get { return _station; } }
+
+        public IntPtr Pool { get { return _pool; } }
+        public int PoolSize { get { return 1024; } }
+
+        public TestS2C.Requester s2c;
 
         void Purse()
         {
             s_instance = null;
             Marshal.FreeHGlobal(_pool);
         }
+
+        public static void DoCall()
+        {
+            s_instance.Station.OnCall();
+        }
     }
 
-    public class Excutor : Caller.IExecutor
+    public class Excutor : Caller.IResponder
     {
         public void Call_A(int a, int b)
         {
@@ -84,6 +98,45 @@ namespace cs_test
         {
             Console.WriteLine("str:{0}", str);
             return 101;
+        }
+    }
+
+    public class ExecutorC2S : TestC2S.IResponder
+    {
+        public bool Test(bool b)
+        {
+            Console.WriteLine("Test1 b:{0}", b);
+            return false;
+        }
+
+        public int Test(int a)
+        {
+            Console.WriteLine("Test2 a:{0}", a);
+            return 111;
+        }
+
+        public float Test(float f)
+        {
+            Console.WriteLine("Test3 f:{0}", f);
+            return 0.99f;
+        }
+
+        public string Test(string s)
+        {
+            Console.WriteLine("Test4 s:{0}", s);
+            return "C#.Test4";
+        }
+
+        public Msg Test(Msg msg)
+        {
+            Console.WriteLine("Test5 msg:{0}", msg);
+            msg.inner.name = "C#.Test5";
+            return msg;
+        }
+
+        public void Test(List<FixedArray<int, ArrayLength_10>> ar)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -107,18 +160,34 @@ namespace cs_test
             return 0;
         }
 
-        static void Main(string[] args)
+        static void TestCrossCall()
         {
             var global = new Global();
-            Caller.Invoker invoker = new Caller.Invoker(global.Station.Caller);
-            Excutor exe = new Excutor();
 
-            global.Station.Register(Caller.MODULE_ID, new Caller.Processor(exe));
+            if (!DllApi.Startup(Global.DoCall, global.Pool, global.PoolSize))
+            {
+                Console.WriteLine("starup dll failed");
+                return;
+            }
 
-            invoker.Call_A(1, 2);
-            int ret = invoker.Call_B("xuantao");
-            Console.WriteLine("ret:{0}", ret);
+            //Caller.Invoker invoker = new Caller.Invoker(global.Station.Caller);
+            //invoker.Call_A(1, 2);
 
+            //Console.WriteLine("Call_B.ret:{0}", invoker.Call_B("xuantao"));
+            var v1 = global.s2c.Test(true);
+            var v2 = global.s2c.Test(222);
+            var v3 = global.s2c.Test(0.111f);
+            var v4 = global.s2c.Test("xuantao");
+            var v5 = global.s2c.Test(new Msg());
+            global.s2c.CallBack();
+
+            DllApi.Stutdown();
+        }
+
+        static void Main(string[] args)
+        {
+            Console.ReadKey();
+            TestCrossCall();
             Console.ReadKey();
         }
     }

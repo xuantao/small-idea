@@ -20,6 +20,9 @@ namespace serialize
         bool Read(IReader* reader, Detail::Enum2& val, const char* name = nullptr);
         bool Write(IWriter* writer, Detail::Enum2 val, const char* name = nullptr);
 
+        bool Read(IReader* reader, Struct0::Innser& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const Struct0::Innser& val, const char* name = nullptr);
+
         bool Read(IReader* reader, Struct0& val, const char* name = nullptr);
         bool Write(IWriter* writer, const Struct0& val, const char* name = nullptr);
 
@@ -28,6 +31,12 @@ namespace serialize
 
         bool Read(IReader* reader, Struct2& val, const char* name = nullptr);
         bool Write(IWriter* writer, const Struct2& val, const char* name = nullptr);
+
+        bool Read(IReader* reader, Inner& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const Inner& val, const char* name = nullptr);
+
+        bool Read(IReader* reader, Msg& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const Msg& val, const char* name = nullptr);
 
         bool Read(IReader* reader, Wtf& val, const char* name = nullptr);
         bool Write(IWriter* writer, Wtf val, const char* name = nullptr);

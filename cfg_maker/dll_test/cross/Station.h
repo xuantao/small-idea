@@ -53,23 +53,23 @@ namespace cross_call
             Station& _staion;
         };
 
-        class Cross : public ICross
+        class Cross : public IInvoker
         {
         public:
             Cross(Station& station) : _staion(station) {}
         public:
-            virtual serialize::IWriter* BeginCall(uint32_t module) { return _staion.BeginCall(module); }
-            virtual serialize::IReader* EndCall() { return _staion.EndCall(); }
+            virtual serialize::IWriter* Begin(uint32_t module) { return _staion.BeginCall(module); }
+            virtual serialize::IReader* End() { return _staion.EndCall(); }
         protected:
             Station& _staion;
         };
 
     public:
-        Station(ICaller* caller, char* buffer, int size);
+        Station(ICrossCall* caller, char* buffer, int size);
         ~Station();
 
     public:
-        ICross* GetCross() { return &_cross; }
+        IInvoker* Invoker() { return &_cross; }
 
         bool Register(uint32_t module, IProcessor* processor);
         IProcessor* Unregister(uint32_t module);
@@ -83,7 +83,7 @@ namespace cross_call
         serialize::IReader* EndCall();
 
     protected:
-        ICaller* _caller = nullptr;
+        ICrossCall* _caller = nullptr;
         Context _context;
         Cross _cross;
         std::map<uint32_t, IProcessor*> _procs;

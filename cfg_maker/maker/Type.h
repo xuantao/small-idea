@@ -82,14 +82,19 @@ public:
 
     /* IStructType */
     virtual CfgCategory CfgCat() const { return _cfg; }
+    virtual uint32_t HashCode() const { return _hashCode; }
     virtual bool IsInherited(const IStructType* type) const;
     virtual bool Inherit(IStructType* parent);
     virtual IStructType* Inherited() const { return _inherit; }
     virtual IScope* OwnScope() const { return _ownScope; }
 
+public:
+    void DeclCompleted();
+
 protected:
     std::string _name;
     CfgCategory _cfg;
+    uint32_t _hashCode = 0;
     IScope* _owner = nullptr;
     IStructType* _inherit = nullptr;
 
@@ -133,19 +138,29 @@ protected:
 class Function : public IFunction
 {
 public:
-    Function(const std::string& name, IType* ret, IScope* owner);
+    Function(const std::string& rawName, IType* ret, IScope* owner);
     ~Function();
 
 public:
     virtual ElementCategory ElementCat() const { return ElementCategory::Type; }
     virtual TypeCategory TypeCat() const { return TypeCategory::Fucntion; }
     virtual const std::string& Name() const { return _name; }
+    virtual uint32_t HashCode() const { return _hashCode; }
     virtual IType* RetType() const { return _ret; }
     virtual IScope* Owner() const { return _owner; }
     virtual IScope* Scope() const { return _scope; }
+    virtual const std::string& RawName() const { return _rawName; }
+
+public:
+    void DeclCompleted();
+
+protected:
+    std::string GetName(const IType* type);
 
 protected:
     std::string _name;
+    std::string _rawName;
+    uint32_t _hashCode = 0;
     IType* _ret = nullptr;
     IScope* _scope = nullptr;
     IScope* _owner = nullptr;
@@ -181,17 +196,19 @@ protected:
 class Module : public IModule
 {
 public:
-    Module(const std::string& name, IScope* owner);
+    Module(const std::string& name, uint32_t ID, IScope* owner);
     ~Module();
 
 public:
     virtual ElementCategory ElementCat() const { return ElementCategory::Module; }
     virtual const std::string& Name() const { return _name; }
+    virtual uint32_t ID() const { return _ID; }
     virtual IScope* Owner() const { return _owner; }
     virtual IScope* Scope() const { return _scope; }
 
 protected:
     std::string _name;
+    uint32_t _ID = 0;;
     IScope* _owner = nullptr;
     IScope* _scope = nullptr;
 };

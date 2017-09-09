@@ -46,7 +46,6 @@ namespace cs
 
         file << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl <<
             "using System;" << std::endl <<
-            "using System.Collections;" << std::endl <<
             "using System.Collections.Generic;" << std::endl << std::endl;
 
         IVarSet* varSet = _global->VarSet();
@@ -127,8 +126,8 @@ namespace cs
         stream <<
             _TAB(0) << "public ";
         if (type->Inherited()) stream << "new ";
-        stream << "static uint HASH_CODE = " << utility::HashValue(type) << ";" <<
-            std::endl << std::endl;
+        stream << "const uint HASH_CODE = " << utility::HashValue(type) << ";" <<
+            std::endl;
 
         IVarSet* varSet = type->OwnScope()->VarSet();
         if (varSet && varSet->Size())
@@ -216,6 +215,8 @@ namespace cs
                 stream << " = " << val;
             stream << ";" << std::endl;
         }
+
+        stream << std::endl;
 
         for (int i = 0; i < vars->Size(); ++i)
         {

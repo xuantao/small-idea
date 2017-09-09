@@ -146,6 +146,8 @@
     <ClCompile Include="cross\SerBinary.cpp" />
     <ClCompile Include="cross\SerUtility.cpp" />
     <ClCompile Include="cross\Station.cpp" />
+    <ClCompile Include="cross\TestC2S.cpp" />
+    <ClCompile Include="cross\TestS2C.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -158,6 +160,8 @@
     <ClInclude Include="cross\SerBinary.h" />
     <ClInclude Include="cross\SerUtility.h" />
     <ClInclude Include="cross\Station.h" />
+    <ClInclude Include="cross\TestC2S.h" />
+    <ClInclude Include="cross\TestS2C.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

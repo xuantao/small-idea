@@ -9,7 +9,7 @@ namespace cs
     class Module
     {
     protected:
-        Module(const IModule* module, const std::string& path, const std::string& name);
+        Module();
         ~Module();
     public:
         static bool Export(const IModule* module, const std::string& path, const std::string& name);
@@ -35,7 +35,7 @@ namespace cs
     protected:
         std::string _path;
         std::string _name;
-
+        
         int _tab = 0;
         const IModule* _module = nullptr;
         std::ostream* _stream = nullptr;

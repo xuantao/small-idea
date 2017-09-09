@@ -26,19 +26,19 @@ namespace cross_call
         virtual void Process(IContext* context) = 0;
     };
 
-    class ICross
+    class IInvoker
     {
     public:
-        virtual ~ICross() {}
+        virtual ~IInvoker() {}
     public:
-        virtual serialize::IWriter* BeginCall(uint32_t module) = 0;
-        virtual serialize::IReader* EndCall() = 0;
+        virtual serialize::IWriter* Begin(uint32_t module) = 0;
+        virtual serialize::IReader* End() = 0;
     };
 
-    class ICaller
+    class ICrossCall
     {
     public:
-        virtual ~ICaller() {}
+        virtual ~ICrossCall() {}
     public:
         virtual void DoCall() = 0;
     };

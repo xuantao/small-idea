@@ -61,6 +61,24 @@ namespace cpp
         if (type->TypeCat() != TypeCategory::Enum && type->TypeCat() != TypeCategory::Struct)
             return true;
 
+        // process inner types
+        do 
+        {
+            if (type->TypeCat() != TypeCategory::Struct)
+                break;
+            
+            const IStructType* sTy = static_cast<const IStructType*>(type);
+            if (sTy->OwnScope() == nullptr)
+                break;
+
+            ITypeSet* tySet = sTy->OwnScope()->TypeSet();
+            if (tySet == nullptr)
+                break;
+
+            for (int i = 0; i < tySet->Size(); ++i)
+                OnType(tySet->Get(i));
+        } while (false);
+
         if (!_isFirst) *_header << std::endl;
         DeclRead(*_header, type, true) << std::endl;
         DeclWrite(*_header, type, true) << std::endl;

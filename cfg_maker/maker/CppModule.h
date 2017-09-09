@@ -9,7 +9,7 @@ namespace cpp
     class Module
     {
     protected:
-        Module(const IModule* module, const std::string& path, const std::string& name);
+        Module();
         ~Module();
     public:
         static bool Export(const IModule* module, const std::string& path, const std::string& name);

@@ -102,10 +102,16 @@ bool StructType::Inherit(IStructType* type)
     return true;
 }
 
+void StructType::DeclCompleted()
+{
+    _hashCode = utility::HashValue(this);
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Function
 Function::Function(const std::string& name, IType* ret, IScope* owner)
     : _name(name)
+    , _rawName(name)
     , _ret(ret)
     , _owner(owner)
 {
@@ -120,6 +126,36 @@ Function::~Function()
     delete _scope->VarSet();
     delete _scope;
     _scope = nullptr;
+}
+
+void Function::DeclCompleted()
+{
+    IVarSet* varSet = _scope->VarSet();
+    for (int i = 0; i < varSet->Size(); ++i)
+        _name += std::string("_") + GetName(varSet->Get(i)->Type());
+
+    _hashCode = utility::HashValue(this);
+}
+
+std::string Function::GetName(const IType* type)
+{
+    std::string str;
+    if (type->TypeCat() == TypeCategory::Array)
+    {
+        const IArrayType* arTy = (const IArrayType*)type;
+        str = GetName(arTy->Prev()) + "_A";
+        if (arTy->Length())
+            str += std::to_string(arTy->Length());
+        return str;
+    }
+    else if (type->TypeCat() == TypeCategory::Raw)
+    {
+        return type->Name();
+    }
+    else
+    {
+        return utility::Contact(utility::Relative(type, _owner), "_");
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -188,8 +224,8 @@ Namespace::~Namespace()
 
 //////////////////////////////////////////////////////////////////////////
 // Module
-Module::Module(const std::string& name, IScope* owner)
-    : _name(name), _owner(owner)
+Module::Module(const std::string& name, uint32_t moduleID, IScope* owner)
+    : _name(name), _owner(owner), _ID(moduleID)
 {
     NormalScope* scope = new NormalScope(name, owner);
     scope->TypeSet(new ModuleSetType());

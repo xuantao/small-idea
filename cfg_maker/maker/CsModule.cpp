@@ -12,14 +12,14 @@ namespace cs
 {
     bool Module::Export(const IModule* module, const std::string& path, const std::string& name)
     {
-        Module md(module, path, name);
+        Module md;
+        md._module = module;
+        md._path = path;
+        md._name = name;
         return md.Export();
     }
 
-    Module::Module(const IModule* module, const std::string& path, const std::string& name)
-        : _module(module)
-        , _path(path)
-        , _name(name)
+    Module::Module()
     {
     }
 
@@ -57,7 +57,7 @@ namespace cs
         *_stream <<
             _TAB(0) << "public class " << _module->Name() << std::endl <<
             _TAB(0) << "{" << std::endl <<
-            _TAB(1) << "public const uint MODULE_ID = " << 1 << ";" << std::endl <<
+            _TAB(1) << "public const uint MODULE_ID = " << _module->ID() << ";" << std::endl <<
             _TAB(1) << "public const uint HASH_CODE = " << utility::HashValue(_module) << ";" << std::endl;
         ++_tab;
 
@@ -92,7 +92,7 @@ namespace cs
             if (func == nullptr)
                 continue;
 
-            *_stream << _TAB(1) << "Msg_" << func->Name() << "," << std::endl;
+            *_stream << _TAB(1) << func->Name() << "," << std::endl;
         }
 
         *_stream <<
@@ -102,7 +102,7 @@ namespace cs
     void Module::DeclExecutor()
     {
         *_stream <<
-            _TAB(0) << "public interface IExecutor" << std::endl <<
+            _TAB(0) << "public interface IResponder" << std::endl <<
             _TAB(0) << "{" << std::endl;
 
         ITypeSet* tySet = _module->Scope()->TypeSet();
@@ -124,12 +124,12 @@ namespace cs
     void Module::DeclInvoker()
     {
         *_stream <<
-            _TAB(0) << "public class Invoker" << std::endl <<
+            _TAB(0) << "public class Requester" << std::endl <<
             _TAB(0) << "{" << std::endl <<
-            _TAB(1) << "protected CrossCall.ICaller _caller = null;" << std::endl << std::endl <<
-            _TAB(1) << "public Invoker(CrossCall.ICaller caller)" << std::endl <<
+            _TAB(1) << "protected CrossCall.IInvoker _invoker = null;" << std::endl << std::endl <<
+            _TAB(1) << "public Requester(CrossCall.IInvoker invoker)" << std::endl <<
             _TAB(1) << "{" << std::endl <<
-            _TAB(2) << "_caller = caller;" << std::endl <<
+            _TAB(2) << "_invoker = invoker;" << std::endl <<
             _TAB(1) << "}" << std::endl << std::endl;
         ++_tab;
 
@@ -154,10 +154,10 @@ namespace cs
         *_stream <<
             _TAB(0) << "public class Processor : CrossCall.IProcessor" << std::endl <<
             _TAB(0) << "{" << std::endl <<
-            _TAB(1) << "protected IExecutor _executor = null;" << std::endl << std::endl <<
-            _TAB(1) << "public Processor(IExecutor executor)" << std::endl <<
+            _TAB(1) << "protected IResponder _responder = null;" << std::endl << std::endl <<
+            _TAB(1) << "public Processor(IResponder responder)" << std::endl <<
             _TAB(1) << "{" << std::endl <<
-            _TAB(2) << "_executor = executor;" << std::endl <<
+            _TAB(2) << "_responder = responder;" << std::endl <<
             _TAB(1) << "}" << std::endl << std::endl;
         ++_tab;
 
@@ -188,9 +188,9 @@ namespace cs
             _TAB(0) << "{" << std::endl;
 
         *_stream <<
-            _TAB(1) << "Serialize.IWriter writer = _caller.BeginCall(MODULE_ID);" << std::endl <<
+            _TAB(1) << "Serialize.IWriter writer = _invoker.Begin(MODULE_ID);" << std::endl <<
             _TAB(1) << "writer.Write(HASH_CODE);" << std::endl <<
-            _TAB(1) << "writer.Write((int)Message.Msg_" << func->Name() << ");" << std::endl << std::endl;
+            _TAB(1) << "writer.Write((int)Message." << func->Name() << ");" << std::endl << std::endl;
 
         IVarSet* varSet = func->Scope()->VarSet();
         for (int i = 0; i < varSet->Size(); ++i)
@@ -210,14 +210,13 @@ namespace cs
             *_stream << ";" << std::endl;
 
             *_stream <<
-                _TAB(1) << "Serialize.IReader reader = _caller.EndCall();" << std::endl <<
-                _TAB(1) << "Serialize.Utility.Read(reader, ref __ret__);" << std::endl <<
+                _TAB(1) << "Serialize.Utility.Read(_invoker.End(), ref __ret__);" << std::endl <<
                 _TAB(1) << "return __ret__;" << std::endl;
         }
         else
         {
             *_stream <<
-                _TAB(1) << "_caller.EndCall();" << std::endl;
+                _TAB(1) << "_invoker.End();" << std::endl;
         }
 
         *_stream << _TAB(0) << "}" << std::endl;
@@ -245,11 +244,14 @@ namespace cs
                 continue;
 
             *_stream <<
-                _TAB(1) << "case Message.Msg_" << func->Name() << ": On" << func->Name() << "(context); break;" << std::endl;
+                _TAB(1) << "case Message." << func->Name() << ":" << std::endl <<
+                _TAB(2) << "On" << func->Name() << "(context);" << std::endl << 
+                _TAB(2) << "break;" << std::endl;
         }
 
         *_stream <<
-            _TAB(1) << "default: break;" << std::endl <<
+            _TAB(1) << "default:" << std::endl << 
+            _TAB(2) << "break;" << std::endl <<
             _TAB(1) << "}" << std::endl <<
             _TAB(0) << "}" << std::endl;
     }
@@ -284,7 +286,7 @@ namespace cs
         *_stream << _TAB(1);
         if (func->RetType()) *_stream << "var __ret__ = ";
 
-        *_stream << "_executor." << func->Name() << "(";
+        *_stream << "_responder." << func->RawName() << "(";
         for (int i = 0; i < varSet->Size(); ++i)
         {
             IVariate* var = varSet->Get(i);
@@ -305,7 +307,7 @@ namespace cs
         if (func->RetType()) stream << cs_util::TypeName(func->RetType()) << " ";
         else stream << "void ";
 
-        stream << func->Name() << "(";
+        stream << func->RawName() << "(";
 
         IVarSet* varSet = func->Scope()->VarSet();
         for (int i = 0; i < varSet->Size(); ++i)

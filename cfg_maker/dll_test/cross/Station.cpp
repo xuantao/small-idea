@@ -52,7 +52,7 @@ namespace cross_call
 
     //////////////////////////////////////////////////////////////////////////
     // Station
-    Station::Station(ICaller* caller, char* buffer, int size)
+    Station::Station(ICrossCall* caller, char* buffer, int size)
         : _caller(caller)
         , _context(*this)
         , _cross(*this)
