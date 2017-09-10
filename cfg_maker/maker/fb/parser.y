@@ -1,4 +1,4 @@
-/* configuration file parser and generator*/
+/* configuration file parser and generator */
 
 %skeleton "lalr1.cc"
 %require "3.0"
