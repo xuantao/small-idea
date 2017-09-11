@@ -1,20 +1,10 @@
 ﻿#pragma once
 
-#include "ISerialize.h"
+#include "ICrossCall.h"
 
-namespace serialize
+namespace cross_call
 {
-    class IBinaryStream
-    {
-    public:
-        virtual ~IBinaryStream() {}
-
-    public:
-        virtual bool Read(void* buf, uint32_t size) = 0;
-        virtual bool Write(const void* buf, uint32_t size) = 0;
-    };
-
-    class BinaryReader : public IReader
+    class BinaryReader : public serialize::IReader
     {
     public:
         BinaryReader(IBinaryStream* buffer);
@@ -35,7 +25,7 @@ namespace serialize
         IBinaryStream* _stream = nullptr;
     };
 
-    class BinaryWriter : public IWriter
+    class BinaryWriter : public serialize::IWriter
     {
     public:
         BinaryWriter(IBinaryStream* buffer);

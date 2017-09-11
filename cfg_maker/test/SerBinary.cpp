@@ -53,15 +53,22 @@ namespace serialize
 
     bool BinaryReader::Read(std::string& val, const char* name/* = nullptr*/)
     {
-        uint32_t size = 0;
-        char buf[1024] = {0};
+        int32_t size = 0;
+        if (!Read(size))
+            return false;
 
-        if (!Read(size)) return false;
+        while (size > 0)
+        {
+            char buf[1024] = {0};
+            int nRead = std::min(size, 1023);
 
-        assert(size < 1024);
-        if (!_stream->Read(buf, size)) return false;
+            if (!_stream->Read(buf, nRead))
+                return false;
 
-        val = buf;
+            size -= 1023;
+            val += buf;
+        }
+
         return true;
     }
 
@@ -114,8 +121,7 @@ namespace serialize
 
     bool BinaryWriter::Write(const std::string& val, const char* name/* = nullptr*/)
     {
-        uint32_t size = (uint32_t)val.size();
-        assert(size < 1024);
+        int32_t size = (int32_t)val.size();
 
         if (!_stream->Write(&size, 4)) return false;
 

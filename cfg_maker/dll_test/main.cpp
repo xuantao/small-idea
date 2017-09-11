@@ -1,7 +1,7 @@
-﻿#include "cross/Station.h"
-#include "cross/Caller.h"
-#include "cross/TestC2S.h"
-#include "cross/TestS2C.h"
+﻿#include "gcf/gcf.h"
+#include "gen/Caller.h"
+#include "gen/TestC2S.h"
+#include "gen/TestS2C.h"
 
 #define DLL_EXPORT extern "C" __declspec(dllexport)
 

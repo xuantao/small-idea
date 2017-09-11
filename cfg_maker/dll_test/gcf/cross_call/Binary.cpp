@@ -1,7 +1,7 @@
-﻿#include "SerBinary.h"
+﻿#include "Binary.h"
 #include <cassert>
 
-namespace serialize
+namespace cross_call
 {
     //////////////////////////////////////////////////////////////////////////
     // NormalReader

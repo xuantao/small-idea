@@ -42,20 +42,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="cross\ArrayLength.cs" />
-    <Compile Include="cross\Caller.cs" />
-    <Compile Include="cross\Cfg.cs" />
-    <Compile Include="cross\Cfg_Ser.cs" />
-    <Compile Include="cross\FixedArray.cs" />
-    <Compile Include="cross\ICrossCall.cs" />
-    <Compile Include="cross\ISerialize.cs" />
-    <Compile Include="cross\SerBinary.cs" />
-    <Compile Include="cross\SerUtility.cs" />
-    <Compile Include="cross\Station.cs" />
-    <Compile Include="cross\SwapBuffer.cs" />
-    <Compile Include="cross\TestC2S.cs" />
-    <Compile Include="cross\TestS2C.cs" />
     <Compile Include="DllApi.cs" />
+    <Compile Include="gcf\ArrayLength.cs" />
+    <Compile Include="gcf\CrossCall\Binary.cs" />
+    <Compile Include="gcf\CrossCall\ICrossCall.cs" />
+    <Compile Include="gcf\CrossCall\Station.cs" />
+    <Compile Include="gcf\CrossCall\SwapBuffer.cs" />
+    <Compile Include="gcf\FixedArray.cs" />
+    <Compile Include="gcf\Serialize\ISerialize.cs" />
+    <Compile Include="gcf\Serialize\SerUtility.cs" />
+    <Compile Include="gen\Caller.cs" />
+    <Compile Include="gen\Cfg.cs" />
+    <Compile Include="gen\Cfg_Ser.cs" />
+    <Compile Include="gen\TestC2S.cs" />
+    <Compile Include="gen\TestS2C.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

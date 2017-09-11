@@ -5,75 +5,93 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="cross">
-      <UniqueIdentifier>{a03ec665-dd0d-449f-93ae-b97483b28d2b}</UniqueIdentifier>
+    <Filter Include="gcf">
+      <UniqueIdentifier>{7db124af-289c-41b1-b7ee-adccaaf155ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gcf\cross_call">
+      <UniqueIdentifier>{005cc984-2359-41ff-bd6e-a30431be3531}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gcf\serialize">
+      <UniqueIdentifier>{59f621a4-5a4c-4063-9b5b-5cca5ef096eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gen">
+      <UniqueIdentifier>{2e4d0375-0e24-4785-8f09-e7938b29e393}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="cross\Caller.cpp">
-      <Filter>cross</Filter>
+    <ClCompile Include="gcf\cross_call\Binary.cpp">
+      <Filter>gcf\cross_call</Filter>
     </ClCompile>
-    <ClCompile Include="cross\Cfg.cpp">
-      <Filter>cross</Filter>
+    <ClCompile Include="gcf\cross_call\Station.cpp">
+      <Filter>gcf\cross_call</Filter>
     </ClCompile>
-    <ClCompile Include="cross\Cfg_Ser.cpp">
-      <Filter>cross</Filter>
+    <ClCompile Include="gcf\serialize\SerUtility.cpp">
+      <Filter>gcf\serialize</Filter>
     </ClCompile>
-    <ClCompile Include="cross\CfgUtility.cpp">
-      <Filter>cross</Filter>
+    <ClCompile Include="gcf\cross_call\SwapBuffer.cpp">
+      <Filter>gcf\cross_call</Filter>
     </ClCompile>
-    <ClCompile Include="cross\SerBinary.cpp">
-      <Filter>cross</Filter>
+    <ClCompile Include="gen\Caller.cpp">
+      <Filter>gen</Filter>
     </ClCompile>
-    <ClCompile Include="cross\SerUtility.cpp">
-      <Filter>cross</Filter>
+    <ClCompile Include="gen\Cfg.cpp">
+      <Filter>gen</Filter>
     </ClCompile>
-    <ClCompile Include="cross\Station.cpp">
-      <Filter>cross</Filter>
+    <ClCompile Include="gen\Cfg_Ser.cpp">
+      <Filter>gen</Filter>
     </ClCompile>
-    <ClCompile Include="cross\TestC2S.cpp">
-      <Filter>cross</Filter>
+    <ClCompile Include="gen\CfgUtility.cpp">
+      <Filter>gen</Filter>
     </ClCompile>
-    <ClCompile Include="cross\TestS2C.cpp">
-      <Filter>cross</Filter>
+    <ClCompile Include="gen\TestC2S.cpp">
+      <Filter>gen</Filter>
+    </ClCompile>
+    <ClCompile Include="gen\TestS2C.cpp">
+      <Filter>gen</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cross\Caller.h">
-      <Filter>cross</Filter>
+    <ClInclude Include="gcf\cross_call\Binary.h">
+      <Filter>gcf\cross_call</Filter>
     </ClInclude>
-    <ClInclude Include="cross\Cfg.h">
-      <Filter>cross</Filter>
+    <ClInclude Include="gcf\cross_call\ICrossCall.h">
+      <Filter>gcf\cross_call</Filter>
     </ClInclude>
-    <ClInclude Include="cross\Cfg_Ser.h">
-      <Filter>cross</Filter>
+    <ClInclude Include="gcf\cross_call\Station.h">
+      <Filter>gcf\cross_call</Filter>
     </ClInclude>
-    <ClInclude Include="cross\CfgUtility.h">
-      <Filter>cross</Filter>
+    <ClInclude Include="gcf\serialize\SerUtility.h">
+      <Filter>gcf\serialize</Filter>
     </ClInclude>
-    <ClInclude Include="cross\ICrossCall.h">
-      <Filter>cross</Filter>
+    <ClInclude Include="gcf\serialize\ISerialize.h">
+      <Filter>gcf\serialize</Filter>
     </ClInclude>
-    <ClInclude Include="cross\ISerialize.h">
-      <Filter>cross</Filter>
+    <ClInclude Include="gcf\gcf.h">
+      <Filter>gcf</Filter>
     </ClInclude>
-    <ClInclude Include="cross\SerBinary.h">
-      <Filter>cross</Filter>
+    <ClInclude Include="gcf\cross_call\SwapBuffer.h">
+      <Filter>gcf\cross_call</Filter>
     </ClInclude>
-    <ClInclude Include="cross\SerUtility.h">
-      <Filter>cross</Filter>
+    <ClInclude Include="gen\Caller.h">
+      <Filter>gen</Filter>
     </ClInclude>
-    <ClInclude Include="cross\Station.h">
-      <Filter>cross</Filter>
+    <ClInclude Include="gen\Cfg.h">
+      <Filter>gen</Filter>
     </ClInclude>
-    <ClInclude Include="cross\TestC2S.h">
-      <Filter>cross</Filter>
+    <ClInclude Include="gen\Cfg_Ser.h">
+      <Filter>gen</Filter>
     </ClInclude>
-    <ClInclude Include="cross\TestS2C.h">
-      <Filter>cross</Filter>
+    <ClInclude Include="gen\CfgUtility.h">
+      <Filter>gen</Filter>
+    </ClInclude>
+    <ClInclude Include="gen\TestC2S.h">
+      <Filter>gen</Filter>
+    </ClInclude>
+    <ClInclude Include="gen\TestS2C.h">
+      <Filter>gen</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

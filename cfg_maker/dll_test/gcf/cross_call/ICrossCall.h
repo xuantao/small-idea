@@ -5,7 +5,7 @@
 */
 #pragma once
 
-#include "ISerialize.h"
+#include "../serialize/ISerialize.h"
 
 namespace cross_call
 {
@@ -41,5 +41,15 @@ namespace cross_call
         virtual ~ICrossCall() {}
     public:
         virtual void DoCall() = 0;
+    };
+
+    class IBinaryStream
+    {
+    public:
+        virtual ~IBinaryStream() {}
+
+    public:
+        virtual bool Read(void* buf, uint32_t size) = 0;
+        virtual bool Write(const void* buf, uint32_t size) = 0;
     };
 }

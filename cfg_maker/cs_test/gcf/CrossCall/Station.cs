@@ -42,8 +42,8 @@ namespace CrossCall
         Context _param;
 
         SwapBuffer _buffer;
-        Serialize.BinaryReader _reader;
-        Serialize.BinaryWriter _writer;
+        BinaryReader _reader;
+        BinaryWriter _writer;
 
         Dictionary<uint, IProcessor> _dicProc = new Dictionary<uint, IProcessor>();
 
@@ -57,8 +57,8 @@ namespace CrossCall
             _invoker = new Invok(this);
             _param = new Context(this);
             _buffer = new SwapBuffer(_pool);
-            _reader = new Serialize.BinaryReader(_buffer);
-            _writer = new Serialize.BinaryWriter(_buffer);
+            _reader = new BinaryReader(_buffer);
+            _writer = new BinaryWriter(_buffer);
         }
 
         public IInvoker Invoker { get { return _invoker; } }

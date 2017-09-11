@@ -28,4 +28,13 @@ namespace CrossCall
     {
         void DoCall();
     }
+
+    /*
+     * 简单的流接口
+    */
+    public interface IBinaryStream
+    {
+        bool Read(byte[] data);
+        bool Write(byte[] data);
+    }
 }

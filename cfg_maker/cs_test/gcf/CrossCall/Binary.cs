@@ -4,21 +4,12 @@
 
 using System;
 
-namespace Serialize
+namespace CrossCall
 {
-    /*
-     * 简单的流接口
-     */
-    public interface IBinaryStream
-    {
-        bool Read(byte[] data);
-        bool Write(byte[] data);
-    }
-
     /*
      * 二进制数据Reader 
      */
-    public class BinaryReader : IReader
+    public class BinaryReader : Serialize.IReader
     {
         protected IBinaryStream _stream = null;
 
@@ -109,7 +100,7 @@ namespace Serialize
     /*
      * 二进制数据Writer
      */
-    public class BinaryWriter : IWriter
+    public class BinaryWriter : Serialize.IWriter
     {
         protected IBinaryStream _stream = null;
 

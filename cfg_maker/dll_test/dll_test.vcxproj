@@ -89,6 +89,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;DLL_TEST_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -139,29 +140,32 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="cross\Caller.cpp" />
-    <ClCompile Include="cross\Cfg.cpp" />
-    <ClCompile Include="cross\CfgUtility.cpp" />
-    <ClCompile Include="cross\Cfg_Ser.cpp" />
-    <ClCompile Include="cross\SerBinary.cpp" />
-    <ClCompile Include="cross\SerUtility.cpp" />
-    <ClCompile Include="cross\Station.cpp" />
-    <ClCompile Include="cross\TestC2S.cpp" />
-    <ClCompile Include="cross\TestS2C.cpp" />
+    <ClCompile Include="gcf\cross_call\Binary.cpp" />
+    <ClCompile Include="gcf\cross_call\Station.cpp" />
+    <ClCompile Include="gcf\cross_call\SwapBuffer.cpp" />
+    <ClCompile Include="gcf\serialize\SerUtility.cpp" />
+    <ClCompile Include="gen\Caller.cpp" />
+    <ClCompile Include="gen\Cfg.cpp" />
+    <ClCompile Include="gen\CfgUtility.cpp" />
+    <ClCompile Include="gen\Cfg_Ser.cpp" />
+    <ClCompile Include="gen\TestC2S.cpp" />
+    <ClCompile Include="gen\TestS2C.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cross\Caller.h" />
-    <ClInclude Include="cross\Cfg.h" />
-    <ClInclude Include="cross\CfgUtility.h" />
-    <ClInclude Include="cross\Cfg_Ser.h" />
-    <ClInclude Include="cross\ICrossCall.h" />
-    <ClInclude Include="cross\ISerialize.h" />
-    <ClInclude Include="cross\SerBinary.h" />
-    <ClInclude Include="cross\SerUtility.h" />
-    <ClInclude Include="cross\Station.h" />
-    <ClInclude Include="cross\TestC2S.h" />
-    <ClInclude Include="cross\TestS2C.h" />
+    <ClInclude Include="gcf\cross_call\Binary.h" />
+    <ClInclude Include="gcf\cross_call\ICrossCall.h" />
+    <ClInclude Include="gcf\cross_call\Station.h" />
+    <ClInclude Include="gcf\cross_call\SwapBuffer.h" />
+    <ClInclude Include="gcf\gcf.h" />
+    <ClInclude Include="gcf\serialize\ISerialize.h" />
+    <ClInclude Include="gcf\serialize\SerUtility.h" />
+    <ClInclude Include="gen\Caller.h" />
+    <ClInclude Include="gen\Cfg.h" />
+    <ClInclude Include="gen\CfgUtility.h" />
+    <ClInclude Include="gen\Cfg_Ser.h" />
+    <ClInclude Include="gen\TestC2S.h" />
+    <ClInclude Include="gen\TestS2C.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

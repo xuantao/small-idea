@@ -1,44 +1,11 @@
 ﻿#pragma once
 #include "ICrossCall.h"
-#include "SerBinary.h"
+#include "Binary.h"
+#include "SwapBuffer.h"
 #include <map>
 
 namespace cross_call
 {
-    enum class BufferMode
-    {
-        Read,
-        Write,
-    };
-
-    class SwapBuffer : public serialize::IBinaryStream
-    {
-    public:
-        SwapBuffer(char* buffer, int size);
-
-    public:
-        BufferMode Mode() const { return _mode; }
-        void Startup(BufferMode mode);
-        int Endup();
-
-    public:
-        virtual bool Read(void* buf, uint32_t size);
-        virtual bool Write(const void* buf, uint32_t size);
-
-    protected:
-        struct Header
-        {
-            int32_t  ds;
-        };
-
-        BufferMode _mode = BufferMode::Read;
-        Header* _header = nullptr;
-        char* _base = nullptr;
-        int _size = 0;
-        int _rp = 0;
-        int _wp = 0;
-    };
-
     class Station
     {
     protected:
@@ -89,7 +56,7 @@ namespace cross_call
         std::map<uint32_t, IProcessor*> _procs;
 
         SwapBuffer* _buffer = nullptr;
-        serialize::BinaryReader* _reader = nullptr;
-        serialize::BinaryWriter* _writer = nullptr;
+        BinaryReader* _reader = nullptr;
+        BinaryWriter* _writer = nullptr;
     };
 }
