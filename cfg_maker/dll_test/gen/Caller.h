@@ -1,4 +1,4 @@
-﻿/*
+/*
  * this file is auto generated.
  * please does not edit it manual!
 */
@@ -33,7 +33,7 @@ public:
     class Requester
     {
     public:
-        Requester(cross_call::IInvoker* invoker) : _invoker(invoker) {}
+        Requester(cross_call::IInvoker* invoker) : _invoker(invoker) { }
 
     public:
         void Call_A(int a, int b);
@@ -46,8 +46,8 @@ public:
     class Processor : public cross_call::IProcessor
     {
     public:
-        Processor(IResponder* responder) : _responder(responder) {}
-        virtual ~Processor() {}
+        Processor(IResponder* responder) : _responder(responder) { }
+        virtual ~Processor() { }
 
     public:
         virtual void Process(cross_call::IContext* context);

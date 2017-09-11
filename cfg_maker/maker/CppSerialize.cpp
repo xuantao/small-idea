@@ -31,7 +31,7 @@ namespace cpp
             _TAB(0) << "*/" << std::endl <<
             _TAB(0) << "#pragma once" << std::endl << std::endl <<
             _TAB(0) << "#include \"" << name << ".h\"" << std::endl <<
-            _TAB(0) << "#include \"ISerialize.h\"" << std::endl << std::endl <<
+            _TAB(0) << "#include \"gcf/gcf.h\"" << std::endl << std::endl <<
             _TAB(0) << "namespace serialize" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(1) << "namespace utility" << std::endl <<
@@ -45,8 +45,7 @@ namespace cpp
             _TAB(0) << " * this file is auto generated." << std::endl <<
             _TAB(0) << " * please does not edit it manual!" << std::endl <<
             _TAB(0) << "*/" << std::endl <<
-            _TAB(0) << "#include \"" << name << "_Ser.h\"" << std::endl <<
-            _TAB(0) << "#include \"SerUtility.h\"" << std::endl << std::endl <<
+            _TAB(0) << "#include \"" << name << "_Ser.h\"" << std::endl << std::endl <<
             _TAB(0) << "namespace serialize" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(1) << "namespace utility" << std::endl <<
@@ -62,11 +61,11 @@ namespace cpp
             return true;
 
         // process inner types
-        do 
+        do
         {
             if (type->TypeCat() != TypeCategory::Struct)
                 break;
-            
+
             const IStructType* sTy = static_cast<const IStructType*>(type);
             if (sTy->OwnScope() == nullptr)
                 break;

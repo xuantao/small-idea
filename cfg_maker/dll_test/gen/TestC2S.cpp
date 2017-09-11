@@ -1,4 +1,4 @@
-﻿/*
+/*
  * this file is auto generated.
  * please does not edit it manual!
 */
@@ -174,3 +174,4 @@ void TestC2S::Processor::OnTest_int_A10_A(cross_call::IContext* context)
 
     _responder->Test(ar);
 }
+

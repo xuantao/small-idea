@@ -54,7 +54,7 @@ namespace cpp
             _TAB(0) << "*/" << std::endl <<
             _TAB(0) << "#pragma once" << std::endl << std::endl <<
             _TAB(0) << "#include \"" << _name << ".h\"" << std::endl <<
-            _TAB(0) << "#include \"ICrossCall.h\"" << std::endl << std::endl;
+            _TAB(0) << "#include \"gcf/gcf.h\"" << std::endl << std::endl;
 
         // cpp
         file = new std::ofstream(utility::ContactPath(_path, _module->Name()) + ".cpp");
@@ -67,7 +67,6 @@ namespace cpp
             _TAB(0) << " * please does not edit it manual!" << std::endl <<
             _TAB(0) << "*/" << std::endl <<
             _TAB(0) << "#include \"" << _module->Name() << ".h\"" << std::endl <<
-            _TAB(0) << "#include \"SerUtility.h\"" << std::endl <<
             _TAB(0) << "#include \"" << _name << "_Ser.h\"" << std::endl <<
             _TAB(0) << "#include <cassert>" << std::endl << std::endl;
         //TODO: need include more file
@@ -308,7 +307,7 @@ namespace cpp
                 continue;
 
             *_cpp <<
-                _TAB(1) << "case Message::" << func->Name() << ":" << std::endl << 
+                _TAB(1) << "case Message::" << func->Name() << ":" << std::endl <<
                 _TAB(2) << "On" << func->Name() << "(context);" << std::endl <<
                 _TAB(2) << "break;" << std::endl;
         }

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * this file is auto generated.
  * please does not edit it manual!
 */

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * this file is auto generated.
  * please does not edit it manual!
 */
@@ -73,3 +73,4 @@ void Caller::Processor::OnCall_B_string(cross_call::IContext* context)
     auto __ret__ = _responder->Call_B(str);
     serialize::utility::Write(context->Ret(), __ret__);
 }
+

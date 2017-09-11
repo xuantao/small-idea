@@ -1,4 +1,4 @@
-﻿/*
+/*
  * this file is auto generated.
  * please does not edit it manual!
 */
@@ -171,3 +171,4 @@ void TestS2C::Processor::OnCallBack(cross_call::IContext* context)
 
     _responder->CallBack();
 }
+
