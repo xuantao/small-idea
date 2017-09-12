@@ -1,6 +1,6 @@
 ﻿#include "CsDeclare.h"
-#include "Utility.h"
 #include "CsUtility.h"
+#include "utility/Utility.h"
 #include <fstream>
 
 #define _TAB(ex)    std::string((_tab + ex) * 4, ' ')

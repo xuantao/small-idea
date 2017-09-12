@@ -18,6 +18,7 @@
 #include "Parser.hpp"
 
 #pragma warning( pop )
+#include "gcf/gcf.h"
 
 CFG_NAMESPACE_BEGIN
 

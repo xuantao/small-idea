@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Interface.h"
+#include "gcf/gcf.h"
 #include <ostream>
 
 CFG_NAMESPACE_BEGIN

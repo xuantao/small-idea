@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Interface.h"
+#include "gcf/gcf.h"
 #include <ostream>
 
 CFG_NAMESPACE_BEGIN
@@ -35,7 +35,7 @@ namespace cs
     protected:
         std::string _path;
         std::string _name;
-        
+
         int _tab = 0;
         const IModule* _module = nullptr;
         std::ostream* _stream = nullptr;

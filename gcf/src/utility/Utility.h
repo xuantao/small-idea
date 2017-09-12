@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <ostream>
 #include <functional>
-#include "Interface.h"
+#include "../gcf/gcf.h"
 #include "TupleLogger.h"
 
 CFG_NAMESPACE_BEGIN

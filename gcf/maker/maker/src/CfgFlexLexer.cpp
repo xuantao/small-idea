@@ -595,17 +595,17 @@ static const flex_int16_t yy_rule_linenum[39] =
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-#line 1 "./fb/scanner.l"
+#line 1 "../fb/scanner.l"
 /* for test c++ scanner */
 
 /* code define */
-#line 11 "./fb/scanner.l"
+#line 11 "../fb/scanner.l"
 #include "Scanner.h"
 #include "Parser.hpp"
 #include "Driver.h"
 #include "Context.h"
 
-CFG_NAMESPACE_USING;
+using namespace cfg;
 
 // declearation lex function
 #define YY_DECL Parser::symbol_type cfg::Scanner::Lex()
@@ -817,10 +817,10 @@ YY_DECL
 
 	{
 /* %% [7.0] user's declarations go here */
-#line 56 "./fb/scanner.l"
+#line 56 "../fb/scanner.l"
 
 
-#line 59 "./fb/scanner.l"
+#line 59 "../fb/scanner.l"
  /* code to place at the beginning of yylex() */
 
     // reset location every token lex
@@ -915,7 +915,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 65 "./fb/scanner.l"
+#line 65 "../fb/scanner.l"
 {
                                 if (_driver.GetContext()->IsVarDeclaring()) {
                                     yy_push_state(DESC);
@@ -930,206 +930,206 @@ YY_RULE_SETUP
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 75 "./fb/scanner.l"
+#line 75 "../fb/scanner.l"
 { _NEW_LINE_; yy_pop_state(); return Parser::make_VALUE_DESC(_desc.str(), Location()); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 76 "./fb/scanner.l"
+#line 76 "../fb/scanner.l"
 { _desc << yytext[0]; }
 	YY_BREAK
 
 /* include files */
 case 4:
 YY_RULE_SETUP
-#line 80 "./fb/scanner.l"
+#line 80 "../fb/scanner.l"
 { yy_push_state(INCL); }
 	YY_BREAK
 
 case 5:
 YY_RULE_SETUP
-#line 82 "./fb/scanner.l"
+#line 82 "../fb/scanner.l"
 { yy_pop_state(); Include(std::string(&yytext[1], yyleng - 2)); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 83 "./fb/scanner.l"
+#line 83 "../fb/scanner.l"
 { yy_pop_state(); Include(std::string(&yytext[1], yyleng - 2)); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 84 "./fb/scanner.l"
+#line 84 "../fb/scanner.l"
 { }
 	YY_BREAK
 case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
-#line 85 "./fb/scanner.l"
+#line 85 "../fb/scanner.l"
 { _NEW_LINE_; yy_pop_state(); _driver.Error(Location(), "error #"); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 86 "./fb/scanner.l"
+#line 86 "../fb/scanner.l"
 { yy_pop_state(); Unrecognized(yytext[0]); }
 	YY_BREAK
 
 /* single line comment */
 case 10:
 YY_RULE_SETUP
-#line 90 "./fb/scanner.l"
+#line 90 "../fb/scanner.l"
 { yy_push_state(COMMENT); }
 	YY_BREAK
 
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
-#line 92 "./fb/scanner.l"
+#line 92 "../fb/scanner.l"
 { _NEW_LINE_; yy_pop_state(); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 93 "./fb/scanner.l"
+#line 93 "../fb/scanner.l"
 { }
 	YY_BREAK
 
 /* lines comments */
 case 13:
 YY_RULE_SETUP
-#line 97 "./fb/scanner.l"
+#line 97 "../fb/scanner.l"
 { yy_push_state(COMMENT_LINES); }
 	YY_BREAK
 
 case 14:
 YY_RULE_SETUP
-#line 99 "./fb/scanner.l"
+#line 99 "../fb/scanner.l"
 { yy_pop_state(); }
 	YY_BREAK
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 100 "./fb/scanner.l"
+#line 100 "../fb/scanner.l"
 { _NEW_LINE_; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 101 "./fb/scanner.l"
+#line 101 "../fb/scanner.l"
 { }
 	YY_BREAK
 case YY_STATE_EOF(COMMENT_LINES):
-#line 102 "./fb/scanner.l"
+#line 102 "../fb/scanner.l"
 { _driver.Error("uncomplete in lines comment"); return yyterminate(); }
 	YY_BREAK
 
 /* main */
 case 17:
 YY_RULE_SETUP
-#line 106 "./fb/scanner.l"
+#line 106 "../fb/scanner.l"
 { return Parser::make_ENUM(Location()); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 107 "./fb/scanner.l"
+#line 107 "../fb/scanner.l"
 { return Parser::make_STRUCT(Location()); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 108 "./fb/scanner.l"
+#line 108 "../fb/scanner.l"
 { return Parser::make_CONST(Location()); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 109 "./fb/scanner.l"
+#line 109 "../fb/scanner.l"
 { return Parser::make_BOOL(Location()); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 110 "./fb/scanner.l"
+#line 110 "../fb/scanner.l"
 { return Parser::make_INT(Location()); }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 111 "./fb/scanner.l"
+#line 111 "../fb/scanner.l"
 { return Parser::make_FLOAT(Location()); }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 112 "./fb/scanner.l"
+#line 112 "../fb/scanner.l"
 { return Parser::make_STRING(Location()); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 113 "./fb/scanner.l"
+#line 113 "../fb/scanner.l"
 { return Parser::make_VALUE_TRUE(yytext, Location()); }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 114 "./fb/scanner.l"
+#line 114 "../fb/scanner.l"
 { return Parser::make_VALUE_FALSE(yytext, Location()); }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 115 "./fb/scanner.l"
+#line 115 "../fb/scanner.l"
 { return Parser::make_TAB(Location()); }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 116 "./fb/scanner.l"
+#line 116 "../fb/scanner.l"
 { return Parser::make_JSON(Location()); }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 117 "./fb/scanner.l"
+#line 117 "../fb/scanner.l"
 { return Parser::make_NAMESPACE(Location()); }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 118 "./fb/scanner.l"
+#line 118 "../fb/scanner.l"
 { return Parser::make_VOID(Location()); }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 119 "./fb/scanner.l"
+#line 119 "../fb/scanner.l"
 { return Parser::make_MODULE(Location()); }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 120 "./fb/scanner.l"
+#line 120 "../fb/scanner.l"
 { return Parser::symbol_type((Parser::token_type)yytext[0], Location()); }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 121 "./fb/scanner.l"
+#line 121 "../fb/scanner.l"
 { return Parser::make_VALUE_INT(yytext, Location()); }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 122 "./fb/scanner.l"
+#line 122 "../fb/scanner.l"
 { return Parser::make_VALUE_FLOAT(yytext, Location()); }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 123 "./fb/scanner.l"
+#line 123 "../fb/scanner.l"
 { return Parser::make_VALUE_STRING(yytext, Location()); }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 124 "./fb/scanner.l"
+#line 124 "../fb/scanner.l"
 { return Parser::make_IDENTIFIER(yytext, Location()); }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 126 "./fb/scanner.l"
+#line 126 "../fb/scanner.l"
 { Location().step(); }
 	YY_BREAK
 case 37:
 /* rule 37 can match eol */
 YY_RULE_SETUP
-#line 127 "./fb/scanner.l"
+#line 127 "../fb/scanner.l"
 { _NEW_LINE_; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 128 "./fb/scanner.l"
+#line 128 "../fb/scanner.l"
 { Unrecognized(yytext[0]); }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
@@ -1137,12 +1137,12 @@ case YY_STATE_EOF(INCL):
 case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(COPY_SRC):
 case YY_STATE_EOF(DESC):
-#line 129 "./fb/scanner.l"
+#line 129 "../fb/scanner.l"
 { if (!EndOfFile()) return yyterminate(); }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 131 "./fb/scanner.l"
+#line 131 "../fb/scanner.l"
 ECHO;
 	YY_BREAK
 #line 1148 "CfgFlexLexer.cpp"
@@ -2264,7 +2264,7 @@ void Cfgfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 131 "./fb/scanner.l"
+#line 131 "../fb/scanner.l"
 
 
 int CfgFlexLexer::yylex()

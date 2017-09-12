@@ -1,6 +1,6 @@
 ﻿#include "ValueUtil.h"
-#include "Utility.h"
 #include "Value.h"
+#include "utility/Utility.h"
 #include <cassert>
 #include <iostream>
 

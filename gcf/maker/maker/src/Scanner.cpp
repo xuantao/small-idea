@@ -2,7 +2,7 @@
 #include "Driver.h"
 #include "Context.h"
 #include "location.hh"
-#include "Utility.h"
+#include "utility/Utility.h"
 #include <fstream>
 #include <cassert>
 

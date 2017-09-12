@@ -13,7 +13,7 @@
 #include "Driver.h"
 #include "Context.h"
 
-CFG_NAMESPACE_USING;
+using namespace cfg;
 
 // declearation lex function
 #define YY_DECL Parser::symbol_type cfg::Scanner::Lex()

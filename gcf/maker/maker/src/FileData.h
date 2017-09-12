@@ -2,7 +2,7 @@
  * 解析的文件数据
 */
 #pragma once
-#include "Interface.h"
+#include "gcf/gcf.h"
 
 CFG_NAMESPACE_BEGIN
 

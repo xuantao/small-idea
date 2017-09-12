@@ -40,7 +40,7 @@
 
 # include "position.hh"
 
-#line 11 "./fb/parser.y" // location.cc:291
+#line 11 "../fb/parser.y" // location.cc:291
 namespace  cfg  {
 #line 46 "location.hh" // location.cc:291
   /// Abstract a location.
@@ -181,7 +181,7 @@ namespace  cfg  {
     return ostr;
   }
 
-#line 11 "./fb/parser.y" // location.cc:291
+#line 11 "../fb/parser.y" // location.cc:291
 } //  cfg 
 #line 187 "location.hh" // location.cc:291
 #endif // !YY_YY_LOCATION_HH_INCLUDED

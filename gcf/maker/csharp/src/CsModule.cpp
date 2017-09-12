@@ -1,6 +1,6 @@
 ﻿#include "CsModule.h"
-#include "Utility.h"
 #include "CsUtility.h"
+#include "utility/Utility.h"
 #include <fstream>
 #include <iostream>
 
@@ -245,12 +245,12 @@ namespace cs
 
             *_stream <<
                 _TAB(1) << "case Message." << func->Name() << ":" << std::endl <<
-                _TAB(2) << "On" << func->Name() << "(context);" << std::endl << 
+                _TAB(2) << "On" << func->Name() << "(context);" << std::endl <<
                 _TAB(2) << "break;" << std::endl;
         }
 
         *_stream <<
-            _TAB(1) << "default:" << std::endl << 
+            _TAB(1) << "default:" << std::endl <<
             _TAB(2) << "break;" << std::endl <<
             _TAB(1) << "}" << std::endl <<
             _TAB(0) << "}" << std::endl;

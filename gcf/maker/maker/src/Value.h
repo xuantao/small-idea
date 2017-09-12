@@ -1,6 +1,5 @@
 ﻿#pragma once
-#include "CfgDef.h"
-#include "Interface.h"
+#include "gcf/gcf.h"
 
 CFG_NAMESPACE_BEGIN
 
@@ -15,6 +14,11 @@ public:
 public:
     virtual ValueCategory ValueCat() const { return ValueCategory::Raw; }
     virtual RawCategory RawCat() const { return _raw; }
+
+    virtual bool AsBool() const;
+    virtual int AsInt() const;
+    virtual float AsFloat() const;
+    virtual const char* AsString() const;
 
 public:
     bool Value(bool& b) const;

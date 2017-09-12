@@ -1,7 +1,6 @@
 ﻿#include "CppDeclare.h"
-#include "Utility.h"
-#include "ValueUtil.h"
 #include "CppUtil.h"
+#include "utility/Utility.h"
 #include <fstream>
 #include <iostream>
 
@@ -203,7 +202,7 @@ namespace cpp
                 if (!data.value.empty())
                     *_header << data.value;
                 else if (type->TypeCat() == TypeCategory::Raw)
-                    *_header << value_util::DefValue(((const IRawType*)type)->RawCat());
+                    *_header << cpp_util::DefValue(((const IRawType*)type)->RawCat());
             }
 
             *_header << ";";
@@ -251,7 +250,7 @@ namespace cpp
                 if (!data.value.empty())
                     file << data.value;
                 else if (type->TypeCat() == TypeCategory::Raw)
-                    file << value_util::DefValue(((const IRawType*)type)->RawCat());
+                    file << cpp_util::DefValue(((const IRawType*)type)->RawCat());
             }
 
             file << ";" << std::endl;

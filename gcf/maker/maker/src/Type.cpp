@@ -1,9 +1,9 @@
 ﻿#include "Type.h"
-#include "Utility.h"
 #include "Set.h"
 #include "Value.h"
 #include "Scope.h"
 #include "ValueUtil.h"
+#include "utility/Utility.h"
 #include <algorithm>
 
 CFG_NAMESPACE_BEGIN

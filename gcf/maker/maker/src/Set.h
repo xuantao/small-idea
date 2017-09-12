@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Interface.h"
+#include "gcf/gcf.h"
 #include <algorithm>
 
 CFG_NAMESPACE_BEGIN

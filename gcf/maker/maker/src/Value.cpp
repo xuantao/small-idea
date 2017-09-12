@@ -27,6 +27,30 @@ RawValue::RawValue(const std::string& value)
 {
 }
 
+bool RawValue::AsBool() const
+{
+    assert(_raw == RawCategory::Bool);
+    return _b;
+}
+
+int RawValue::AsInt() const
+{
+    assert(_raw == RawCategory::Int);
+    return _i;
+}
+
+float RawValue::AsFloat() const
+{
+    assert(_raw == RawCategory::Float);
+    return _f;
+}
+
+const char* RawValue::AsString() const
+{
+    assert(_raw == RawCategory::String);
+    return _s.c_str();
+}
+
 bool RawValue::Value(bool& b) const
 {
     if (_raw != RawCategory::Bool)

@@ -1,11 +1,9 @@
 ﻿#include "CppExporter.h"
-#include "TabVisitor.h"
-#include "Utility.h"
 #include "CppUtil.h"
-#include "ValueUtil.h"
 #include "CppDeclare.h"
 #include "CppModule.h"
 #include "CppSerialize.h"
+#include "utility/Utility.h"
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -395,7 +393,7 @@ bool CppExporter::Declare(const IStructType* sType)
             if (data.value.empty())
             {
                 assert(type->TypeCat() == TypeCategory::Raw);
-                _OUTS_ << value_util::DefValue(static_cast<const IRawType*>(type)->RawCat());
+                _OUTS_ << cpp_util::DefValue(static_cast<const IRawType*>(type)->RawCat());
             }
             else
             {
@@ -588,7 +586,7 @@ bool CppExporter::EnumData(const IEnumType* eType, int tab)
     _TAB_;
     for (int i = 0; i < varSet->Size(); ++i)
     {
-        _OUTS_ << "" << value_util::ToString(varSet->Get(i)->Value()) << ", ";
+        _OUTS_ << "" << cpp_util::ToString(varSet->Get(i)->Value()) << ", ";
         if (i && (i % 8) == 0)
         {
             _OUTS_ << std::endl;
@@ -929,15 +927,15 @@ void CppExporter::TabWriteHeader(const IStructType* sType, int tab)
         _TAB_EX_(0) << "void WriteHeader(std::ostream& stream, const " << tyName << "& def)" << std::endl <<
         _TAB_EX_(0) << "{" << std::endl;
 
-    TabVisitor visitor;
-    utility::Traverse(sType, &visitor);
+    //TabVisitor visitor;
+    //utility::Traverse(sType, &visitor);
 
-    _OUTS_ <<
-        _TAB_EX_(1) << "static const char* title = \"" << utility::Contact(visitor.Title(), "\\t") << "\";" << std::endl <<
-        _TAB_EX_(1) << "static const char* type = \"" << utility::Contact(visitor.Type(), "\\t") << "\";" << std::endl <<
-        _TAB_EX_(1) << "static const char* desc = \"" << utility::Contact(visitor.Describe(), "\\t") << "\";" << std::endl << std::endl <<
-        _TAB_EX_(1) << "stream << title << std::endl << type << std::endl << desc << std::endl;" << std::endl <<
-        _TAB_EX_(1) << "Write(stream, def);" << std::endl;
+    //_OUTS_ <<
+    //    _TAB_EX_(1) << "static const char* title = \"" << utility::Contact(visitor.Title(), "\\t") << "\";" << std::endl <<
+    //    _TAB_EX_(1) << "static const char* type = \"" << utility::Contact(visitor.Type(), "\\t") << "\";" << std::endl <<
+    //    _TAB_EX_(1) << "static const char* desc = \"" << utility::Contact(visitor.Describe(), "\\t") << "\";" << std::endl << std::endl <<
+    //    _TAB_EX_(1) << "stream << title << std::endl << type << std::endl << desc << std::endl;" << std::endl <<
+    //    _TAB_EX_(1) << "Write(stream, def);" << std::endl;
 
     _OUTS_ <<
         _TAB_EX_(0) << "}" << std::endl;

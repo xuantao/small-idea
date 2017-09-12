@@ -13,11 +13,10 @@
 %code requires
 {
 #include <string>
-#include "CfgDef.h"
 
-CFG_NAMESPACE_BEGIN
-class Driver;
-CFG_NAMESPACE_END
+namespace cfg {
+    class Driver;
+}
 
 //#define YYSTYPE std::string
 }

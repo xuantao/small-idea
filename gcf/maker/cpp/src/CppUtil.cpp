@@ -1,7 +1,5 @@
 ﻿#include "CppUtil.h"
-#include "Interface.h"
-#include "Utility.h"
-#include "ValueUtil.h"
+#include "utility/Utility.h"
 #include <iostream>
 #include <sstream>
 
@@ -26,6 +24,39 @@ namespace cpp_util
             stream << "::";
         stream << var->Name();
         return stream.str();
+    }
+
+    std::string sToString(const IRawValue* val)
+    {
+        if (val == nullptr)
+            return utility::EMPTY_STR;
+
+        std::string str;
+        if (val->RawCat() == RawCategory::Bool)
+            str = val->AsBool() ? "true" : "false";
+        else if (val->RawCat() == RawCategory::Int)
+            str = std::to_string(val->AsInt());
+        else if (val->RawCat() == RawCategory::Float)
+            str = std::to_string(val->AsFloat());
+        else if (val->RawCat() == RawCategory::String)
+            str = val->AsString();
+
+        return str;
+    }
+
+    std::string ToString(const IValue* val)
+    {
+        if (val == nullptr)
+            return std::string();
+
+        if (val->ValueCat() == ValueCategory::Raw)
+            return sToString(static_cast<const IRawValue*>(val));
+        else if (val->ValueCat() == ValueCategory::Ref)
+            return ToString(static_cast<const IRefValue*>(val)->Var()->Value());
+        else
+            ERROR_NOT_ALLOW;
+
+        return std::string();
     }
 
     std::string RawName(RawCategory raw)
@@ -88,6 +119,20 @@ namespace cpp_util
         return name;
     }
 
+    std::string DefValue(RawCategory raw)
+    {
+        if (raw == RawCategory::Bool)
+            return "false";
+        else if (raw == RawCategory::Int)
+            return "0";
+        else if (raw == RawCategory::Float)
+            return "0.0f";
+        else if (raw == RawCategory::String)
+            return std::string();
+        else
+            return std::string();
+    }
+
     std::string Value(const IScope* scope, const IType* type, const IValue* val)
     {
         if (scope == nullptr || type == nullptr || val == nullptr)
@@ -95,7 +140,7 @@ namespace cpp_util
 
         std::string value;
         if (val->ValueCat() == ValueCategory::Raw)
-            value = value_util::ToString(static_cast<const IRawValue*>(val));
+            value = cpp_util::ToString(static_cast<const IRawValue*>(val));
         else if (val->ValueCat() == ValueCategory::Ref)
             value = sRefValue(scope, type, static_cast<const IRefValue*>(val));
         else
@@ -113,7 +158,7 @@ namespace cpp_util
         if (var->Value())
             out.value = Value(var->Owner(), var->Type(), var->Value());
         else if (var->Type()->TypeCat() == TypeCategory::Raw)
-            out.value = value_util::DefValue(static_cast<const IRawType*>(var->Type())->RawCat());
+            out.value = cpp_util::DefValue(static_cast<const IRawType*>(var->Type())->RawCat());
 
         if (
             !out.value.empty() &&

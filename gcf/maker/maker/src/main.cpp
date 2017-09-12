@@ -1,14 +1,9 @@
-﻿#include <iostream>
+﻿#include "Driver.h"
+#include "Context.h"
+#include "utility/Utility.h"
+#include <iostream>
 #include <fstream>
 #include <array>
-#include "Driver.h"
-#include "Context.h"
-#include "CppExporter.h"
-#include "TabCreater.h"
-#include "JsonCreater.h"
-#include "Utility.h"
-#include "CsExporter.h"
-
 CFG_NAMESPACE_USING;
 
 struct Args
@@ -97,27 +92,27 @@ static void DoWork(Args& arg)
         return;
     }
 
-    if (!arg.cfgPath.empty())
-    {
-        TabCreater tab;
-        context.Export(&tab, arg.cfgPath);
+    //if (!arg.cfgPath.empty())
+    //{
+    //    TabCreater tab;
+    //    context.Export(&tab, arg.cfgPath);
 
-        JsonCreater json;
-        context.Export(&json, arg.cfgPath);
-    }
+    //    JsonCreater json;
+    //    context.Export(&json, arg.cfgPath);
+    //}
 
-    if (!arg.cppFile.empty())
-    {
-        CppExporter cpp;
-        context.Export(&cpp, arg.cppFile);
-    }
+    //if (!arg.cppFile.empty())
+    //{
+    //    CppExporter cpp;
+    //    context.Export(&cpp, arg.cppFile);
+    //}
 
-    if (!arg.csFile.empty())
-    {
-        //std::cout << "Csharp exporter has not completed" << std::endl;
-        CsExporter cs;
-        context.Export(&cs, arg.csFile);
-    }
+    //if (!arg.csFile.empty())
+    //{
+    //    //std::cout << "Csharp exporter has not completed" << std::endl;
+    //    CsExporter cs;
+    //    context.Export(&cs, arg.csFile);
+    //}
 }
 
 int main(int argc, char** argv)

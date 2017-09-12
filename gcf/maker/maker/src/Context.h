@@ -3,7 +3,7 @@
 #include <string>
 #include <map>
 #include <stack>
-#include "Interface.h"
+#include "gcf/gcf.h"
 
 CFG_NAMESPACE_BEGIN
 

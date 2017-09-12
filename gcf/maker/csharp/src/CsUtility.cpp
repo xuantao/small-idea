@@ -1,11 +1,41 @@
 ﻿#include "CsUtility.h"
-#include "Utility.h"
-#include "ValueUtil.h"
+#include "utility/Utility.h"
 
 CFG_NAMESPACE_BEGIN
 
 namespace cs_util
 {
+    std::string sToString(const IRawValue* val)
+    {
+        if (val == nullptr)
+            return utility::EMPTY_STR;
+
+        std::string str;
+        if (val->RawCat() == RawCategory::Bool)
+            str = val->AsBool() ? "true" : "false";
+        else if (val->RawCat() == RawCategory::Int)
+            str = std::to_string(val->AsInt());
+        else if (val->RawCat() == RawCategory::Float)
+            str = std::to_string(val->AsFloat());
+        else if (val->RawCat() == RawCategory::String)
+            str = val->AsString();
+
+        return str;
+    }
+
+    std::string ToString(const IValue* val)
+    {
+        if (val == nullptr)
+            return std::string();
+
+        if (val->ValueCat() == ValueCategory::Raw)
+            return sToString(static_cast<const IRawValue*>(val));
+        else if (val->ValueCat() == ValueCategory::Ref)
+            return ToString(static_cast<const IRefValue*>(val)->Var()->Value());
+
+        return std::string();
+    }
+
     std::string sArrayName(const IArrayType* arTy, const std::string& tName)
     {
         IType* type = arTy->Prev();
@@ -85,7 +115,7 @@ namespace cs_util
         if (val->ValueCat() == ValueCategory::Raw)
         {
             const IRawValue* rawVal = static_cast<const IRawValue*>(val);
-            std::string str = value_util::ToString(rawVal);
+            std::string str = cs_util::ToString(rawVal);
             if (rawVal->RawCat() == RawCategory::String)
                 str = "\"" + str + "\"";
 

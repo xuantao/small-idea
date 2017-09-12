@@ -2,229 +2,18 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="src">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="fb">
-      <UniqueIdentifier>{aecb4e16-1b29-43a6-96ad-b99fdd66f7ec}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\context">
-      <UniqueIdentifier>{9a4ae8d7-76a7-40bc-a0c9-4e54b55af57a}</UniqueIdentifier>
+      <UniqueIdentifier>{2787422c-bd9b-4e8e-b0a4-9c82b0e6ecb9}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\parser">
-      <UniqueIdentifier>{7b2e8ade-0bb8-485e-8c67-1fd01ed5b49b}</UniqueIdentifier>
+      <UniqueIdentifier>{c53f1013-e3dc-4546-9252-fb3b025cbbad}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\exporter">
-      <UniqueIdentifier>{91122456-8509-4b2c-915d-aba3d502e33d}</UniqueIdentifier>
+    <Filter Include="src\gcf">
+      <UniqueIdentifier>{de2ca6e3-46a6-440c-b11b-8f6ac6dfcc8d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\exporter\cpp">
-      <UniqueIdentifier>{474be6da-f9fa-4177-a0d7-2dc77372bade}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\exporter\cfg">
-      <UniqueIdentifier>{f33ac415-0f58-4c9c-b430-e7bdb7dd8fb0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\utility">
-      <UniqueIdentifier>{144d3f3e-71ea-4961-abfa-654a5e3a51c0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\exporter\csharp">
-      <UniqueIdentifier>{303dc1a9-14ff-4fc6-9270-e184de50361d}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="CfgFlexLexer.cpp">
-      <Filter>src\parser</Filter>
-    </ClCompile>
-    <ClCompile Include="Scanner.cpp">
-      <Filter>src\parser</Filter>
-    </ClCompile>
-    <ClCompile Include="Parser.cpp">
-      <Filter>src\parser</Filter>
-    </ClCompile>
-    <ClCompile Include="Context.cpp">
-      <Filter>src\context</Filter>
-    </ClCompile>
-    <ClCompile Include="Variate.cpp">
-      <Filter>src\context</Filter>
-    </ClCompile>
-    <ClCompile Include="Utility.cpp">
-      <Filter>src\utility</Filter>
-    </ClCompile>
-    <ClCompile Include="ValueUtil.cpp">
-      <Filter>src\utility</Filter>
-    </ClCompile>
-    <ClCompile Include="Type.cpp">
-      <Filter>src\context</Filter>
-    </ClCompile>
-    <ClCompile Include="Set.cpp">
-      <Filter>src\context</Filter>
-    </ClCompile>
-    <ClCompile Include="Value.cpp">
-      <Filter>src\context</Filter>
-    </ClCompile>
-    <ClCompile Include="CppExporter.cpp">
-      <Filter>src\exporter\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="CppUtil.cpp">
-      <Filter>src\exporter\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="FileData.cpp">
-      <Filter>src\context</Filter>
-    </ClCompile>
-    <ClCompile Include="TabCreater.cpp">
-      <Filter>src\exporter\cfg</Filter>
-    </ClCompile>
-    <ClCompile Include="JsonCreater.cpp">
-      <Filter>src\exporter\cfg</Filter>
-    </ClCompile>
-    <ClCompile Include="Driver.cpp">
-      <Filter>src\context</Filter>
-    </ClCompile>
-    <ClCompile Include="TabVisitor.cpp">
-      <Filter>src\exporter</Filter>
-    </ClCompile>
-    <ClCompile Include="Scope.cpp">
-      <Filter>src\context</Filter>
-    </ClCompile>
-    <ClCompile Include="CppModule.cpp">
-      <Filter>src\exporter\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="CppDeclare.cpp">
-      <Filter>src\exporter\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="CppSerialize.cpp">
-      <Filter>src\exporter\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="CsExporter.cpp">
-      <Filter>src\exporter\csharp</Filter>
-    </ClCompile>
-    <ClCompile Include="CsDeclare.cpp">
-      <Filter>src\exporter\csharp</Filter>
-    </ClCompile>
-    <ClCompile Include="CsUtility.cpp">
-      <Filter>src\exporter\csharp</Filter>
-    </ClCompile>
-    <ClCompile Include="CsSerialize.cpp">
-      <Filter>src\exporter\csharp</Filter>
-    </ClCompile>
-    <ClCompile Include="CsModule.cpp">
-      <Filter>src\exporter\csharp</Filter>
-    </ClCompile>
-    <ClCompile Include="StringPool.cpp">
-      <Filter>src\utility</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="CfgDef.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="Scanner.h">
-      <Filter>src\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="position.hh">
-      <Filter>src\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="Parser.hpp">
-      <Filter>src\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="location.hh">
-      <Filter>src\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="FlexLexer.h">
-      <Filter>src\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="stack.hh">
-      <Filter>src\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="Context.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
-    <ClInclude Include="Variate.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
-    <ClInclude Include="Utility.h">
-      <Filter>src\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="ValueUtil.h">
-      <Filter>src\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Value.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
-    <ClInclude Include="Type.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
-    <ClInclude Include="Set.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
-    <ClInclude Include="TupleLogger.h">
-      <Filter>src\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="CppExporter.h">
-      <Filter>src\exporter\cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="CppUtil.h">
-      <Filter>src\exporter\cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="FileData.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
-    <ClInclude Include="TabCreater.h">
-      <Filter>src\exporter\cfg</Filter>
-    </ClInclude>
-    <ClInclude Include="JsonCreater.h">
-      <Filter>src\exporter\cfg</Filter>
-    </ClInclude>
-    <ClInclude Include="Driver.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
-    <ClInclude Include="TabVisitor.h">
-      <Filter>src\exporter</Filter>
-    </ClInclude>
-    <ClInclude Include="Interface.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="Scope.h">
-      <Filter>src\context</Filter>
-    </ClInclude>
-    <ClInclude Include="CppModule.h">
-      <Filter>src\exporter\cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="CppDeclare.h">
-      <Filter>src\exporter\cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="CppTab.h">
-      <Filter>src\exporter\cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="CppJson.h">
-      <Filter>src\exporter\cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="CppLogger.h">
-      <Filter>src\exporter\cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="CppSerialize.h">
-      <Filter>src\exporter\cpp</Filter>
-    </ClInclude>
-    <ClInclude Include="CsExporter.h">
-      <Filter>src\exporter\csharp</Filter>
-    </ClInclude>
-    <ClInclude Include="CsDeclare.h">
-      <Filter>src\exporter\csharp</Filter>
-    </ClInclude>
-    <ClInclude Include="CsUtility.h">
-      <Filter>src\exporter\csharp</Filter>
-    </ClInclude>
-    <ClInclude Include="CsSerialize.h">
-      <Filter>src\exporter\csharp</Filter>
-    </ClInclude>
-    <ClInclude Include="CsModule.h">
-      <Filter>src\exporter\csharp</Filter>
-    </ClInclude>
-    <ClInclude Include="StringPool.h">
-      <Filter>src\utility</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="fb\parser.y">
@@ -233,5 +22,93 @@
     <None Include="fb\scanner.l">
       <Filter>fb</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CfgFlexLexer.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Context.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Driver.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileData.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Parser.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scanner.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scope.cpp">
+      <Filter>src\gcf</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Set.cpp">
+      <Filter>src\gcf</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Type.cpp">
+      <Filter>src\gcf</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Value.cpp">
+      <Filter>src\gcf</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ValueUtil.cpp">
+      <Filter>src\gcf</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Variate.cpp">
+      <Filter>src\gcf</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Context.h">
+      <Filter>src\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Driver.h">
+      <Filter>src\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FileData.h">
+      <Filter>src\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlexLexer.h">
+      <Filter>src\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\location.hh">
+      <Filter>src\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Parser.hpp">
+      <Filter>src\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\position.hh">
+      <Filter>src\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scanner.h">
+      <Filter>src\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stack.hh">
+      <Filter>src\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scope.h">
+      <Filter>src\gcf</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Set.h">
+      <Filter>src\gcf</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Type.h">
+      <Filter>src\gcf</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Value.h">
+      <Filter>src\gcf</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ValueUtil.h">
+      <Filter>src\gcf</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Variate.h">
+      <Filter>src\gcf</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

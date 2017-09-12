@@ -40,7 +40,7 @@
 
 # include <vector>
 
-#line 11 "./fb/parser.y" // stack.hh:133
+#line 11 "../fb/parser.y" // stack.hh:133
 namespace  cfg  {
 #line 46 "stack.hh" // stack.hh:133
   template <class T, class S = std::vector<T> >
@@ -151,7 +151,7 @@ namespace  cfg  {
     unsigned int range_;
   };
 
-#line 11 "./fb/parser.y" // stack.hh:133
+#line 11 "../fb/parser.y" // stack.hh:133
 } //  cfg 
 #line 157 "stack.hh" // stack.hh:133
 

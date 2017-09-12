@@ -2,7 +2,7 @@
  * 作用域对象
 */
 #pragma once
-#include "Interface.h"
+#include "gcf/gcf.h"
 
 CFG_NAMESPACE_BEGIN
 

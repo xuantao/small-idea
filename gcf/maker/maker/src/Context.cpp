@@ -4,8 +4,8 @@
 #include "Value.h"
 #include "ValueUtil.h"
 #include "Variate.h"
-#include "Utility.h"
 #include "FileData.h"
+#include "utility/Utility.h"
 #include <stdio.h>
 #include <cassert>
 
@@ -182,7 +182,7 @@ void Context::OnNsEnd()
 
 void Context::OnModuleBegin(const std::string& name)
 {
-    Module* module = new Module(name, (uint32_t)_modules.size() + 1 , _SCOPE_);
+    Module* module = new Module(name, (uint32_t)_modules.size() + 1, _SCOPE_);
     // do need a module set?
     _stackScope.push_back(module->Scope());
 
