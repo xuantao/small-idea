@@ -112,6 +112,9 @@
     <ClCompile Include="CsModule.cpp">
       <Filter>src\exporter\csharp</Filter>
     </ClCompile>
+    <ClCompile Include="StringPool.cpp">
+      <Filter>src\utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CfgDef.h">
@@ -218,6 +221,9 @@
     </ClInclude>
     <ClInclude Include="CsModule.h">
       <Filter>src\exporter\csharp</Filter>
+    </ClInclude>
+    <ClInclude Include="StringPool.h">
+      <Filter>src\utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

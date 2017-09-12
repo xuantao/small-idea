@@ -164,6 +164,7 @@
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="Scope.cpp" />
     <ClCompile Include="Set.cpp" />
+    <ClCompile Include="StringPool.cpp" />
     <ClCompile Include="TabCreater.cpp" />
     <ClCompile Include="TabVisitor.cpp" />
     <ClCompile Include="Type.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="JsonCreater.h" />
     <ClInclude Include="Scope.h" />
     <ClInclude Include="Set.h" />
+    <ClInclude Include="StringPool.h" />
     <ClInclude Include="TabCreater.h" />
     <ClInclude Include="TabVisitor.h" />
     <ClInclude Include="TupleLogger.h" />
