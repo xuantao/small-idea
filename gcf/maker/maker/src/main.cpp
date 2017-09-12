@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <array>
+#include <Windows.h>
 CFG_NAMESPACE_USING;
 
 struct Args
@@ -115,17 +116,26 @@ static void DoWork(Args& arg)
     //}
 }
 
+typedef cfg::IExporter* (*FnGetExporter)();
+
 int main(int argc, char** argv)
 {
-    Args arg;
-    if (ParseArgs(argc, argv, arg))
-    {
-        DoWork(arg);
-    }
-    else
-    {
-        LogInfo();
-    }
+    //Args arg;
+    //if (ParseArgs(argc, argv, arg))
+    //{
+    //    DoWork(arg);
+    //}
+    //else
+    //{
+    //    LogInfo();
+    //}
+    HMODULE hModule = ::LoadLibraryA("cpp.dll");
+    FARPROC proc = ::GetProcAddress(hModule, "GetExporter");
+    FnGetExporter exp = (FnGetExporter)proc;
+
+    IExporter* exporter = exp();
+
+    exporter->OnBegin(nullptr, "");
 
     system("pause");
     return 1;

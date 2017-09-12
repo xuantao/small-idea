@@ -147,6 +147,7 @@
     <ClCompile Include="src\CppModule.cpp" />
     <ClCompile Include="src\CppSerialize.cpp" />
     <ClCompile Include="src\CppUtil.cpp" />
+    <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CppDeclare.h" />
