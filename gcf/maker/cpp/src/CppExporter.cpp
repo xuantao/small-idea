@@ -10,7 +10,7 @@
 #include <cassert>
 #include <set>
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 #define _NEED_TEMP_INT      0x01
 #define _NEED_TEMP_BUFFER   0x02
@@ -1417,4 +1417,4 @@ void CppExporter::GetDepends(const IStructType* sType, std::vector<const IStruct
     deps.push_back(sType);
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

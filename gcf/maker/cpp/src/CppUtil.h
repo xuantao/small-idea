@@ -3,7 +3,7 @@
 #include "gcf/gcf.h"
 #include <ostream>
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 struct CppVarData
 {
@@ -25,4 +25,4 @@ namespace cpp_util
     bool Convert(const IVariate* var, CppVarData& out);
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "gcf/gcf.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 class Variate : public IVariate
 {
@@ -37,4 +37,4 @@ protected:
     bool _const = false;
 };
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

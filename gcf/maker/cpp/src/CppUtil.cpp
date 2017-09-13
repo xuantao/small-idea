@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace cpp_util
 {
@@ -175,4 +175,4 @@ namespace cpp_util
     }
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

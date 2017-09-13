@@ -1,9 +1,9 @@
-#line 1 "CfgFlexLexer.cpp"
+#line 1 "GcfFlexLexer.cpp"
 #include <iostream>
 #include <string>
 #define YY_NO_UNISTD_H
 
-#line 6 "CfgFlexLexer.cpp"
+#line 6 "GcfFlexLexer.cpp"
 
 #define  YY_INT_ALIGNED short int
 
@@ -31,17 +31,17 @@
      * We will address this in a future release of flex, or omit the C++ scanner
      * altogether.
      */
-    #define yyFlexLexer CfgFlexLexer
+    #define yyFlexLexer GcfFlexLexer
 /* %endif */
 
 /* %if-c-only */
 /* %endif */
 
-    #define yyalloc Cfgalloc
+    #define yyalloc Gcfalloc
 
-    #define yyrealloc Cfgrealloc
+    #define yyrealloc Gcfrealloc
 
-    #define yyfree Cfgfree
+    #define yyfree Gcffree
 
 /* %if-c-only */
 /* %endif */
@@ -355,9 +355,9 @@ struct yy_buffer_state
 /* %endif */
 /* %endif */
 
-void *Cfgalloc ( yy_size_t  );
-void *Cfgrealloc ( void *, yy_size_t  );
-void Cfgfree ( void *  );
+void *Gcfalloc ( yy_size_t  );
+void *Gcfrealloc ( void *, yy_size_t  );
+void Gcffree ( void *  );
 
 #define yy_new_buffer yy_create_buffer
 #define yy_set_interactive(is_interactive) \
@@ -605,19 +605,19 @@ static const flex_int16_t yy_rule_linenum[39] =
 #include "Driver.h"
 #include "Context.h"
 
-using namespace cfg;
+using namespace gcf;
 
 // declearation lex function
-#define YY_DECL Parser::symbol_type cfg::Scanner::Lex()
+#define YY_DECL Parser::symbol_type gcf::Scanner::Lex()
 #define YY_USER_ACTION { Location().columns(yyleng); }
 #define yyterminate() Parser::make_END(Location())
 #define _NEW_LINE_ { Location().lines(yyleng); Location().step(); }
-#line 615 "CfgFlexLexer.cpp"
+#line 615 "GcfFlexLexer.cpp"
 /* flex options */
 /* zhFlexLexer */
 /* optimize */
 
-#line 620 "CfgFlexLexer.cpp"
+#line 620 "GcfFlexLexer.cpp"
 
 #define INITIAL 0
 #define INCL 1
@@ -827,7 +827,7 @@ YY_DECL
     Location().step();
 
 
-#line 830 "CfgFlexLexer.cpp"
+#line 830 "GcfFlexLexer.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1145,7 +1145,7 @@ YY_RULE_SETUP
 #line 131 "../fb/scanner.l"
 ECHO;
 	YY_BREAK
-#line 1148 "CfgFlexLexer.cpp"
+#line 1148 "GcfFlexLexer.cpp"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1339,9 +1339,9 @@ void yyFlexLexer::ctor_common()
 yyFlexLexer::~yyFlexLexer()
 {
 	delete [] yy_state_buf;
-	Cfgfree(yy_start_stack  );
+	Gcffree(yy_start_stack  );
 	yy_delete_buffer( YY_CURRENT_BUFFER );
-	Cfgfree(yy_buffer_stack  );
+	Gcffree(yy_buffer_stack  );
 }
 
 /* The contents of this function are C++ specific, so the () macro is not used.
@@ -1489,7 +1489,7 @@ int yyFlexLexer::yy_get_next_buffer()
 
 				b->yy_ch_buf = (char *)
 					/* Include room in for 2 EOB chars. */
-					Cfgrealloc((void *) b->yy_ch_buf,(yy_size_t) (b->yy_buf_size + 2)  );
+					Gcfrealloc((void *) b->yy_ch_buf,(yy_size_t) (b->yy_buf_size + 2)  );
 				}
 			else
 				/* Can't grow it, we don't own it. */
@@ -1538,7 +1538,7 @@ int yyFlexLexer::yy_get_next_buffer()
 	if (((yy_n_chars) + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
 		/* Extend the array by 50%, plus the number we really need. */
 		int new_size = (yy_n_chars) + number_to_move + ((yy_n_chars) >> 1);
-		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) Cfgrealloc((void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf,(yy_size_t) new_size  );
+		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) Gcfrealloc((void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf,(yy_size_t) new_size  );
 		if ( ! YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
 			YY_FATAL_ERROR( "out of dynamic memory in yy_get_next_buffer()" );
 	}
@@ -1856,7 +1856,7 @@ void yyFlexLexer::yyrestart( std::istream* input_file )
 {
 	YY_BUFFER_STATE b;
     
-	b = (YY_BUFFER_STATE) Cfgalloc(sizeof( struct yy_buffer_state )  );
+	b = (YY_BUFFER_STATE) Gcfalloc(sizeof( struct yy_buffer_state )  );
 	if ( ! b )
 		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
 
@@ -1865,7 +1865,7 @@ void yyFlexLexer::yyrestart( std::istream* input_file )
 	/* yy_ch_buf has to be 2 characters longer than the size given because
 	 * we need to put in 2 end-of-buffer characters.
 	 */
-	b->yy_ch_buf = (char *) Cfgalloc((yy_size_t) (b->yy_buf_size + 2)  );
+	b->yy_ch_buf = (char *) Gcfalloc((yy_size_t) (b->yy_buf_size + 2)  );
 	if ( ! b->yy_ch_buf )
 		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
 
@@ -1907,9 +1907,9 @@ void yyFlexLexer::yyrestart( std::istream* input_file )
 		YY_CURRENT_BUFFER_LVALUE = (YY_BUFFER_STATE) 0;
 
 	if ( b->yy_is_our_buffer )
-		Cfgfree((void *) b->yy_ch_buf  );
+		Gcffree((void *) b->yy_ch_buf  );
 
-	Cfgfree((void *) b  );
+	Gcffree((void *) b  );
 }
 
 /* Initializes or reinitializes a buffer.
@@ -2065,7 +2065,7 @@ void yyFlexLexer::yyensure_buffer_stack(void)
 		 * immediate realloc on the next call.
          */
       num_to_alloc = 1; /* After all that talk, this was set to 1 anyways... */
-		(yy_buffer_stack) = (struct yy_buffer_state**)Cfgalloc
+		(yy_buffer_stack) = (struct yy_buffer_state**)Gcfalloc
 								(num_to_alloc * sizeof(struct yy_buffer_state*)
 								);
 		if ( ! (yy_buffer_stack) )
@@ -2084,7 +2084,7 @@ void yyFlexLexer::yyensure_buffer_stack(void)
 		yy_size_t grow_size = 8 /* arbitrary grow size */;
 
 		num_to_alloc = (yy_buffer_stack_max) + grow_size;
-		(yy_buffer_stack) = (struct yy_buffer_state**)Cfgrealloc
+		(yy_buffer_stack) = (struct yy_buffer_state**)Gcfrealloc
 								((yy_buffer_stack),
 								num_to_alloc * sizeof(struct yy_buffer_state*)
 								);
@@ -2121,10 +2121,10 @@ void yyFlexLexer::yyensure_buffer_stack(void)
 		new_size = (yy_size_t) (yy_start_stack_depth) * sizeof( int );
 
 		if ( ! (yy_start_stack) )
-			(yy_start_stack) = (int *) Cfgalloc(new_size  );
+			(yy_start_stack) = (int *) Gcfalloc(new_size  );
 
 		else
-			(yy_start_stack) = (int *) Cfgrealloc((void *) (yy_start_stack),new_size  );
+			(yy_start_stack) = (int *) Gcfrealloc((void *) (yy_start_stack),new_size  );
 
 		if ( ! (yy_start_stack) )
 			YY_FATAL_ERROR( "out of memory expanding start-condition stack" );
@@ -2234,12 +2234,12 @@ static int yy_flex_strlen (const char * s )
 }
 #endif
 
-void *Cfgalloc (yy_size_t  size )
+void *Gcfalloc (yy_size_t  size )
 {
 			return malloc(size);
 }
 
-void *Cfgrealloc  (void * ptr, yy_size_t  size )
+void *Gcfrealloc  (void * ptr, yy_size_t  size )
 {
 		
 	/* The cast to (char *) in the following accommodates both
@@ -2252,9 +2252,9 @@ void *Cfgrealloc  (void * ptr, yy_size_t  size )
 	return realloc(ptr, size);
 }
 
-void Cfgfree (void * ptr )
+void Gcffree (void * ptr )
 {
-			free( (char *) ptr );	/* see Cfgrealloc() for (char *) cast */
+			free( (char *) ptr );	/* see Gcfrealloc() for (char *) cast */
 }
 
 /* %if-tables-serialization definitions */
@@ -2267,7 +2267,7 @@ void Cfgfree (void * ptr )
 #line 131 "../fb/scanner.l"
 
 
-int CfgFlexLexer::yylex()
+int GcfFlexLexer::yylex()
 {
     std::cerr << "play call lex to scann data" << std::endl;
     return 0;

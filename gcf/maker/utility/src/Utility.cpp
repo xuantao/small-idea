@@ -8,7 +8,7 @@
 
 #undef min
 #undef max
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace utility
 {
@@ -771,4 +771,4 @@ namespace utility
     }
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

@@ -11,15 +11,27 @@
 #include <algorithm>
 #include <functional>
 
-#define CFG_NAMESPACE       cfg
-#define CFG_NAMESPACE_BEGIN namespace CFG_NAMESPACE {
-#define CFG_NAMESPACE_END   }
-#define CFG_NAMESPACE_USING using namespace CFG_NAMESPACE
-#define CFG_NAMESPACE_REF   CFG_NAMESPACE::
+#define GCF_NAMESPACE       gcf
+#define GCF_NAMESPACE_BEGIN namespace GCF_NAMESPACE {
+#define GCF_NAMESPACE_END   }
+#define GCF_NAMESPACE_USING using namespace GCF_NAMESPACE
+#define GCF_NAMESPACE_REF   GCF_NAMESPACE::
 
 #define ERROR_NOT_ALLOW std::cerr << "not allow file:" << __FILE__ << " line:" << __LINE__ << std::endl
 
-CFG_NAMESPACE_BEGIN
+#if defined(GCF_DLL_BUILD)
+    #if defined(_MSC_VER) || defined(__MINGW32__)
+        #define GCF_API __declspec(dllexport)
+    #endif // if defined(_MSC_VER)
+#elif defined(GCF_DLL)
+    #if defined(_MSC_VER) || defined(__MINGW32__)
+        #define GCF_API __declspec(dllimport)
+    #endif // if defined(_MSC_VER)
+#endif
+
+#if !defined(GCF_API)
+    #define GCF_API
+#endif
 
 // raw type name
 #define TYPE_BOOL   "bool"
@@ -28,7 +40,10 @@ CFG_NAMESPACE_BEGIN
 #define TYPE_STRING "string"
 
 // file extend gcf = game configuration file
-#define CFG_FILE_SUFFIX ".gcf"
+#define FILE_SUFFIX     ".gcf"
+#define EXP_MODULE_API  "CreateExporter"
+
+GCF_NAMESPACE_BEGIN
 
 enum class ElementCategory
 {
@@ -400,4 +415,4 @@ public:
     virtual void SetPath(const std::string& path) = 0;
 };
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

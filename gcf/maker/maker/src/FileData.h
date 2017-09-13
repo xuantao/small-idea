@@ -4,7 +4,7 @@
 #pragma once
 #include "gcf/gcf.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -37,4 +37,4 @@ protected:
     std::string _path;
     std::vector<detail::FileBlock*> _blocks;
 };
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

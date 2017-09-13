@@ -6,7 +6,7 @@
 #include "utility/Utility.h"
 #include <algorithm>
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 //////////////////////////////////////////////////////////////////////////
 // Enum Type
@@ -238,4 +238,4 @@ Module::~Module()
     delete _scope;
     _scope = nullptr;
 }
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

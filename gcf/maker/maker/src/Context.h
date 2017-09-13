@@ -5,7 +5,7 @@
 #include <stack>
 #include "gcf/gcf.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 class Driver;
 class Variate;
@@ -118,4 +118,4 @@ protected:
     } _data;
 };
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

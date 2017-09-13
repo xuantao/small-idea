@@ -4,7 +4,7 @@
 #pragma once
 #include "gcf/gcf.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 class NormalScope : public IScope
 {
@@ -51,4 +51,4 @@ protected:
     INsSet* _nsSet;
 };
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

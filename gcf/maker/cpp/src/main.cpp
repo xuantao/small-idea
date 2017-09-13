@@ -3,7 +3,7 @@
 #define DLL_EXPORT extern "C" __declspec(dllexport)
 //extern "C"
 
-CFG_NAMESPACE_USING;
+GCF_NAMESPACE_USING;
 
 CppExporter cppExp;
 

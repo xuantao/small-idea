@@ -1,7 +1,7 @@
 ﻿#include "CsUtility.h"
 #include "utility/Utility.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace cs_util
 {
@@ -170,4 +170,4 @@ namespace cs_util
     }
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

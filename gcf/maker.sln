@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "depend", "depend", "{1727D1BA-20E0-45DA-9DB8-5132AAF5F7E0}"
 EndProject
@@ -13,7 +13,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "maker", "maker\maker\maker.
 	ProjectSection(ProjectDependencies) = postProject
 		{85E96C68-F967-4FE4-B234-86AEF4D1F0C1} = {85E96C68-F967-4FE4-B234-86AEF4D1F0C1}
 		{02CACAD4-EB0A-4CD6-9231-0B6FFD8FB92D} = {02CACAD4-EB0A-4CD6-9231-0B6FFD8FB92D}
-		{625A76FF-C524-472C-8FCC-F46BA7845008} = {625A76FF-C524-472C-8FCC-F46BA7845008}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "utility", "maker\utility\utility.vcxproj", "{625A76FF-C524-472C-8FCC-F46BA7845008}"
@@ -21,8 +20,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "exporter", "exporter", "{9998E373-A566-4ABF-B7DF-EA189555EF1B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpp", "maker\cpp\cpp.vcxproj", "{02CACAD4-EB0A-4CD6-9231-0B6FFD8FB92D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{625A76FF-C524-472C-8FCC-F46BA7845008} = {625A76FF-C524-472C-8FCC-F46BA7845008}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "csharp", "maker\csharp\csharp.vcxproj", "{85E96C68-F967-4FE4-B234-86AEF4D1F0C1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{625A76FF-C524-472C-8FCC-F46BA7845008} = {625A76FF-C524-472C-8FCC-F46BA7845008}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{5ABD3AED-6300-4A6A-A6CC-5841170A75FE}"
 EndProject

@@ -3,7 +3,7 @@
 #include <ostream>
 #include <stack>
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace cpp
 {
@@ -97,4 +97,4 @@ protected:
     std::vector<const IStructType*> _jsonDepends;
 };
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

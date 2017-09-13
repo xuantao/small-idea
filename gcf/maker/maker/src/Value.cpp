@@ -1,6 +1,6 @@
 ﻿#include "Value.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 //////////////////////////////////////////////////////////////////////////
 // RawValue
 RawValue::RawValue(bool value)
@@ -102,4 +102,4 @@ IRawValue* RefValue::Original() const
     return static_cast<IRawValue*>(val);
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

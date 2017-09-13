@@ -4,7 +4,7 @@
 #include "../gcf/gcf.h"
 #include "TupleLogger.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace utility
 {
@@ -93,4 +93,4 @@ namespace utility
     }
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

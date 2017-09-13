@@ -7,7 +7,7 @@
 #include "Parser.hpp"
 #pragma warning( pop )
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 Driver::Driver()
     : _errorNum(0)
@@ -60,4 +60,4 @@ void Driver::Error(const location& loc, const std::string& msg)
     ++_errorNum;
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

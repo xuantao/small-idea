@@ -11,7 +11,7 @@
 #include "Scanner.h"
 #include "utility/Utility.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 class Context;
 class Scanner;
@@ -66,4 +66,4 @@ protected:
     Context*    _context;
 };
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

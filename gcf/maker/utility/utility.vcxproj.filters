@@ -5,6 +5,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{67a1e468-8920-47f6-bb05-f7335d2ee4ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -13,5 +16,16 @@
     <ClCompile Include="src\Utility.cpp">
       <Filter>src</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\utility\StringPool.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\TupleLogger.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\Utility.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

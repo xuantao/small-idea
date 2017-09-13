@@ -13,10 +13,10 @@
 #include "Driver.h"
 #include "Context.h"
 
-using namespace cfg;
+using namespace gcf;
 
 // declearation lex function
-#define YY_DECL Parser::symbol_type cfg::Scanner::Lex()
+#define YY_DECL Parser::symbol_type gcf::Scanner::Lex()
 #define YY_USER_ACTION { Location().columns(yyleng); }
 #define yyterminate() Parser::make_END(Location())
 #define _NEW_LINE_ { Location().lines(yyleng); Location().step(); }
@@ -26,7 +26,7 @@ using namespace cfg;
 %option c++
 
 /* zhFlexLexer */
-%option prefix="Cfg"
+%option prefix="Gcf"
 
 /* optimize */
 %option batch
@@ -34,7 +34,7 @@ using namespace cfg;
 %option stack
 %option yylineno
 %option noyywrap
-%option outfile="CfgFlexLexer.cpp"
+%option outfile="GcfFlexLexer.cpp"
 
 %x INCL
 %x COMMENT
@@ -129,7 +129,7 @@ REG_DESC                (^[ \t]*///<)
 
 %%
 
-int CfgFlexLexer::yylex()
+int GcfFlexLexer::yylex()
 {
     std::cerr << "play call lex to scann data" << std::endl;
     return 0;

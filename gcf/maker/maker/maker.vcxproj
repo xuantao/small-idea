@@ -100,8 +100,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\;$(ProjectDir)src\</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;GCF_DLL_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\include\;$(ProjectDir)src\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,10 +146,11 @@
     <None Include="fb\scanner.l" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\CfgFlexLexer.cpp" />
+    <ClCompile Include="src\Args.cpp" />
     <ClCompile Include="src\Context.cpp" />
     <ClCompile Include="src\Driver.cpp" />
     <ClCompile Include="src\FileData.cpp" />
+    <ClCompile Include="src\GcfFlexLexer.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Parser.cpp" />
     <ClCompile Include="src\Scanner.cpp" />
@@ -161,6 +162,8 @@
     <ClCompile Include="src\Variate.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\gcf\gcf.h" />
+    <ClInclude Include="src\Args.h" />
     <ClInclude Include="src\Context.h" />
     <ClInclude Include="src\Driver.h" />
     <ClInclude Include="src\FileData.h" />

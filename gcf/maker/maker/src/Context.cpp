@@ -11,7 +11,7 @@
 
 #define _SCOPE_ _stackScope.back()
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 static std::ostream& operator << (std::ostream& out, RawCategory raw)
 {
@@ -58,13 +58,13 @@ IType* Context::GetType(RawCategory raw) const
     ITypeSet* set = _gloal->Scope()->TypeSet();
     switch (raw)
     {
-    case cfg::RawCategory::Bool:
+    case RawCategory::Bool:
         return set->Get(TYPE_BOOL);
-    case cfg::RawCategory::Int:
+    case RawCategory::Int:
         return set->Get(TYPE_INT);
-    case cfg::RawCategory::Float:
+    case RawCategory::Float:
         return set->Get(TYPE_FLOAT);
-    case cfg::RawCategory::String:
+    case RawCategory::String:
         return set->Get(TYPE_STRING);
     default:
         break;
@@ -676,4 +676,4 @@ void Context::OnCommonEnd()
 
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

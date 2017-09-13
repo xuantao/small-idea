@@ -1,7 +1,7 @@
 ﻿#include "FileData.h"
 #include "utility/Utility.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -119,4 +119,4 @@ void FileData::NsEnd()
 {
     _blocks.push_back(new detail::FileBlock(detail::BlockType::NamespaceEnd));
 }
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

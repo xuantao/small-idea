@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "gcf/gcf.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace value_util
 {
@@ -32,4 +32,4 @@ namespace value_util
     IValue* Create(IVariate* var);
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

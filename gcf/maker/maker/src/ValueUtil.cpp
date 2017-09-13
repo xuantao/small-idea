@@ -4,7 +4,7 @@
 #include <cassert>
 #include <iostream>
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace value_util
 {
@@ -192,4 +192,4 @@ namespace value_util
     }
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

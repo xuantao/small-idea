@@ -2,7 +2,7 @@
 #include "gcf/gcf.h"
 #include <algorithm>
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 /*
  * 类型集合
@@ -137,4 +137,4 @@ public:
 protected:
     std::vector<INamespace*> _ns;
 };
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

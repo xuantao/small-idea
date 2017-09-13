@@ -3,7 +3,7 @@
 #include "Value.h"
 #include "ValueUtil.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 //////////////////////////////////////////////////////////////////////////
 // TypeSetNormal
@@ -317,4 +317,4 @@ bool NsSet::Traverse(const std::function<bool(INamespace *)>& func) const
     return true;
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

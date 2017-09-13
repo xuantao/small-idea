@@ -4,7 +4,7 @@
 #include "CsModule.h"
 #include "utility/Utility.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 CsExporter::CsExporter()
 {
@@ -59,4 +59,4 @@ void CsExporter::OnModule(const IModule* module)
     cs::Module::Export(module, _path, _name);
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

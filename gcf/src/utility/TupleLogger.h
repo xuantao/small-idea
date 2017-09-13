@@ -2,7 +2,7 @@
 #include "../gcf/gcf.h"
 #include <tuple>
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 #define TUPLE_LOGGER_UST_MACRO 1
 
@@ -338,4 +338,4 @@ namespace detail
 #undef _TUPLE_LOGGER_END
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

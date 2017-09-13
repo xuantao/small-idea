@@ -1,65 +1,13 @@
 ﻿#include "Driver.h"
 #include "Context.h"
+#include "Args.h"
 #include "utility/Utility.h"
 #include <iostream>
 #include <fstream>
 #include <array>
 #include <Windows.h>
-CFG_NAMESPACE_USING;
 
-struct Args
-{
-    std::string srcPath;    // source path
-    std::string cfgPath;    // configuration path
-    std::string cppFile;    // cpp code file
-    std::string csFile;     // Csharp code file
-};
-
-static bool ParseArgs(int argc, char** argv, Args& out)
-{
-    int idx = 1;
-    while (idx < argc)
-    {
-        if (std::strcmp(argv[idx], "-src") == 0)
-        {
-            if (idx + 1 >= argc)
-                break;
-
-            out.srcPath = argv[++idx];
-            ++idx;
-        }
-        else if (std::strcmp(argv[idx], "-cfg") == 0)
-        {
-            if (idx + 1 >= argc)
-                break;
-
-            out.cfgPath = argv[++idx];
-            ++idx;
-        }
-        else if (std::strcmp(argv[idx], "-cpp") == 0)
-        {
-            if (idx + 1 >= argc)
-                break;
-
-            out.cppFile = argv[++idx];
-            ++idx;
-        }
-        else if (std::strcmp(argv[idx], "-cs") == 0)
-        {
-            if (idx + 1 >= argc)
-                break;
-
-            out.csFile = argv[++idx];
-            ++idx;
-        }
-        else
-        {
-            ++idx;
-        }
-    }
-
-    return !out.srcPath.empty();
-}
+GCF_NAMESPACE_USING;
 
 static void LogInfo()
 {
@@ -72,26 +20,26 @@ static void LogInfo()
 
 static void DoWork(Args& arg)
 {
-    std::string path = utility::TrimRight(arg.srcPath, "/\\");
-    std::vector<std::string> srcs = utility::CollectDir(path, CFG_FILE_SUFFIX);
+    //std::string path = utility::TrimRight(arg.srcPath, "/\\");
+    //std::vector<std::string> srcs = utility::CollectDir(path, CFG_FILE_SUFFIX);
 
-    if (srcs.empty())
-    {
-        std::cout << "can not find any file in path: " << arg.srcPath << std::endl;
-        return;
-    }
+    //if (srcs.empty())
+    //{
+    //    std::cout << "can not find any file in path: " << arg.srcPath << std::endl;
+    //    return;
+    //}
 
-    Driver driver;
-    Context context(driver);
+    //Driver driver;
+    //Context context(driver);
 
-    bool success = driver.Parse(context, path, srcs);
-    utility::Log(std::cout, "parse completed, error:{0} warning:{1}", driver.ErrorNum(), driver.WarNum());
+    //bool success = driver.Parse(context, path, srcs);
+    //utility::Log(std::cout, "parse completed, error:{0} warning:{1}", driver.ErrorNum(), driver.WarNum());
 
-    if (!success)
-    {
-        std::cout << "parse failed, please fix the errors" << std::endl;
-        return;
-    }
+    //if (!success)
+    //{
+    //    std::cout << "parse failed, please fix the errors" << std::endl;
+    //    return;
+    //}
 
     //if (!arg.cfgPath.empty())
     //{
@@ -116,11 +64,15 @@ static void DoWork(Args& arg)
     //}
 }
 
-typedef cfg::IExporter* (*FnGetExporter)();
-
 int main(int argc, char** argv)
 {
-    //Args arg;
+    Args arg;
+    if (!arg.Load(argc, argv))
+    {
+        Args::Helper();
+        system("pause");
+        return 0;
+    }
     //if (ParseArgs(argc, argv, arg))
     //{
     //    DoWork(arg);
@@ -131,11 +83,11 @@ int main(int argc, char** argv)
     //}
     HMODULE hModule = ::LoadLibraryA("cpp.dll");
     FARPROC proc = ::GetProcAddress(hModule, "GetExporter");
-    FnGetExporter exp = (FnGetExporter)proc;
+    CreateExporter exp = (CreateExporter)proc;
 
     IExporter* exporter = exp();
 
-    exporter->OnBegin(nullptr, "");
+    //exporter->OnBegin(nullptr, "");
 
     system("pause");
     return 1;

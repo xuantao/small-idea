@@ -8,13 +8,13 @@
 %define api.token.constructor
 %define api.value.type variant
 %define parse.assert
-%define api.namespace { cfg }
+%define api.namespace { gcf }
 
 %code requires
 {
 #include <string>
 
-namespace cfg {
+namespace gcf {
     class Driver;
 }
 
@@ -39,7 +39,7 @@ namespace cfg {
 #include "Scanner.h"
 #include "Context.h"
 
-static cfg::Parser::symbol_type yylex(cfg::Driver& driver)
+static gcf::Parser::symbol_type yylex(gcf::Driver& driver)
 {
     return driver.GetScanner()->Lex();
 }
@@ -253,7 +253,7 @@ Variate     : Type IDENTIFIER                   { $$= $2; }
 
 %%
 
-void cfg::Parser::error(const location_type& l, const std::string& m)
+void gcf::Parser::error(const location_type& l, const std::string& m)
 {
     driver.Error(m.c_str());
 }

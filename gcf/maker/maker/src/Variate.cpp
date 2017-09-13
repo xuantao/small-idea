@@ -2,7 +2,7 @@
 #include "Type.h"
 #include "ValueUtil.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 Variate::Variate(const std::string& name, IScope* owner)
     : _name(name)
@@ -61,4 +61,4 @@ bool Variate::BindValue(IValue* value)
     return true;
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

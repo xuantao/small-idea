@@ -6,7 +6,7 @@
 #include <fstream>
 #include <cassert>
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -34,7 +34,7 @@ namespace detail
 static detail::ScanningFile _DUMMY_FILE;
 
 Scanner::Scanner(Driver& driver)
-    : CfgFlexLexer()
+    : GcfFlexLexer()
     , _driver(driver)
 {
 }
@@ -190,4 +190,4 @@ bool Scanner::Pop()
     return true;
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

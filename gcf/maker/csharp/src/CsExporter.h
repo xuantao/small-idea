@@ -5,7 +5,7 @@
 
 #include "gcf/gcf.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace cs
 {
@@ -39,4 +39,4 @@ protected:
     std::string _name;
 };
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

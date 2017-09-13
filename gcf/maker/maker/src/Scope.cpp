@@ -1,6 +1,6 @@
 ﻿#include "Scope.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 IElement* NormalScope::GetElement(const std::string& name) const
 {
@@ -31,4 +31,4 @@ IScope* NormalScope::GetScope(const std::string& name) const
     return nullptr;
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

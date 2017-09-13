@@ -11,7 +11,7 @@
 
 #define YY_BUF_SIZE 16384
 #ifndef yyFlexLexer
-#define yyFlexLexer CfgFlexLexer
+#define yyFlexLexer GcfFlexLexer
 #include "FlexLexer.h"
 #endif
 
@@ -20,7 +20,7 @@
 #pragma warning( pop )
 #include "gcf/gcf.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -31,7 +31,7 @@ class Driver;
 /*
  * token scanner
 */
-class Scanner : protected CfgFlexLexer
+class Scanner : protected GcfFlexLexer
 {
 public:
     Scanner(Driver& driver);
@@ -72,4 +72,4 @@ private:
     std::set<std::string> _parsed;
 };
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

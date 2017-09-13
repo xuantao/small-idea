@@ -3,7 +3,7 @@
 #include "gcf/gcf.h"
 #include <ostream>
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace cpp
 {
@@ -33,4 +33,4 @@ namespace cpp
     };
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

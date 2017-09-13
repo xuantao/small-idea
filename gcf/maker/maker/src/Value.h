@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "gcf/gcf.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 class RawValue : public IRawValue
 {
@@ -54,4 +54,4 @@ protected:
     IVariate* _var;
 };
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

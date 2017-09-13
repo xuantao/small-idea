@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "gcf/gcf.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 namespace cs_util
 {
@@ -13,4 +13,4 @@ namespace cs_util
     std::string DefValue(const IType* type);
 }
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "gcf/gcf.h"
 
-CFG_NAMESPACE_BEGIN
+GCF_NAMESPACE_BEGIN
 
 /*
  * 原生类型
@@ -213,4 +213,4 @@ protected:
     IScope* _scope = nullptr;
 };
 
-CFG_NAMESPACE_END
+GCF_NAMESPACE_END

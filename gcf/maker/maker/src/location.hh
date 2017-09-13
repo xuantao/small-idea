@@ -32,7 +32,7 @@
 
 /**
  ** \file location.hh
- ** Define the  cfg ::location class.
+ ** Define the  gcf ::location class.
  */
 
 #ifndef YY_YY_LOCATION_HH_INCLUDED
@@ -41,7 +41,7 @@
 # include "position.hh"
 
 #line 11 "../fb/parser.y" // location.cc:291
-namespace  cfg  {
+namespace  gcf  {
 #line 46 "location.hh" // location.cc:291
   /// Abstract a location.
   class location
@@ -182,6 +182,6 @@ namespace  cfg  {
   }
 
 #line 11 "../fb/parser.y" // location.cc:291
-} //  cfg 
+} //  gcf 
 #line 187 "location.hh" // location.cc:291
 #endif // !YY_YY_LOCATION_HH_INCLUDED
