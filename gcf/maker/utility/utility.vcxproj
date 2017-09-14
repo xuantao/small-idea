@@ -132,10 +132,12 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\TabVisitor.cpp" />
     <ClCompile Include="src\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\utility\StringPool.h" />
+    <ClInclude Include="..\include\utility\TabVisitor.h" />
     <ClInclude Include="..\include\utility\TupleLogger.h" />
     <ClInclude Include="..\include\utility\Utility.h" />
   </ItemGroup>

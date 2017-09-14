@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClCompile Include="src\Args.cpp" />
     <ClCompile Include="src\Context.cpp" />
+    <ClCompile Include="src\DllModule.cpp" />
     <ClCompile Include="src\Driver.cpp" />
     <ClCompile Include="src\FileData.cpp" />
     <ClCompile Include="src\GcfFlexLexer.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="..\include\gcf\gcf.h" />
     <ClInclude Include="src\Args.h" />
     <ClInclude Include="src\Context.h" />
+    <ClInclude Include="src\DllModule.h" />
     <ClInclude Include="src\Driver.h" />
     <ClInclude Include="src\FileData.h" />
     <ClInclude Include="src\FlexLexer.h" />

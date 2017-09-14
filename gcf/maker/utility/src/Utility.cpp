@@ -67,9 +67,11 @@ namespace utility
         return scope;
     }
 
+    static bool TabTraverse(const IStructType* aType, ITabVisitor* visitor,
+        const std::string& title);
 
-    static bool TabTraverse(const IStructType* aType, ITabVisitor* visitor, const std::string& title, const std::string& path);
-    static bool TabTraverse(const IVariate* var, const IArrayType* aType, ITabVisitor* visitor, const std::string& title, const std::string& path)
+    static bool TabTraverse(const IVariate* var, const IArrayType* aType, ITabVisitor* visitor,
+        const std::string& title)
     {
         IType* original = aType->Original();
         if (aType->Original() != aType->Prev())
@@ -78,29 +80,33 @@ namespace utility
             return true;
         }
 
-        if (original->TypeCat() == TypeCategory::Struct && aType->Length() <= 0)
+        if (original->TypeCat() == TypeCategory::Raw || original->TypeCat() == TypeCategory::Enum)
         {
-            ERROR_NOT_ALLOW;    // 结构体不支持变长数组
-            return true;
-        }
-
-        if (original->TypeCat() == TypeCategory::Raw)
-        {
-            if (!visitor->OnVar(var, static_cast<const IRawType*>(original), title, path, aType->Length()))
-                return false;
-        }
-        else if (original->TypeCat() == TypeCategory::Enum)
-        {
-            if (!visitor->OnVar(var, static_cast<const IEnumType*>(original), title, path, aType->Length()))
-                return false;
+            if (aType->Length() == 0)
+            {
+                visitor->OnVar(var, aType, title);
+            }
+            else
+            {
+                for (int i = 0; i < aType->Length(); ++i)
+                {
+                    std::string arTitle = title + "_" + std::to_string(i + 1);
+                    visitor->OnVar(var, original, title);
+                }
+            }
         }
         else if (original->TypeCat() == TypeCategory::Struct)
         {
+            if (aType->Length() <= 0)
+            {
+                ERROR_NOT_ALLOW;    // 结构体不支持变长数组
+                return true;
+            }
+
             for (int i = 0; i < aType->Length(); ++i)
             {
-                std::string arPath = path + "[" + std::to_string(i) + "]";
                 std::string arTitle = title + "_" + std::to_string(i + 1);
-                if (!TabTraverse(static_cast<const IStructType*>(original), visitor, title, arPath))
+                if (!TabTraverse(static_cast<const IStructType*>(original), visitor, title))
                     return false;
             }
         }
@@ -112,7 +118,8 @@ namespace utility
         return true;
     }
 
-    static bool TabTraverse(const IStructType* sType, ITabVisitor* visitor, const std::string& title, const std::string& path)
+    static bool TabTraverse(const IStructType* sType, ITabVisitor* visitor,
+        const std::string& title)
     {
         const IVarSet* vars = sType->Scope()->VarSet();
         for (int i = 0; i < vars->Size(); ++i)
@@ -122,12 +129,7 @@ namespace utility
                 continue;
 
             const IType* type = var->Type();
-            std::string varPath;
             std::string varTitle;
-            if (path.empty())
-                varPath = var->Name();
-            else
-                varPath = path + '.' + var->Name();
 
             if (title.empty())
                 varTitle = var->Name();
@@ -136,22 +138,22 @@ namespace utility
 
             if (type->TypeCat() == TypeCategory::Raw)
             {
-                if (!visitor->OnVar(var, static_cast<const IRawType*>(type), varTitle, varPath))
+                if (!visitor->OnVar(var, static_cast<const IRawType*>(type), varTitle))
                     return false;
             }
             else if (type->TypeCat() == TypeCategory::Enum)
             {
-                if (!visitor->OnVar(var, static_cast<const IEnumType*>(type), varTitle, varPath))
+                if (!visitor->OnVar(var, static_cast<const IEnumType*>(type), varTitle))
                     return false;
             }
             else if (type->TypeCat() == TypeCategory::Array)
             {
-                if (!TabTraverse(var, static_cast<const IArrayType*>(type), visitor, varTitle, varPath))
+                if (!TabTraverse(var, static_cast<const IArrayType*>(type), visitor, varTitle))
                     return false;
             }
             else if (type->TypeCat() == TypeCategory::Struct)
             {
-                if (!TabTraverse(static_cast<const IStructType*>(type), visitor, varTitle, varPath))
+                if (!TabTraverse(static_cast<const IStructType*>(type), visitor, varTitle))
                     return false;
             }
             else
@@ -561,10 +563,7 @@ namespace utility
 
     void Traverse(const IStructType* sType, ITabVisitor* visitor)
     {
-        if (!visitor->OnStart(sType))
-            return;
-        TabTraverse(sType, visitor, "", "");
-        visitor->OnEnd();
+        TabTraverse(sType, visitor, "");
     }
 
     std::string AbsolutePath(const std::string& path)

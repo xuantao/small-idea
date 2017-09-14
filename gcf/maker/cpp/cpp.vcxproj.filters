@@ -25,15 +25,15 @@
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\CppTab.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CppDeclare.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\CppExporter.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CppJson.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\CppLogger.h">
@@ -49,6 +49,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\CppUtil.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CppEnum.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

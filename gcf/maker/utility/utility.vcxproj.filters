@@ -16,6 +16,9 @@
     <ClCompile Include="src\Utility.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\TabVisitor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\utility\StringPool.h">
@@ -25,6 +28,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\utility\Utility.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\TabVisitor.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

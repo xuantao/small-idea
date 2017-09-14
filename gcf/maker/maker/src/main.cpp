@@ -1,93 +1,78 @@
 ﻿#include "Driver.h"
 #include "Context.h"
 #include "Args.h"
+#include "DllModule.h"
 #include "utility/Utility.h"
 #include <iostream>
 #include <fstream>
 #include <array>
-#include <Windows.h>
 
 GCF_NAMESPACE_USING;
 
-static void LogInfo()
+static bool DoWork(const Args& arg)
 {
-    std::cout << "configuration file parser" << std::endl <<
-        "-src: source file path" << std::endl <<
-        "-cfg: target configuration file path" << std::endl <<
-        "-cpp: cpp file name(do not need file suffix)" << std::endl <<
-        "-cs : csharp file name" << std::endl;
-}
+    std::string path = utility::TrimRight(arg.srcPath, "/\\");
+    std::vector<std::string> srcs = utility::CollectDir(path, arg.suffix);
 
-static void DoWork(Args& arg)
-{
-    //std::string path = utility::TrimRight(arg.srcPath, "/\\");
-    //std::vector<std::string> srcs = utility::CollectDir(path, CFG_FILE_SUFFIX);
+    if (srcs.empty())
+    {
+        std::cout << "can not find any file in path: " << arg.srcPath << std::endl;
+        return false;
+    }
 
-    //if (srcs.empty())
-    //{
-    //    std::cout << "can not find any file in path: " << arg.srcPath << std::endl;
-    //    return;
-    //}
+    Driver driver;
+    Context context(driver);
 
-    //Driver driver;
-    //Context context(driver);
+    bool success = driver.Parse(context, path, srcs);
+    utility::Log(std::cout, "parse completed, error:{0} warning:{1}", driver.ErrorNum(), driver.WarNum());
 
-    //bool success = driver.Parse(context, path, srcs);
-    //utility::Log(std::cout, "parse completed, error:{0} warning:{1}", driver.ErrorNum(), driver.WarNum());
+    if (!success)
+    {
+        std::cout << "parse failed, please fix the errors" << std::endl;
+        return false;
+    }
 
-    //if (!success)
-    //{
-    //    std::cout << "parse failed, please fix the errors" << std::endl;
-    //    return;
-    //}
+    for (const auto& ep : arg.expMods)
+    {
+        DllModule dll;
+        if (!dll.Load(ep.mod.c_str()))
+        {
+            std::cout << "load exporter module failed:" << ep.mod << std::endl;
+            continue;
+        }
 
-    //if (!arg.cfgPath.empty())
-    //{
-    //    TabCreater tab;
-    //    context.Export(&tab, arg.cfgPath);
+        auto proc = dll.GetProc<CreateExporter>(EXP_MODULE_API);
+        if (proc == nullptr)
+        {
+            std::cout << "load module:" << ep.mod << " proc:" << EXP_MODULE_API << " failed" << std::endl;
+            continue;
+        }
 
-    //    JsonCreater json;
-    //    context.Export(&json, arg.cfgPath);
-    //}
+        IExporter* exportor = proc();
+        if (nullptr == exportor)
+        {
+            std::cout << "get module:" << ep.mod << " exporter failed" << std::endl;
+            continue;
+        }
 
-    //if (!arg.cppFile.empty())
-    //{
-    //    CppExporter cpp;
-    //    context.Export(&cpp, arg.cppFile);
-    //}
-
-    //if (!arg.csFile.empty())
-    //{
-    //    //std::cout << "Csharp exporter has not completed" << std::endl;
-    //    CsExporter cs;
-    //    context.Export(&cs, arg.csFile);
-    //}
+        if (exportor->OnBegin(context.Global(), ep.path.c_str(), arg.expName.c_str()))
+        {
+            context.Export(exportor);
+            exportor->OnEnd();
+        }
+        exportor->Release();
+    }
+    return true;
 }
 
 int main(int argc, char** argv)
 {
     Args arg;
-    if (!arg.Load(argc, argv))
-    {
+    bool result = false;
+    if (arg.Load(argc, argv))
+        result = DoWork(arg);
+    else
         Args::Helper();
-        system("pause");
-        return 0;
-    }
-    //if (ParseArgs(argc, argv, arg))
-    //{
-    //    DoWork(arg);
-    //}
-    //else
-    //{
-    //    LogInfo();
-    //}
-    HMODULE hModule = ::LoadLibraryA("cpp.dll");
-    FARPROC proc = ::GetProcAddress(hModule, "GetExporter");
-    CreateExporter exp = (CreateExporter)proc;
-
-    IExporter* exporter = exp();
-
-    //exporter->OnBegin(nullptr, "");
 
     system("pause");
     return 1;

@@ -147,6 +147,7 @@
     <ClCompile Include="src\CsModule.cpp" />
     <ClCompile Include="src\CsSerialize.cpp" />
     <ClCompile Include="src\CsUtility.cpp" />
+    <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CsDeclare.h" />

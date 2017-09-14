@@ -11,6 +11,18 @@ namespace utility
     static const std::string EMPTY_STR;
     static const std::vector<std::string> EMPTY_VEC_STR;
 
+    /*
+     * common way to setup tab file title
+    */
+    class ITabVisitor
+    {
+    public:
+        virtual ~ITabVisitor() {}
+    public:
+        virtual bool OnVar(const IVariate* var, const IType* rType,
+            const std::string& title) = 0;
+    };
+
     uint32_t HashValue(const char* str);
     uint32_t HashValue(const IType* ty);
     uint32_t HashValue(const IModule* module);

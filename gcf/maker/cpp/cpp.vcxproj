@@ -146,13 +146,14 @@
     <ClCompile Include="src\CppExporter.cpp" />
     <ClCompile Include="src\CppModule.cpp" />
     <ClCompile Include="src\CppSerialize.cpp" />
+    <ClCompile Include="src\CppTab.cpp" />
     <ClCompile Include="src\CppUtil.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CppDeclare.h" />
     <ClInclude Include="src\CppExporter.h" />
-    <ClInclude Include="src\CppJson.h" />
+    <ClInclude Include="src\CppEnum.h" />
     <ClInclude Include="src\CppLogger.h" />
     <ClInclude Include="src\CppModule.h" />
     <ClInclude Include="src\CppSerialize.h" />

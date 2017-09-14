@@ -148,9 +148,11 @@
     <ClCompile Include="CfgUtility.cpp" />
     <ClCompile Include="Cfg_Ser.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="OtherCpp.cpp" />
     <ClCompile Include="SerBinary.cpp" />
     <ClCompile Include="SerUtility.cpp" />
     <ClCompile Include="Station.cpp" />
+    <ClCompile Include="TestTmp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Caller.h" />
@@ -163,6 +165,7 @@
     <ClInclude Include="SerBinary.h" />
     <ClInclude Include="SerUtility.h" />
     <ClInclude Include="Station.h" />
+    <ClInclude Include="TestTmp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

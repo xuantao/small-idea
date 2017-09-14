@@ -66,6 +66,9 @@
     <ClCompile Include="src\GcfFlexLexer.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
+    <ClCompile Include="src\DllModule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Context.h">
@@ -117,5 +120,8 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\include\gcf\gcf.h" />
+    <ClInclude Include="src\DllModule.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

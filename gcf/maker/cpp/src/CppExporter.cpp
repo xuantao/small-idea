@@ -3,6 +3,8 @@
 #include "CppDeclare.h"
 #include "CppModule.h"
 #include "CppSerialize.h"
+#include "CppTab.h"
+#include "CppEnum.h"
 #include "utility/Utility.h"
 #include <iostream>
 #include <sstream>
@@ -52,69 +54,69 @@ static int sNeedTempMask(const IStructType* sType)
 
 namespace detail
 {
-    class TabTitles : public ITabVisitor
-    {
-    public:
-        TabTitles(int tab) : _count(0), _tab(tab) {}
-        virtual ~TabTitles() {}
+    //class TabTitles : public ITabVisitor
+    //{
+    //public:
+    //    TabTitles(int tab) : _count(0), _tab(tab) {}
+    //    virtual ~TabTitles() {}
 
-    public:
-        size_t Count() const { return _count; }
-        std::string Str() const { return _title.str(); }
-    public:
-        virtual bool OnStart(const IStructType* sType) { return true; }
-        virtual bool OnEnd() { return true; }
+    //public:
+    //    size_t Count() const { return _count; }
+    //    std::string Str() const { return _title.str(); }
+    //public:
+    //    virtual bool OnStart(const IStructType* sType) { return true; }
+    //    virtual bool OnEnd() { return true; }
 
-        virtual bool OnVar(const IVariate* var, const IRawType* rType,
-            const std::string& title, const std::string& path)
-        {
-            OnTitle(title);
-            return true;
-        }
-        virtual bool OnVar(const IVariate* var, const IEnumType* eType,
-            const std::string& title, const std::string& path)
-        {
-            OnTitle(title);
-            return true;
-        }
-        virtual bool OnVar(const IVariate* var, const IRawType* rType,
-            const std::string& title, const std::string& path, int length)
-        {
-            OnTitle(title);
-            return true;
-        }
-        virtual bool OnVar(const IVariate* var, const IEnumType* eType,
-            const std::string& title, const std::string& path, int length)
-        {
-            OnTitle(title);
-            return true;
-        }
+    //    virtual bool OnVar(const IVariate* var, const IRawType* rType,
+    //        const std::string& title, const std::string& path)
+    //    {
+    //        OnTitle(title);
+    //        return true;
+    //    }
+    //    virtual bool OnVar(const IVariate* var, const IEnumType* eType,
+    //        const std::string& title, const std::string& path)
+    //    {
+    //        OnTitle(title);
+    //        return true;
+    //    }
+    //    virtual bool OnVar(const IVariate* var, const IRawType* rType,
+    //        const std::string& title, const std::string& path, int length)
+    //    {
+    //        OnTitle(title);
+    //        return true;
+    //    }
+    //    virtual bool OnVar(const IVariate* var, const IEnumType* eType,
+    //        const std::string& title, const std::string& path, int length)
+    //    {
+    //        OnTitle(title);
+    //        return true;
+    //    }
 
-    protected:
-        void OnTitle(const std::string& title)
-        {
-            if (_count)
-            {
-                if (_count % 5 == 0)
-                {
-                    _title << ",\n";
-                    utility::Tab(_title, _tab);
-                }
-                else
-                {
-                    _title << ", ";
-                }
-            }
+    //protected:
+    //    void OnTitle(const std::string& title)
+    //    {
+    //        if (_count)
+    //        {
+    //            if (_count % 5 == 0)
+    //            {
+    //                _title << ",\n";
+    //                utility::Tab(_title, _tab);
+    //            }
+    //            else
+    //            {
+    //                _title << ", ";
+    //            }
+    //        }
 
-            ++_count;
-            _title << "\"" << title << "\"";
-        }
+    //        ++_count;
+    //        _title << "\"" << title << "\"";
+    //    }
 
-    protected:
-        std::stringstream _title;
-        int _count;
-        int _tab;
-    };
+    //protected:
+    //    std::stringstream _title;
+    //    int _count;
+    //    int _tab;
+    //};
 }
 
 CppExporter::CppExporter()
@@ -123,8 +125,7 @@ CppExporter::CppExporter()
     , _tab(0)
     , _lastIsVar(false)
 {
-    if (_s_cppExporter == nullptr)
-        _s_cppExporter = this;
+    _expoters.push_back(cpp::Tab::Create());
 }
 
 CppExporter::~CppExporter()
@@ -138,10 +139,21 @@ CppExporter* CppExporter::GetInstance()
     return _s_cppExporter;
 }
 
-void CppExporter::OnBegin(const IScope* global, const std::string& file)
+void CppExporter::Release()
+{
+
+}
+
+
+bool CppExporter::OnBegin(const IScope* global, const char* path, const char* name)
 {
     _global = global;
-    _file = file;
+
+    if (path) _path = path;
+    else _path = "";
+
+    if (name && *name) _name = name;
+    else _name = "unnamed";
 
     //std::ofstream* header = new std::ofstream();
     //header->open(file + ".h");
@@ -158,14 +170,15 @@ void CppExporter::OnBegin(const IScope* global, const std::string& file)
     //    "#include <ostream>" << std::endl << std::endl;
 
 
-    std::string path;
-    std::string name;
-    utility::SplitPath(file, &path, &name);
-
-    _declare = new cpp::Declare(global, path, name);
+    _declare = new cpp::Declare(global, _path, _name);
 
     _serialize = new cpp::Serialize();
-    _serialize->Begin(global, path, name);
+    _serialize->Begin(global, _path, _name);
+
+    for (auto exp : _expoters)
+        exp->OnBegin(global, _path.c_str(), _name.c_str());
+
+    return true;
 }
 
 void CppExporter::OnEnd()
@@ -177,6 +190,11 @@ void CppExporter::OnEnd()
     _serialize->End();
     delete _serialize;
     _serialize = nullptr;
+
+    for (auto exp : _expoters)
+        exp->OnEnd();
+
+
     // api declare
     //HeaderDeclare();
 
@@ -215,6 +233,9 @@ void CppExporter::OnNsBegin(const std::string& name)
     //    _TAB_EX_(0) << "{" << std::endl;
     //++_tab;
     _declare->OnNsBegin(name);
+
+    for (auto exp : _expoters)
+        exp->OnNsBegin(name);
 }
 
 void CppExporter::OnNsEnd()
@@ -224,10 +245,15 @@ void CppExporter::OnNsEnd()
 
     //_OUTS_ << _TAB_EX_(0) << "}" << std::endl;
     _declare->OnNsEnd();
+
+    for (auto exp : _expoters)
+        exp->OnNsEnd();
 }
 
 void CppExporter::OnInclude(const std::string& file)
 {
+    for (auto exp : _expoters)
+        exp->OnInclude(file);
 }
 
 void CppExporter::OnVariate(const IVariate* var)
@@ -245,12 +271,16 @@ void CppExporter::OnVariate(const IVariate* var)
 
     //_lastIsVar = true;
     _declare->OnVariate(var);
+    for (auto exp : _expoters)
+        exp->OnVariate(var);
 }
 
 void CppExporter::OnType(const IType* type)
 {
     _declare->OnType(type);
     _serialize->OnType(type);
+    for (auto exp : _expoters)
+        exp->OnType(type);
     //if (_lastIsVar)
     //{
     //    _OUTS_ << std::endl;
@@ -290,10 +320,9 @@ void CppExporter::OnType(const IType* type)
 
 void CppExporter::OnModule(const IModule* module)
 {
-    std::string path;
-    std::string name;
-    utility::SplitPath(_file, &path, &name);
-    cpp::Module::Export(module, path, name);
+    cpp::Module::Export(module, _path, _name);
+    for (auto exp : _expoters)
+        exp->OnModule(module);
 }
 
 bool CppExporter::Declare(const IEnumType* ty)
@@ -483,11 +512,9 @@ bool CppExporter::HeaderDeclare()
 bool CppExporter::CppImpl()
 {
     int tab = 0;
-    std::string f;
-    utility::SplitPath(_file, nullptr, &f, nullptr);
 
     _OUTS_ << "/*\n * this file is auto generated.\n * please does not edit it manual!\n*/" << std::endl;
-    _OUTS_ << "#include \"" << f << ".h\"" << std::endl <<
+    _OUTS_ << "#include \"" << _name << ".h\"" << std::endl <<
         "#include \"CfgUtility.h\"" << std::endl <<
         "#include \"CfgTabParser.h\"" << std::endl <<
         "#include <json/reader.h>" << std::endl << std::endl <<
@@ -687,55 +714,55 @@ void CppExporter::TabDeclare(const IStructType* sType, int tab)
 
 void CppExporter::TabLoader(const IStructType* sType, int tab)
 {
-    detail::TabTitles titles(tab + 2);
-    utility::Traverse(sType, &titles);
+    //detail::TabTitles titles(tab + 2);
+    //utility::Traverse(sType, &titles);
 
-    if (titles.Count() == 0)
-        return;
+    //if (titles.Count() == 0)
+    //    return;
 
-    std::string tyName = utility::Contact(utility::Absolute(sType), "::");
-    _OUTS_ <<
-        _TAB_EX_(0) << "bool Load(const char* data, size_t size, std::vector<" << tyName << ">& out, const char* chunk /*= nullptr*/)" << std::endl <<
-        _TAB_EX_(0) << "{" << std::endl;
+    //std::string tyName = utility::Contact(utility::Absolute(sType), "::");
+    //_OUTS_ <<
+    //    _TAB_EX_(0) << "bool Load(const char* data, size_t size, std::vector<" << tyName << ">& out, const char* chunk /*= nullptr*/)" << std::endl <<
+    //    _TAB_EX_(0) << "{" << std::endl;
 
-    _OUTS_ <<
-        _TAB_EX_(1) << "static const std::array<const char*, " << titles.Count() << "> titles = {" << std::endl <<
-        _TAB_EX_(2) << titles.Str() << std::endl <<
-        _TAB_EX_(1) << "};" << std::endl << std::endl;
+    //_OUTS_ <<
+    //    _TAB_EX_(1) << "static const std::array<const char*, " << titles.Count() << "> titles = {" << std::endl <<
+    //    _TAB_EX_(2) << titles.Str() << std::endl <<
+    //    _TAB_EX_(1) << "};" << std::endl << std::endl;
 
-    // define temp val
-    int mask = sNeedTempMask(sType);
-    if (mask & _NEED_TEMP_INT)
-        _OUTS_ << _TAB_EX_(1) << "int val = 0;" << std::endl;
-    if (mask & _NEED_TEMP_BUFFER)
-        _OUTS_ << _TAB_EX_(1) << "const char* str = nullptr;" << std::endl;
-    if (mask & _NEED_TEMP_ARRAY)
-        _OUTS_ << _TAB_EX_(1) << "std::vector<std::string> vec;" << std::endl;
-    if (mask)
-        _OUTS_ << std::endl;
+    //// define temp val
+    //int mask = sNeedTempMask(sType);
+    //if (mask & _NEED_TEMP_INT)
+    //    _OUTS_ << _TAB_EX_(1) << "int val = 0;" << std::endl;
+    //if (mask & _NEED_TEMP_BUFFER)
+    //    _OUTS_ << _TAB_EX_(1) << "const char* str = nullptr;" << std::endl;
+    //if (mask & _NEED_TEMP_ARRAY)
+    //    _OUTS_ << _TAB_EX_(1) << "std::vector<std::string> vec;" << std::endl;
+    //if (mask)
+    //    _OUTS_ << std::endl;
 
-    // load default value
-    _OUTS_ <<
-        _TAB_EX_(1) << "TabParser<" << titles.Count() << "> parser(titles);" << std::endl <<
-        _TAB_EX_(1) << "if (!parser.Parse(data, size, chunk))" << std::endl <<
-        _TAB_EX_(2) << "return false;" << std::endl << std::endl <<
-        _TAB_EX_(1) << "// load default data" << std::endl <<
-        _TAB_EX_(1) << tyName << " def;" << std::endl <<
-        _TAB_EX_(1) << "if (!parser.NextLine() || !sLoad(parser.LineIter(), def))" << std::endl <<
-        _TAB_EX_(2) << "return false;" << std::endl << std::endl;
+    //// load default value
+    //_OUTS_ <<
+    //    _TAB_EX_(1) << "TabParser<" << titles.Count() << "> parser(titles);" << std::endl <<
+    //    _TAB_EX_(1) << "if (!parser.Parse(data, size, chunk))" << std::endl <<
+    //    _TAB_EX_(2) << "return false;" << std::endl << std::endl <<
+    //    _TAB_EX_(1) << "// load default data" << std::endl <<
+    //    _TAB_EX_(1) << tyName << " def;" << std::endl <<
+    //    _TAB_EX_(1) << "if (!parser.NextLine() || !sLoad(parser.LineIter(), def))" << std::endl <<
+    //    _TAB_EX_(2) << "return false;" << std::endl << std::endl;
 
-    // while load
-    _OUTS_ <<
-        _TAB_EX_(1) << "while (parser.NextLine())" << std::endl <<
-        _TAB_EX_(1) << "{" << std::endl <<
-        _TAB_EX_(2) << tyName << " data = def;" << std::endl <<
-        _TAB_EX_(2) << "if (sLoad(parser.LineIter(), data))" << std::endl <<
-        _TAB_EX_(3) << "out.push_back(data);" << std::endl <<
-        _TAB_EX_(1) << "}" << std::endl;
+    //// while load
+    //_OUTS_ <<
+    //    _TAB_EX_(1) << "while (parser.NextLine())" << std::endl <<
+    //    _TAB_EX_(1) << "{" << std::endl <<
+    //    _TAB_EX_(2) << tyName << " data = def;" << std::endl <<
+    //    _TAB_EX_(2) << "if (sLoad(parser.LineIter(), data))" << std::endl <<
+    //    _TAB_EX_(3) << "out.push_back(data);" << std::endl <<
+    //    _TAB_EX_(1) << "}" << std::endl;
 
-    _OUTS_ <<
-        _TAB_EX_(1) << "return true;" << std::endl <<
-        _TAB_EX_(0) << "}" << std::endl;
+    //_OUTS_ <<
+    //    _TAB_EX_(1) << "return true;" << std::endl <<
+    //    _TAB_EX_(0) << "}" << std::endl;
 }
 
 void CppExporter::TabLoaderStatic(const IStructType* sType, int tab)

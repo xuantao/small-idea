@@ -1,11 +1,11 @@
-﻿#include "CppExporter.h"
+﻿#include "CsExporter.h"
 
 #define DLL_EXPORT extern "C" __declspec(dllexport)
 //extern "C"
 
 GCF_NAMESPACE_USING;
 
-CppExporter cppExp;
+CsExporter cppExp;
 
 DLL_EXPORT IExporter* CreateExporter()
 {

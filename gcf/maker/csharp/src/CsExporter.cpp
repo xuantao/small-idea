@@ -14,9 +14,18 @@ CsExporter::~CsExporter()
 {
 }
 
-void CsExporter::OnBegin(const IScope* global, const std::string& file)
+void CsExporter::Release()
 {
-    utility::SplitPath(file, &_path, &_name);
+
+}
+
+bool CsExporter::OnBegin(const IScope* global, const char* path, const char* name)
+{
+    if (path) _path = path;
+    else _path = "";
+
+    if (name && *name) _name = name;
+    else _name = "unnamed";
 
     cs::CsDeclare decl;
     decl.Init(global, _path, _name);
@@ -24,6 +33,7 @@ void CsExporter::OnBegin(const IScope* global, const std::string& file)
 
     _ser = new cs::Serialize();
     _ser->Begin(global, _path, _name);
+    return true;
 }
 
 void CsExporter::OnEnd()

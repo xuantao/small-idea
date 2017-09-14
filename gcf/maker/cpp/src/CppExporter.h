@@ -21,7 +21,10 @@ public:
     virtual ~CppExporter();
 
 public:
-    virtual void OnBegin(const IScope* global, const std::string& file);
+    virtual void Release();
+
+public:
+    virtual bool OnBegin(const IScope* global, const char* path, const char* name);
     virtual void OnEnd();
 
     virtual void OnNsBegin(const std::string& name);
@@ -83,6 +86,8 @@ protected:
     bool _lastIsVar;
     const IScope* _global;
     std::string _file;
+    std::string _path;
+    std::string _name;
 
     cpp::Declare* _declare = nullptr;
     cpp::Serialize* _serialize = nullptr;
@@ -95,6 +100,8 @@ protected:
 
     std::vector<const IStructType*> _jsons;
     std::vector<const IStructType*> _jsonDepends;
+
+    std::vector<IExporter*> _expoters;
 };
 
 GCF_NAMESPACE_END

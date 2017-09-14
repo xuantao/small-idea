@@ -19,7 +19,10 @@ public:
     virtual ~CsExporter();
 
 public:
-    virtual void OnBegin(const IScope* global, const std::string& file);
+    virtual void Release();
+
+public:
+    virtual bool OnBegin(const IScope* global, const char* path, const char* name);
     virtual void OnEnd();
 
     virtual void OnNsBegin(const std::string& name);

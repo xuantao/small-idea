@@ -30,7 +30,7 @@
 //#endif
 
 #if !defined(GCF_API)
-    #define GCF_API
+#define GCF_API
 #endif
 
 // raw type name
@@ -109,7 +109,7 @@ public:
 };
 
 /*
-* 类型
+ * 类型
 */
 GCF_API class IType : public IElement
 {
@@ -124,7 +124,7 @@ public:
 };
 
 /*
-* 原生类型
+ * 原生类型
 */
 GCF_API class IRawType : public IType
 {
@@ -135,7 +135,7 @@ public:
 };
 
 /*
-* 自定义结构体类型
+ * 结构体类型
 */
 GCF_API class IStructType : public IType
 {
@@ -161,7 +161,7 @@ public:
 };
 
 /*
-* function
+ * function
 */
 GCF_API class IFunction : public IType
 {
@@ -175,7 +175,7 @@ public:
 };
 
 /*
-* 数组类型
+ * 数组类型
 */
 GCF_API class IArrayType : public IType
 {
@@ -188,7 +188,7 @@ public:
 };
 
 /*
-* namesapce
+ * namesapce
 */
 GCF_API class INamespace : public IElement
 {
@@ -201,7 +201,7 @@ public:
 };
 
 /*
-* i need a name~
+ * i need a name~
 */
 GCF_API class IModule : public IElement
 {
@@ -215,7 +215,7 @@ public:
 };
 
 /*
-* 变量
+ * 变量
 */
 GCF_API class IVariate : public IElement
 {
@@ -232,7 +232,7 @@ public:
 };
 
 /*
-* 范围/域
+ * 范围/域
 */
 GCF_API class IScope
 {
@@ -339,38 +339,6 @@ public:
     virtual IRawValue* Original() const = 0;
 };
 
-GCF_API class ITabVisitor
-{
-public:
-    virtual ~ITabVisitor() {}
-public:
-    virtual bool OnStart(const IStructType* sType) = 0;
-    virtual bool OnEnd() = 0;
-    virtual bool OnVar(const IVariate* var, const IRawType* rType,
-        const std::string& title, const std::string& path) = 0;
-    virtual bool OnVar(const IVariate* var, const IEnumType* eType,
-        const std::string& title, const std::string& path) = 0;
-    virtual bool OnVar(const IVariate* var, const IRawType* rType,
-        const std::string& title, const std::string& path, int length) = 0;
-    virtual bool OnVar(const IVariate* var, const IEnumType* eType,
-        const std::string& title, const std::string& path, int length) = 0;
-};
-
-GCF_API class IJsonVisitor
-{
-public:
-    virtual ~IJsonVisitor() {}
-public:
-    virtual bool OnStart(const IStructType* sType) = 0;
-    virtual bool OnEnd() = 0;
-    //virtual bool OnVar(const IVariate* var, const IRawType* rType) = 0;
-    //virtual bool OnVar(const IVariate* var, const IEnumType* eType) = 0;
-    //virtual bool OnVar(const IVariate* var, const IStructType* eType) = 0;
-    //virtual bool OnVar(const IVariate* var, const IRawType* rType, int length) = 0;
-    //virtual bool OnVar(const IVariate* var, const IEnumType* eType, int length) = 0;
-    //virtual bool OnVar(const IVariate* var, const IStructType* eType, int length) = 0;
-};
-
 /*
  * 导出器接口
 */
@@ -380,7 +348,10 @@ public:
     virtual ~IExporter() {}
 
 public:
-    virtual void OnBegin(const IScope* global, const std::string& file) = 0;
+    virtual void Release() = 0;
+
+public:
+    virtual bool OnBegin(const IScope* global, const char* path, const char* name) = 0;
     virtual void OnEnd() = 0;
 
     virtual void OnNsBegin(const std::string& name) = 0;
@@ -393,30 +364,6 @@ public:
     virtual void OnModule(const IModule* module) = 0;
 };
 
-/*
- * tab creator
-*/
-GCF_API class ITabCreater : public ITabVisitor
-{
-public:
-    virtual ~ITabCreater() {}
-public:
-    virtual void SetPath(const std::string& path) = 0;
-};
-
-/*
- * json creator
-*/
-GCF_API class IJsonCreater : public IJsonVisitor
-{
-public:
-    virtual ~IJsonCreater() {}
-public:
-    virtual void SetPath(const std::string& path) = 0;
-};
-
 typedef IExporter* (*CreateExporter)();
 
 GCF_NAMESPACE_END
-
-

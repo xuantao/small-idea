@@ -34,6 +34,12 @@
     <ClCompile Include="SerUtility.cpp">
       <Filter>src\cfg</Filter>
     </ClCompile>
+    <ClCompile Include="TestTmp.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="OtherCpp.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cfg.h">
@@ -64,6 +70,9 @@
       <Filter>src\cfg</Filter>
     </ClInclude>
     <ClInclude Include="ICrossCall.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="TestTmp.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
