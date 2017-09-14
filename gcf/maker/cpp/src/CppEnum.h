@@ -1,34 +1,50 @@
 ﻿#pragma once
 #include "gcf/gcf.h"
-#include <ostream>
+#include <fstream>
 
 GCF_NAMESPACE_BEGIN
 
 namespace cpp
 {
-    class Enum
+    class Enum : public IExporter
     {
-    public:
+    protected:
         Enum();
         ~Enum();
 
+        Enum(const Enum&) = delete;
+        Enum& operator = (const Enum&) = delete;
     public:
-        bool Begin(const IScope* global, std::string& path, std::string& name);
-        bool OnType(const IType* type);
-        void End();
+        static Enum* Create();
+
+    public:
+        virtual void Release();
+    public:
+        virtual bool OnBegin(const IScope* global, const char* path, const char* name);
+        virtual void OnEnd();
+        virtual void OnType(const IType* type);
+
+    public:
+        virtual void OnNsBegin(const std::string& name) {}
+        virtual void OnNsEnd() {}
+        virtual void OnInclude(const std::string& file) {}
+        virtual void OnVariate(const IVariate* var) {}
+        virtual void OnModule(const IModule* module) {}
 
     protected:
-        std::ostream& DeclRead(std::ostream& stream, const IType* type, bool isDecl);
-        std::ostream& DeclWrite(std::ostream& stream, const IType* type, bool isDecl);
-        void ImplRead(const IType* type);
-        void ImplWrite(const IType* type);
+        void Decl(const IEnumType* type);
+        void Impl(const IEnumType* type);
+
+        void CreateFile();
         void Clear();
 
     protected:
-        bool _isFirst = true;
         int _tab = 0;
-        std::ostream* _header;
-        std::ostream* _cpp;
+        bool _hasCreated = false;
+        std::string _name;
+        std::string _file;
+        std::ofstream* _header = nullptr;
+        std::ofstream* _cpp = nullptr;
     };
 }
 

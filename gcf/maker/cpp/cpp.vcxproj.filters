@@ -28,6 +28,9 @@
     <ClCompile Include="src\CppTab.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\CppEnum.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CppDeclare.h">

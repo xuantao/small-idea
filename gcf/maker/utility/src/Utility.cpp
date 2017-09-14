@@ -91,7 +91,7 @@ namespace utility
                 for (int i = 0; i < aType->Length(); ++i)
                 {
                     std::string arTitle = title + "_" + std::to_string(i + 1);
-                    visitor->OnVar(var, original, title);
+                    visitor->OnVar(var, original, arTitle);
                 }
             }
         }
@@ -136,15 +136,9 @@ namespace utility
             else
                 varTitle = title + '.' + var->Name();
 
-            if (type->TypeCat() == TypeCategory::Raw)
+            if (type->TypeCat() == TypeCategory::Raw || type->TypeCat() == TypeCategory::Enum)
             {
-                if (!visitor->OnVar(var, static_cast<const IRawType*>(type), varTitle))
-                    return false;
-            }
-            else if (type->TypeCat() == TypeCategory::Enum)
-            {
-                if (!visitor->OnVar(var, static_cast<const IEnumType*>(type), varTitle))
-                    return false;
+                visitor->OnVar(var, static_cast<const IRawType*>(type), varTitle);
             }
             else if (type->TypeCat() == TypeCategory::Array)
             {

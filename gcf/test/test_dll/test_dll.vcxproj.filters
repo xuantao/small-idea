@@ -52,6 +52,12 @@
     <ClCompile Include="gen\TestS2C.cpp">
       <Filter>gen</Filter>
     </ClCompile>
+    <ClCompile Include="gen\Cfg_Enum.cpp">
+      <Filter>gen</Filter>
+    </ClCompile>
+    <ClCompile Include="gen\Cfg_Tab.cpp">
+      <Filter>gen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gcf\cross_call\Binary.h">
@@ -91,6 +97,12 @@
       <Filter>gen</Filter>
     </ClInclude>
     <ClInclude Include="gen\TestS2C.h">
+      <Filter>gen</Filter>
+    </ClInclude>
+    <ClInclude Include="gen\Cfg_Enum.h">
+      <Filter>gen</Filter>
+    </ClInclude>
+    <ClInclude Include="gen\Cfg_Tab.h">
       <Filter>gen</Filter>
     </ClInclude>
   </ItemGroup>

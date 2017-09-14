@@ -3,7 +3,6 @@
  * please does not edit it manual!
 */
 #include "Cfg_Ser.h"
-#include "SerUtility.h"
 
 namespace serialize
 {

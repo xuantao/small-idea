@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Cfg.h"
-#include "ISerialize.h"
+#include "gcf/gcf.h"
 
 namespace serialize
 {

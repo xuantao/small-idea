@@ -126,6 +126,7 @@ CppExporter::CppExporter()
     , _lastIsVar(false)
 {
     _expoters.push_back(cpp::Tab::Create());
+    _expoters.push_back(cpp::Enum::Create());
 }
 
 CppExporter::~CppExporter()

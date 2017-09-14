@@ -69,8 +69,11 @@ namespace cpp
         if (sTy->CfgCat() != CfgCategory::Tab)
             return;
 
-        if (_header == nullptr)
+        if (!_hasCreated)
+        {
+            _hasCreated = true;
             CreateFile();
+        }
 
         Decl(sTy);
         Impl(sTy);
@@ -84,12 +87,12 @@ namespace cpp
         std::string tyName = utility::Contact(utility::Absolute(type), "::");
         *_header << std::endl <<
             _TAB(0) << "template <>" << std::endl <<
-            _TAB(0) << "struct TabInfo<" << tyName << ">" << std::endl <<
+            _TAB(0) << "struct Info<" << tyName << ">" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(1) << "static const char* const title[];" << std::endl <<
             _TAB(1) << "static const char* const types[];" << std::endl <<
             _TAB(1) << "static const char* const descs[];" << std::endl <<
-            _TAB(0) << "}" << std::endl;
+            _TAB(0) << "};" << std::endl;
     }
 
     void Tab::Impl(const IStructType* type)
@@ -102,19 +105,19 @@ namespace cpp
         utility::Traverse(type, &visitor);
 
         *_cpp << std::endl <<
-            _TAB(0) << "const char* const TabInfo<" << tyName << ">::title[] = {" << std::endl;
+            _TAB(0) << "const char* const Info<" << tyName << ">::title[] = {" << std::endl;
         sWriteData(*_cpp, visitor.Title(), _tab + 1);
         *_cpp << ", nullptr" << std::endl <<
             _TAB(0) << "};" << std::endl;
 
         *_cpp << std::endl <<
-            _TAB(0) << "const char* const TabInfo<" << tyName << ">::types[] = {" << std::endl;
+            _TAB(0) << "const char* const Info<" << tyName << ">::types[] = {" << std::endl;
         sWriteData(*_cpp, visitor.Type(), _tab + 1);
         *_cpp << ", nullptr" << std::endl <<
             _TAB(0) << "};" << std::endl;
 
         *_cpp << std::endl <<
-            _TAB(0) << "const char* const TabInfo<" << tyName << ">::descs[] = {" << std::endl;
+            _TAB(0) << "const char* const Info<" << tyName << ">::descs[] = {" << std::endl;
         sWriteData(*_cpp, visitor.Describe(), _tab + 1);
         *_cpp << ", nullptr" << std::endl <<
             _TAB(0) << "};" << std::endl;
@@ -147,8 +150,8 @@ namespace cpp
                 _TAB(0) << "#include \"" << _name << ".h\"" << std::endl << std::endl <<
                 _TAB(0) << "namespace tab" << std::endl <<
                 _TAB(0) << "{" << std::endl <<
-                _TAB(1) << "// declare TabInfo template type" << std::endl <<
-                _TAB(1) << "template <class Ty> TabInfo { };" << std::endl;
+                _TAB(1) << "// declare Tab Info template type" << std::endl <<
+                _TAB(1) << "template <class Ty> struct Info { };" << std::endl;
         }
 
         if (_cpp)
@@ -160,7 +163,7 @@ namespace cpp
                 _TAB(0) << "*/" << std::endl <<
                 _TAB(0) << "#include \"" << _name << "_Tab.h\"" << std::endl << std::endl <<
                 _TAB(0) << "namespace tab" << std::endl <<
-                _TAB(0) << "{" << std::endl;
+                _TAB(0) << "{";// << std::endl;
         }
 
         ++_tab;

@@ -143,6 +143,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\CppDeclare.cpp" />
+    <ClCompile Include="src\CppEnum.cpp" />
     <ClCompile Include="src\CppExporter.cpp" />
     <ClCompile Include="src\CppModule.cpp" />
     <ClCompile Include="src\CppSerialize.cpp" />

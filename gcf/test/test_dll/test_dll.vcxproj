@@ -147,7 +147,9 @@
     <ClCompile Include="gen\Caller.cpp" />
     <ClCompile Include="gen\Cfg.cpp" />
     <ClCompile Include="gen\CfgUtility.cpp" />
+    <ClCompile Include="gen\Cfg_Enum.cpp" />
     <ClCompile Include="gen\Cfg_Ser.cpp" />
+    <ClCompile Include="gen\Cfg_Tab.cpp" />
     <ClCompile Include="gen\TestC2S.cpp" />
     <ClCompile Include="gen\TestS2C.cpp" />
     <ClCompile Include="main.cpp" />
@@ -163,7 +165,9 @@
     <ClInclude Include="gen\Caller.h" />
     <ClInclude Include="gen\Cfg.h" />
     <ClInclude Include="gen\CfgUtility.h" />
+    <ClInclude Include="gen\Cfg_Enum.h" />
     <ClInclude Include="gen\Cfg_Ser.h" />
+    <ClInclude Include="gen\Cfg_Tab.h" />
     <ClInclude Include="gen\TestC2S.h" />
     <ClInclude Include="gen\TestS2C.h" />
   </ItemGroup>

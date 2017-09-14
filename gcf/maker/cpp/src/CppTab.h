@@ -39,8 +39,8 @@ namespace cpp
         void Clear();
 
     protected:
-        bool _isFirst = true;
         int _tab = 0;
+        bool _hasCreated = false;
         std::string _name;
         std::string _file;
         std::ofstream* _header = nullptr;
