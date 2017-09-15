@@ -5,9 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="src\cfg">
-      <UniqueIdentifier>{cbc388f9-f01d-45a0-8ec4-454e46e3c215}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\gen">
       <UniqueIdentifier>{25f490cd-26f0-4cde-bb4f-aa4ada2fe91c}</UniqueIdentifier>
     </Filter>
@@ -15,21 +12,6 @@
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="Cfg.cpp">
-      <Filter>src\cfg</Filter>
-    </ClCompile>
-    <ClCompile Include="Cfg_Ser.cpp">
-      <Filter>src\cfg</Filter>
-    </ClCompile>
-    <ClCompile Include="Station.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="SerBinary.cpp">
-      <Filter>src\cfg</Filter>
-    </ClCompile>
-    <ClCompile Include="SerUtility.cpp">
-      <Filter>src\cfg</Filter>
     </ClCompile>
     <ClCompile Include="TestTmp.cpp">
       <Filter>src</Filter>
@@ -43,26 +25,14 @@
     <ClCompile Include="Cfg_Tab.cpp">
       <Filter>src\gen</Filter>
     </ClCompile>
+    <ClCompile Include="Cfg_Ser.cpp">
+      <Filter>src\gen</Filter>
+    </ClCompile>
+    <ClCompile Include="Cfg.cpp">
+      <Filter>src\gen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Cfg.h">
-      <Filter>src\cfg</Filter>
-    </ClInclude>
-    <ClInclude Include="Cfg_Ser.h">
-      <Filter>src\cfg</Filter>
-    </ClInclude>
-    <ClInclude Include="Station.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="ISerialize.h">
-      <Filter>src\cfg</Filter>
-    </ClInclude>
-    <ClInclude Include="SerBinary.h">
-      <Filter>src\cfg</Filter>
-    </ClInclude>
-    <ClInclude Include="SerUtility.h">
-      <Filter>src\cfg</Filter>
-    </ClInclude>
     <ClInclude Include="TestTmp.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -70,6 +40,12 @@
       <Filter>src\gen</Filter>
     </ClInclude>
     <ClInclude Include="Cfg_Tab.h">
+      <Filter>src\gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Cfg_Ser.h">
+      <Filter>src\gen</Filter>
+    </ClInclude>
+    <ClInclude Include="Cfg.h">
       <Filter>src\gen</Filter>
     </ClInclude>
   </ItemGroup>

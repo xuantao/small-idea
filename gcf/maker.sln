@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.6
+VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "depend", "depend", "{1727D1BA-20E0-45DA-9DB8-5132AAF5F7E0}"
 EndProject
@@ -36,6 +36,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_dll", "test\test_dll\test_dll.vcxproj", "{27EA9D48-67BA-46A4-9213-2008C0A4F41E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test_cs", "test\test_cs\test_cs.csproj", "{12E13BF8-680A-4CAC-A4E4-9DD193B6F8AB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gcf", "test\gcf\gcf.vcxproj", "{64C81055-026A-4E8D-B3AC-A2298438CE37}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -129,6 +131,16 @@ Global
 		{12E13BF8-680A-4CAC-A4E4-9DD193B6F8AB}.Release|x64.Build.0 = Release|Any CPU
 		{12E13BF8-680A-4CAC-A4E4-9DD193B6F8AB}.Release|x86.ActiveCfg = Release|Any CPU
 		{12E13BF8-680A-4CAC-A4E4-9DD193B6F8AB}.Release|x86.Build.0 = Release|Any CPU
+		{64C81055-026A-4E8D-B3AC-A2298438CE37}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{64C81055-026A-4E8D-B3AC-A2298438CE37}.Debug|x64.ActiveCfg = Debug|x64
+		{64C81055-026A-4E8D-B3AC-A2298438CE37}.Debug|x64.Build.0 = Debug|x64
+		{64C81055-026A-4E8D-B3AC-A2298438CE37}.Debug|x86.ActiveCfg = Debug|Win32
+		{64C81055-026A-4E8D-B3AC-A2298438CE37}.Debug|x86.Build.0 = Debug|Win32
+		{64C81055-026A-4E8D-B3AC-A2298438CE37}.Release|Any CPU.ActiveCfg = Release|Win32
+		{64C81055-026A-4E8D-B3AC-A2298438CE37}.Release|x64.ActiveCfg = Release|x64
+		{64C81055-026A-4E8D-B3AC-A2298438CE37}.Release|x64.Build.0 = Release|x64
+		{64C81055-026A-4E8D-B3AC-A2298438CE37}.Release|x86.ActiveCfg = Release|Win32
+		{64C81055-026A-4E8D-B3AC-A2298438CE37}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -143,5 +155,6 @@ Global
 		{575D069B-1B1F-4B33-850E-4AA1DA14EAEC} = {5ABD3AED-6300-4A6A-A6CC-5841170A75FE}
 		{27EA9D48-67BA-46A4-9213-2008C0A4F41E} = {5ABD3AED-6300-4A6A-A6CC-5841170A75FE}
 		{12E13BF8-680A-4CAC-A4E4-9DD193B6F8AB} = {5ABD3AED-6300-4A6A-A6CC-5841170A75FE}
+		{64C81055-026A-4E8D-B3AC-A2298438CE37} = {5ABD3AED-6300-4A6A-A6CC-5841170A75FE}
 	EndGlobalSection
 EndGlobal

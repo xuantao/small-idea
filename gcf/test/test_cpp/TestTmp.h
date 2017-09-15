@@ -30,14 +30,14 @@ struct TabInfo<TmpTy>
 namespace detail
 {
     template <class Ty>
-    struct Data { };
+    struct Data {};
 
     template <>
     struct Data<TestEnum>
     {
         static const int size;
         static const char* const names[];
-        static const const TestEnum vals[];
+        static const TestEnum vals[];
     };
 }
 

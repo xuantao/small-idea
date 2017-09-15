@@ -89,10 +89,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;DLL_TEST_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\gcf\src\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gcf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -140,10 +142,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="gcf\cross_call\Binary.cpp" />
-    <ClCompile Include="gcf\cross_call\Station.cpp" />
-    <ClCompile Include="gcf\cross_call\SwapBuffer.cpp" />
-    <ClCompile Include="gcf\serialize\SerUtility.cpp" />
     <ClCompile Include="gen\Caller.cpp" />
     <ClCompile Include="gen\Cfg.cpp" />
     <ClCompile Include="gen\CfgUtility.cpp" />
@@ -155,13 +153,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="gcf\cross_call\Binary.h" />
-    <ClInclude Include="gcf\cross_call\ICrossCall.h" />
-    <ClInclude Include="gcf\cross_call\Station.h" />
-    <ClInclude Include="gcf\cross_call\SwapBuffer.h" />
-    <ClInclude Include="gcf\gcf.h" />
-    <ClInclude Include="gcf\serialize\ISerialize.h" />
-    <ClInclude Include="gcf\serialize\SerUtility.h" />
     <ClInclude Include="gen\Caller.h" />
     <ClInclude Include="gen\Cfg.h" />
     <ClInclude Include="gen\CfgUtility.h" />
