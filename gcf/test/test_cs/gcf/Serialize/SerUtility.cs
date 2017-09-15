@@ -57,17 +57,11 @@ namespace Serialize
             where T : new()
             where L : IArrayLength, new()
         {
-            int size = 0;
-            if (!reader.ArrayBegin(ref size, name))
-                return false;
-
-            for (int i = 0; i < Math.Min(size, arr.Length); ++i)
-            {
+            for (int i = 0; i < arr.Length; ++i)
                 if (!Read(reader, ref ((T[])arr)[i]))
                     return false;
-            }
 
-            return reader.ArrayEnd();
+            return true;
         }
 
         public static bool Write(IWriter writer, bool val, string name = null)
@@ -118,16 +112,11 @@ namespace Serialize
             where T : new()
             where L : IArrayLength, new()
         {
-            if (!writer.ArrayBegin(arr.Length, name))
-                return false;
-
             for (int i = 0; i < arr.Length; ++i)
-            {
                 if (!Write(writer, arr[i]))
                     return false;
-            }
 
-            return writer.ArrayEnd();
+            return true;
         }
     }
 }

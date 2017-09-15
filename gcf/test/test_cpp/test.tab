@@ -1,6 +1,7 @@
-ID	Name	Type	Desc	Check
-int	string	int	string	bool
-鍞竴ID	鍚嶅瓧	绫诲瀷	鎻忚堪	TRUE
-0	XXX	0	鍝堝搱	TRUE
-1	瀹ｆ稕	1	甯呭摜	TRUE
-2	閭规収	2	缇庡コ	TRUE
+ID	StageID	Name
+int	int	string
+索引	关卡ID	名称
+0	0	empty
+1	2	xuantao
+2	3	zouhui
+3	4	小言

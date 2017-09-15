@@ -5,14 +5,14 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="gcf\cross">
-      <UniqueIdentifier>{33c5824f-ca19-4752-bd5d-aabbbf27fd63}</UniqueIdentifier>
-    </Filter>
     <Filter Include="gcf\cross_call">
       <UniqueIdentifier>{1f2a990a-f7d9-43cb-b572-d5c3dd32bc2b}</UniqueIdentifier>
     </Filter>
     <Filter Include="gcf\serialize">
       <UniqueIdentifier>{b470d53c-3c1a-4688-b622-8978a073c70b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gcf\tab">
+      <UniqueIdentifier>{d2ddb9b0-23f1-4f3a-898b-10efcbd4c970}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -37,6 +37,21 @@
     <ClInclude Include="src\gcf\cross_call\SwapBuffer.h">
       <Filter>gcf\cross_call</Filter>
     </ClInclude>
+    <ClInclude Include="src\gcf\tab\Text.h">
+      <Filter>gcf\tab</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gcf\tab\TabDef.h">
+      <Filter>gcf\tab</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gcf\tab\Parser.h">
+      <Filter>gcf\tab</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gcf\tab\IndexMap.h">
+      <Filter>gcf\tab</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gcf\tab\Data.h">
+      <Filter>gcf\tab</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gcf\serialize\SerUtility.cpp">
@@ -50,6 +65,15 @@
     </ClCompile>
     <ClCompile Include="src\gcf\cross_call\SwapBuffer.cpp">
       <Filter>gcf\cross_call</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gcf\tab\Text.cpp">
+      <Filter>gcf\tab</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gcf\tab\Parser.cpp">
+      <Filter>gcf\tab</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gcf\tab\IndexMap.cpp">
+      <Filter>gcf\tab</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

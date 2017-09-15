@@ -37,17 +37,11 @@ namespace serialize
         template <class Ty, size_t N>
         bool Read(IReader* reader, std::array<Ty, N>& arr, const char* name = nullptr)
         {
-            int size = 0;
-            if (reader->ArrayBegin(size, name))
-                return false;
-
-            assert((size_t)size == N);
-
             for (size_t i = 0; i < N; ++i)
                 if (!Read(reader, arr[i]))
                     return false;
 
-            return reader->ArrayEnd();
+            return true;
         }
 
         //template <class Ky, class Ty>
@@ -93,14 +87,11 @@ namespace serialize
         template <class Ty, size_t N>
         bool Write(IWriter* writer, const std::array<Ty, N>& arr, const char* name = nullptr)
         {
-            if (!writer->ArrayBegin((int)N, name))
-                return false;
-
             for (const auto& val : arr)
                 if (!Write(writer, val))
                     return false;
 
-            return writer->ArrayEnd();
+            return true;
         }
 
         //template <class Ky, class Ty>
