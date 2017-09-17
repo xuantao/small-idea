@@ -3,6 +3,7 @@
 #include "gcf/tab/Data.h"
 #include "Cfg_Tab.h"
 #include "Cfg_Ser.h"
+#include "Cfg_Enum.h"
 #include <fstream>
 #include <stdio.h>
 
@@ -114,5 +115,13 @@ int main(int argc, char* argv[])
         data.Load(fd.Buffer());
     }
 
+    const char* name1 = Enum::Name(Detail::Enum2::d);
+    const char* name2 = Enum::Name<Detail::Enum2>(2);
+    Wtf wtf1 = Enum::Value<Wtf>("Float");
+    Wtf wtf2 = Enum::Value<Wtf>(4);
+    int idx1 = Enum::Index(GlobalType::Int);
+    int idx2 = Enum::Index<GlobalType>("Int");
+
+    system("pause");
     return 1;
 }

@@ -841,19 +841,19 @@ namespace  gcf  {
 
   case 49:
 #line 184 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.OnModuleBegin(yystack_[1].value.as< std::string > ()); }
+    { CONTEXT.OnCrossBegin(yystack_[1].value.as< std::string > ()); }
 #line 846 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 50:
 #line 187 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.OnModuleEnd(); }
+    { CONTEXT.OnCrossEnd(); }
 #line 852 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 51:
 #line 188 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.OnModuleEnd(); }
+    { CONTEXT.OnCrossEnd(); }
 #line 858 "Parser.cpp" // lalr1.cc:846
     break;
 
@@ -1490,16 +1490,16 @@ namespace  gcf  {
   "\"end of file\"", "error", "$undefined", "\"(\"", "\")\"", "\"*\"",
   "\"+\"", "\",\"", "\"-\"", "\".\"", "\"/\"", "\":\"", "\";\"", "\"=\"",
   "\"[\"", "\"]\"", "\"{\"", "\"}\"", "TAB", "JSON", "ENUM", "STRUCT",
-  "CONST", "BOOL", "INT", "FLOAT", "STRING", "NAMESPACE", "VOID", "MODULE",
+  "CONST", "BOOL", "INT", "FLOAT", "STRING", "NAMESPACE", "VOID", "CROSS",
   "\"identifier\"", "\"true\"", "\"false\"", "\"0\"", "\"0.0f\"",
   "\"empty\"", "\"desc\"", "$accept", "Start", "Program", "ConstValue",
   "NsDecl", "NsBegin", "NsEnd", "NsDetail", "EnumDecl", "EnumBegin",
   "EnumEnd", "EnumMember", "_EnumMem", "_EnumVar", "StructDecl",
   "StyBegin", "_StyBegin", "StyEnd", "StyInherit", "StyDetail",
-  "StyMember", "StyInner", "ModuleDecl", "ModuleBegin", "ModuleEnd",
-  "ModuleFunc", "FuncBegin", "FuncEnd", "FuncParam", "FuncParam1",
-  "VarConst", "VarDesc", "RefName", "Type", "Value", "Array22",
-  "Array222_", "Variate", YY_NULL
+  "StyMember", "StyInner", "CrossDecl", "CrossBegin", "CrossEnd",
+  "CrossFunc", "FuncBegin", "FuncEnd", "FuncParam", "_FuncParam",
+  "VarConst", "VarDesc", "RefName", "Type", "Value", "Array", "_Array",
+  "Variate", YY_NULL
   };
 
 #if YYDEBUG

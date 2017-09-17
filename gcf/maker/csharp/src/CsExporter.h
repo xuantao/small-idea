@@ -32,7 +32,7 @@ public:
 
     virtual void OnVariate(const IVariate* var);
     virtual void OnType(const IType* type);
-    virtual void OnModule(const IModule* module);
+    virtual void OnCrossCall(const ICrossCall* module);
 
 protected:
     std::vector<const IVariate*> _vars;

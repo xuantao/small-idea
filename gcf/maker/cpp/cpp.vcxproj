@@ -142,21 +142,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\CppCrossCall.cpp" />
     <ClCompile Include="src\CppDeclare.cpp" />
     <ClCompile Include="src\CppEnum.cpp" />
     <ClCompile Include="src\CppExporter.cpp" />
-    <ClCompile Include="src\CppModule.cpp" />
     <ClCompile Include="src\CppSerialize.cpp" />
     <ClCompile Include="src\CppTab.cpp" />
     <ClCompile Include="src\CppUtil.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\CppCrossCall.h" />
     <ClInclude Include="src\CppDeclare.h" />
     <ClInclude Include="src\CppExporter.h" />
     <ClInclude Include="src\CppEnum.h" />
     <ClInclude Include="src\CppLogger.h" />
-    <ClInclude Include="src\CppModule.h" />
     <ClInclude Include="src\CppSerialize.h" />
     <ClInclude Include="src\CppTab.h" />
     <ClInclude Include="src\CppUtil.h" />

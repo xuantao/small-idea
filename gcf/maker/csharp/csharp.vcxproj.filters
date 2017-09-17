@@ -13,9 +13,6 @@
     <ClCompile Include="src\CsExporter.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\CsModule.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\CsSerialize.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -23,6 +20,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CsCrossCall.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -33,13 +33,13 @@
     <ClInclude Include="src\CsExporter.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\CsModule.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\CsSerialize.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\CsUtility.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CsCrossCall.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

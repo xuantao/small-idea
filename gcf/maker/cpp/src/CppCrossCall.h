@@ -4,21 +4,22 @@
 
 GCF_NAMESPACE_BEGIN
 
-namespace cs
+namespace cpp
 {
-    class Module
+    class CrossCall
     {
     protected:
-        Module();
-        ~Module();
+        CrossCall();
+        ~CrossCall();
     public:
-        static bool Export(const IModule* module, const std::string& path, const std::string& name);
+        static bool Export(const ICrossCall* module, const std::string& path, const std::string& name);
 
     protected:
         bool Export();
 
         void CreateFile();
         void DeclHeader();
+        void ImplCpp();
 
         void DeclMessage();
         void DeclExecutor();
@@ -27,18 +28,21 @@ namespace cs
 
         void ImplInvoker();
         void ImplInvokerFunc(IFunction* func);
+        void ImplProcessor();
         void ImplProcessorDetail();
         void ImplProcessorFunc(IFunction* func);
 
-        void DeclFunc(std::ostream& stream, IFunction* func);
+        void DeclFunc(std::ostream& stream, IFunction* func, const std::string& ClassName);
+        bool NeedRef(const IType* ty) const;
 
     protected:
         std::string _path;
         std::string _name;
 
         int _tab = 0;
-        const IModule* _module = nullptr;
-        std::ostream* _stream = nullptr;
+        const ICrossCall* _cross = nullptr;
+        std::ostream* _header = nullptr;
+        std::ostream* _cpp = nullptr;
     };
 }
 

@@ -1,7 +1,7 @@
 ﻿#include "CsExporter.h"
 #include "CsDeclare.h"
 #include "CsSerialize.h"
-#include "CsModule.h"
+#include "CsCrossCall.h"
 #include "utility/Utility.h"
 
 GCF_NAMESPACE_BEGIN
@@ -64,9 +64,9 @@ void CsExporter::OnType(const IType* type)
     _ser->OnType(type);
 }
 
-void CsExporter::OnModule(const IModule* module)
+void CsExporter::OnCrossCall(const ICrossCall* module)
 {
-    cs::Module::Export(module, _path, _name);
+    cs::CrossCall::Export(module, _path, _name);
 }
 
 GCF_NAMESPACE_END

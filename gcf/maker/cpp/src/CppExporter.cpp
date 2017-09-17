@@ -1,7 +1,7 @@
 ﻿#include "CppExporter.h"
 #include "CppUtil.h"
 #include "CppDeclare.h"
-#include "CppModule.h"
+#include "CppCrossCall.h"
 #include "CppSerialize.h"
 #include "CppTab.h"
 #include "CppEnum.h"
@@ -319,11 +319,11 @@ void CppExporter::OnType(const IType* type)
     //_OUTS_ << std::endl;
 }
 
-void CppExporter::OnModule(const IModule* module)
+void CppExporter::OnCrossCall(const ICrossCall* module)
 {
-    cpp::Module::Export(module, _path, _name);
+    cpp::CrossCall::Export(module, _path, _name);
     for (auto exp : _expoters)
-        exp->OnModule(module);
+        exp->OnCrossCall(module);
 }
 
 bool CppExporter::Declare(const IEnumType* ty)

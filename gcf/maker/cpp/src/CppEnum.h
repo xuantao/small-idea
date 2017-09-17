@@ -29,7 +29,7 @@ namespace cpp
         virtual void OnNsEnd() {}
         virtual void OnInclude(const std::string& file) {}
         virtual void OnVariate(const IVariate* var) {}
-        virtual void OnModule(const IModule* module) {}
+        virtual void OnCrossCall(const ICrossCall* module) {}
 
     protected:
         void Decl(const IEnumType* type);

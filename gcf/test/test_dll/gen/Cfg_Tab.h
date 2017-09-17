@@ -8,22 +8,43 @@
 
 namespace tab
 {
-    // declare Tab Info template type
-    template <class Ty> struct Info { };
-
-    template <>
-    struct Info<Struct2>
+    namespace detail
     {
-        static const char* const title[];
-        static const char* const types[];
-        static const char* const descs[];
-    };
+        // declare Tab Info template type
+        template <class Ty> struct Info { };
 
-    template <>
-    struct Info<Sr3>
+        template <>
+        struct Info<Struct2>
+        {
+            static const char* const titles[];
+            static const char* const types[];
+            static const char* const descs[];
+        };
+
+        template <>
+        struct Info<Sr3>
+        {
+            static const char* const titles[];
+            static const char* const types[];
+            static const char* const descs[];
+        };
+    } // namespace detail
+
+    template <class Ty>
+    const char* const * Titles()
     {
-        static const char* const title[];
-        static const char* const types[];
-        static const char* const descs[];
-    };
-}
+        return detail::Info<Ty>::titles;
+    }
+
+    template <class Ty>
+    const char* const * Types()
+    {
+        return detail::Info<Ty>::types;
+    }
+
+    template <class Ty>
+    const char* const * Descs()
+    {
+        return detail::Info<Ty>::descs;
+    }
+} // namespace tab

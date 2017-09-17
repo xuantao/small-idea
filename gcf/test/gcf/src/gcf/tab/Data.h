@@ -6,6 +6,12 @@ namespace tab
 {
     namespace detail
     {
+        //template <class Ty>
+        //const char* const * Titles()
+        //{
+        //    return nullptr;
+        //}
+
         template <class Ty>
         struct Loader
         {
@@ -24,7 +30,7 @@ namespace tab
                 if (title == nullptr)
                     return false;
 
-                if (!_idxMap.Setup(Info<Ty>::title, title))
+                if (!_idxMap.Setup(Info<Ty>::titles, title))
                     return false;
 
                 for (int i = 1; i < startLine; ++i)
@@ -83,7 +89,7 @@ namespace tab
                         break;
                 }
 
-                _rdPos = rd - _data;
+                _rdPos = (int)(rd - _data);
                 return *text ? text : nullptr;
             }
 
@@ -105,7 +111,7 @@ namespace tab
         bool Load(char* data, int startLine = 3, bool hasDefault = true)
         {
             detail::Loader<Ty> loader(data, hasDefault);
-            if (!loader.Setup(data, startLine, hasDefault))
+            if (!loader.Setup(startLine))
                 return false;
 
             while (true)

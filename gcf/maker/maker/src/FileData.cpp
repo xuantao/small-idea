@@ -72,7 +72,7 @@ void FileData::Export(IExporter* visitor, bool merge) const
             visitor->OnType(static_cast<const IType*>(block->_data));
             break;
         case detail::BlockType::Module:
-            visitor->OnModule(static_cast<const IModule*>(block->_data));
+            visitor->OnCrossCall(static_cast<const ICrossCall*>(block->_data));
             break;
         case detail::BlockType::Include:
             if (!merge)
@@ -100,7 +100,7 @@ void FileData::Add(const IVariate* var)
     _blocks.push_back(new detail::FileBlock(detail::BlockType::Var, var));
 }
 
-void FileData::Add(const IModule* var)
+void FileData::Add(const ICrossCall* var)
 {
     _blocks.push_back(new detail::FileBlock(detail::BlockType::Module, var));
 }

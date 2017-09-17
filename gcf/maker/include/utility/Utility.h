@@ -25,7 +25,7 @@ namespace utility
 
     uint32_t HashValue(const char* str);
     uint32_t HashValue(const IType* ty);
-    uint32_t HashValue(const IModule* module);
+    uint32_t HashValue(const ICrossCall* cross);
 
     bool Convert(const std::string& str, bool& out);
     bool Convert(const std::string& str, int& out);

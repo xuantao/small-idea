@@ -87,12 +87,12 @@ struct Msg
 	Inner inner;
 }
 
-module Caller {
+cross Caller {
 	void Call_A(int a, int b);
 	int Call_B(string str)
 }
 
-module TestC2S
+cross TestC2S
 {
 	bool Test(bool b);
 	int Test(int a);
@@ -103,7 +103,7 @@ module TestC2S
 	void Test(int ar[10][]);
 }
 
-module TestS2C
+cross TestS2C
 {
 	bool Test(bool b);
 	int Test(int a);

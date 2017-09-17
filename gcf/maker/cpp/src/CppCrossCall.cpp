@@ -1,4 +1,4 @@
-﻿#include "CppModule.h"
+﻿#include "CppCrossCall.h"
 #include "CppUtil.h"
 #include "utility/Utility.h"
 #include <fstream>
@@ -10,20 +10,20 @@ GCF_NAMESPACE_BEGIN
 
 namespace cpp
 {
-    bool Module::Export(const IModule* module, const std::string& path, const std::string& name)
+    bool CrossCall::Export(const ICrossCall* cross, const std::string& path, const std::string& name)
     {
-        Module md;
-        md._module = module;
+        CrossCall md;
+        md._cross = cross;
         md._path = path;
         md._name = name;
         return md.Export();
     }
 
-    Module::Module()
+    CrossCall::CrossCall()
     {
     }
 
-    Module::~Module()
+    CrossCall::~CrossCall()
     {
         if (_header != &std::cout)
             delete _header;
@@ -32,7 +32,7 @@ namespace cpp
             delete _cpp;
     }
 
-    bool Module::Export()
+    bool CrossCall::Export()
     {
         CreateFile();
         DeclHeader();
@@ -40,10 +40,10 @@ namespace cpp
         return true;
     }
 
-    void Module::CreateFile()
+    void CrossCall::CreateFile()
     {
         // header
-        std::ofstream* file = new std::ofstream(utility::ContactPath(_path, _module->Name()) + ".h");
+        std::ofstream* file = new std::ofstream(utility::ContactPath(_path, _cross->Name()) + ".h");
         if (file->is_open()) _header = file;
         else _header = &std::cout;
 
@@ -57,7 +57,7 @@ namespace cpp
             _TAB(0) << "#include \"gcf/gcf.h\"" << std::endl << std::endl;
 
         // cpp
-        file = new std::ofstream(utility::ContactPath(_path, _module->Name()) + ".cpp");
+        file = new std::ofstream(utility::ContactPath(_path, _cross->Name()) + ".cpp");
         if (file->is_open()) _cpp = file;
         else _cpp = &std::cout;
 
@@ -66,20 +66,20 @@ namespace cpp
             _TAB(0) << " * this file is auto generated." << std::endl <<
             _TAB(0) << " * please does not edit it manual!" << std::endl <<
             _TAB(0) << "*/" << std::endl <<
-            _TAB(0) << "#include \"" << _module->Name() << ".h\"" << std::endl <<
+            _TAB(0) << "#include \"" << _cross->Name() << ".h\"" << std::endl <<
             _TAB(0) << "#include \"" << _name << "_Ser.h\"" << std::endl <<
             _TAB(0) << "#include <cassert>" << std::endl << std::endl;
         //TODO: need include more file
     }
 
-    void Module::DeclHeader()
+    void CrossCall::DeclHeader()
     {
         *_header <<
-            _TAB(0) << "class " << _module->Name() << std::endl <<
+            _TAB(0) << "class " << _cross->Name() << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(0) << "public:" << std::endl <<
-            _TAB(1) << "static const uint32_t MODULE_ID = " << _module->ID() << ";" << std::endl <<
-            _TAB(1) << "static const uint32_t HASH_CODE = " << utility::HashValue(_module) << ";" << std::endl;
+            _TAB(1) << "static const uint32_t MODULE_ID = " << _cross->ID() << ";" << std::endl <<
+            _TAB(1) << "static const uint32_t HASH_CODE = " << utility::HashValue(_cross) << ";" << std::endl;
         ++_tab;
 
         *_header << std::endl;
@@ -99,20 +99,20 @@ namespace cpp
             _TAB(0) << "};" << std::endl;
     }
 
-    void Module::ImplCpp()
+    void CrossCall::ImplCpp()
     {
         ImplInvoker();
         ImplProcessor();
     }
 
-    void Module::DeclMessage()
+    void CrossCall::DeclMessage()
     {
         *_header <<
             _TAB(0) << "enum class Message" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(1) << "Invalid," << std::endl;
 
-        ITypeSet* tySet = _module->Scope()->TypeSet();
+        ITypeSet* tySet = _cross->Scope()->TypeSet();
         for (int i = 0; i < tySet->Size(); ++i)
         {
             IFunction* func = dynamic_cast<IFunction*>(tySet->Get(i));
@@ -126,7 +126,7 @@ namespace cpp
             _TAB(0) << "};" << std::endl;
     }
 
-    void Module::DeclExecutor()
+    void CrossCall::DeclExecutor()
     {
         *_header <<
             _TAB(0) << "class IResponder" << std::endl <<
@@ -135,7 +135,7 @@ namespace cpp
             _TAB(1) << "virtual ~IResponder() {}" << std::endl << std::endl <<
             _TAB(0) << "public:" << std::endl;
 
-        ITypeSet* tySet = _module->Scope()->TypeSet();
+        ITypeSet* tySet = _cross->Scope()->TypeSet();
         for (int i = 0; i < tySet->Size(); ++i)
         {
             IFunction* func = dynamic_cast<IFunction*>(tySet->Get(i));
@@ -151,7 +151,7 @@ namespace cpp
             _TAB(0) << "};" << std::endl;
     }
 
-    void Module::DeclInvoker()
+    void CrossCall::DeclInvoker()
     {
         *_header <<
             _TAB(0) << "class Requester" << std::endl <<
@@ -160,7 +160,7 @@ namespace cpp
             _TAB(1) << "Requester(cross_call::IInvoker* invoker) : _invoker(invoker)" << " { }" << std::endl << std::endl <<
             _TAB(0) << "public:" << std::endl;
 
-        ITypeSet* tySet = _module->Scope()->TypeSet();
+        ITypeSet* tySet = _cross->Scope()->TypeSet();
         for (int i = 0; i < tySet->Size(); ++i)
         {
             IFunction* func = dynamic_cast<IFunction*>(tySet->Get(i));
@@ -178,7 +178,7 @@ namespace cpp
             _TAB(0) << "};" << std::endl;
     }
 
-    void Module::DeclProcessor()
+    void CrossCall::DeclProcessor()
     {
         *_header <<
             _TAB(0) << "class Processor : public cross_call::IProcessor" << std::endl <<
@@ -190,7 +190,7 @@ namespace cpp
             _TAB(1) << "virtual void Process(cross_call::IContext* context);" << std::endl << std::endl <<
             _TAB(0) << "protected:" << std::endl;
 
-        ITypeSet* tySet = _module->Scope()->TypeSet();
+        ITypeSet* tySet = _cross->Scope()->TypeSet();
         for (int i = 0; i < tySet->Size(); ++i)
         {
             IFunction* func = dynamic_cast<IFunction*>(tySet->Get(i));
@@ -206,11 +206,11 @@ namespace cpp
             _TAB(0) << "};" << std::endl;
     }
 
-    void Module::ImplInvoker()
+    void CrossCall::ImplInvoker()
     {
-        std::string className = _module->Name() + "::Requester";
+        std::string className = _cross->Name() + "::Requester";
 
-        ITypeSet* tySet = _module->Scope()->TypeSet();
+        ITypeSet* tySet = _cross->Scope()->TypeSet();
         for (int i = 0; i < tySet->Size(); ++i)
         {
             IFunction* func = dynamic_cast<IFunction*>(tySet->Get(i));
@@ -230,7 +230,7 @@ namespace cpp
         }
     }
 
-    void Module::ImplInvokerFunc(IFunction* func)
+    void CrossCall::ImplInvokerFunc(IFunction* func)
     {
         *_cpp <<
             _TAB(0) << "serialize::IWriter* writer = _invoker->Begin(MODULE_ID);" << std::endl <<
@@ -260,13 +260,13 @@ namespace cpp
         }
     }
 
-    void Module::ImplProcessor()
+    void CrossCall::ImplProcessor()
     {
         ImplProcessorDetail();
         *_cpp << std::endl;
 
-        std::string className = _module->Name() + "::Processor";
-        ITypeSet* tySet = _module->Scope()->TypeSet();
+        std::string className = _cross->Name() + "::Processor";
+        ITypeSet* tySet = _cross->Scope()->TypeSet();
         for (int i = 0; i < tySet->Size(); ++i)
         {
             IFunction* func = dynamic_cast<IFunction*>(tySet->Get(i));
@@ -286,10 +286,10 @@ namespace cpp
         }
     }
 
-    void Module::ImplProcessorDetail()
+    void CrossCall::ImplProcessorDetail()
     {
         *_cpp <<
-            _TAB(0) << "void " << _module->Name() << "::Processor::Process(cross_call::IContext* context)" << std::endl <<
+            _TAB(0) << "void " << _cross->Name() << "::Processor::Process(cross_call::IContext* context)" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(1) << "uint32_t code = 0;" << std::endl <<
             _TAB(1) << "Message msg = Message::Invalid;" << std::endl <<
@@ -299,7 +299,7 @@ namespace cpp
             _TAB(1) << "switch (msg)" << std::endl <<
             _TAB(1) << "{" << std::endl;
 
-        ITypeSet* tySet = _module->Scope()->TypeSet();
+        ITypeSet* tySet = _cross->Scope()->TypeSet();
         for (int i = 0; i < tySet->Size(); ++i)
         {
             IFunction* func = dynamic_cast<IFunction*>(tySet->Get(i));
@@ -320,7 +320,7 @@ namespace cpp
             _TAB(0) << "}" << std::endl;
     }
 
-    void Module::ImplProcessorFunc(IFunction* func)
+    void CrossCall::ImplProcessorFunc(IFunction* func)
     {
         IVarSet* varSet = func->Scope()->VarSet();
         for (int i = 0; i < varSet->Size(); ++i)
@@ -356,7 +356,7 @@ namespace cpp
             *_cpp << _TAB(0) << "serialize::utility::Write(context->Ret(), __ret__);" << std::endl;
     }
 
-    void Module::DeclFunc(std::ostream& stream, IFunction* func, const std::string& ClassName)
+    void CrossCall::DeclFunc(std::ostream& stream, IFunction* func, const std::string& ClassName)
     {
         if (func->RetType()) stream << cpp_util::TypeName(func->RetType()) << " ";
         else stream << "void ";
@@ -384,7 +384,7 @@ namespace cpp
         stream << ")";
     }
 
-    bool Module::NeedRef(const IType* ty) const
+    bool CrossCall::NeedRef(const IType* ty) const
     {
         if (
             (ty->TypeCat() == TypeCategory::Raw && ((const IRawType*)ty)->RawCat() != RawCategory::String) ||

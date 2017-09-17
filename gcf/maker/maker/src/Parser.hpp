@@ -300,7 +300,7 @@ namespace  gcf  {
         TOK_STRING = 266,
         TOK_NAMESPACE = 267,
         TOK_VOID = 268,
-        TOK_MODULE = 269,
+        TOK_CROSS = 269,
         TOK_IDENTIFIER = 270,
         TOK_VALUE_TRUE = 271,
         TOK_VALUE_FALSE = 272,
@@ -512,7 +512,7 @@ namespace  gcf  {
 
     static inline
     symbol_type
-    make_MODULE (const location_type& l);
+    make_CROSS (const location_type& l);
 
     static inline
     symbol_type
@@ -1190,9 +1190,9 @@ namespace  gcf  {
   }
 
    Parser ::symbol_type
-   Parser ::make_MODULE (const location_type& l)
+   Parser ::make_CROSS (const location_type& l)
   {
-    return symbol_type (token::TOK_MODULE, l);
+    return symbol_type (token::TOK_CROSS, l);
 
   }
 

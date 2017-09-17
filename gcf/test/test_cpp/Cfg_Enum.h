@@ -44,7 +44,7 @@ namespace Enum
             static const char* const names[];
             static const Wtf vals[];
         };
-    }
+    } // namespace detail
 
     template <class En>
     const char* Name(En val)
@@ -114,4 +114,4 @@ namespace Enum
 
         return -1;
     }
-}
+} // namespace Enum

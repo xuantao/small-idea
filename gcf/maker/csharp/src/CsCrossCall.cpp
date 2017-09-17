@@ -1,4 +1,4 @@
-﻿#include "CsModule.h"
+﻿#include "CsCrossCall.h"
 #include "CsUtility.h"
 #include "utility/Utility.h"
 #include <fstream>
@@ -10,33 +10,33 @@ GCF_NAMESPACE_BEGIN
 
 namespace cs
 {
-    bool Module::Export(const IModule* module, const std::string& path, const std::string& name)
+    bool CrossCall::Export(const ICrossCall* module, const std::string& path, const std::string& name)
     {
-        Module md;
+        CrossCall md;
         md._module = module;
         md._path = path;
         md._name = name;
         return md.Export();
     }
 
-    Module::Module()
+    CrossCall::CrossCall()
     {
     }
 
-    Module::~Module()
+    CrossCall::~CrossCall()
     {
         if (_stream != &std::cout)
             delete _stream;
     }
 
-    bool Module::Export()
+    bool CrossCall::Export()
     {
         CreateFile();
         DeclHeader();
         return true;
     }
 
-    void Module::CreateFile()
+    void CrossCall::CreateFile()
     {
         std::ofstream* file = new std::ofstream(utility::ContactPath(_path, _module->Name()) + ".cs");
         if (file->is_open()) _stream = file;
@@ -52,7 +52,7 @@ namespace cs
             _TAB(0) << "using System.Collections.Generic;" << std::endl << std::endl;
     }
 
-    void Module::DeclHeader()
+    void CrossCall::DeclHeader()
     {
         *_stream <<
             _TAB(0) << "public class " << _module->Name() << std::endl <<
@@ -78,7 +78,7 @@ namespace cs
             _TAB(0) << "}" << std::endl;
     }
 
-    void Module::DeclMessage()
+    void CrossCall::DeclMessage()
     {
         *_stream <<
             _TAB(0) << "public enum Message" << std::endl <<
@@ -99,7 +99,7 @@ namespace cs
             _TAB(0) << "}" << std::endl;
     }
 
-    void Module::DeclExecutor()
+    void CrossCall::DeclExecutor()
     {
         *_stream <<
             _TAB(0) << "public interface IResponder" << std::endl <<
@@ -121,7 +121,7 @@ namespace cs
             _TAB(0) << "};" << std::endl;
     }
 
-    void Module::DeclInvoker()
+    void CrossCall::DeclInvoker()
     {
         *_stream <<
             _TAB(0) << "public class Requester" << std::endl <<
@@ -149,7 +149,7 @@ namespace cs
         *_stream << _TAB(0) << "}" << std::endl;
     }
 
-    void Module::DeclProcessor()
+    void CrossCall::DeclProcessor()
     {
         *_stream <<
             _TAB(0) << "public class Processor : CrossCall.IProcessor" << std::endl <<
@@ -180,7 +180,7 @@ namespace cs
         *_stream << _TAB(0) << "}" << std::endl;
     }
 
-    void Module::ImplInvokerFunc(IFunction* func)
+    void CrossCall::ImplInvokerFunc(IFunction* func)
     {
         *_stream << _TAB(0) << "public ";
         DeclFunc(*_stream, func);
@@ -222,7 +222,7 @@ namespace cs
         *_stream << _TAB(0) << "}" << std::endl;
     }
 
-    void Module::ImplProcessorDetail()
+    void CrossCall::ImplProcessorDetail()
     {
         *_stream <<
             _TAB(0) << "public void Process(CrossCall.IContext context)" << std::endl <<
@@ -256,7 +256,7 @@ namespace cs
             _TAB(0) << "}" << std::endl;
     }
 
-    void Module::ImplProcessorFunc(IFunction* func)
+    void CrossCall::ImplProcessorFunc(IFunction* func)
     {
         *_stream <<
             _TAB(0) << "void On" << func->Name() << "(CrossCall.IContext context)" << std::endl <<
@@ -302,7 +302,7 @@ namespace cs
             _TAB(0) << "}" << std::endl;
     }
 
-    void Module::DeclFunc(std::ostream& stream, IFunction* func)
+    void CrossCall::DeclFunc(std::ostream& stream, IFunction* func)
     {
         if (func->RetType()) stream << cs_util::TypeName(func->RetType()) << " ";
         else stream << "void ";

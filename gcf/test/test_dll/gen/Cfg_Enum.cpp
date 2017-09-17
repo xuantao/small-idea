@@ -41,5 +41,5 @@ namespace Enum
             Wtf::Invalid, Wtf::Bool, Wtf::Int,
              Wtf::Float, Wtf::String, Wtf::Invalid
         };
-    }
-}
+    } // namespace detail
+} // namespace Enum

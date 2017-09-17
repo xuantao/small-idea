@@ -246,15 +246,15 @@ namespace utility
         return HashValue(str.c_str());
     }
 
-    uint32_t HashValue(const IModule* module)
+    uint32_t HashValue(const ICrossCall* cross)
     {
-        if (module == nullptr) return 0;
+        if (cross == nullptr) return 0;
 
         std::string str;
         std::stringstream stream;
 
-        ITypeSet* tySet = module->Scope()->TypeSet();
-        stream << module->Name() << "{";
+        ITypeSet* tySet = cross->Scope()->TypeSet();
+        stream << cross->Name() << "{";
         for (int i = 0; i < tySet->Size(); ++i)
             Traverse(tySet->Get(i), stream);
         stream << "}";

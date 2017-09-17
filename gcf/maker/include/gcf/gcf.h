@@ -50,7 +50,7 @@ enum class ElementCategory
     Type,
     Var,
     Namespace,
-    Module,
+    CrossCall,
 };
 
 enum class TypeCategory
@@ -203,10 +203,10 @@ public:
 /*
  * i need a name~
 */
-GCF_API class IModule : public IElement
+GCF_API class ICrossCall : public IElement
 {
 public:
-    virtual ~IModule() {}
+    virtual ~ICrossCall() {}
 public:
     virtual const std::string& Name() const = 0;
     virtual uint32_t ID() const = 0;
@@ -361,7 +361,7 @@ public:
 
     virtual void OnVariate(const IVariate* var) = 0;
     virtual void OnType(const IType* type) = 0;
-    virtual void OnModule(const IModule* module) = 0;
+    virtual void OnCrossCall(const ICrossCall* module) = 0;
 };
 
 typedef IExporter* (*CreateExporter)();

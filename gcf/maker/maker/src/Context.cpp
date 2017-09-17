@@ -173,9 +173,9 @@ void Context::OnNsEnd()
         delete _SCOPE_->BindNs();
 }
 
-void Context::OnModuleBegin(const std::string& name)
+void Context::OnCrossBegin(const std::string& name)
 {
-    Module* module = new Module(name, (uint32_t)_modules.size() + 1, _SCOPE_);
+    CrossCall* module = new CrossCall(name, (uint32_t)_modules.size() + 1, _SCOPE_);
     // do need a module set?
     _stackScope.push_back(module->Scope());
 
@@ -185,7 +185,7 @@ void Context::OnModuleBegin(const std::string& name)
     _stackFile.back()->Add(module);
 }
 
-void Context::OnModuleEnd()
+void Context::OnCrossEnd()
 {
     _stackScope.pop_back();
 }

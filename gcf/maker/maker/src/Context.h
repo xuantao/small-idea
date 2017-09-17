@@ -35,13 +35,7 @@ public:
     IType* GetType(RawCategory raw) const;
     IType* GetType(const std::string& name) const;
 
-    const std::vector<Cfg>& TabCfgs() const { return _tabs; }
-    const std::vector<Cfg>& JsonCfgs() const { return _jsons; }
-    const std::vector<IModule*>& Modules() const { return _modules; }
-
     bool Export(IExporter* expoter);
-    //    bool Export(ITabCreater* creator, const std::string& path);
-    //    bool Export(IJsonCreater* creator, const std::string& path);
 
 public:
     bool IsVarDeclaring() const;
@@ -55,8 +49,8 @@ public:
     void OnNsBegin(const std::string& name);
     void OnNsEnd();
 
-    void OnModuleBegin(const std::string& name);
-    void OnModuleEnd();
+    void OnCrossBegin(const std::string& name);
+    void OnCrossEnd();
 
     void OnFuncBegin(const std::string& name);
     void OnFuncEnd();
@@ -104,7 +98,7 @@ protected:
 
     std::vector<Cfg> _tabs;
     std::vector<Cfg> _jsons;
-    std::vector<IModule*> _modules;
+    std::vector<ICrossCall*> _modules;
 
     INamespace* _gloal = nullptr;
     std::vector<IScope*> _stackScope;

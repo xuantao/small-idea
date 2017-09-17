@@ -50,12 +50,39 @@ namespace cpp
 
     void Tab::OnEnd()
     {
-        --_tab;
+        _tab = 0;
         if (_header)
-            *_header << "}" << std::endl;
+        {
+            *_header <<
+                _TAB(1) << "} // namespace detail" << std::endl << std::endl <<
+
+                _TAB(1) << "template <class Ty>" << std::endl <<
+                _TAB(1) << "const char* const * Titles()" << std::endl <<
+                _TAB(1) << "{" << std::endl <<
+                _TAB(2) << "return detail::Info<Ty>::titles;" << std::endl <<
+                _TAB(1) << "}" << std::endl << std::endl <<
+
+                _TAB(1) << "template <class Ty>" << std::endl <<
+                _TAB(1) << "const char* const * Types()" << std::endl <<
+                _TAB(1) << "{" << std::endl <<
+                _TAB(2) << "return detail::Info<Ty>::types;" << std::endl <<
+                _TAB(1) << "}" << std::endl << std::endl <<
+
+                _TAB(1) << "template <class Ty>" << std::endl <<
+                _TAB(1) << "const char* const * Descs()" << std::endl <<
+                _TAB(1) << "{" << std::endl <<
+                _TAB(2) << "return detail::Info<Ty>::descs;" << std::endl <<
+                _TAB(1) << "}" << std::endl <<
+
+                _TAB(0) << "} // namespace tab" << std::endl;
+        }
 
         if (_cpp)
-            *_cpp << "}" << std::endl;
+        {
+            *_cpp << 
+                _TAB(1) << "} // namespace detail" << std::endl <<
+                _TAB(0) << "} // namespace tab" << std::endl;
+        }
 
         Clear();
     }
@@ -89,7 +116,7 @@ namespace cpp
             _TAB(0) << "template <>" << std::endl <<
             _TAB(0) << "struct Info<" << tyName << ">" << std::endl <<
             _TAB(0) << "{" << std::endl <<
-            _TAB(1) << "static const char* const title[];" << std::endl <<
+            _TAB(1) << "static const char* const titles[];" << std::endl <<
             _TAB(1) << "static const char* const types[];" << std::endl <<
             _TAB(1) << "static const char* const descs[];" << std::endl <<
             _TAB(0) << "};" << std::endl;
@@ -105,7 +132,7 @@ namespace cpp
         utility::Traverse(type, &visitor);
 
         *_cpp << std::endl <<
-            _TAB(0) << "const char* const Info<" << tyName << ">::title[] = {" << std::endl;
+            _TAB(0) << "const char* const Info<" << tyName << ">::titles[] = {" << std::endl;
         sWriteData(*_cpp, visitor.Title(), _tab + 1);
         *_cpp << ", nullptr" << std::endl <<
             _TAB(0) << "};" << std::endl;
@@ -150,8 +177,10 @@ namespace cpp
                 _TAB(0) << "#include \"" << _name << ".h\"" << std::endl << std::endl <<
                 _TAB(0) << "namespace tab" << std::endl <<
                 _TAB(0) << "{" << std::endl <<
-                _TAB(1) << "// declare Tab Info template type" << std::endl <<
-                _TAB(1) << "template <class Ty> struct Info { };" << std::endl;
+                _TAB(1) << "namespace detail" << std::endl <<
+                _TAB(1) << "{" << std::endl <<
+                _TAB(2) << "// declare Tab Info template type" << std::endl <<
+                _TAB(2) << "template <class Ty> struct Info { };" << std::endl;
         }
 
         if (_cpp)
@@ -163,10 +192,12 @@ namespace cpp
                 _TAB(0) << "*/" << std::endl <<
                 _TAB(0) << "#include \"" << _name << "_Tab.h\"" << std::endl << std::endl <<
                 _TAB(0) << "namespace tab" << std::endl <<
-                _TAB(0) << "{";// << std::endl;
+                _TAB(0) << "{" << std::endl <<
+                _TAB(1) << "namespace detail" << std::endl <<
+                _TAB(1) << "{" << std::endl;
         }
 
-        ++_tab;
+        _tab = 2;
     }
 
     void Tab::Clear()

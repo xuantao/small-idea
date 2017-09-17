@@ -47,7 +47,8 @@ namespace cpp
         if (_header)
         {
             *_header << 
-                _TAB(0) << "}" << std::endl << std::endl <<
+                _TAB(0) << "} // namespace detail" << std::endl << std::endl <<
+
                 _TAB(0) << "template <class En>" << std::endl <<
                 _TAB(0) << "const char* Name(En val)" << std::endl <<
                 _TAB(0) << "{" << std::endl <<
@@ -107,15 +108,15 @@ namespace cpp
                 _TAB(0) << "}" << std::endl;
 
             _tab = 0;
-            *_header << "}" << std::endl;
+            *_header << "} // namespace Enum" << std::endl;
         }
 
         _tab = 0;
         if (_cpp)
         {
             *_cpp <<
-                _TAB(1) << "}" << std::endl <<
-                _TAB(0) << "}" << std::endl;
+                _TAB(1) << "} // namespace detail" << std::endl <<
+                _TAB(0) << "} // namespace Enum" << std::endl;
         }
 
         Clear();

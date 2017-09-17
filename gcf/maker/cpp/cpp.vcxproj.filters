@@ -13,9 +13,6 @@
     <ClCompile Include="src\CppExporter.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\CppModule.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\CppSerialize.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -31,6 +28,9 @@
     <ClCompile Include="src\CppEnum.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\CppCrossCall.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CppDeclare.h">
@@ -40,9 +40,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\CppLogger.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CppModule.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\CppSerialize.h">
@@ -55,6 +52,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\CppEnum.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CppCrossCall.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

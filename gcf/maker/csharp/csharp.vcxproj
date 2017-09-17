@@ -142,17 +142,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\CsCrossCall.cpp" />
     <ClCompile Include="src\CsDeclare.cpp" />
     <ClCompile Include="src\CsExporter.cpp" />
-    <ClCompile Include="src\CsModule.cpp" />
     <ClCompile Include="src\CsSerialize.cpp" />
     <ClCompile Include="src\CsUtility.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\CsCrossCall.h" />
     <ClInclude Include="src\CsDeclare.h" />
     <ClInclude Include="src\CsExporter.h" />
-    <ClInclude Include="src\CsModule.h" />
     <ClInclude Include="src\CsSerialize.h" />
     <ClInclude Include="src\CsUtility.h" />
   </ItemGroup>

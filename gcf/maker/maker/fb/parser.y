@@ -70,7 +70,7 @@ static gcf::Parser::symbol_type yylex(gcf::Driver& driver)
     ;
 
 /* key words */
-%token TAB JSON ENUM STRUCT CONST BOOL INT FLOAT STRING NAMESPACE VOID MODULE
+%token TAB JSON ENUM STRUCT CONST BOOL INT FLOAT STRING NAMESPACE VOID CROSS
 
 %token <std::string> IDENTIFIER     "identifier"
 %token <std::string> VALUE_TRUE     "true"
@@ -93,7 +93,7 @@ Program : /* empty */           { }
         | Program ConstValue    { }
         | Program EnumDecl      { }
         | Program StructDecl    { }
-        | Program ModuleDecl    { }
+        | Program CrossDecl     { }
         | Program NsDecl        { }
         ;
 
@@ -116,7 +116,7 @@ NsDetail    : /* empty */           { }
             | NsDetail EnumDecl     { }
             | NsDetail StructDecl   { }
             | NsDetail NsDecl       { }
-            | NsDetail ModuleDecl   { }
+            | NsDetail CrossDecl    { }
             ;
 
 /* enum declear */
@@ -177,19 +177,19 @@ StyMember   : VarConst Variate S_SEMICOLON VarDesc  { CONTEXT.OnVariate($2); }
 StyInner    : StyBegin StyDetail StyEnd { }
             ;
 
-/* module declear */
-ModuleDecl  : ModuleBegin ModuleFunc ModuleEnd  { }
+/* cross call declear */
+CrossDecl   : CrossBegin CrossFunc CrossEnd { }
             ;
 
-ModuleBegin : MODULE IDENTIFIER S_LBRACE    { CONTEXT.OnModuleBegin($2); }
+CrossBegin  : CROSS IDENTIFIER S_LBRACE     { CONTEXT.OnCrossBegin($2); }
             ;
 
-ModuleEnd   : S_RBRACE                  { CONTEXT.OnModuleEnd(); }
-            | S_RBRACE S_SEMICOLON      { CONTEXT.OnModuleEnd(); }
+CrossEnd    : S_RBRACE                  { CONTEXT.OnCrossEnd(); }
+            | S_RBRACE S_SEMICOLON      { CONTEXT.OnCrossEnd(); }
             ;
 
-ModuleFunc  :  /* empty */           { }
-            | ModuleFunc FuncBegin FuncParam FuncEnd { }
+CrossFunc   : /* empty */               { }
+            | CrossFunc FuncBegin FuncParam FuncEnd { }
             ;
 
 FuncBegin   : VOID IDENTIFIER S_LPAREN    { CONTEXT.OnFuncBegin($2); }
@@ -201,11 +201,11 @@ FuncEnd     : S_RPAREN              { CONTEXT.OnFuncEnd(); }
             ;
 
 FuncParam   : /* empty */           { }
-            | FuncParam FuncParam1  { }
+            | FuncParam _FuncParam  { }
             ;
 
-FuncParam1  : Variate                       { CONTEXT.OnVariate($1); }
-            | FuncParam1 S_COMMA Variate    { CONTEXT.OnVariate($3); }
+_FuncParam  : Variate                       { CONTEXT.OnVariate($1); }
+            | _FuncParam S_COMMA Variate    { CONTEXT.OnVariate($3); }
             ;
 
 /* common detect */
@@ -238,17 +238,17 @@ Value       : VALUE_TRUE            { CONTEXT.SetValue(RawCategory::Bool, $1); }
             | RefName               { CONTEXT.SetValue($1); }
             ;
 
-Array22     : Array222_             { }
-            | Array22 Array222_     { }
+Array       : _Array            { }
+            | Array _Array      { }
             ;
-Array222_   : S_LBRACK S_RBRACK             { CONTEXT.SetArray(); }
+_Array      : S_LBRACK S_RBRACK             { CONTEXT.SetArray(); }
             | S_LBRACK VALUE_INT S_RBRACK   { CONTEXT.SetArrayLength($2); }
             | S_LBRACK RefName S_RBRACK     { CONTEXT.SetArrayRefer($2); }
             ;
 
 Variate     : Type IDENTIFIER                   { $$= $2; }
             | Type IDENTIFIER S_ASSIGN Value    { $$= $2; }
-            | Type IDENTIFIER Array22           { $$= $2; }
+            | Type IDENTIFIER Array             { $$= $2; }
             ;
 
 %%

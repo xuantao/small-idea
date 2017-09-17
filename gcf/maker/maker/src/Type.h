@@ -191,16 +191,16 @@ protected:
 };
 
 /*
- * module
+ * CrossCall
 */
-class Module : public IModule
+class CrossCall : public ICrossCall
 {
 public:
-    Module(const std::string& name, uint32_t ID, IScope* owner);
-    ~Module();
+    CrossCall(const std::string& name, uint32_t ID, IScope* owner);
+    ~CrossCall();
 
 public:
-    virtual ElementCategory ElementCat() const { return ElementCategory::Module; }
+    virtual ElementCategory ElementCat() const { return ElementCategory::CrossCall; }
     virtual const std::string& Name() const { return _name; }
     virtual uint32_t ID() const { return _ID; }
     virtual IScope* Owner() const { return _owner; }

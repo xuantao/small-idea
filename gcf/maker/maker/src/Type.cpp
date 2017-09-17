@@ -224,7 +224,7 @@ Namespace::~Namespace()
 
 //////////////////////////////////////////////////////////////////////////
 // Module
-Module::Module(const std::string& name, uint32_t moduleID, IScope* owner)
+CrossCall::CrossCall(const std::string& name, uint32_t moduleID, IScope* owner)
     : _name(name), _owner(owner), _ID(moduleID)
 {
     NormalScope* scope = new NormalScope(name, owner);
@@ -232,7 +232,7 @@ Module::Module(const std::string& name, uint32_t moduleID, IScope* owner)
     _scope = scope;
 }
 
-Module::~Module()
+CrossCall::~CrossCall()
 {
     delete _scope->TypeSet();
     delete _scope;
