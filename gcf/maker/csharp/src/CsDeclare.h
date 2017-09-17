@@ -10,11 +10,11 @@ GCF_NAMESPACE_BEGIN
 
 namespace cs
 {
-    class CsDeclare
+    class Declare
     {
     public:
-        CsDeclare();
-        ~CsDeclare();
+        Declare();
+        ~Declare();
 
     public:
         bool Init(const IScope* global, const std::string& path, const std::string& name);

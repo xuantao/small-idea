@@ -10,13 +10,31 @@ GCF_NAMESPACE_BEGIN
 
 namespace cpp
 {
-    Declare::Declare(const IScope* global, const std::string& path, const std::string& fileName)
-        : _global(global)
-        , _path(path)
-        , _name(fileName)
+    Declare::Declare()
     {
-        std::ofstream* file = new std::ofstream(utility::ContactPath(path, fileName) + ".h");
+    }
 
+    Declare::~Declare()
+    {
+    }
+
+    Declare* Declare::Create()
+    {
+        return new Declare();
+    }
+
+    void Declare::Release()
+    {
+        delete this;
+    }
+
+    bool Declare::OnBegin(const IScope* global, const char* path, const char* name)
+    {
+        _global = global;
+        _path = path;
+        _name = name;
+
+        std::ofstream* file = new std::ofstream(utility::ContactPath(path, name) + ".h");
         if (file->is_open()) _header = file;
         else _header = &std::cout;
 
@@ -25,23 +43,20 @@ namespace cpp
             "#include <vector>" << std::endl <<
             "#include <string>" << std::endl <<
             "#include <array>" << std::endl << std::endl;
+        return true;
     }
 
-    Declare::~Declare()
+    void Declare::OnEnd()
     {
         *_header << std::endl;
         if (_header != &std::cout)
             delete _header;
         _header = nullptr;
-    }
 
-    void Declare::DoExport()
-    {
-        if (!_vars.empty())
-            CppVars();
-
+        _vars.clear();
         _tab = 0;
         _lastIsVar = false;
+        _global = nullptr;
     }
 
     void Declare::OnNsBegin(const std::string& name)

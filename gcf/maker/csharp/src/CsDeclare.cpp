@@ -9,17 +9,17 @@ GCF_NAMESPACE_BEGIN
 
 namespace cs
 {
-    CsDeclare::CsDeclare()
+    Declare::Declare()
     {
 
     }
 
-    CsDeclare::~CsDeclare()
+    Declare::~Declare()
     {
 
     }
 
-    bool CsDeclare::Init(const IScope* global, const std::string& path, const std::string& name)
+    bool Declare::Init(const IScope* global, const std::string& path, const std::string& name)
     {
         _global = global;
         _path = path;
@@ -27,7 +27,7 @@ namespace cs
         return true;
     }
 
-    void CsDeclare::DoExport()
+    void Declare::DoExport()
     {
         int elements = 0;
         if (_global->VarSet())
@@ -76,12 +76,12 @@ namespace cs
         }
     }
 
-    void CsDeclare::OnType(const IType* type)
+    void Declare::OnType(const IType* type)
     {
         //_types.push_back(type);
     }
 
-    void CsDeclare::ExportType(std::ostream& stream, const IEnumType* type)
+    void Declare::ExportType(std::ostream& stream, const IEnumType* type)
     {
         stream <<
             _TAB(0) << "public enum " << type->Name() << std::endl <<
@@ -101,7 +101,7 @@ namespace cs
         stream << _TAB(0) << "}" << std::endl;
     }
 
-    void CsDeclare::ExportType(std::ostream& stream, const IStructType* type)
+    void Declare::ExportType(std::ostream& stream, const IStructType* type)
     {
         stream << _TAB(0) << "public class " << type->Name();
         if (type->Inherited())
@@ -137,7 +137,7 @@ namespace cs
         stream << _TAB(0) << "}" << std::endl;
     }
 
-    void CsDeclare::ExportNs(std::ostream& stream, const INamespace* ns)
+    void Declare::ExportNs(std::ostream& stream, const INamespace* ns)
     {
         IVarSet* varSet = ns->Scope()->VarSet();
         ITypeSet* tySet = ns->Scope()->TypeSet();
@@ -185,7 +185,7 @@ namespace cs
         stream << _TAB(0) << "}" << std::endl;
     }
 
-    void CsDeclare::ExportVars(std::ostream& stream, const IVarSet* vars, const IScope* scope, bool isGlobal)
+    void Declare::ExportVars(std::ostream& stream, const IVarSet* vars, const IScope* scope, bool isGlobal)
     {
         if (isGlobal)
         {

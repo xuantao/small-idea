@@ -7,11 +7,6 @@
 
 GCF_NAMESPACE_BEGIN
 
-namespace cs
-{
-    class Serialize;
-}
-
 class CsExporter : public IExporter
 {
 public:
@@ -35,11 +30,10 @@ public:
     virtual void OnCrossCall(const ICrossCall* module);
 
 protected:
-    std::vector<const IVariate*> _vars;
-    std::vector<const IType*> _types;
-    cs::Serialize* _ser = nullptr;
     std::string _path;
     std::string _name;
+
+    std::vector<IExporter*> _exporters;
 };
 
 GCF_NAMESPACE_END

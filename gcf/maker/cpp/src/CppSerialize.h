@@ -7,16 +7,29 @@ GCF_NAMESPACE_BEGIN
 
 namespace cpp
 {
-    class Serialize
+    class Serialize : public IExporter
     {
-    public:
+    protected:
         Serialize();
         ~Serialize();
 
     public:
-        bool Begin(const IScope* global, std::string& path, std::string& name);
-        bool OnType(const IType* type);
-        void End();
+        static Serialize* Create();
+
+    public:
+        virtual void Release();
+
+    public:
+        virtual bool OnBegin(const IScope* global, const char* path, const char* name);
+        virtual void OnEnd();
+        virtual void OnType(const IType* type);
+
+    public:
+        virtual void OnNsBegin(const std::string& name) {}
+        virtual void OnNsEnd() {}
+        virtual void OnInclude(const std::string& file) {}
+        virtual void OnVariate(const IVariate* var) {}
+        virtual void OnCrossCall(const ICrossCall* module) {}
 
     protected:
         std::ostream& DeclRead(std::ostream& stream, const IType* type, bool isDecl);

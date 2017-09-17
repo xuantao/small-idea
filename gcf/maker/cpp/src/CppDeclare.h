@@ -6,22 +6,33 @@ GCF_NAMESPACE_BEGIN
 
 namespace cpp
 {
-    class Declare
+    class Declare : public IExporter
     {
-    public:
-        Declare(const IScope* global, const std::string& path, const std::string& name);
+    protected:
+        Declare();
         ~Declare();
 
+        Declare(const Declare&) = delete;
+        Declare& operator = (const Declare&) = delete;
     public:
-        void DoExport();
+        static Declare* Create();
 
-        void OnNsBegin(const std::string& name);
-        void OnNsEnd();
+    public:
+        virtual void Release();
 
-        void OnInclude(const std::string& file);
+    public:
+        virtual bool OnBegin(const IScope* global, const char* path, const char* name);
+        virtual void OnEnd();
+        virtual void OnNsBegin(const std::string& name);
+        virtual void OnNsEnd();
 
-        void OnVariate(const IVariate* var);
-        void OnType(const IType* type);
+        virtual void OnInclude(const std::string& file);
+
+        virtual void OnVariate(const IVariate* var);
+        virtual void OnType(const IType* type);
+
+    public:
+        virtual void OnCrossCall(const ICrossCall* module) {}
 
     protected:
         bool Decl(const IEnumType* ty);

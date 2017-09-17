@@ -18,7 +18,17 @@ namespace cs
         Clear();
     }
 
-    bool Serialize::Begin(const IScope* global, std::string& path, std::string& name)
+    Serialize* Serialize::Create()
+    {
+        return new Serialize();
+    }
+
+    void Serialize::Release()
+    {
+        delete this;
+    }
+
+    bool Serialize::OnBegin(const IScope* global, const char* path, const char* name)
     {
         std::string fileName = utility::ContactPath(path, name) + "_Ser";
         std::ofstream* file = new std::ofstream(fileName + ".cs");
@@ -42,10 +52,10 @@ namespace cs
         return true;
     }
 
-    bool Serialize::OnType(const IType* type)
+    void Serialize::OnType(const IType* type)
     {
         if (type->TypeCat() != TypeCategory::Enum && type->TypeCat() != TypeCategory::Struct)
-            return true;
+            return;
 
         // process inner types
         do
@@ -72,10 +82,9 @@ namespace cs
         DeclWrite(type);
 
         _isFirst = false;
-        return true;
     }
 
-    void Serialize::End()
+    void Serialize::OnEnd()
     {
         _tab = 0;
 
