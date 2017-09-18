@@ -70,7 +70,7 @@ static gcf::Parser::symbol_type yylex(gcf::Driver& driver)
     ;
 
 /* key words */
-%token TAB JSON ENUM STRUCT CONST BOOL INT FLOAT STRING NAMESPACE VOID CROSS
+%token TAB JSON ENUM STRUCT CONST BOOL BYTE INT LONG FLOAT DOUBLE STRING NAMESPACE VOID CROSS
 
 %token <std::string> IDENTIFIER     "identifier"
 %token <std::string> VALUE_TRUE     "true"
@@ -222,8 +222,11 @@ RefName     : IDENTIFIER                { $$ = $1; }
             ;
 
 Type        : BOOL      { CONTEXT.SetType(RawCategory::Bool); }
+            | BYTE      { CONTEXT.SetType(RawCategory::Byte); }
             | INT       { CONTEXT.SetType(RawCategory::Int); }
+            | LONG      { CONTEXT.SetType(RawCategory::Long); }
             | FLOAT     { CONTEXT.SetType(RawCategory::Float); }
+            | DOUBLE    { CONTEXT.SetType(RawCategory::Double); }
             | STRING    { CONTEXT.SetType(RawCategory::String); }
             | RefName   { CONTEXT.SetType($1); }
             ;

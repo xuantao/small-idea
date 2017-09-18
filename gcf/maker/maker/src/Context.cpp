@@ -26,8 +26,11 @@ Context::Context(Driver& driver)
     _stackScope.push_back(_gloal->Scope());
 
     _SCOPE_->TypeSet()->Add(new RawType(TYPE_BOOL, RawCategory::Bool, _gloal->Scope()));
+    _SCOPE_->TypeSet()->Add(new RawType(TYPE_BYTE, RawCategory::Byte, _gloal->Scope()));
     _SCOPE_->TypeSet()->Add(new RawType(TYPE_INT, RawCategory::Int, _gloal->Scope()));
     _SCOPE_->TypeSet()->Add(new RawType(TYPE_FLOAT, RawCategory::Float, _gloal->Scope()));
+    _SCOPE_->TypeSet()->Add(new RawType(TYPE_FLOAT, RawCategory::Double, _gloal->Scope()));
+    _SCOPE_->TypeSet()->Add(new RawType(TYPE_LONG, RawCategory::Long, _gloal->Scope()));
     _SCOPE_->TypeSet()->Add(new RawType(TYPE_STRING, RawCategory::String, _gloal->Scope()));
 }
 
@@ -490,25 +493,62 @@ void Context::SetArrayRefer(const std::string& refer)
 
 void Context::SetValue(RawCategory raw, const std::string& value)
 {
+    assert(_data.type);
     assert(_data.value == nullptr);
 
     IType* type = _data.type;
     if (type->TypeCat() == TypeCategory::Array)
         type = static_cast<IArrayType*>(type)->Original();
 
-    if (
-        type->TypeCat() != TypeCategory::Raw
-        || static_cast<IRawType*>(type)->RawCat() != raw
-        )
+    if (type->TypeCat() != TypeCategory::Raw)
     {
-        //_driver.Error("current type:{0} cant not match value:{1}", type->Name(), value);
-        //return;
+        _driver.Error("only raw type:{0} can be assign value", type->TypeCat());
+        return;
     }
 
-    if (raw == RawCategory::String)
+    IRawType* rawType = static_cast<IRawType*>(type);
+    if (raw == RawCategory::Bool)
+    {
+        if (rawType->RawCat() != RawCategory::Bool)
+        {
+            _driver.Error("bool value only can assign for bool type, current type:{0}", rawType->RawCat());
+            return;
+        }
+
+        _data.value = value_util::Create(RawCategory::Bool, value);
+    }
+    else if (raw == RawCategory::String)
+    {
+        if (rawType->RawCat() != RawCategory::String)
+        {
+            _driver.Error("string value only can assign for string type, current type:{0}", rawType->RawCat());
+            return;
+        }
+
         _data.value = value_util::Create(raw, value.substr(1, value.length() - 2));
-    else
-        _data.value = value_util::Create(raw, value);
+    }
+    else if (raw == RawCategory::Int)
+    {
+        int64_t val = 0;
+        if (!utility::Convert(value, val))
+        {
+            _driver.Error("convert int value:{0} failed", value);
+            return;
+        }
+
+        //TODO:
+    }
+    else if (raw == RawCategory::Float)
+    {
+        double val = 0.0;
+        if (!utility::Convert(value, val))
+        {
+            _driver.Error("convert float value:{0} failed", value);
+            return;
+        }
+
+        //TODO:
+    }
 
     if (_data.value == nullptr)
         _driver.Error("create with type:{0} value:{1} failed", raw, value);
@@ -598,9 +638,9 @@ std::string Context::ConflictName(const std::string& name) const
 {
     int index = 0;
 
-    std::string ret = name + "_crash";
+    std::string ret = name + "_conflict";
     while (_SCOPE_->GetElement(ret))
-        ret = name + "_crash_" + std::to_string(++index);
+        ret = name + "_conflict_" + std::to_string(++index);
 
     return ret;
 }
@@ -661,12 +701,10 @@ bool Context::TabVarChecker(const std::string& path, IVariate* var)
 
 void Context::OnCommonBegin()
 {
-
 }
 
 void Context::OnCommonEnd()
 {
-
 }
 
 GCF_NAMESPACE_END

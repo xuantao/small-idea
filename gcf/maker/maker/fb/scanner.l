@@ -106,8 +106,11 @@ REG_DESC                (^[ \t]*///<)
 "struct"        { return Parser::make_STRUCT(Location()); }
 "const"         { return Parser::make_CONST(Location()); }
 "bool"          { return Parser::make_BOOL(Location()); }
+"byte"          { return Parser::make_BYTE(Location()); }
 "int"           { return Parser::make_INT(Location()); }
+"long"          { return Parser::make_LONG(Location()); }
 "float"         { return Parser::make_FLOAT(Location()); }
+"double"        { return Parser::make_DOUBLE(Location()); }
 "string"        { return Parser::make_STRING(Location()); }
 "true"          { return Parser::make_VALUE_TRUE(yytext, Location()); }
 "false"         { return Parser::make_VALUE_FALSE(yytext, Location()); }

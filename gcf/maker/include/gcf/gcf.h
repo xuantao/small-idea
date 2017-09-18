@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <algorithm>
 #include <functional>
+#include <cstdint>
 
 #define GCF_NAMESPACE       gcf
 #define GCF_NAMESPACE_BEGIN namespace GCF_NAMESPACE {
@@ -35,8 +36,11 @@
 
 // raw type name
 #define TYPE_BOOL   "bool"
+#define TYPE_BYTE   "byte"
 #define TYPE_INT    "int"
 #define TYPE_FLOAT  "float"
+#define TYPE_DOUBLE "double"
+#define TYPE_LONG   "long"
 #define TYPE_STRING "string"
 
 // file extend gcf = game configuration file
@@ -65,8 +69,11 @@ enum class TypeCategory
 enum class RawCategory
 {
     Bool,
+    Byte,
     Int,
+    Long,
     Float,
+    Double,
     String
 };
 
@@ -322,8 +329,11 @@ public:
 public:
     virtual RawCategory RawCat() const = 0;
     virtual bool AsBool() const = 0;
-    virtual int AsInt() const = 0;
+    virtual int8_t AsByte() const = 0;
+    virtual int32_t AsInt() const = 0;
+    virtual int64_t AsLong() const = 0;
     virtual float AsFloat() const = 0;
+    virtual double AsDouble() const = 0;
     virtual const char* AsString() const = 0;
 };
 

@@ -34,12 +34,20 @@ namespace cpp_util
         std::string str;
         if (val->RawCat() == RawCategory::Bool)
             str = val->AsBool() ? "true" : "false";
+        else if (val->RawCat() == RawCategory::Byte)
+            str = std::to_string(val->AsByte());
         else if (val->RawCat() == RawCategory::Int)
             str = std::to_string(val->AsInt());
         else if (val->RawCat() == RawCategory::Float)
             str = std::to_string(val->AsFloat());
+        else if (val->RawCat() == RawCategory::Double)
+            str = std::to_string(val->AsDouble());
+        else if (val->RawCat() == RawCategory::Long)
+            str = std::to_string(val->AsLong());
         else if (val->RawCat() == RawCategory::String)
             str = val->AsString();
+        else
+            assert(false);
 
         return str;
     }
@@ -63,14 +71,22 @@ namespace cpp_util
     {
         if (raw == RawCategory::Bool)
             return "bool";
+        else if (raw == RawCategory::Byte)
+            return "int8_t";
         else if (raw == RawCategory::Int)
             return "int";
         else if (raw == RawCategory::Float)
             return "float";
+        else if (raw == RawCategory::Double)
+            return "double";
+        else if (raw == RawCategory::Long)
+            return "int64_t";
         else if (raw == RawCategory::String)
             return "std::string";
         else
-            return std::string();
+            assert(false);
+
+        return std::string();
     }
 
     std::string TypeName(const IType* type)
@@ -123,14 +139,21 @@ namespace cpp_util
     {
         if (raw == RawCategory::Bool)
             return "false";
+        else if (raw == RawCategory::Byte)
+            return "0";
         else if (raw == RawCategory::Int)
             return "0";
         else if (raw == RawCategory::Float)
             return "0.0f";
+        else if (raw == RawCategory::Double)
+            return "0.0";
+        else if (raw == RawCategory::Long)
+            return "0";
         else if (raw == RawCategory::String)
             return std::string();
         else
-            return std::string();
+            assert(false);
+        return std::string();;
     }
 
     std::string Value(const IScope* scope, const IType* type, const IValue* val)

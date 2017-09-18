@@ -274,11 +274,37 @@ namespace utility
         return true;
     }
 
-    bool Convert(const std::string& str, int& out)
+    bool Convert(const std::string& str, int8_t& out)
+    {
+        try
+        {
+            out = (int8_t)std::stoi(str);
+        }
+        catch (std::exception e)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    bool Convert(const std::string& str, int32_t& out)
     {
         try
         {
             out = std::stoi(str);
+        }
+        catch (std::exception e)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    bool Convert(const std::string& str, int64_t& out)
+    {
+        try
+        {
+            out = std::stoll(str);
         }
         catch (std::exception e)
         {
@@ -292,6 +318,19 @@ namespace utility
         try
         {
             out = std::stof(str);
+        }
+        catch (std::exception e)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    bool Convert(const std::string& str, double& out)
+    {
+        try
+        {
+            out = std::stod(str);
         }
         catch (std::exception e)
         {
@@ -335,22 +374,6 @@ namespace utility
             return str;
 
         return TrimLeft(TrimRight(str, trim), trim);
-
-        //std::string::size_type beg = 0;
-        //std::string::size_type end = str.length() - 1;
-        //for (; beg < str.length(); ++beg)
-        //{
-        //    if (std::string::npos == trim.find(str[beg]))
-        //        break;
-        //}
-
-        //for (; end > beg; --end)
-        //{
-        //    if (std::string::npos == trim.find(str[end]))
-        //        break;
-        //}
-
-        //return str.substr(beg, end + 1 - beg);
     }
 
     std::string Replace(const std::string& str, const std::string& _r, const std::string& _n)

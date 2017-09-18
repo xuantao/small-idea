@@ -5,57 +5,77 @@ GCF_NAMESPACE_BEGIN
 // RawValue
 RawValue::RawValue(bool value)
     : _raw(RawCategory::Bool)
-    , _b(value)
+    , _bool(value)
 {
 }
 
 RawValue::RawValue(int value)
     : _raw(RawCategory::Int)
-    , _i(value)
+    , _int(value)
 {
 }
 
 RawValue::RawValue(float value)
     : _raw(RawCategory::Float)
-    , _f(value)
+    , _float(value)
 {
 }
 
 RawValue::RawValue(const std::string& value)
     : _raw(RawCategory::String)
-    , _s(value)
+    , _str(value)
 {
 }
 
 bool RawValue::AsBool() const
 {
     assert(_raw == RawCategory::Bool);
-    return _b;
+    return _bool;
 }
 
-int RawValue::AsInt() const
+int8_t RawValue::AsByte() const
+{
+    assert(_raw == RawCategory::Byte);
+    return _byte;
+}
+
+int32_t RawValue::AsInt() const
 {
     assert(_raw == RawCategory::Int);
-    return _i;
+    return _int;
 }
 
 float RawValue::AsFloat() const
 {
     assert(_raw == RawCategory::Float);
-    return _f;
+    return _float;
 }
+
+double RawValue::AsDouble() const
+{
+    assert(_raw == RawCategory::Double);
+    return _double;
+}
+
+
+int64_t RawValue::AsLong() const
+{
+    assert(_raw == RawCategory::Long);
+    return _int64_;
+}
+
 
 const char* RawValue::AsString() const
 {
     assert(_raw == RawCategory::String);
-    return _s.c_str();
+    return _str.c_str();
 }
 
 bool RawValue::Value(bool& b) const
 {
     if (_raw != RawCategory::Bool)
         return false;
-    b = _b;
+    b = _bool;
     return true;
 }
 
@@ -63,7 +83,7 @@ bool RawValue::Value(int& i) const
 {
     if (_raw != RawCategory::Int)
         return false;
-    i = _i;
+    i = _int;
     return true;
 }
 
@@ -71,7 +91,7 @@ bool RawValue::Value(float& f) const
 {
     if (_raw != RawCategory::Float)
         return false;
-    f = _f;
+    f = _float;
     return true;
 }
 
@@ -79,7 +99,7 @@ bool RawValue::Value(std::string& str) const
 {
     if (_raw != RawCategory::String)
         return false;
-    str = _s;
+    str = _str;
     return true;
 }
 

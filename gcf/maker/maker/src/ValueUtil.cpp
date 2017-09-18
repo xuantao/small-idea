@@ -114,7 +114,7 @@ namespace value_util
         else if (val->ValueCat() == ValueCategory::Ref)
             return ToString(static_cast<const RefValue*>(val)->Var()->Value());
         else
-            ERROR_NOT_ALLOW;
+            assert(false);
 
         return std::string();
     }
@@ -130,14 +130,21 @@ namespace value_util
     {
         if (raw == RawCategory::Bool)
             return "false";
+        else if (raw == RawCategory::Byte)
+            return "0";
         else if (raw == RawCategory::Int)
             return "0";
         else if (raw == RawCategory::Float)
             return "0.0f";
+        else if (raw == RawCategory::Double)
+            return "0.0";
+        else if (raw == RawCategory::Long)
+            return "0";
         else if (raw == RawCategory::String)
             return std::string();
         else
-            return std::string();
+            assert(false);
+        return std::string();
     }
 
     IValue* Create(RawCategory raw)
@@ -145,14 +152,20 @@ namespace value_util
         IValue* val = nullptr;
         if (raw == RawCategory::Bool)
             val = new RawValue(false);
+        else if (raw == RawCategory::Byte)
+            val = new RawValue((int8_t)0);
         else if (raw == RawCategory::Int)
-            val = new RawValue(0);
+            val = new RawValue((int32_t)0);
         else if (raw == RawCategory::Float)
-            val = new RawValue(0.0f);
+            val = new RawValue((float)0.0f);
+        else if (raw == RawCategory::Float)
+            val = new RawValue((double)0.0);
+        else if (raw == RawCategory::Long)
+            val = new RawValue((int64_t)0);
         else if (raw == RawCategory::String)
             val = new RawValue(std::string());
         else
-            ERROR_NOT_ALLOW;
+            assert(false);
         return val;
     }
 

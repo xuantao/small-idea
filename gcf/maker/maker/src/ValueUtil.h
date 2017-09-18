@@ -12,9 +12,9 @@ namespace value_util
     bool Value(const IValue* val, float& f);
     bool Value(const IValue* val, std::string& str);
 
-    std::string ToString(const IValue* val);
-    std::string ToString(const IRawValue* val);
-    std::string DefValue(RawCategory raw);
+    //std::string ToString(const IValue* val);
+    //std::string ToString(const IRawValue* val);
+    //std::string DefValue(RawCategory raw);
 
     /*
      * 创建默认值

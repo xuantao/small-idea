@@ -28,8 +28,11 @@ namespace utility
     uint32_t HashValue(const ICrossCall* cross);
 
     bool Convert(const std::string& str, bool& out);
-    bool Convert(const std::string& str, int& out);
+    bool Convert(const std::string& str, int8_t& out);
+    bool Convert(const std::string& str, int32_t& out);
+    bool Convert(const std::string& str, int64_t& out);
     bool Convert(const std::string& str, float& out);
+    bool Convert(const std::string& str, double& out);
 
     std::string TrimFileSuffix(const std::string& file, char c = '.');
     std::string TrimLeft(const std::string& str, const std::string& trim);

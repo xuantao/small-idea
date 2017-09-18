@@ -99,7 +99,7 @@ namespace tab
         if (token == nullptr) return false;
         if (*token == 0) return true;
 
-        val = std::atof(token);
+        val = (float)std::atof(token);
         return true;
     }
 

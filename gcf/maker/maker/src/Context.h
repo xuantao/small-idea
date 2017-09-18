@@ -89,6 +89,7 @@ protected:
     bool TabVarChecker(const std::string& path, IVariate* var);
     void OnCommonBegin();
     void OnCommonEnd();
+    //void CheckValue()
 
 protected:
     Driver& _driver;
