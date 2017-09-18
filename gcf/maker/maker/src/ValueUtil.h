@@ -7,11 +7,6 @@ namespace value_util
 {
     bool AsRaw(RawCategory raw, const IValue* val);
 
-    bool Value(const IValue* val, bool& b);
-    bool Value(const IValue* val, int& i);
-    bool Value(const IValue* val, float& f);
-    bool Value(const IValue* val, std::string& str);
-
     //std::string ToString(const IValue* val);
     //std::string ToString(const IRawValue* val);
     //std::string DefValue(RawCategory raw);

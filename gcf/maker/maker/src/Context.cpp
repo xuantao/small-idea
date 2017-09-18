@@ -11,12 +11,70 @@
 
 #define _SCOPE_ _stackScope.back()
 
+//std::ostream& operator << (std::ostream& out, gcf::RawCategory raw)
+//{
+    //switch (raw)
+    //{
+    //case gcf::RawCategory::Bool:
+    //    out << "Bool";
+    //    break;
+    //case gcf::RawCategory::Byte:
+    //    out << "Byte";
+    //    break;
+    //case gcf::RawCategory::Int:
+    //    out << "Int";
+    //    break;
+    //case gcf::RawCategory::Long:
+    //    out << "Long";
+    //    break;
+    //case gcf::RawCategory::Float:
+    //    out << "Float";
+    //    break;
+    //case gcf::RawCategory::Double:
+    //    out << "Double";
+    //    break;
+    //case gcf::RawCategory::String:
+    //    out << "String";
+    //    break;
+    //default:
+    //    break;
+    //}
+//    return out;
+//}
+
 GCF_NAMESPACE_BEGIN
 
 static std::ostream& operator << (std::ostream& out, RawCategory raw)
 {
     return out;
 }
+
+namespace detail
+{
+    enum ConvetMask
+    {
+        Apt,    // accept
+        War,    // warnning
+        Err     // error
+    };
+
+    static ConvetMask sConvertMask[7][7] = {
+    //          bool    byte    int    long    float  double  string
+    /*  bool*/{ Apt,    Err,    Err,    Err,    Err,    Err,    Err},
+    /*  byte*/{ Err,    Apt,    Apt,    Apt,    Apt,    Apt,    Err},
+    /*   int*/{ Err,    War,    Apt,    Apt,    Apt,    Apt,    Err},
+    /*  long*/{ Err,    War,    War,    Apt,    War,    Apt,    Err},
+    /* float*/{ Err,    Err,    War,    Apt,    Apt,    Apt,    Err},
+    /*double*/{ Err,    Err,    War,    War,    War,    Apt,    Err},
+    /*string*/{ Err,    Err,    Err,    Err,    Err,    Err,    Apt},
+    };
+
+    static ConvetMask CheckConvert(RawCategory f, RawCategory t)
+    {
+        return sConvertMask[(int)f][(int)t];
+    }
+}
+
 
 Context::Context(Driver& driver)
     : _driver(driver)
@@ -86,27 +144,6 @@ bool Context::Export(IExporter* expoter)
     _mergeFile->Export(expoter, true);
     return true;
 }
-
-//bool Context::Export(ITabCreater* creator, const std::string& path)
-//{
-//    for (auto it = _tabs.cbegin(); it != _tabs.cend(); ++it)
-//    {
-//        creator->SetPath(utility::ContactPath(path, it->path));
-//        utility::Traverse(it->sType, creator);
-//    }
-//    return true;
-//}
-//
-//bool Context::Export(IJsonCreater* creator, const std::string& path)
-//{
-//    for (auto it = _jsons.cbegin(); it != _jsons.cend(); ++it)
-//    {
-//        creator->SetPath(utility::ContactPath(path, it->path));
-//        creator->OnStart(it->sType);
-//        creator->OnEnd();
-//    }
-//    return true;
-//}
 
 bool Context::IsVarDeclaring() const
 {
@@ -482,13 +519,20 @@ void Context::SetArrayRefer(const std::string& refer)
     int len = 0;
     IVariate* var = utility::FindVar(_SCOPE_, refer);
     if (var == nullptr)
+    {
         _driver.Error("can not find any var with name:{0}", refer);
-    else if (!value_util::Value(var->Value(), len))
-        _driver.Error("var with name:{0} cant not convert to length", refer);
-    else if (len <= 0)
-        _driver.Warning("array with length is {0}", len);
+        return;
+    }
 
-    UpgradeArray(len);
+    //TODO: 整理value的接口定义
+
+    //IValue
+    //if (!value_util::Value(var->Value(), len))
+    //    _driver.Error("var with name:{0} cant not convert to length", refer);
+    //else if (len <= 0)
+    //    _driver.Warning("array with length is {0}", len);
+
+    //UpgradeArray(len);
 }
 
 void Context::SetValue(RawCategory raw, const std::string& value)
@@ -502,53 +546,32 @@ void Context::SetValue(RawCategory raw, const std::string& value)
 
     if (type->TypeCat() != TypeCategory::Raw)
     {
-        _driver.Error("only raw type:{0} can be assign value", type->TypeCat());
+        _driver.Error("only raw type:{0} can be assign value", type->Name());
         return;
     }
 
     IRawType* rawType = static_cast<IRawType*>(type);
-    if (raw == RawCategory::Bool)
+    detail::ConvetMask mask = detail::CheckConvert(raw, rawType->RawCat());
+    if (mask == detail::ConvetMask::Err)
     {
-        if (rawType->RawCat() != RawCategory::Bool)
-        {
-            _driver.Error("bool value only can assign for bool type, current type:{0}", rawType->RawCat());
-            return;
-        }
-
-        _data.value = value_util::Create(RawCategory::Bool, value);
+        _driver.Error("value:{0} type can not convert to type:{1}", value, rawType->Name());
+        return;
     }
-    else if (raw == RawCategory::String)
-    {
-        if (rawType->RawCat() != RawCategory::String)
-        {
-            _driver.Error("string value only can assign for string type, current type:{0}", rawType->RawCat());
-            return;
-        }
 
+    RawCategory rawCat = rawType->RawCat();
+    if (rawCat == RawCategory::Double)
+        rawCat = RawCategory::Float;
+    else if (rawCat == RawCategory::Byte || rawCat == RawCategory::Long)
+        rawCat = RawCategory::Int;
+
+    mask = detail::CheckConvert(raw, rawCat);
+    if (mask == detail::ConvetMask::War)
+        _driver.Warning("value:{0} type convert to type:{1}", value, rawType->Name());
+
+    if (raw == RawCategory::String)
         _data.value = value_util::Create(raw, value.substr(1, value.length() - 2));
-    }
-    else if (raw == RawCategory::Int)
-    {
-        int64_t val = 0;
-        if (!utility::Convert(value, val))
-        {
-            _driver.Error("convert int value:{0} failed", value);
-            return;
-        }
-
-        //TODO:
-    }
-    else if (raw == RawCategory::Float)
-    {
-        double val = 0.0;
-        if (!utility::Convert(value, val))
-        {
-            _driver.Error("convert float value:{0} failed", value);
-            return;
-        }
-
-        //TODO:
-    }
+    else
+        _data.value = value_util::Create(rawType->RawCat(), value);
 
     if (_data.value == nullptr)
         _driver.Error("create with type:{0} value:{1} failed", raw, value);
@@ -570,20 +593,42 @@ void Context::SetValue(const std::string& refer)
         _driver.Error("reference value:{0} must be constant", refer);
     }
 
-    if (_data.type == nullptr)
-    {
-        _driver.Error("current type is empty value:{0}", refer);
-        return;
-    }
-
     IType* type = _data.type;
     if (type->TypeCat() == TypeCategory::Array)
         type = static_cast<IArrayType*>(type)->Original();
 
-    if (ref->Type() != type)
+    if (type->TypeCat() != TypeCategory::Raw)
     {
-        //_driver.Error("current type:{0} cant not match value:{1}", type->Name(), refer);
-        //return;
+        _driver.Error("only raw type:{0} can be assign value", type->Name());
+        return;
+    }
+
+    RawCategory rawSrc;
+    IRawType* rawType = static_cast<IRawType*>(type);
+    IType* refType = ref->Type();
+    if (refType->TypeCat() == TypeCategory::Enum)
+    {
+        rawSrc = RawCategory::Int;
+    }
+    else if (refType->TypeCat() == TypeCategory::Raw)
+    {
+        rawSrc = static_cast<IRawType*>(refType)->RawCat();
+    }
+    else
+    {
+        _driver.Error("value:{0} type can not convert to type:{1}", type->Name(), refType->Name());
+        return;
+    }
+
+    detail::ConvetMask mask = detail::CheckConvert(rawSrc, rawType->RawCat());
+    if (mask == detail::ConvetMask::Err)
+    {
+        _driver.Error("value:{0} type can not convert to type:{1}", refType->Name(), rawType->Name());
+        return;
+    }
+    else if (mask == detail::ConvetMask::War)
+    {
+        _driver.Warning("type convert warnning");
     }
 
     _data.value = value_util::Create(ref);

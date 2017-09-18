@@ -122,6 +122,13 @@ int main(int argc, char* argv[])
     int idx1 = Enum::Index(GlobalType::Int);
     int idx2 = Enum::Index<GlobalType>("Int");
 
+    int arrDD[2][2] = {
+        {1, 2},
+        {3, 4}
+    };
+
+    int a = arrDD[1][1];
+
     system("pause");
     return 1;
 }

@@ -33,27 +33,21 @@ namespace value_util
 
         std::string str;
         if (val->RawCat() == RawCategory::Bool)
-        {
-            bool b = false;
-            val->Value(b);
-            str = b ? "true" : "false";
-        }
+            str = val->AsBool() ? "true" : "false";
+        else if (val->RawCat() == RawCategory::Byte)
+            str = std::to_string(val->AsByte());
         else if (val->RawCat() == RawCategory::Int)
-        {
-            int i = 0;
-            val->Value(i);
-            str = std::to_string(i);
-        }
+            str = std::to_string(val->AsInt());
+        else if (val->RawCat() == RawCategory::Long)
+            str = std::to_string(val->AsLong());
         else if (val->RawCat() == RawCategory::Float)
-        {
-            float f = 0.0f;
-            val->Value(f);
-            str = std::to_string(f);
-        }
+            str = std::to_string(val->AsFloat());
+        else if (val->RawCat() == RawCategory::Double)
+            str = std::to_string(val->AsDouble());
         else if (val->RawCat() == RawCategory::String)
-        {
-            val->Value(str);
-        }
+            str = val->AsString();
+        else
+            assert(false);
 
         return str;
     }
@@ -72,37 +66,37 @@ namespace value_util
         return original->RawCat() == raw;
     }
 
-    bool Value(const IValue* val, bool& b)
-    {
-        const RawValue* raw = GetRaw(val);
-        if (raw)
-            return raw->Value(b);
-        return true;
-    }
+    //bool Value(const IValue* val, bool& b)
+    //{
+    //    const RawValue* raw = GetRaw(val);
+    //    if (raw)
+    //        return raw->Value(b);
+    //    return true;
+    //}
 
-    bool Value(const IValue* val, int& i)
-    {
-        const RawValue* raw = GetRaw(val);
-        if (raw)
-            return raw->Value(i);
-        return true;
-    }
+    //bool Value(const IValue* val, int& i)
+    //{
+    //    const RawValue* raw = GetRaw(val);
+    //    if (raw)
+    //        return raw->Value(i);
+    //    return true;
+    //}
 
-    bool Value(const IValue* val, float &f)
-    {
-        const RawValue* raw = GetRaw(val);
-        if (raw)
-            return raw->Value(f);
-        return true;
-    }
+    //bool Value(const IValue* val, float &f)
+    //{
+    //    const RawValue* raw = GetRaw(val);
+    //    if (raw)
+    //        return raw->Value(f);
+    //    return true;
+    //}
 
-    bool Value(const IValue* val, std::string& str)
-    {
-        const RawValue* raw = GetRaw(val);
-        if (raw)
-            return raw->Value(str);
-        return true;
-    }
+    //bool Value(const IValue* val, std::string& str)
+    //{
+    //    const RawValue* raw = GetRaw(val);
+    //    if (raw)
+    //        return raw->Value(str);
+    //    return true;
+    //}
 
     std::string ToString(const IValue* val)
     {
