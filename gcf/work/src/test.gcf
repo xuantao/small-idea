@@ -88,41 +88,81 @@ struct Struct2
 	
 struct Msg
 {
+	const string NAME = "MSG";
+	struct Inner{
+		int idx = 101;
+		string name = NAME;
+	}
 
+	bool _bool = true;
+	byte _byte = 1;
+	int _int = 2;
+	long _long = 3;
+	float _float = 4.0;
+	double _double = 5.0f;
+	string _string = "msg";
 
-	bool b;
-	int i;
-	float f;
-	string s = "msg";
-	
-	Inner inner;
+	int _int_ary[];
+	int _int_ary_2[2];
+
+	Inner _inner;
+	Inner _inner_ary[];
+	Inner _inner_ary_2[2];
 }
-
 
 cross Caller {
 	void Call_A(int a, int b);
 	int Call_B(string str)
 }
 
+
 cross TestC2S
 {
-	bool Test(bool b);
-	int Test(int a);
-	float Test(float f);
-	string Test(string s);
+	bool Test(bool v);
+	byte Test(byte v);
+	int Test(int v);
+	long Test(long v);
+	float Test(float v);
+	double Test(double v);
+	string Test(string v);
 
-	Msg Test(Msg msg);
-	void Test(int ar[10][]);
+	void Test(bool v[]);
+	void Test(byte v[2]);
+	void Test(int v[][]);
+	void Test(long v[2][]);
+	void Test(float v[][2]);
+
+	void Test();
+
+	void Test(Msg msg);
+	void Test(Msg msg[2]);
+	Msg Test(int a, int b);
+	Msg[] Test(int a, int b, int c);
+	Msg[2] Test(int a, int b, int c, int d);
 }
 
 cross TestS2C
 {
-	bool Test(bool b);
-	int Test(int a);
-	float Test(float f);
-	string Test(string s);
+	bool Test(bool v);
+	byte Test(byte v);
+	int Test(int v);
+	long Test(long v);
+	float Test(float v);
+	double Test(double v);
+	string Test(string v);
 
-	Msg Test(Msg msg);
+	void Test(bool v[]);
+	void Test(bool v[2]);
+	void Test(byte v[2]);
+	void Test(int v[][]);
+	void Test(long v[2][]);
+	void Test(float v[][2]);
 
-	void CallBack();
+	void Test();
+
+	void Test(Msg msg);
+	void Test(Msg msg[2]);
+	Msg Test(int a, int b);
+	Msg[] Test(int a, int b, int c);
+	Msg[2] Test(int a, int b, int c, int d);
 }

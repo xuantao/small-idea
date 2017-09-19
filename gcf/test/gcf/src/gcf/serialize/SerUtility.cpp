@@ -35,6 +35,23 @@ namespace serialize
         {
             return reader->Read(val, name);
         }
+        bool Read(IReader* reader, std::vector<bool>& vec, const char* name/* = nullptr*/)
+        {
+            int size = 0;
+            if (reader->ArrayBegin(size, name))
+                return false;
+
+            vec.resize(size);
+            for (int i = 0; i < size; ++i)
+            {
+                bool v;
+                if (!Read(reader, v))
+                    return false;
+                vec[i] = v;
+            }
+
+            return reader->ArrayEnd();
+        }
 
         /*
          * write functions

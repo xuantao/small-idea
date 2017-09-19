@@ -231,16 +231,45 @@ namespace Serialize
             return writer.StructEnd();
         }
 
+        public static bool Read(IReader reader, ref Msg.Inner val, string name = null)
+        {
+            if (!reader.StructBegin(Msg.Inner.HASH_CODE, name))
+                return false;
+
+            if (!Read(reader, ref val.idx, "idx")) return false;
+            if (!Read(reader, ref val.name, "name")) return false;
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, Msg.Inner val, string name = null)
+        {
+            if (!writer.StructBegin(Msg.Inner.HASH_CODE, name))
+                return false;
+
+            if (!Write(writer, val.idx, "idx")) return false;
+            if (!Write(writer, val.name, "name")) return false;
+
+            return writer.StructEnd();
+        }
+
         public static bool Read(IReader reader, ref Msg val, string name = null)
         {
             if (!reader.StructBegin(Msg.HASH_CODE, name))
                 return false;
 
-            if (!Read(reader, ref val.b, "b")) return false;
-            if (!Read(reader, ref val.i, "i")) return false;
-            if (!Read(reader, ref val.f, "f")) return false;
-            if (!Read(reader, ref val.s, "s")) return false;
-            if (!Read(reader, ref val.inner, "inner")) return false;
+            if (!Read(reader, ref val._bool, "_bool")) return false;
+            if (!Read(reader, ref val._byte, "_byte")) return false;
+            if (!Read(reader, ref val._int, "_int")) return false;
+            if (!Read(reader, ref val._long, "_long")) return false;
+            if (!Read(reader, ref val._float, "_float")) return false;
+            if (!Read(reader, ref val._double, "_double")) return false;
+            if (!Read(reader, ref val._string, "_string")) return false;
+            if (!Read(reader, ref val._int_ary, "_int_ary")) return false;
+            if (!Read(reader, ref val._int_ary_2, "_int_ary_2")) return false;
+            if (!Read(reader, ref val._inner, "_inner")) return false;
+            if (!Read(reader, ref val._inner_ary, "_inner_ary")) return false;
+            if (!Read(reader, ref val._inner_ary_2, "_inner_ary_2")) return false;
 
             return reader.StructEnd();
         }
@@ -250,11 +279,18 @@ namespace Serialize
             if (!writer.StructBegin(Msg.HASH_CODE, name))
                 return false;
 
-            if (!Write(writer, val.b, "b")) return false;
-            if (!Write(writer, val.i, "i")) return false;
-            if (!Write(writer, val.f, "f")) return false;
-            if (!Write(writer, val.s, "s")) return false;
-            if (!Write(writer, val.inner, "inner")) return false;
+            if (!Write(writer, val._bool, "_bool")) return false;
+            if (!Write(writer, val._byte, "_byte")) return false;
+            if (!Write(writer, val._int, "_int")) return false;
+            if (!Write(writer, val._long, "_long")) return false;
+            if (!Write(writer, val._float, "_float")) return false;
+            if (!Write(writer, val._double, "_double")) return false;
+            if (!Write(writer, val._string, "_string")) return false;
+            if (!Write(writer, val._int_ary, "_int_ary")) return false;
+            if (!Write(writer, val._int_ary_2, "_int_ary_2")) return false;
+            if (!Write(writer, val._inner, "_inner")) return false;
+            if (!Write(writer, val._inner_ary, "_inner_ary")) return false;
+            if (!Write(writer, val._inner_ary_2, "_inner_ary_2")) return false;
 
             return writer.StructEnd();
         }

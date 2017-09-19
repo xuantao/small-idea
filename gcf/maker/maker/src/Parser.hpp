@@ -757,7 +757,7 @@ namespace  gcf  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 136,           //< Last index in yytable_.
+      yylast_ = 137,           //< Last index in yytable_.
       yynnts_ = 38,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.

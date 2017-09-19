@@ -38,6 +38,9 @@ namespace serialize
         bool Read(IReader* reader, Inner& val, const char* name = nullptr);
         bool Write(IWriter* writer, const Inner& val, const char* name = nullptr);
 
+        bool Read(IReader* reader, Msg::Inner& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const Msg::Inner& val, const char* name = nullptr);
+
         bool Read(IReader* reader, Msg& val, const char* name = nullptr);
         bool Write(IWriter* writer, const Msg& val, const char* name = nullptr);
 

@@ -91,13 +91,29 @@ public class Inner
 }
 public class Msg
 {
-    public const int HASH_CODE = -1854228442;
+    public class Inner
+    {
+        public const int HASH_CODE = -2071995248;
 
-    public bool b = false;
-    public int i = 0;
-    public float f = 0.0f;
-    public string s = "msg";
-    public Inner inner = new Inner();
+        public int idx = 101;
+        public string name = NAME;
+    }
+
+    public const int HASH_CODE = 1039095060;
+    public const string NAME = "MSG";
+
+    public bool _bool = true;
+    public byte _byte = 1;
+    public int _int = 2;
+    public long _long = 3;
+    public float _float = 4.000000f;
+    public double _double = 5.000000;
+    public string _string = "msg";
+    public List<int> _int_ary = new List<int>();
+    public FixedArray<int, ArrayLength_2> _int_ary_2 = new FixedArray<int, ArrayLength_2>();
+    public Msg.Inner _inner = new Msg.Inner();
+    public List<Msg.Inner> _inner_ary = new List<Msg.Inner>();
+    public FixedArray<Msg.Inner, ArrayLength_2> _inner_ary_2 = new FixedArray<Msg.Inner, ArrayLength_2>();
 }
 public enum Wtf
 {

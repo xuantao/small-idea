@@ -202,15 +202,42 @@ namespace serialize
             return writer->StructEnd();
         }
 
+        bool Read(IReader* reader, Msg::Inner& val, const char* name/* = nullptr*/)
+        {
+            if (!reader->StructBegin(Msg::Inner::HASH_CODE, name)) return false;
+
+            if (!Read(reader, val.idx, "idx")) return false;
+            if (!Read(reader, val.name, "name")) return false;
+
+            return reader->StructEnd();
+        }
+
+        bool Write(IWriter* writer, const Msg::Inner& val, const char* name/* = nullptr*/)
+        {
+            if (!writer->StructBegin(Msg::Inner::HASH_CODE, name)) return false;
+
+            if (!Write(writer, val.idx), "idx") return false;
+            if (!Write(writer, val.name), "name") return false;
+
+            return writer->StructEnd();
+        }
+
         bool Read(IReader* reader, Msg& val, const char* name/* = nullptr*/)
         {
             if (!reader->StructBegin(Msg::HASH_CODE, name)) return false;
 
-            if (!Read(reader, val.b, "b")) return false;
-            if (!Read(reader, val.i, "i")) return false;
-            if (!Read(reader, val.f, "f")) return false;
-            if (!Read(reader, val.s, "s")) return false;
-            if (!Read(reader, val.inner, "inner")) return false;
+            if (!Read(reader, val._bool, "_bool")) return false;
+            if (!Read(reader, val._byte, "_byte")) return false;
+            if (!Read(reader, val._int, "_int")) return false;
+            if (!Read(reader, val._long, "_long")) return false;
+            if (!Read(reader, val._float, "_float")) return false;
+            if (!Read(reader, val._double, "_double")) return false;
+            if (!Read(reader, val._string, "_string")) return false;
+            if (!Read(reader, val._int_ary, "_int_ary")) return false;
+            if (!Read(reader, val._int_ary_2, "_int_ary_2")) return false;
+            if (!Read(reader, val._inner, "_inner")) return false;
+            if (!Read(reader, val._inner_ary, "_inner_ary")) return false;
+            if (!Read(reader, val._inner_ary_2, "_inner_ary_2")) return false;
 
             return reader->StructEnd();
         }
@@ -219,11 +246,18 @@ namespace serialize
         {
             if (!writer->StructBegin(Msg::HASH_CODE, name)) return false;
 
-            if (!Write(writer, val.b), "b") return false;
-            if (!Write(writer, val.i), "i") return false;
-            if (!Write(writer, val.f), "f") return false;
-            if (!Write(writer, val.s), "s") return false;
-            if (!Write(writer, val.inner), "inner") return false;
+            if (!Write(writer, val._bool), "_bool") return false;
+            if (!Write(writer, val._byte), "_byte") return false;
+            if (!Write(writer, val._int), "_int") return false;
+            if (!Write(writer, val._long), "_long") return false;
+            if (!Write(writer, val._float), "_float") return false;
+            if (!Write(writer, val._double), "_double") return false;
+            if (!Write(writer, val._string), "_string") return false;
+            if (!Write(writer, val._int_ary), "_int_ary") return false;
+            if (!Write(writer, val._int_ary_2), "_int_ary_2") return false;
+            if (!Write(writer, val._inner), "_inner") return false;
+            if (!Write(writer, val._inner_ary), "_inner_ary") return false;
+            if (!Write(writer, val._inner_ary_2), "_inner_ary_2") return false;
 
             return writer->StructEnd();
         }

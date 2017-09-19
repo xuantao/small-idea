@@ -5,24 +5,6 @@
 
 #define DLL_EXPORT extern "C" __declspec(dllexport)
 
-class Executor : public Caller::IResponder
-{
-public:
-    virtual ~Executor() {}
-
-public:
-    virtual void Call_A(int a, int b)
-    {
-        printf("Call_A(a:%d, b:%d)\n", a, b);
-    }
-
-    virtual int Call_B(const std::string& str)
-    {
-        printf("Call_B(str:%s)\n", str.c_str());
-        return 101;
-    }
-};
-
 TestC2S::Requester* g_Invoker = nullptr;
 
 class ExeS2C : public TestS2C::IResponder
@@ -30,43 +12,126 @@ class ExeS2C : public TestS2C::IResponder
 public:
     virtual bool Test(bool b)
     {
-        printf("cpp Test1.b:%d\n", b);
-        return false;
+        printf("cpp Test(bool v:%s)\n", b ? "true" : "false");
+        return !b;
     }
 
-    virtual int Test(int a)
+    virtual int8_t Test(int8_t v)
     {
-        printf("cpp Test2.a:%d\n", a);
-        return 3334444;
+        printf("cpp Test(int8_t v:%d)", v);
+        return v + 1;
     }
+
+    virtual int Test(int32_t v)
+    {
+        printf("cpp Test(int32_t v:%d)\n", v);
+        return v + 1;
+    }
+
+    virtual int64_t Test(int64_t v)
+    {
+        printf("cpp Test(int64_t v:%lld)\n", v);
+        return v + 1;
+    }
+
     virtual float Test(float f)
     {
-        printf("cpp Test3.f:%f\n", f);
-        return 0.2222f;
+        printf("cpp Test(float f:%f)\n", f);
+        return f + 1.0f;
+    }
+
+    virtual double Test(double v)
+    {
+        printf("cpp Test(double v:%f)\n", v);
+        return v + 1.0f;
     }
 
     virtual std::string Test(const std::string& s)
     {
-        printf("cpp Test4.s:%s\n", s.c_str());
+        printf("cpp Test(const std::string& s:%s)\n", s.c_str());
         return "cpp yaner";
     }
 
-    virtual Msg Test(const Msg& msg)
+    virtual void Test(const std::vector<bool>& v)
     {
-        printf("cpp Test4.msg:%s\n", msg.inner.name.c_str());
-        Msg m2 = msg;
-
-        m2.inner.name = "cpp Test5";
-        return m2;
+        printf("cpp Test(const std::vector<bool>& v)\n");
     }
 
-    virtual void CallBack()
+    virtual void Test(const std::array<bool, 2>& v)
     {
-        g_Invoker->Test(false);
-        g_Invoker->Test(444);
-        g_Invoker->Test(0.5555f);
+        printf("cpp Test(const std::array<bool, 2>& v)\n");
+    }
+
+    virtual void Test(const std::array<int8_t, 2>& v)
+    {
+        printf("cpp Test(const std::array<int8_t, 2>& v)\n");
+    }
+
+    virtual void Test(const std::vector<std::vector<int> >& v)
+    {
+        printf("cpp Test(const std::vector<std::vector<int> >& v)\n");
+    }
+
+    virtual void Test(const std::vector<std::array<int64_t, 2> >& v)
+    {
+        printf("cpp Test(const std::vector<std::array<int64_t, 2> >& v)\n");
+    }
+
+    virtual void Test(const std::array<std::vector<float>, 2>& v)
+    {
+        printf("cpp Test(const std::array<std::vector<float>, 2>& v)\n");
+    }
+
+    virtual void Test(const Msg& msg)
+    {
+        printf("cpp Test(const Msg& msg:%s)\n", msg._inner.name.c_str());
+    }
+
+    virtual void Test(const std::array<Msg, 2>& msg)
+    {
+        printf("cpp Test(const std::array<Msg, 2>& msg)\n");
+    }
+
+    virtual Msg Test(int a, int b)
+    {
+        printf("cpp Test(int a:%d, int b:%d)\n", a, b);
+        return Msg();
+    }
+
+    virtual std::vector<Msg> Test(int a, int b, int c)
+    {
+        printf("cpp Test(int a:%d, int b:%d, int c:%d)\n", a, b, c);
+        return std::vector<Msg>();
+    }
+
+    virtual std::array<Msg, 2> Test(int a, int b, int c, int d)
+    {
+        printf("cpp Test(int a:%d, int b:%d, int c:%d, int d:%d)\n", a, b, c, d);
+        return std::array<Msg, 2>();
+    }
+
+    virtual void Test()
+    {
+        g_Invoker->Test(true);
+        g_Invoker->Test((int8_t)1);
+        g_Invoker->Test((int32_t)2);
+        g_Invoker->Test((int64_t)3);
+        g_Invoker->Test((float)4.0f);
+        g_Invoker->Test((double)5.0);
         g_Invoker->Test("cpp Callback");
+
+        g_Invoker->Test(std::vector<bool>());
+        g_Invoker->Test(std::array<int8_t, 2>());
+        g_Invoker->Test(std::vector<std::vector<int> >());
+        g_Invoker->Test(std::vector<std::array<int64_t, 2> >());
+        g_Invoker->Test(std::array<std::vector<float>, 2>());
+
+        g_Invoker->Test();
         g_Invoker->Test(Msg());
+        g_Invoker->Test(std::array<Msg, 2>());
+        g_Invoker->Test(1, 2);
+        g_Invoker->Test(1, 2, 3);
+        g_Invoker->Test(1, 2, 3, 4);
     }
 };
 
@@ -76,9 +141,7 @@ class World
 public:
     bool Init(cross_call::ICrossCall* caller, void* buffer, int size)
     {
-        _executor = new Executor();
         _station = new cross_call::Station(caller, (char*)buffer, size);
-        _progress = new Caller::Processor(_executor);
 
         _station->Register(Caller::MODULE_ID, _progress);
         g_Invoker = new TestC2S::Requester(_station->Invoker());
@@ -96,15 +159,11 @@ public:
 
         delete _progress;
         _progress = nullptr;
-
-        delete _executor;
-        _executor = nullptr;
     }
 
     cross_call::Station* GetStation() { return _station; }
 
 private:
-    Executor* _executor = nullptr;
     Caller::Processor* _progress = nullptr;
     cross_call::Station* _station = nullptr;
 };

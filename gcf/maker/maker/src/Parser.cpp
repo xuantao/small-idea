@@ -882,8 +882,8 @@ namespace  gcf  {
     break;
 
   case 56:
-#line 199 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.OnFuncEnd(); }
+#line 197 "../fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnFuncBegin(yystack_[1].value.as< std::string > ()); }
 #line 888 "Parser.cpp" // lalr1.cc:846
     break;
 
@@ -894,8 +894,8 @@ namespace  gcf  {
     break;
 
   case 58:
-#line 203 "../fb/parser.y" // lalr1.cc:846
-    { }
+#line 201 "../fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnFuncEnd(); }
 #line 900 "Parser.cpp" // lalr1.cc:846
     break;
 
@@ -906,8 +906,8 @@ namespace  gcf  {
     break;
 
   case 60:
-#line 207 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.OnVariate(yystack_[0].value.as< std::string > ()); }
+#line 205 "../fb/parser.y" // lalr1.cc:846
+    { }
 #line 912 "Parser.cpp" // lalr1.cc:846
     break;
 
@@ -918,92 +918,92 @@ namespace  gcf  {
     break;
 
   case 62:
-#line 212 "../fb/parser.y" // lalr1.cc:846
-    { }
+#line 209 "../fb/parser.y" // lalr1.cc:846
+    { CONTEXT.OnVariate(yystack_[0].value.as< std::string > ()); }
 #line 924 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 63:
 #line 213 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetConst(); }
+    { }
 #line 930 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 64:
-#line 215 "../fb/parser.y" // lalr1.cc:846
-    { }
+#line 214 "../fb/parser.y" // lalr1.cc:846
+    { CONTEXT.SetConst(); }
 #line 936 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 65:
 #line 216 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetDesc(yystack_[0].value.as< std::string > ()); }
+    { }
 #line 942 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 66:
-#line 220 "../fb/parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
+#line 217 "../fb/parser.y" // lalr1.cc:846
+    { CONTEXT.SetDesc(yystack_[0].value.as< std::string > ()); }
 #line 948 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 67:
 #line 221 "../fb/parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > () = yystack_[2].value.as< std::string > () + '.' + yystack_[0].value.as< std::string > (); }
+    { yylhs.value.as< std::string > () = yystack_[0].value.as< std::string > (); }
 #line 954 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 68:
-#line 224 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetType(RawCategory::Bool); }
+#line 222 "../fb/parser.y" // lalr1.cc:846
+    { yylhs.value.as< std::string > () = yystack_[2].value.as< std::string > () + '.' + yystack_[0].value.as< std::string > (); }
 #line 960 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 69:
 #line 225 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetType(RawCategory::Byte); }
+    { CONTEXT.SetType(RawCategory::Bool); }
 #line 966 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 70:
 #line 226 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetType(RawCategory::Int); }
+    { CONTEXT.SetType(RawCategory::Byte); }
 #line 972 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 71:
 #line 227 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetType(RawCategory::Long); }
+    { CONTEXT.SetType(RawCategory::Int); }
 #line 978 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 72:
 #line 228 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetType(RawCategory::Float); }
+    { CONTEXT.SetType(RawCategory::Long); }
 #line 984 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 73:
 #line 229 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetType(RawCategory::Double); }
+    { CONTEXT.SetType(RawCategory::Float); }
 #line 990 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 74:
 #line 230 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetType(RawCategory::String); }
+    { CONTEXT.SetType(RawCategory::Double); }
 #line 996 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 75:
 #line 231 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetType(yystack_[0].value.as< std::string > ()); }
+    { CONTEXT.SetType(RawCategory::String); }
 #line 1002 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 76:
-#line 234 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetValue(RawCategory::Bool, yystack_[0].value.as< std::string > ()); }
+#line 232 "../fb/parser.y" // lalr1.cc:846
+    { CONTEXT.SetType(yystack_[0].value.as< std::string > ()); }
 #line 1008 "Parser.cpp" // lalr1.cc:846
     break;
 
@@ -1015,43 +1015,43 @@ namespace  gcf  {
 
   case 78:
 #line 236 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetValue(RawCategory::Int, yystack_[0].value.as< std::string > ()); }
+    { CONTEXT.SetValue(RawCategory::Bool, yystack_[0].value.as< std::string > ()); }
 #line 1020 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 79:
 #line 237 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetValue(RawCategory::Int, "-" + yystack_[0].value.as< std::string > ()); }
+    { CONTEXT.SetValue(RawCategory::Int, yystack_[0].value.as< std::string > ()); }
 #line 1026 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 80:
 #line 238 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetValue(RawCategory::Float, yystack_[0].value.as< std::string > ()); }
+    { CONTEXT.SetValue(RawCategory::Int, "-" + yystack_[0].value.as< std::string > ()); }
 #line 1032 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 81:
 #line 239 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetValue(RawCategory::Float, "-" + yystack_[0].value.as< std::string > ()); }
+    { CONTEXT.SetValue(RawCategory::Float, yystack_[0].value.as< std::string > ()); }
 #line 1038 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 82:
 #line 240 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetValue(RawCategory::String, yystack_[0].value.as< std::string > ()); }
+    { CONTEXT.SetValue(RawCategory::Float, "-" + yystack_[0].value.as< std::string > ()); }
 #line 1044 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 83:
 #line 241 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetValue(yystack_[0].value.as< std::string > ()); }
+    { CONTEXT.SetValue(RawCategory::String, yystack_[0].value.as< std::string > ()); }
 #line 1050 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 84:
-#line 244 "../fb/parser.y" // lalr1.cc:846
-    { }
+#line 242 "../fb/parser.y" // lalr1.cc:846
+    { CONTEXT.SetValue(yystack_[0].value.as< std::string > ()); }
 #line 1056 "Parser.cpp" // lalr1.cc:846
     break;
 
@@ -1062,43 +1062,49 @@ namespace  gcf  {
     break;
 
   case 86:
-#line 247 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetArray(); }
+#line 246 "../fb/parser.y" // lalr1.cc:846
+    { }
 #line 1068 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 87:
 #line 248 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetArrayLength(yystack_[1].value.as< std::string > ()); }
+    { CONTEXT.SetArray(); }
 #line 1074 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 88:
 #line 249 "../fb/parser.y" // lalr1.cc:846
-    { CONTEXT.SetArrayRefer(yystack_[1].value.as< std::string > ()); }
+    { CONTEXT.SetArrayLength(yystack_[1].value.as< std::string > ()); }
 #line 1080 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 89:
-#line 252 "../fb/parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > ()= yystack_[0].value.as< std::string > (); }
+#line 250 "../fb/parser.y" // lalr1.cc:846
+    { CONTEXT.SetArrayRefer(yystack_[1].value.as< std::string > ()); }
 #line 1086 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 90:
 #line 253 "../fb/parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > ()= yystack_[2].value.as< std::string > (); }
+    { yylhs.value.as< std::string > ()= yystack_[0].value.as< std::string > (); }
 #line 1092 "Parser.cpp" // lalr1.cc:846
     break;
 
   case 91:
 #line 254 "../fb/parser.y" // lalr1.cc:846
-    { yylhs.value.as< std::string > ()= yystack_[1].value.as< std::string > (); }
+    { yylhs.value.as< std::string > ()= yystack_[2].value.as< std::string > (); }
 #line 1098 "Parser.cpp" // lalr1.cc:846
     break;
 
+  case 92:
+#line 255 "../fb/parser.y" // lalr1.cc:846
+    { yylhs.value.as< std::string > ()= yystack_[1].value.as< std::string > (); }
+#line 1104 "Parser.cpp" // lalr1.cc:846
+    break;
 
-#line 1102 "Parser.cpp" // lalr1.cc:846
+
+#line 1108 "Parser.cpp" // lalr1.cc:846
           default:
             break;
           }
@@ -1362,48 +1368,48 @@ namespace  gcf  {
   const signed char
    Parser ::yypact_[] =
   {
-     -72,     7,    10,   -72,    -1,    13,    20,    23,   -72,    35,
-      36,   -72,   -72,   -72,   -72,    38,   -72,   -72,    79,   -72,
-     -72,   -12,    39,    47,    19,    70,    75,    76,    67,    80,
-       6,    87,   -72,    33,    63,   -72,    50,   -72,   -72,   -72,
-     -72,   -72,   -72,   -72,   -72,    89,    68,    88,   -72,   -72,
+     -72,    44,     7,   -72,     1,    48,    23,    39,   -72,    47,
+      49,   -72,   -72,   -72,   -72,    58,   -72,   -72,     5,   -72,
+     -72,   -15,    59,    60,    79,    84,    82,    85,    67,    87,
+      86,    95,   -72,    30,    71,   -72,    50,   -72,   -72,   -72,
+     -72,   -72,   -72,   -72,   -72,    96,    73,    97,   -72,   -72,
      -72,   -72,   -72,   -72,   -72,   -72,   -72,   -72,   -72,   -72,
-     -72,     0,    90,   -72,    38,    91,    71,   -72,   -72,   -72,
-     -72,   -12,   -72,     2,    93,    73,   -72,   -72,    74,    77,
-      -8,    69,    78,   -72,    89,   -72,   -72,   -72,   -72,    33,
-      97,    82,   -72,   -72,   108,    37,   109,   -72,    11,   -11,
-      99,   -72,   -72,   -72,   -72,   -72,    69,   -72,   -72,   104,
-     -72,   110,   -72,   -72,   -10,   -72,   -72,   -72,   -72,   -72,
-      89,   -72,   -72,   103,    28,   -72,   -72,   -72,   -12,   -72,
-     -72,   -72,   -72,   -72
+     -72,     9,    98,   -72,    58,    99,    74,   -72,   -72,   -72,
+     -72,   -15,   -72,    -1,   100,    75,   -72,   -72,   -10,    80,
+       6,    76,    78,   -72,    96,   -72,   -72,   -72,   -72,    30,
+     104,    88,   -72,   -72,   114,    37,    35,   115,    22,   -72,
+     -72,    -3,   105,   -72,   -72,   -72,   -72,    76,   -72,   -72,
+     108,   -72,   116,   -72,   -72,   107,    31,   -72,   121,   -72,
+      17,   -72,   -72,   -72,   -72,   -72,    96,   -72,   -72,   -72,
+     -15,   -72,   -72,   -72,   -72,   -72,   -72
   };
 
   const unsigned char
    Parser ::yydefact_[] =
   {
-       3,     0,    62,     1,     0,     0,     0,     0,    63,     0,
+       3,     0,    63,     1,     0,     0,     0,     0,    64,     0,
        0,     4,     8,    13,     5,    23,     6,    43,     0,     7,
-      52,     0,     0,     0,     0,    36,     0,     0,    62,    28,
-       0,    24,    26,    62,     0,    34,     0,    68,    69,    70,
-      71,    72,    73,    74,    66,    75,     0,     0,    37,    38,
+      52,     0,     0,     0,     0,    36,     0,     0,    63,    28,
+       0,    24,    26,    63,     0,    34,     0,    69,    70,    71,
+      72,    73,    74,    75,    67,    76,     0,     0,    37,    38,
       20,    32,    11,    49,    12,    14,    17,    10,    15,    16,
       18,     0,    21,    19,    25,    39,     0,    43,    33,    44,
-      45,     0,    41,     0,    50,     0,    48,    58,     0,     0,
-      89,    64,     0,    29,    31,    22,    27,    40,    36,    62,
-       0,     0,    35,    51,     0,     0,     0,    67,     0,     0,
-      91,    84,    65,     9,    30,    47,    64,    42,    54,    56,
-      53,    59,    60,    55,     0,    76,    77,    78,    80,    82,
-      83,    90,    86,     0,     0,    85,    46,    57,     0,    79,
-      81,    87,    88,    61
+      45,     0,    41,     0,    50,     0,    48,    59,     0,     0,
+      90,    65,     0,    29,    31,    22,    27,    40,    36,    63,
+       0,     0,    35,    51,     0,     0,     0,     0,     0,    85,
+      68,     0,    92,    66,     9,    30,    47,    65,    42,    54,
+      57,    53,    60,    61,    87,     0,     0,    55,     0,    86,
+       0,    77,    78,    79,    81,    83,    84,    91,    46,    58,
+       0,    88,    89,    56,    80,    82,    62
   };
 
   const signed char
    Parser ::yypgoto_[] =
   {
-     -72,   -72,   -72,    92,    94,   -72,   -72,   -72,    95,   -72,
-     -72,   -72,   -72,    55,    96,   -31,   -72,    32,   -72,    58,
-     -72,   -72,    98,   -72,   -72,   -72,   -72,   -72,   -72,   -72,
-     -30,    21,   -60,   100,   -72,   -72,    29,   -71
+     -72,   -72,   -72,   101,   102,   -72,   -72,   -72,   103,   -72,
+     -72,   -72,   -72,    61,   106,   -32,   -72,    38,   -72,    65,
+     -72,   -72,   109,   -72,   -72,   -72,   -72,   -72,   -72,   -72,
+     -31,    19,   -58,    92,   -72,    53,    -8,   -71
   };
 
   const signed char
@@ -1411,46 +1417,46 @@ namespace  gcf  {
   {
       -1,     1,     2,    11,    12,    13,    57,    28,    14,    15,
       63,    30,    31,    32,    16,    17,    18,    68,    73,    33,
-      69,    70,    19,    20,    76,    36,    77,   110,    95,   111,
-      21,   103,    45,    46,   121,   100,   101,    47
+      69,    70,    19,    20,    76,    36,    77,   111,    95,   112,
+      21,   104,    45,    46,   127,    98,    99,    47
   };
 
   const short int
    Parser ::yytable_[] =
   {
-      90,    84,    67,    71,   122,    98,    99,     3,    82,    91,
-      -2,    37,    38,    39,    40,    41,    42,    43,    92,   114,
-      22,    44,    44,    62,   112,   123,   129,   130,     4,     5,
-       6,     7,     8,    44,    23,    50,    83,    79,   120,   124,
-       9,   109,    10,   132,    44,   115,   116,   117,   118,   119,
-      65,     4,     5,    24,    66,     8,    25,   133,    67,    71,
-      37,    38,    39,    40,    41,    42,    43,    74,    26,    27,
-      44,    29,    48,    37,    38,    39,    40,    41,    42,    43,
-      49,    75,    51,    44,    54,     4,     5,     6,     7,     8,
-      34,    52,    53,    61,    64,    35,    72,     9,    79,    10,
-      81,    80,    85,    87,    88,    93,    94,    96,   102,   106,
-      97,   108,   113,    99,   104,   107,   127,   128,   131,    86,
-      55,   105,    56,    58,    59,    89,    60,   126,     0,   125,
-       0,     0,     0,     0,     0,     0,    78
+      90,    67,    71,    84,    96,   120,    91,    -2,    37,    38,
+      39,    40,    41,    42,    43,    92,    34,    82,    44,   101,
+      96,    35,    22,    97,   113,     4,     5,     6,     7,     8,
+      44,   121,   122,   123,   124,   125,    96,     9,   116,    10,
+      79,   110,    44,   126,     3,    83,   132,    65,     4,     5,
+     114,    66,     8,   134,   135,   118,    24,    67,    71,   136,
+      37,    38,    39,    40,    41,    42,    43,    74,    44,    23,
+      44,   115,    25,    37,    38,    39,    40,    41,    42,    43,
+      26,    75,    27,    44,    54,     4,     5,     6,     7,     8,
+     119,    29,    48,    49,   119,    50,    51,     9,    52,    10,
+      61,    53,    64,    62,    72,    79,    80,    88,    94,    81,
+      85,    87,    93,   100,   105,   103,   107,   109,   117,    96,
+     129,   108,   131,   130,   133,    86,   128,   106,    78,    55,
+      56,    58,    89,   102,    59,     0,     0,    60
   };
 
   const short int
    Parser ::yycheck_[] =
   {
-      71,    61,    33,    33,    15,    13,    14,     0,     8,     7,
-       0,    23,    24,    25,    26,    27,    28,    29,    16,     8,
-      21,    33,    33,    17,    95,    36,    36,    37,    18,    19,
-      20,    21,    22,    33,    21,    16,    36,     9,    98,    99,
-      30,     4,    32,    15,    33,    34,    35,    36,    37,    38,
-      17,    18,    19,    33,    21,    22,    33,   128,    89,    89,
-      23,    24,    25,    26,    27,    28,    29,    17,    33,    33,
-      33,    33,    33,    23,    24,    25,    26,    27,    28,    29,
-      33,    31,    12,    33,    17,    18,    19,    20,    21,    22,
-      11,    16,    16,    13,     7,    16,    33,    30,     9,    32,
-      12,    33,    12,    12,    33,    12,    33,    33,    39,    12,
-      33,     3,     3,    14,    36,    33,    12,     7,    15,    64,
-      28,    89,    28,    28,    28,    67,    28,   106,    -1,   100,
-      -1,    -1,    -1,    -1,    -1,    -1,    36
+      71,    33,    33,    61,    14,     8,     7,     0,    23,    24,
+      25,    26,    27,    28,    29,    16,    11,     8,    33,    13,
+      14,    16,    21,    33,    95,    18,    19,    20,    21,    22,
+      33,    34,    35,    36,    37,    38,    14,    30,    96,    32,
+       9,     4,    33,   101,     0,    36,    15,    17,    18,    19,
+      15,    21,    22,    36,    37,    33,    33,    89,    89,   130,
+      23,    24,    25,    26,    27,    28,    29,    17,    33,    21,
+      33,    36,    33,    23,    24,    25,    26,    27,    28,    29,
+      33,    31,    33,    33,    17,    18,    19,    20,    21,    22,
+      98,    33,    33,    33,   102,    16,    12,    30,    16,    32,
+      13,    16,     7,    17,    33,     9,    33,    33,    33,    12,
+      12,    12,    12,    33,    36,    39,    12,     3,     3,    14,
+      12,    33,    15,     7,     3,    64,   107,    89,    36,    28,
+      28,    28,    67,    80,    28,    -1,    -1,    28
   };
 
   const unsigned char
@@ -1465,11 +1471,11 @@ namespace  gcf  {
       62,    13,    17,    50,     7,    17,    21,    55,    57,    60,
       61,    70,    33,    58,    17,    31,    64,    66,    73,     9,
       33,    12,     8,    36,    72,    12,    53,    12,    33,    59,
-      77,     7,    16,    12,    33,    68,    33,    33,    13,    14,
-      75,    76,    39,    71,    36,    57,    12,    33,     3,     4,
-      67,    69,    77,     3,     8,    34,    35,    36,    37,    38,
-      72,    74,    15,    36,    72,    76,    71,    12,     7,    36,
-      37,    15,    15,    77
+      77,     7,    16,    12,    33,    68,    14,    33,    75,    76,
+      33,    13,    75,    39,    71,    36,    57,    12,    33,     3,
+       4,    67,    69,    77,    15,    36,    72,     3,    33,    76,
+       8,    34,    35,    36,    37,    38,    72,    74,    71,    12,
+       7,    15,    15,     3,    36,    37,    77
   };
 
   const unsigned char
@@ -1480,11 +1486,11 @@ namespace  gcf  {
       49,    50,    50,    51,    51,    51,    52,    52,    53,    53,
       53,    53,    54,    54,    55,    55,    56,    56,    56,    57,
       57,    58,    58,    59,    59,    59,    60,    61,    62,    63,
-      64,    64,    65,    65,    66,    66,    67,    67,    68,    68,
-      69,    69,    70,    70,    71,    71,    72,    72,    73,    73,
-      73,    73,    73,    73,    73,    73,    74,    74,    74,    74,
-      74,    74,    74,    74,    75,    75,    76,    76,    76,    77,
-      77,    77
+      64,    64,    65,    65,    66,    66,    66,    67,    67,    68,
+      68,    69,    69,    70,    70,    71,    71,    72,    72,    73,
+      73,    73,    73,    73,    73,    73,    73,    74,    74,    74,
+      74,    74,    74,    74,    74,    75,    75,    76,    76,    76,
+      77,    77,    77
   };
 
   const unsigned char
@@ -1495,11 +1501,11 @@ namespace  gcf  {
        3,     1,     2,     0,     1,     2,     1,     3,     1,     3,
        4,     3,     3,     3,     2,     4,     2,     3,     3,     1,
        2,     1,     3,     0,     2,     2,     4,     3,     3,     3,
-       1,     2,     0,     4,     3,     3,     1,     2,     0,     2,
-       1,     3,     0,     1,     0,     1,     1,     3,     1,     1,
-       1,     1,     1,     1,     1,     1,     1,     1,     1,     2,
-       1,     2,     1,     1,     1,     2,     2,     3,     3,     2,
-       4,     3
+       1,     2,     0,     4,     3,     3,     4,     1,     2,     0,
+       2,     1,     3,     0,     1,     0,     1,     1,     3,     1,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
+       2,     1,     2,     1,     1,     1,     2,     2,     3,     3,
+       2,     4,     3
   };
 
 
@@ -1533,11 +1539,11 @@ namespace  gcf  {
      126,   129,   130,   133,   134,   135,   138,   139,   141,   142,
      143,   144,   148,   149,   152,   153,   156,   157,   158,   161,
      162,   165,   166,   169,   170,   171,   174,   177,   181,   184,
-     187,   188,   191,   192,   195,   196,   199,   200,   203,   204,
-     207,   208,   212,   213,   215,   216,   220,   221,   224,   225,
-     226,   227,   228,   229,   230,   231,   234,   235,   236,   237,
-     238,   239,   240,   241,   244,   245,   247,   248,   249,   252,
-     253,   254
+     187,   188,   191,   192,   195,   196,   197,   200,   201,   204,
+     205,   208,   209,   213,   214,   216,   217,   221,   222,   225,
+     226,   227,   228,   229,   230,   231,   232,   235,   236,   237,
+     238,   239,   240,   241,   242,   245,   246,   248,   249,   250,
+     253,   254,   255
   };
 
   // Print the state stack on the debug stream.
@@ -1572,8 +1578,8 @@ namespace  gcf  {
 
 #line 11 "../fb/parser.y" // lalr1.cc:1156
 } //  gcf 
-#line 1576 "Parser.cpp" // lalr1.cc:1156
-#line 257 "../fb/parser.y" // lalr1.cc:1157
+#line 1582 "Parser.cpp" // lalr1.cc:1156
+#line 258 "../fb/parser.y" // lalr1.cc:1157
 
 
 void gcf::Parser::error(const location_type& l, const std::string& m)

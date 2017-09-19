@@ -21,6 +21,20 @@ namespace serialize
         bool Read(IReader* reader, double& val, const char* name = nullptr);
         bool Read(IReader* reader, std::string& val, const char* name = nullptr);
 
+        bool Read(IReader* reader, std::vector<bool> & vec, const char* name = nullptr);
+        //{
+        //    int size = 0;
+        //    if (reader->ArrayBegin(size, name))
+        //        return false;
+
+        //    vec.resize(size);
+        //    for (int i = 0; i < size; ++i)
+        //        if (!Read(reader, (bool)vec[i], nullptr))
+        //            return false;
+
+        //    return reader->ArrayEnd();
+        //}
+
         template <class Ty>
         bool Read(IReader* reader, std::vector<Ty>& vec, const char* name = nullptr)
         {

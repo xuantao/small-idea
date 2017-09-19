@@ -25,7 +25,7 @@ struct TabTest_1
     int8_t _byte = 1; //< 测试byte
     int _int = 1; //< 测试int
     int64_t _long = 1; //< 测试long
-    float _float = 1.000000; //< 测试float
+    float _float = 1.000000f; //< 测试float
     double _double = 1.000000; //< 测试double
     std::string _string = "string"; //< 测试string
 };
@@ -108,13 +108,29 @@ struct Inner
 
 struct Msg
 {
-    static const int32_t HASH_CODE = -1854228442;
+    struct Inner
+    {
+        static const int32_t HASH_CODE = -2071995248;
 
-    bool b = false;
-    int i = 0;
-    float f = 0.0f;
-    std::string s = "msg";
-    Inner inner;
+        int idx = 101;
+        std::string name = NAME;
+    };
+
+    static const int32_t HASH_CODE = 1039095060;
+    static const std::string NAME;
+
+    bool _bool = true;
+    int8_t _byte = 1;
+    int _int = 2;
+    int64_t _long = 3;
+    float _float = 4.000000f;
+    double _double = 5.000000;
+    std::string _string = "msg";
+    std::vector<int> _int_ary;
+    std::array<int, 2> _int_ary_2;
+    Inner _inner;
+    std::vector<Inner> _inner_ary;
+    std::array<Inner, 2> _inner_ary_2;
 };
 
 enum class Wtf

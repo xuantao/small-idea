@@ -247,13 +247,18 @@ void Context::OnFuncBegin(const std::string& name)
 void Context::OnFuncEnd()
 {
     IType* type = _stackScope.back()->BindType();
+    _stackScope.pop_back();
+
     assert(type->TypeCat() == TypeCategory::Fucntion);
 
     Function* fTy = (Function*)type;
     fTy->DeclCompleted();
 
-    _stackScope.pop_back();
-    _SCOPE_->TypeSet()->Add(fTy);
+    if (!_SCOPE_->TypeSet()->Add(fTy))
+    {
+        _driver.Error("function name:{0} conflict", fTy->Name());
+        delete fTy;
+    }
 }
 
 void Context::OnStructBegin(const std::string& name, CfgCategory cfg)

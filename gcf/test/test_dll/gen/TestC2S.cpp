@@ -6,59 +6,163 @@
 #include "Cfg_Ser.h"
 #include <cassert>
 
-bool TestC2S::Requester::Test(bool b)
+bool TestC2S::Requester::Test(bool v)
 {
     serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
     writer->Write(HASH_CODE);
     writer->Write((int)Message::Test_bool);
 
-    serialize::utility::Write(writer, b);
+    serialize::utility::Write(writer, v);
 
     bool __ret__;
     serialize::utility::Read(_invoker->End(), __ret__);
     return __ret__;
 }
 
-int TestC2S::Requester::Test(int a)
+int8_t TestC2S::Requester::Test(int8_t v)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test_byte);
+
+    serialize::utility::Write(writer, v);
+
+    int8_t __ret__;
+    serialize::utility::Read(_invoker->End(), __ret__);
+    return __ret__;
+}
+
+int TestC2S::Requester::Test(int v)
 {
     serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
     writer->Write(HASH_CODE);
     writer->Write((int)Message::Test_int);
 
-    serialize::utility::Write(writer, a);
+    serialize::utility::Write(writer, v);
 
     int __ret__;
     serialize::utility::Read(_invoker->End(), __ret__);
     return __ret__;
 }
 
-float TestC2S::Requester::Test(float f)
+int64_t TestC2S::Requester::Test(int64_t v)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test_long);
+
+    serialize::utility::Write(writer, v);
+
+    int64_t __ret__;
+    serialize::utility::Read(_invoker->End(), __ret__);
+    return __ret__;
+}
+
+float TestC2S::Requester::Test(float v)
 {
     serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
     writer->Write(HASH_CODE);
     writer->Write((int)Message::Test_float);
 
-    serialize::utility::Write(writer, f);
+    serialize::utility::Write(writer, v);
 
     float __ret__;
     serialize::utility::Read(_invoker->End(), __ret__);
     return __ret__;
 }
 
-std::string TestC2S::Requester::Test(const std::string& s)
+double TestC2S::Requester::Test(double v)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test_double);
+
+    serialize::utility::Write(writer, v);
+
+    double __ret__;
+    serialize::utility::Read(_invoker->End(), __ret__);
+    return __ret__;
+}
+
+std::string TestC2S::Requester::Test(const std::string& v)
 {
     serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
     writer->Write(HASH_CODE);
     writer->Write((int)Message::Test_string);
 
-    serialize::utility::Write(writer, s);
+    serialize::utility::Write(writer, v);
 
     std::string __ret__;
     serialize::utility::Read(_invoker->End(), __ret__);
     return __ret__;
 }
 
-Msg TestC2S::Requester::Test(const Msg& msg)
+void TestC2S::Requester::Test(const std::vector<bool>& v)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test_bool_A);
+
+    serialize::utility::Write(writer, v);
+
+    _invoker->End();
+}
+
+void TestC2S::Requester::Test(const std::array<int8_t, 2>& v)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test_byte_A2);
+
+    serialize::utility::Write(writer, v);
+
+    _invoker->End();
+}
+
+void TestC2S::Requester::Test(const std::vector<std::vector<int> >& v)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test_int_A_A);
+
+    serialize::utility::Write(writer, v);
+
+    _invoker->End();
+}
+
+void TestC2S::Requester::Test(const std::vector<std::array<int64_t, 2> >& v)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test_long_A2_A);
+
+    serialize::utility::Write(writer, v);
+
+    _invoker->End();
+}
+
+void TestC2S::Requester::Test(const std::array<std::vector<float>, 2>& v)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test_float_A_A2);
+
+    serialize::utility::Write(writer, v);
+
+    _invoker->End();
+}
+
+void TestC2S::Requester::Test()
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test);
+
+
+    _invoker->End();
+}
+
+void TestC2S::Requester::Test(const Msg& msg)
 {
     serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
     writer->Write(HASH_CODE);
@@ -66,20 +170,63 @@ Msg TestC2S::Requester::Test(const Msg& msg)
 
     serialize::utility::Write(writer, msg);
 
+    _invoker->End();
+}
+
+void TestC2S::Requester::Test(const std::array<Msg, 2>& msg)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test_Msg_A2);
+
+    serialize::utility::Write(writer, msg);
+
+    _invoker->End();
+}
+
+Msg TestC2S::Requester::Test(int a, int b)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test_int_int);
+
+    serialize::utility::Write(writer, a);
+    serialize::utility::Write(writer, b);
+
     Msg __ret__;
     serialize::utility::Read(_invoker->End(), __ret__);
     return __ret__;
 }
 
-void TestC2S::Requester::Test(const std::vector<std::array<int, 10> >& ar)
+std::vector<Msg> TestC2S::Requester::Test(int a, int b, int c)
 {
     serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
     writer->Write(HASH_CODE);
-    writer->Write((int)Message::Test_int_A10_A);
+    writer->Write((int)Message::Test_int_int_int);
 
-    serialize::utility::Write(writer, ar);
+    serialize::utility::Write(writer, a);
+    serialize::utility::Write(writer, b);
+    serialize::utility::Write(writer, c);
 
-    _invoker->End();
+    std::vector<Msg> __ret__;
+    serialize::utility::Read(_invoker->End(), __ret__);
+    return __ret__;
+}
+
+std::array<Msg, 2> TestC2S::Requester::Test(int a, int b, int c, int d)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::Test_int_int_int_int);
+
+    serialize::utility::Write(writer, a);
+    serialize::utility::Write(writer, b);
+    serialize::utility::Write(writer, c);
+    serialize::utility::Write(writer, d);
+
+    std::array<Msg, 2> __ret__;
+    serialize::utility::Read(_invoker->End(), __ret__);
+    return __ret__;
 }
 
 void TestC2S::Processor::Process(cross_call::IContext* context)
@@ -95,20 +242,56 @@ void TestC2S::Processor::Process(cross_call::IContext* context)
     case Message::Test_bool:
         OnTest_bool(context);
         break;
+    case Message::Test_byte:
+        OnTest_byte(context);
+        break;
     case Message::Test_int:
         OnTest_int(context);
+        break;
+    case Message::Test_long:
+        OnTest_long(context);
         break;
     case Message::Test_float:
         OnTest_float(context);
         break;
+    case Message::Test_double:
+        OnTest_double(context);
+        break;
     case Message::Test_string:
         OnTest_string(context);
+        break;
+    case Message::Test_bool_A:
+        OnTest_bool_A(context);
+        break;
+    case Message::Test_byte_A2:
+        OnTest_byte_A2(context);
+        break;
+    case Message::Test_int_A_A:
+        OnTest_int_A_A(context);
+        break;
+    case Message::Test_long_A2_A:
+        OnTest_long_A2_A(context);
+        break;
+    case Message::Test_float_A_A2:
+        OnTest_float_A_A2(context);
+        break;
+    case Message::Test:
+        OnTest(context);
         break;
     case Message::Test_Msg:
         OnTest_Msg(context);
         break;
-    case Message::Test_int_A10_A:
-        OnTest_int_A10_A(context);
+    case Message::Test_Msg_A2:
+        OnTest_Msg_A2(context);
+        break;
+    case Message::Test_int_int:
+        OnTest_int_int(context);
+        break;
+    case Message::Test_int_int_int:
+        OnTest_int_int_int(context);
+        break;
+    case Message::Test_int_int_int_int:
+        OnTest_int_int_int_int(context);
         break;
     default:
         assert(false);
@@ -118,42 +301,124 @@ void TestC2S::Processor::Process(cross_call::IContext* context)
 
 void TestC2S::Processor::OnTest_bool(cross_call::IContext* context)
 {
-    bool b;
+    bool v;
 
-    serialize::utility::Read(context->Param(), b);
+    serialize::utility::Read(context->Param(), v);
 
-    auto __ret__ = _responder->Test(b);
+    auto __ret__ = _responder->Test(v);
+    serialize::utility::Write(context->Ret(), __ret__);
+}
+
+void TestC2S::Processor::OnTest_byte(cross_call::IContext* context)
+{
+    int8_t v;
+
+    serialize::utility::Read(context->Param(), v);
+
+    auto __ret__ = _responder->Test(v);
     serialize::utility::Write(context->Ret(), __ret__);
 }
 
 void TestC2S::Processor::OnTest_int(cross_call::IContext* context)
 {
-    int a;
+    int v;
 
-    serialize::utility::Read(context->Param(), a);
+    serialize::utility::Read(context->Param(), v);
 
-    auto __ret__ = _responder->Test(a);
+    auto __ret__ = _responder->Test(v);
+    serialize::utility::Write(context->Ret(), __ret__);
+}
+
+void TestC2S::Processor::OnTest_long(cross_call::IContext* context)
+{
+    int64_t v;
+
+    serialize::utility::Read(context->Param(), v);
+
+    auto __ret__ = _responder->Test(v);
     serialize::utility::Write(context->Ret(), __ret__);
 }
 
 void TestC2S::Processor::OnTest_float(cross_call::IContext* context)
 {
-    float f;
+    float v;
 
-    serialize::utility::Read(context->Param(), f);
+    serialize::utility::Read(context->Param(), v);
 
-    auto __ret__ = _responder->Test(f);
+    auto __ret__ = _responder->Test(v);
+    serialize::utility::Write(context->Ret(), __ret__);
+}
+
+void TestC2S::Processor::OnTest_double(cross_call::IContext* context)
+{
+    double v;
+
+    serialize::utility::Read(context->Param(), v);
+
+    auto __ret__ = _responder->Test(v);
     serialize::utility::Write(context->Ret(), __ret__);
 }
 
 void TestC2S::Processor::OnTest_string(cross_call::IContext* context)
 {
-    std::string s;
+    std::string v;
 
-    serialize::utility::Read(context->Param(), s);
+    serialize::utility::Read(context->Param(), v);
 
-    auto __ret__ = _responder->Test(s);
+    auto __ret__ = _responder->Test(v);
     serialize::utility::Write(context->Ret(), __ret__);
+}
+
+void TestC2S::Processor::OnTest_bool_A(cross_call::IContext* context)
+{
+    std::vector<bool> v;
+
+    serialize::utility::Read(context->Param(), v);
+
+    _responder->Test(v);
+}
+
+void TestC2S::Processor::OnTest_byte_A2(cross_call::IContext* context)
+{
+    std::array<int8_t, 2> v;
+
+    serialize::utility::Read(context->Param(), v);
+
+    _responder->Test(v);
+}
+
+void TestC2S::Processor::OnTest_int_A_A(cross_call::IContext* context)
+{
+    std::vector<std::vector<int> > v;
+
+    serialize::utility::Read(context->Param(), v);
+
+    _responder->Test(v);
+}
+
+void TestC2S::Processor::OnTest_long_A2_A(cross_call::IContext* context)
+{
+    std::vector<std::array<int64_t, 2> > v;
+
+    serialize::utility::Read(context->Param(), v);
+
+    _responder->Test(v);
+}
+
+void TestC2S::Processor::OnTest_float_A_A2(cross_call::IContext* context)
+{
+    std::array<std::vector<float>, 2> v;
+
+    serialize::utility::Read(context->Param(), v);
+
+    _responder->Test(v);
+}
+
+void TestC2S::Processor::OnTest(cross_call::IContext* context)
+{
+
+
+    _responder->Test();
 }
 
 void TestC2S::Processor::OnTest_Msg(cross_call::IContext* context)
@@ -162,16 +427,57 @@ void TestC2S::Processor::OnTest_Msg(cross_call::IContext* context)
 
     serialize::utility::Read(context->Param(), msg);
 
-    auto __ret__ = _responder->Test(msg);
+    _responder->Test(msg);
+}
+
+void TestC2S::Processor::OnTest_Msg_A2(cross_call::IContext* context)
+{
+    std::array<Msg, 2> msg;
+
+    serialize::utility::Read(context->Param(), msg);
+
+    _responder->Test(msg);
+}
+
+void TestC2S::Processor::OnTest_int_int(cross_call::IContext* context)
+{
+    int a;
+    int b;
+
+    serialize::utility::Read(context->Param(), a);
+    serialize::utility::Read(context->Param(), b);
+
+    auto __ret__ = _responder->Test(a, b);
     serialize::utility::Write(context->Ret(), __ret__);
 }
 
-void TestC2S::Processor::OnTest_int_A10_A(cross_call::IContext* context)
+void TestC2S::Processor::OnTest_int_int_int(cross_call::IContext* context)
 {
-    std::vector<std::array<int, 10> > ar;
+    int a;
+    int b;
+    int c;
 
-    serialize::utility::Read(context->Param(), ar);
+    serialize::utility::Read(context->Param(), a);
+    serialize::utility::Read(context->Param(), b);
+    serialize::utility::Read(context->Param(), c);
 
-    _responder->Test(ar);
+    auto __ret__ = _responder->Test(a, b, c);
+    serialize::utility::Write(context->Ret(), __ret__);
+}
+
+void TestC2S::Processor::OnTest_int_int_int_int(cross_call::IContext* context)
+{
+    int a;
+    int b;
+    int c;
+    int d;
+
+    serialize::utility::Read(context->Param(), a);
+    serialize::utility::Read(context->Param(), b);
+    serialize::utility::Read(context->Param(), c);
+    serialize::utility::Read(context->Param(), d);
+
+    auto __ret__ = _responder->Test(a, b, c, d);
+    serialize::utility::Write(context->Ret(), __ret__);
 }
 

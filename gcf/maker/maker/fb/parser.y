@@ -192,8 +192,9 @@ CrossFunc   : /* empty */               { }
             | CrossFunc FuncBegin FuncParam FuncEnd { }
             ;
 
-FuncBegin   : VOID IDENTIFIER S_LPAREN    { CONTEXT.OnFuncBegin($2); }
-            | Type IDENTIFIER S_LPAREN    { CONTEXT.OnFuncBegin($2); }
+FuncBegin   : VOID IDENTIFIER S_LPAREN          { CONTEXT.OnFuncBegin($2); }
+            | Type IDENTIFIER S_LPAREN          { CONTEXT.OnFuncBegin($2); }
+            | Type Array IDENTIFIER S_LPAREN    { CONTEXT.OnFuncBegin($3); }
             ;
 
 FuncEnd     : S_RPAREN              { CONTEXT.OnFuncEnd(); }

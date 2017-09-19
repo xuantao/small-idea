@@ -76,6 +76,36 @@ void testReader(serialize::IReader* reader, int count)
     }
 }
 
+
+
+void TestBool(bool& b)
+{
+    printf("void TestBool(bool b)");
+}
+
+//void TestBool(int& i)
+//{
+//    printf("void TestBool(int8_t i)");
+//}
+
+//void TestBool(int8_t& i)
+//{
+//    printf("void TestBool(int8_t i)");
+//}
+
+template <class Ty>
+void TestBool(std::vector<Ty>& v)
+{
+    //for (size_t i = 0; i < v.size(); i++)
+    for (auto it = v.begin(); it != v.end(); ++it)
+    {
+        bool b;
+        TestBool(b);
+        *it = b;
+    }
+    printf("xxxxxxxxxxxx");
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -128,6 +158,9 @@ int main(int argc, char* argv[])
     };
 
     int a = arrDD[1][1];
+    std::vector<bool> vb;
+    vb.push_back(true);
+    TestBool(vb);
 
     system("pause");
     return 1;
