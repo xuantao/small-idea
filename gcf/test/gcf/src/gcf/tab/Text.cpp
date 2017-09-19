@@ -20,7 +20,7 @@ namespace tab
     {
     }
 
-    bool TextReader::StructBegin(uint32_t code, const char* name/*= nullptr*/)
+    bool TextReader::StructBegin(int32_t code, const char* name/*= nullptr*/)
     {
         return true;
     }
@@ -73,23 +73,33 @@ namespace tab
         return true;
     }
 
+    bool TextReader::Read(int8_t& val, const char* name/*= nullptr*/)
+    {
+        const char* token = Pop();
+        if (token == nullptr) return false;
+        if (*token == 0) return true;
+
+        val = (int8_t)std::atoi(token);
+        return true;
+    }
+
     bool TextReader::Read(int32_t& val, const char* name/*= nullptr*/)
     {
         const char* token = Pop();
         if (token == nullptr) return false;
         if (*token == 0) return true;
 
-        val = std::atoi(token);
+        val = (int32_t)std::atoi(token);
         return true;
     }
 
-    bool TextReader::Read(uint32_t& val, const char* name/*= nullptr*/)
+    bool TextReader::Read(int64_t& val, const char* name/*= nullptr*/)
     {
         const char* token = Pop();
         if (token == nullptr) return false;
         if (*token == 0) return true;
 
-        val = (uint32_t)std::atoi(token);
+        val = (int64_t)std::atoll(token);
         return true;
     }
 
@@ -100,6 +110,16 @@ namespace tab
         if (*token == 0) return true;
 
         val = (float)std::atof(token);
+        return true;
+    }
+
+    bool TextReader::Read(double& val, const char* name/*= nullptr*/)
+    {
+        const char* token = Pop();
+        if (token == nullptr) return false;
+        if (*token == 0) return true;
+
+        val = std::atof(token);
         return true;
     }
 
@@ -136,7 +156,7 @@ namespace tab
     {
     }
 
-    bool TextWriter::StructBegin(uint32_t code, const char* name/*= nullptr*/)
+    bool TextWriter::StructBegin(int32_t code, const char* name/*= nullptr*/)
     {
         return true;
     }
@@ -166,19 +186,31 @@ namespace tab
         return Push(val ? "true" : "false");
     }
 
+    bool TextWriter::Write(int8_t val, const char* name/*= nullptr*/)
+    {
+        std::string str = std::to_string(val);
+        return Push(str.c_str());
+    }
+
     bool TextWriter::Write(int32_t val, const char* name/*= nullptr*/)
     {
         std::string str = std::to_string(val);
         return Push(str.c_str());
     }
 
-    bool TextWriter::Write(uint32_t val, const char* name/*= nullptr*/)
+    bool TextWriter::Write(int64_t val, const char* name/*= nullptr*/)
     {
         std::string str = std::to_string(val);
         return Push(str.c_str());
     }
 
     bool TextWriter::Write(float val, const char* name/*= nullptr*/)
+    {
+        std::string str = std::to_string(val);
+        return Push(str.c_str());
+    }
+
+    bool TextWriter::Write(double val, const char* name/*= nullptr*/)
     {
         std::string str = std::to_string(val);
         return Push(str.c_str());

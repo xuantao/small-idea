@@ -33,70 +33,24 @@ namespace value_util
 
         std::string str;
         if (val->RawCat() == RawCategory::Bool)
-            str = val->AsBool() ? "true" : "false";
+            str = utility::AsValue<bool>(val) ? "true" : "false";
         else if (val->RawCat() == RawCategory::Byte)
-            str = std::to_string(val->AsByte());
+            str = std::to_string(utility::AsValue<int8_t>(val));
         else if (val->RawCat() == RawCategory::Int)
-            str = std::to_string(val->AsInt());
+            str = std::to_string(utility::AsValue<int32_t>(val));
         else if (val->RawCat() == RawCategory::Long)
-            str = std::to_string(val->AsLong());
+            str = std::to_string(utility::AsValue<int64_t>(val));
         else if (val->RawCat() == RawCategory::Float)
-            str = std::to_string(val->AsFloat());
+            str = std::to_string(utility::AsValue<float>(val));
         else if (val->RawCat() == RawCategory::Double)
-            str = std::to_string(val->AsDouble());
+            str = std::to_string(utility::AsValue<double>(val));
         else if (val->RawCat() == RawCategory::String)
-            str = val->AsString();
+            str = utility::AsValue<std::string>(val);
         else
             assert(false);
 
         return str;
     }
-
-    bool AsRaw(RawCategory raw, const IValue* val)
-    {
-        if (val == nullptr)
-            return false;
-
-        if (val->ValueCat() == ValueCategory::Raw)
-            return static_cast<const RawValue*>(val)->RawCat() == raw;
-
-        assert(val->ValueCat() == ValueCategory::Ref);
-
-        const IRawValue* original = static_cast<const IRefValue*>(val)->Original();
-        return original->RawCat() == raw;
-    }
-
-    //bool Value(const IValue* val, bool& b)
-    //{
-    //    const RawValue* raw = GetRaw(val);
-    //    if (raw)
-    //        return raw->Value(b);
-    //    return true;
-    //}
-
-    //bool Value(const IValue* val, int& i)
-    //{
-    //    const RawValue* raw = GetRaw(val);
-    //    if (raw)
-    //        return raw->Value(i);
-    //    return true;
-    //}
-
-    //bool Value(const IValue* val, float &f)
-    //{
-    //    const RawValue* raw = GetRaw(val);
-    //    if (raw)
-    //        return raw->Value(f);
-    //    return true;
-    //}
-
-    //bool Value(const IValue* val, std::string& str)
-    //{
-    //    const RawValue* raw = GetRaw(val);
-    //    if (raw)
-    //        return raw->Value(str);
-    //    return true;
-    //}
 
     std::string ToString(const IValue* val)
     {
@@ -143,23 +97,24 @@ namespace value_util
 
     IValue* Create(RawCategory raw)
     {
-        IValue* val = nullptr;
+        RawValue* val = nullptr;
         if (raw == RawCategory::Bool)
-            val = new RawValue(false);
+            val = new RawValue(detail::ValueImpl(false));
         else if (raw == RawCategory::Byte)
-            val = new RawValue((int8_t)0);
+            val = new RawValue(detail::ValueImpl((int8_t)0));
         else if (raw == RawCategory::Int)
-            val = new RawValue((int32_t)0);
+            val = new RawValue(detail::ValueImpl((int32_t)0));
         else if (raw == RawCategory::Float)
-            val = new RawValue((float)0.0f);
+            val = new RawValue(detail::ValueImpl((float)0.0f));
         else if (raw == RawCategory::Float)
-            val = new RawValue((double)0.0);
+            val = new RawValue(detail::ValueImpl((double)0.0));
         else if (raw == RawCategory::Long)
-            val = new RawValue((int64_t)0);
+            val = new RawValue(detail::ValueImpl((int64_t)0));
         else if (raw == RawCategory::String)
-            val = new RawValue(std::string());
+            val = new RawValue(detail::ValueImpl(std::string()));
         else
             assert(false);
+
         return val;
     }
 
@@ -168,21 +123,39 @@ namespace value_util
         IValue* val = nullptr;
         if (raw == RawCategory::Bool)
         {
-            bool b = false;
-            if (utility::Convert(value, b))
-                val = new RawValue(b);
+            bool v = false;
+            if (utility::Convert(value, v))
+                val = new RawValue(detail::ValueImpl(v));
+        }
+        else if (raw == RawCategory::Byte)
+        {
+            int8_t v = 0;
+            if (utility::Convert(value, v))
+                val = new RawValue(detail::ValueImpl(v));
         }
         else if (raw == RawCategory::Int)
         {
-            int i = 0;
-            if (utility::Convert(value, i))
-                val = new RawValue(i);
+            int32_t v = 0;
+            if (utility::Convert(value, v))
+                val = new RawValue(detail::ValueImpl(v));
+        }
+        else if (raw == RawCategory::Long)
+        {
+            int64_t v = 0;
+            if (utility::Convert(value, v))
+                val = new RawValue(detail::ValueImpl(v));
         }
         else if (raw == RawCategory::Float)
         {
             float f = 0.0f;
             if (utility::Convert(value, f))
                 val = new RawValue(f);
+        }
+        else if (raw == RawCategory::Double)
+        {
+            double v = 0;
+            if (utility::Convert(value, v))
+                val = new RawValue(detail::ValueImpl(v));
         }
         else if (raw == RawCategory::String)
         {
@@ -191,11 +164,12 @@ namespace value_util
         return val;
     }
 
-    IValue* Create(IVariate* var)
+    IValue* Create(RawCategory raw, IVariate* var)
     {
         if (var == nullptr)
             return nullptr;
-        return new RefValue(var);
+
+        return new RefValue(var, detail::ValueImpl(raw, var->Value()));
     }
 }
 

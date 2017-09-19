@@ -21,13 +21,13 @@ namespace cross_call
         int Endup();
 
     public:
-        virtual bool Read(void* buf, uint32_t size);
-        virtual bool Write(const void* buf, uint32_t size);
+        virtual bool Read(void* buf, int32_t size);
+        virtual bool Write(const void* buf, int32_t size);
 
     protected:
         struct Header
         {
-            int32_t  ds;
+            int32_t ds;
         };
 
         BufferMode _mode = BufferMode::Read;

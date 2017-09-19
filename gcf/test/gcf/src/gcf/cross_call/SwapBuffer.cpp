@@ -26,7 +26,7 @@ namespace cross_call
         return _header->ds;
     }
 
-    bool SwapBuffer::Read(void* buf, uint32_t size)
+    bool SwapBuffer::Read(void* buf, int32_t size)
     {
         if (_mode != BufferMode::Read)
             return false;
@@ -38,7 +38,7 @@ namespace cross_call
         return true;
     }
 
-    bool SwapBuffer::Write(const void* buf, uint32_t size)
+    bool SwapBuffer::Write(const void* buf, int32_t size)
     {
         if (_mode != BufferMode::Write)
             return false;

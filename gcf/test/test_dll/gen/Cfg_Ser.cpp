@@ -18,6 +18,36 @@ namespace serialize
             return writer->Write((int)val, name);
         }
 
+        bool Read(IReader* reader, TabTest_1& val, const char* name/* = nullptr*/)
+        {
+            if (!reader->StructBegin(TabTest_1::HASH_CODE, name)) return false;
+
+            if (!Read(reader, val._bool, "_bool")) return false;
+            if (!Read(reader, val._byte, "_byte")) return false;
+            if (!Read(reader, val._int, "_int")) return false;
+            if (!Read(reader, val._long, "_long")) return false;
+            if (!Read(reader, val._float, "_float")) return false;
+            if (!Read(reader, val._double, "_double")) return false;
+            if (!Read(reader, val._string, "_string")) return false;
+
+            return reader->StructEnd();
+        }
+
+        bool Write(IWriter* writer, const TabTest_1& val, const char* name/* = nullptr*/)
+        {
+            if (!writer->StructBegin(TabTest_1::HASH_CODE, name)) return false;
+
+            if (!Write(writer, val._bool), "_bool") return false;
+            if (!Write(writer, val._byte), "_byte") return false;
+            if (!Write(writer, val._int), "_int") return false;
+            if (!Write(writer, val._long), "_long") return false;
+            if (!Write(writer, val._float), "_float") return false;
+            if (!Write(writer, val._double), "_double") return false;
+            if (!Write(writer, val._string), "_string") return false;
+
+            return writer->StructEnd();
+        }
+
         bool Read(IReader* reader, Enum1& val, const char* name/* = nullptr*/)
         {
             return reader->Read((int&)val, name);

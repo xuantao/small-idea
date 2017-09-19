@@ -31,7 +31,7 @@ namespace cross_call
     public:
         virtual ~IInvoker() {}
     public:
-        virtual serialize::IWriter* Begin(uint32_t module) = 0;
+        virtual serialize::IWriter* Begin(int32_t module) = 0;
         virtual serialize::IReader* End() = 0;
     };
 
@@ -49,7 +49,7 @@ namespace cross_call
         virtual ~IBinaryStream() {}
 
     public:
-        virtual bool Read(void* buf, uint32_t size) = 0;
-        virtual bool Write(const void* buf, uint32_t size) = 0;
+        virtual bool Read(void* buf, int32_t size) = 0;
+        virtual bool Write(const void* buf, int32_t size) = 0;
     };
 }

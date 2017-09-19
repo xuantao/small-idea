@@ -83,7 +83,7 @@ void TestS2C::Requester::CallBack()
 
 void TestS2C::Processor::Process(cross_call::IContext* context)
 {
-    uint32_t code = 0;
+    int32_t code = 0;
     Message msg = Message::Invalid;
     context->Param()->Read(code);
     context->Param()->Read((int&)msg);

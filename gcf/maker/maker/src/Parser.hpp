@@ -295,19 +295,22 @@ namespace  gcf  {
         TOK_STRUCT = 261,
         TOK_CONST = 262,
         TOK_BOOL = 263,
-        TOK_INT = 264,
-        TOK_FLOAT = 265,
-        TOK_STRING = 266,
-        TOK_NAMESPACE = 267,
-        TOK_VOID = 268,
-        TOK_CROSS = 269,
-        TOK_IDENTIFIER = 270,
-        TOK_VALUE_TRUE = 271,
-        TOK_VALUE_FALSE = 272,
-        TOK_VALUE_INT = 273,
-        TOK_VALUE_FLOAT = 274,
-        TOK_VALUE_STRING = 275,
-        TOK_VALUE_DESC = 276
+        TOK_BYTE = 264,
+        TOK_INT = 265,
+        TOK_LONG = 266,
+        TOK_FLOAT = 267,
+        TOK_DOUBLE = 268,
+        TOK_STRING = 269,
+        TOK_NAMESPACE = 270,
+        TOK_VOID = 271,
+        TOK_CROSS = 272,
+        TOK_IDENTIFIER = 273,
+        TOK_VALUE_TRUE = 274,
+        TOK_VALUE_FALSE = 275,
+        TOK_VALUE_INT = 276,
+        TOK_VALUE_FLOAT = 277,
+        TOK_VALUE_STRING = 278,
+        TOK_VALUE_DESC = 279
       };
     };
 
@@ -492,11 +495,23 @@ namespace  gcf  {
 
     static inline
     symbol_type
+    make_BYTE (const location_type& l);
+
+    static inline
+    symbol_type
     make_INT (const location_type& l);
 
     static inline
     symbol_type
+    make_LONG (const location_type& l);
+
+    static inline
+    symbol_type
     make_FLOAT (const location_type& l);
+
+    static inline
+    symbol_type
+    make_DOUBLE (const location_type& l);
 
     static inline
     symbol_type
@@ -627,7 +642,7 @@ namespace  gcf  {
   // number is the opposite.  If YYTABLE_NINF, syntax error.
   static const short int yytable_[];
 
-  static const signed char yycheck_[];
+  static const short int yycheck_[];
 
   // YYSTOS[STATE-NUM] -- The (internal number of the) accessing
   // symbol of state STATE-NUM.
@@ -742,13 +757,13 @@ namespace  gcf  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 124,           //< Last index in yytable_.
+      yylast_ = 136,           //< Last index in yytable_.
       yynnts_ = 38,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
-      yyntokens_ = 37    //< Number of tokens.
+      yyntokens_ = 40    //< Number of tokens.
     };
 
 
@@ -792,9 +807,9 @@ namespace  gcf  {
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,    18,    19,
       20,    21,    22,    23,    24,    25,    26,    27,    28,    29,
-      30,    31,    32,    33,    34,    35,    36
+      30,    31,    32,    33,    34,    35,    36,    37,    38,    39
     };
-    const unsigned int user_token_number_max_ = 276;
+    const unsigned int user_token_number_max_ = 279;
     const token_number_type undef_token_ = 2;
 
     if (static_cast<int>(t) <= yyeof_)
@@ -827,15 +842,15 @@ namespace  gcf  {
   {
       switch (other.type_get ())
     {
-      case 30: // "identifier"
-      case 31: // "true"
-      case 32: // "false"
-      case 33: // "0"
-      case 34: // "0.0f"
-      case 35: // "empty"
-      case 36: // "desc"
-      case 69: // RefName
-      case 74: // Variate
+      case 33: // "identifier"
+      case 34: // "true"
+      case 35: // "false"
+      case 36: // "0"
+      case 37: // "0.0f"
+      case 38: // "empty"
+      case 39: // "desc"
+      case 72: // RefName
+      case 77: // Variate
         value.copy< std::string > (other.value);
         break;
 
@@ -856,15 +871,15 @@ namespace  gcf  {
     (void) v;
       switch (this->type_get ())
     {
-      case 30: // "identifier"
-      case 31: // "true"
-      case 32: // "false"
-      case 33: // "0"
-      case 34: // "0.0f"
-      case 35: // "empty"
-      case 36: // "desc"
-      case 69: // RefName
-      case 74: // Variate
+      case 33: // "identifier"
+      case 34: // "true"
+      case 35: // "false"
+      case 36: // "0"
+      case 37: // "0.0f"
+      case 38: // "empty"
+      case 39: // "desc"
+      case 72: // RefName
+      case 77: // Variate
         value.copy< std::string > (v);
         break;
 
@@ -906,15 +921,15 @@ namespace  gcf  {
     // Type destructor.
     switch (yytype)
     {
-      case 30: // "identifier"
-      case 31: // "true"
-      case 32: // "false"
-      case 33: // "0"
-      case 34: // "0.0f"
-      case 35: // "empty"
-      case 36: // "desc"
-      case 69: // RefName
-      case 74: // Variate
+      case 33: // "identifier"
+      case 34: // "true"
+      case 35: // "false"
+      case 36: // "0"
+      case 37: // "0.0f"
+      case 38: // "empty"
+      case 39: // "desc"
+      case 72: // RefName
+      case 77: // Variate
         value.template destroy< std::string > ();
         break;
 
@@ -932,15 +947,15 @@ namespace  gcf  {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 30: // "identifier"
-      case 31: // "true"
-      case 32: // "false"
-      case 33: // "0"
-      case 34: // "0.0f"
-      case 35: // "empty"
-      case 36: // "desc"
-      case 69: // RefName
-      case 74: // Variate
+      case 33: // "identifier"
+      case 34: // "true"
+      case 35: // "false"
+      case 36: // "0"
+      case 37: // "0.0f"
+      case 38: // "empty"
+      case 39: // "desc"
+      case 72: // RefName
+      case 77: // Variate
         value.move< std::string > (s.value);
         break;
 
@@ -995,7 +1010,7 @@ namespace  gcf  {
        0,   256,   257,    40,    41,    42,    43,    44,    45,    46,
       47,    58,    59,    61,    91,    93,   123,   125,   258,   259,
      260,   261,   262,   263,   264,   265,   266,   267,   268,   269,
-     270,   271,   272,   273,   274,   275,   276
+     270,   271,   272,   273,   274,   275,   276,   277,   278,   279
     };
     return static_cast<token_type> (yytoken_number_[type]);
   }
@@ -1155,6 +1170,13 @@ namespace  gcf  {
   }
 
    Parser ::symbol_type
+   Parser ::make_BYTE (const location_type& l)
+  {
+    return symbol_type (token::TOK_BYTE, l);
+
+  }
+
+   Parser ::symbol_type
    Parser ::make_INT (const location_type& l)
   {
     return symbol_type (token::TOK_INT, l);
@@ -1162,9 +1184,23 @@ namespace  gcf  {
   }
 
    Parser ::symbol_type
+   Parser ::make_LONG (const location_type& l)
+  {
+    return symbol_type (token::TOK_LONG, l);
+
+  }
+
+   Parser ::symbol_type
    Parser ::make_FLOAT (const location_type& l)
   {
     return symbol_type (token::TOK_FLOAT, l);
+
+  }
+
+   Parser ::symbol_type
+   Parser ::make_DOUBLE (const location_type& l)
+  {
+    return symbol_type (token::TOK_DOUBLE, l);
 
   }
 
@@ -1248,7 +1284,7 @@ namespace  gcf  {
 
 #line 11 "../fb/parser.y" // lalr1.cc:371
 } //  gcf 
-#line 1252 "Parser.hpp" // lalr1.cc:371
+#line 1288 "Parser.hpp" // lalr1.cc:371
 
 
 

@@ -82,7 +82,7 @@ public:
 
     /* IStructType */
     virtual CfgCategory CfgCat() const { return _cfg; }
-    virtual uint32_t HashCode() const { return _hashCode; }
+    virtual int32_t HashCode() const { return _hashCode; }
     virtual bool IsInherited(const IStructType* type) const;
     virtual bool Inherit(IStructType* parent);
     virtual IStructType* Inherited() const { return _inherit; }
@@ -94,7 +94,7 @@ public:
 protected:
     std::string _name;
     CfgCategory _cfg;
-    uint32_t _hashCode = 0;
+    int32_t _hashCode = 0;
     IScope* _owner = nullptr;
     IStructType* _inherit = nullptr;
 
@@ -145,7 +145,7 @@ public:
     virtual ElementCategory ElementCat() const { return ElementCategory::Type; }
     virtual TypeCategory TypeCat() const { return TypeCategory::Fucntion; }
     virtual const std::string& Name() const { return _name; }
-    virtual uint32_t HashCode() const { return _hashCode; }
+    virtual int32_t HashCode() const { return _hashCode; }
     virtual IType* RetType() const { return _ret; }
     virtual IScope* Owner() const { return _owner; }
     virtual IScope* Scope() const { return _scope; }
@@ -160,7 +160,7 @@ protected:
 protected:
     std::string _name;
     std::string _rawName;
-    uint32_t _hashCode = 0;
+    int32_t _hashCode = 0;
     IType* _ret = nullptr;
     IScope* _scope = nullptr;
     IScope* _owner = nullptr;
@@ -196,19 +196,19 @@ protected:
 class CrossCall : public ICrossCall
 {
 public:
-    CrossCall(const std::string& name, uint32_t ID, IScope* owner);
+    CrossCall(const std::string& name, int32_t ID, IScope* owner);
     ~CrossCall();
 
 public:
     virtual ElementCategory ElementCat() const { return ElementCategory::CrossCall; }
     virtual const std::string& Name() const { return _name; }
-    virtual uint32_t ID() const { return _ID; }
+    virtual int32_t ID() const { return _ID; }
     virtual IScope* Owner() const { return _owner; }
     virtual IScope* Scope() const { return _scope; }
 
 protected:
     std::string _name;
-    uint32_t _ID = 0;;
+    int32_t _ID = 0;;
     IScope* _owner = nullptr;
     IScope* _scope = nullptr;
 };

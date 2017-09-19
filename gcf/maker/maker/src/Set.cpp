@@ -192,13 +192,16 @@ bool EnumVarSet::Add(IVariate* var)
     {
         if (Size() == 0)
         {
-            var->BindValue(new RawValue((int)0));
+            var->BindValue(value_util::Create(RawCategory::Int));
         }
         else
         {
-            IVariate* prev = _vars.back();
             int val = 0;
-            if (value_util::Value(prev->Value(), val))
+            IVariate* prev = _vars.back();
+
+            assert(prev && prev->Value());
+
+            if (prev->Value()->ToValue(val))
                 var->BindValue(new RawValue(val + 1));
             else
                 return false;

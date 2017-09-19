@@ -57,8 +57,8 @@ namespace cs
         *_stream <<
             _TAB(0) << "public class " << _module->Name() << std::endl <<
             _TAB(0) << "{" << std::endl <<
-            _TAB(1) << "public const uint MODULE_ID = " << _module->ID() << ";" << std::endl <<
-            _TAB(1) << "public const uint HASH_CODE = " << utility::HashValue(_module) << ";" << std::endl;
+            _TAB(1) << "public const int MODULE_ID = " << _module->ID() << ";" << std::endl <<
+            _TAB(1) << "public const int HASH_CODE = " << utility::HashValue(_module) << ";" << std::endl;
         ++_tab;
 
         *_stream << std::endl;
@@ -227,7 +227,7 @@ namespace cs
         *_stream <<
             _TAB(0) << "public void Process(CrossCall.IContext context)" << std::endl <<
             _TAB(0) << "{" << std::endl <<
-            _TAB(1) << "uint code = 0;" << std::endl <<
+            _TAB(1) << "int code = 0;" << std::endl <<
             _TAB(1) << "int tmp = 0;" << std::endl <<
             _TAB(1) << "context.Param.Read(ref code);" << std::endl <<
             _TAB(1) << "context.Param.Read(ref tmp);" << std::endl <<

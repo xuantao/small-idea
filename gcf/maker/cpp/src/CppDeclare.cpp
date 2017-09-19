@@ -161,7 +161,7 @@ namespace cpp
             *_header << std::endl;
         }
 
-        *_header << _TAB(1) << "static const uint32_t HASH_CODE = " << utility::HashValue(sType) << ";" << std::endl;
+        *_header << _TAB(1) << "static const int32_t HASH_CODE = " << utility::HashValue(sType) << ";" << std::endl;
 
         std::vector<CppVarData> vars;
         for (int i = 0; i < varSet->Size(); ++i)

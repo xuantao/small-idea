@@ -8,8 +8,8 @@ using System.Collections.Generic;
 
 public class TestS2C
 {
-    public const uint MODULE_ID = 3;
-    public const uint HASH_CODE = 1180210188;
+    public const int MODULE_ID = 3;
+    public const int HASH_CODE = 1789493331;
 
     public enum Message
     {
@@ -128,7 +128,7 @@ public class TestS2C
 
         public void Process(CrossCall.IContext context)
         {
-            uint code = 0;
+            int code = 0;
             int tmp = 0;
             context.Param.Read(ref code);
             context.Param.Read(ref tmp);

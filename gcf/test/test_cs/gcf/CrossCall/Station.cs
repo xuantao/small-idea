@@ -15,7 +15,7 @@ namespace CrossCall
 
             public Invok(Station station)
             { _station = station; }
-            public Serialize.IWriter Begin(uint module)
+            public Serialize.IWriter Begin(int module)
             { return _station.BeginCall(module); }
             public Serialize.IReader End()
             { return _station.EndCall(); }
@@ -45,7 +45,7 @@ namespace CrossCall
         BinaryReader _reader;
         BinaryWriter _writer;
 
-        Dictionary<uint, IProcessor> _dicProc = new Dictionary<uint, IProcessor>();
+        Dictionary<int, IProcessor> _dicProc = new Dictionary<int, IProcessor>();
 
         public Station(ICrossCall caller, IntPtr ptr, int size)
         {
@@ -63,7 +63,7 @@ namespace CrossCall
 
         public IInvoker Invoker { get { return _invoker; } }
 
-        public bool Register(uint module, IProcessor processor)
+        public bool Register(int module, IProcessor processor)
         {
             if (_dicProc.ContainsKey(module))
                 return false;
@@ -72,14 +72,14 @@ namespace CrossCall
             return true;
         }
 
-        public IProcessor GetProcessor(uint module)
+        public IProcessor GetProcessor(int module)
         {
             IProcessor proc = null;
             _dicProc.TryGetValue(module, out proc);
             return proc;
         }
 
-        public IProcessor Unregister(uint module)
+        public IProcessor Unregister(int module)
         {
             IProcessor proc = null;
             if (_dicProc.TryGetValue(module, out proc))
@@ -91,7 +91,7 @@ namespace CrossCall
         {
             DoRecv();
 
-            uint module = 0;
+            int module = 0;
             IProcessor proc = null;
             if (_reader.Read(ref module, null) && _dicProc.TryGetValue(module, out proc))
             {
@@ -105,7 +105,7 @@ namespace CrossCall
             DoSend();
         }
 
-        Serialize.IWriter BeginCall(uint module)
+        Serialize.IWriter BeginCall(int module)
         {
             _buffer.Startup(BufferMode.Write, 0);
             _writer.Write(module);

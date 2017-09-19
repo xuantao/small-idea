@@ -14,6 +14,29 @@ namespace utility
 {
     //std::string STR_EMPTY;
 
+    namespace detail
+    {
+        static const int8_t Apt = (int8_t)ConvertRet::Accept;
+        static const int8_t War = (int8_t)ConvertRet::Warning;
+        static const int8_t Err = (int8_t)ConvertRet::Error;
+
+        static int8_t sConvertMask[7][7] = {
+            //          bool    byte    int    long    float  double  string
+            /*  bool*/ {Apt,    Err,    Err,    Err,    Err,    Err,    Err},
+            /*  byte*/ {Err,    Apt,    Apt,    Apt,    Apt,    Apt,    Err},
+            /*   int*/ {Err,    War,    Apt,    Apt,    Apt,    Apt,    Err},
+            /*  long*/ {Err,    War,    War,    Apt,    War,    Apt,    Err},
+            /* float*/ {Err,    Err,    War,    Apt,    Apt,    Apt,    Err},
+            /*double*/ {Err,    Err,    War,    War,    War,    Apt,    Err},
+            /*string*/ {Err,    Err,    Err,    Err,    Err,    Err,    Apt},
+        };
+    }
+
+    ConvertRet Convert(RawCategory s, RawCategory d)
+    {
+        return (ConvertRet)detail::sConvertMask[(int)s][(int)d];
+    }
+
     /*
      * 使用递归可以从头开始向数组插入元素
     */
@@ -215,12 +238,12 @@ namespace utility
         stream << "}";
     }
 
-    uint32_t HashValue(const char* str)
+    int32_t HashValue(const char* str)
     {
         if (str == nullptr || *str == 0)
             return 0;
 
-        uint32_t value = 1315423911;
+        int32_t value = 1315423911;
         while (*str)
         {
             value ^= ((value << 5) + *str + (value >> 2));
@@ -230,7 +253,7 @@ namespace utility
         return value;
     }
 
-    uint32_t HashValue(const IType* ty)
+    int32_t HashValue(const IType* ty)
     {
         if (ty == nullptr)
             return 0;
@@ -246,7 +269,7 @@ namespace utility
         return HashValue(str.c_str());
     }
 
-    uint32_t HashValue(const ICrossCall* cross)
+    int32_t HashValue(const ICrossCall* cross)
     {
         if (cross == nullptr) return 0;
 

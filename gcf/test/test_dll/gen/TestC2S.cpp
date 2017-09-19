@@ -84,7 +84,7 @@ void TestC2S::Requester::Test(const std::vector<std::array<int, 10> >& ar)
 
 void TestC2S::Processor::Process(cross_call::IContext* context)
 {
-    uint32_t code = 0;
+    int32_t code = 0;
     Message msg = Message::Invalid;
     context->Param()->Read(code);
     context->Param()->Read((int&)msg);

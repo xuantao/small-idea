@@ -1,15 +1,13 @@
 ﻿#pragma once
 #include "gcf/gcf.h"
+#include <cassert>
 
 GCF_NAMESPACE_BEGIN
 
 namespace value_util
 {
-    bool AsRaw(RawCategory raw, const IValue* val);
-
-    //std::string ToString(const IValue* val);
-    //std::string ToString(const IRawValue* val);
-    //std::string DefValue(RawCategory raw);
+    std::string ToString(const IValue* val);
+    std::string DefValue(RawCategory raw);
 
     /*
      * 创建默认值
@@ -24,7 +22,7 @@ namespace value_util
     /*
      * 创建引用值
     */
-    IValue* Create(IVariate* var);
+    IValue* Create(RawCategory raw, IVariate* var);
 }
 
 GCF_NAMESPACE_END

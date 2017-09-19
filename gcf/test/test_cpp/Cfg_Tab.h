@@ -14,7 +14,7 @@ namespace tab
         template <class Ty> struct Info { };
 
         template <>
-        struct Info<Struct2>
+        struct Info<TabTest_1>
         {
             static const char* const titles[];
             static const char* const types[];

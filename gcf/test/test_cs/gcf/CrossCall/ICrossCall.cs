@@ -15,7 +15,7 @@ namespace CrossCall
 
     public interface IInvoker
     {
-        Serialize.IWriter Begin(uint module);
+        Serialize.IWriter Begin(int module);
         Serialize.IReader End();
     }
 

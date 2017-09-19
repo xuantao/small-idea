@@ -12,19 +12,23 @@ namespace cs_util
 
         std::string str;
         if (val->RawCat() == RawCategory::Bool)
-            str = val->AsBool() ? "true" : "false";
+            str = utility::AsValue<bool>(val) ? "true" : "false";
         else if (val->RawCat() == RawCategory::Byte)
-            str = std::to_string(val->AsByte());
+            str = std::to_string(utility::AsValue<int8_t>(val));
         else if (val->RawCat() == RawCategory::Int)
-            str = std::to_string(val->AsInt());
-        else if (val->RawCat() == RawCategory::Float)
-            str = std::to_string(val->AsFloat());
-        else if (val->RawCat() == RawCategory::Double)
-            str = std::to_string(val->AsDouble());
+            str = std::to_string(utility::AsValue<int32_t>(val));
         else if (val->RawCat() == RawCategory::Long)
-            str = std::to_string(val->AsLong());
+            str = std::to_string(utility::AsValue<int64_t>(val));
+        else if (val->RawCat() == RawCategory::Float)
+        {
+            str = std::to_string(utility::AsValue<float>(val));
+            if (!str.empty())
+                str += "f";
+        }
+        else if (val->RawCat() == RawCategory::Double)
+            str = std::to_string(utility::AsValue<double>(val));
         else if (val->RawCat() == RawCategory::String)
-            str = val->AsString();
+            val->ToValue(str);
         else
             assert(false);
 

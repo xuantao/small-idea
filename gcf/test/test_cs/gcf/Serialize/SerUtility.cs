@@ -10,17 +10,27 @@ namespace Serialize
             return reader.Read(ref val, name);
         }
 
+        public static bool Read(IReader reader, ref byte val, string name = null)
+        {
+            return reader.Read(ref val, name);
+        }
+
         public static bool Read(IReader reader, ref int val, string name = null)
         {
             return reader.Read(ref val, name);
         }
 
-        public static bool Read(IReader reader, ref uint val, string name = null)
+        public static bool Read(IReader reader, ref long val, string name = null)
         {
             return reader.Read(ref val, name);
         }
 
         public static bool Read(IReader reader, ref float val, string name = null)
+        {
+            return reader.Read(ref val, name);
+        }
+
+        public static bool Read(IReader reader, ref double val, string name = null)
         {
             return reader.Read(ref val, name);
         }
@@ -69,17 +79,27 @@ namespace Serialize
             return writer.Write(val, name);
         }
 
+        public static bool Write(IWriter writer, byte val, string name = null)
+        {
+            return writer.Write(val, name);
+        }
+
         public static bool Write(IWriter writer, int val, string name = null)
         {
             return writer.Write(val, name);
         }
 
-        public static bool Write(IWriter writer, uint val, string name = null)
+        public static bool Write(IWriter writer, long val, string name = null)
         {
             return writer.Write(val, name);
         }
 
         public static bool Write(IWriter writer, float val, string name = null)
+        {
+            return writer.Write(val, name);
+        }
+
+        public static bool Write(IWriter writer, double val, string name = null)
         {
             return writer.Write(val, name);
         }

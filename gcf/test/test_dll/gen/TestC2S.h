@@ -10,8 +10,8 @@
 class TestC2S
 {
 public:
-    static const uint32_t MODULE_ID = 2;
-    static const uint32_t HASH_CODE = 1213898400;
+    static const int32_t MODULE_ID = 2;
+    static const int32_t HASH_CODE = -1185566244;
 
     enum class Message
     {

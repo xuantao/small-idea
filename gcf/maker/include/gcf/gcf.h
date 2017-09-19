@@ -150,7 +150,7 @@ public:
     virtual ~IStructType() {}
 public:
     virtual CfgCategory CfgCat() const = 0;
-    virtual uint32_t HashCode() const = 0;
+    virtual int32_t HashCode() const = 0;
     virtual bool IsInherited(const IStructType* type) const = 0;
     virtual bool Inherit(IStructType* parent) = 0;
     virtual IStructType* Inherited() const = 0;
@@ -177,7 +177,7 @@ public:
 
 public:
     virtual const std::string& RawName() const = 0;
-    virtual uint32_t HashCode() const = 0;
+    virtual int32_t HashCode() const = 0;
     virtual IType* RetType() const = 0;
 };
 
@@ -216,7 +216,7 @@ public:
     virtual ~ICrossCall() {}
 public:
     virtual const std::string& Name() const = 0;
-    virtual uint32_t ID() const = 0;
+    virtual int32_t ID() const = 0;
     virtual IScope* Owner() const = 0;
     virtual IScope* Scope() const = 0;
 };
@@ -317,6 +317,15 @@ public:
     virtual ~IValue() {}
 public:
     virtual ValueCategory ValueCat() const = 0;
+
+    virtual RawCategory RawCat() const = 0;
+    virtual bool ToValue(bool& val) const = 0;
+    virtual bool ToValue(int8_t& val) const = 0;
+    virtual bool ToValue(int32_t& val) const = 0;
+    virtual bool ToValue(int64_t& val) const = 0;
+    virtual bool ToValue(float& val) const = 0;
+    virtual bool ToValue(double& val) const = 0;
+    virtual bool ToValue(std::string& val) const = 0;
 };
 
 /*
@@ -326,15 +335,6 @@ GCF_API class IRawValue : public IValue
 {
 public:
     virtual ~IRawValue() {}
-public:
-    virtual RawCategory RawCat() const = 0;
-    virtual bool AsBool() const = 0;
-    virtual int8_t AsByte() const = 0;
-    virtual int32_t AsInt() const = 0;
-    virtual int64_t AsLong() const = 0;
-    virtual float AsFloat() const = 0;
-    virtual double AsDouble() const = 0;
-    virtual const char* AsString() const = 0;
 };
 
 /*
@@ -346,7 +346,7 @@ public:
     virtual ~IRefValue() {}
 public:
     virtual IVariate* Var() const = 0;
-    virtual IRawValue* Original() const = 0;
+    virtual IValue* Original() const = 0;
 };
 
 /*

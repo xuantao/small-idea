@@ -1,6 +1,17 @@
 
 /* test enum */
 
+tab struct TabTest_1
+{
+	bool _bool = true;	//< 测试bool
+	byte _byte = 1;		//< 测试byte
+	int _int = 1;		//< 测试int
+	long _long = 1;		//< 测试long
+	float _float = 1;		//< 测试float
+	double _double = 1;		//< 测试double
+	string _string = "string";		//< 测试string
+}
+
 //@ xxxxxxxxxxx
 const int g_1 = 1;
 const float f_1 = 2;
@@ -41,7 +52,7 @@ struct Struct0
  }
 }
 
-json struct Struct1 : Struct0
+struct Struct1 : Struct0
 {
  int s1a = 1;
  float f1;
@@ -54,7 +65,7 @@ json struct Struct1 : Struct0
  Detail.Enum2 s1arEnum2[2];
 }
 
-tab struct Struct2
+struct Struct2
 {
  const int MAX=100;
 
@@ -86,6 +97,7 @@ struct Msg
 	
 	Inner inner;
 }
+
 
 cross Caller {
 	void Call_A(int a, int b);

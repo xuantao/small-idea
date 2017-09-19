@@ -18,9 +18,9 @@ namespace CrossCall
             _stream = stream;
         }
 
-        public bool StructBegin(uint code, string name = null)
+        public bool StructBegin(int code, string name = null)
         {
-            uint check = 0;
+            int check = 0;
             if (!Read(ref check, null))
                 return false;
 
@@ -55,6 +55,15 @@ namespace CrossCall
             return true;
         }
 
+        public bool Read(ref byte val, string name = null)
+        {
+            byte[] data = { 0 };
+            if (!_stream.Read(data)) return false;
+
+            val = data[0];
+            return true;
+        }
+
         public bool Read(ref int val, string name = null)
         {
             byte[] data = { 0, 0, 0, 0 };
@@ -64,12 +73,12 @@ namespace CrossCall
             return true;
         }
 
-        public bool Read(ref uint val, string name = null)
+        public bool Read(ref long val, string name = null)
         {
-            byte[] data = { 0, 0, 0, 0 };
+            byte[] data = { 0, 0, 0, 0, 0, 0, 0, 0 };
             if (!_stream.Read(data)) return false;
 
-            val = BitConverter.ToUInt32(data, 0);
+            val = BitConverter.ToInt64(data, 0);
             return true;
         }
 
@@ -79,6 +88,15 @@ namespace CrossCall
             if (!_stream.Read(data)) return false;
 
             val = BitConverter.ToSingle(data, 0);
+            return true;
+        }
+
+        public bool Read(ref double val, string name = null)
+        {
+            byte[] data = { 0, 0, 0, 0, 0, 0, 0, 0 };
+            if (!_stream.Read(data)) return false;
+
+            val = BitConverter.ToDouble(data, 0);
             return true;
         }
 
@@ -109,7 +127,7 @@ namespace CrossCall
             _stream = stream;
         }
 
-        public bool StructBegin(uint code, string name = null)
+        public bool StructBegin(int code, string name = null)
         {
             return _stream.Write(BitConverter.GetBytes(code));
         }
@@ -134,17 +152,28 @@ namespace CrossCall
             return _stream.Write(BitConverter.GetBytes(val));
         }
 
+        public bool Write(byte val, string name = null)
+        {
+            byte[] by = { val };
+            return _stream.Write(by);
+        }
+
         public bool Write(int val, string name = null)
         {
             return _stream.Write(BitConverter.GetBytes(val));
         }
 
-        public bool Write(uint val, string name = null)
+        public bool Write(long val, string name = null)
         {
             return _stream.Write(BitConverter.GetBytes(val));
         }
 
         public bool Write(float val, string name = null)
+        {
+            return _stream.Write(BitConverter.GetBytes(val));
+        }
+
+        public bool Write(double val, string name = null)
         {
             return _stream.Write(BitConverter.GetBytes(val));
         }

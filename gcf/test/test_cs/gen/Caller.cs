@@ -8,8 +8,8 @@ using System.Collections.Generic;
 
 public class Caller
 {
-    public const uint MODULE_ID = 1;
-    public const uint HASH_CODE = 3469684071;
+    public const int MODULE_ID = 1;
+    public const int HASH_CODE = -1871653667;
 
     public enum Message
     {
@@ -70,7 +70,7 @@ public class Caller
 
         public void Process(CrossCall.IContext context)
         {
-            uint code = 0;
+            int code = 0;
             int tmp = 0;
             context.Param.Read(ref code);
             context.Param.Read(ref tmp);

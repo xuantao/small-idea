@@ -23,9 +23,18 @@ namespace utility
             const std::string& title) = 0;
     };
 
-    uint32_t HashValue(const char* str);
-    uint32_t HashValue(const IType* ty);
-    uint32_t HashValue(const ICrossCall* cross);
+    enum class ConvertRet
+    {
+        Accept,
+        Warning,
+        Error,
+    };
+
+    int32_t HashValue(const char* str);
+    int32_t HashValue(const IType* ty);
+    int32_t HashValue(const ICrossCall* cross);
+
+    ConvertRet Convert(RawCategory s, RawCategory d);
 
     bool Convert(const std::string& str, bool& out);
     bool Convert(const std::string& str, int8_t& out);
@@ -72,6 +81,14 @@ namespace utility
     bool TraverseDir(const std::string& path, const std::function<bool(const std::string&, bool)> visitor);
     std::vector<std::string> CollectDir(const std::string& path,
         const std::string& suffix = EMPTY_STR, bool ignoreDir = true);
+
+    template <class Ty>
+    Ty AsValue(const IValue* val)
+    {
+        Ty v;
+        assert(val->ToValue(v));
+        return v;
+    }
 
     // log
     template <class... Types>

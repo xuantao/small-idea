@@ -25,6 +25,38 @@ namespace Serialize
             return writer.Write((int)val, name);
         }
 
+        public static bool Read(IReader reader, ref TabTest_1 val, string name = null)
+        {
+            if (!reader.StructBegin(TabTest_1.HASH_CODE, name))
+                return false;
+
+            if (!Read(reader, ref val._bool, "_bool")) return false;
+            if (!Read(reader, ref val._byte, "_byte")) return false;
+            if (!Read(reader, ref val._int, "_int")) return false;
+            if (!Read(reader, ref val._long, "_long")) return false;
+            if (!Read(reader, ref val._float, "_float")) return false;
+            if (!Read(reader, ref val._double, "_double")) return false;
+            if (!Read(reader, ref val._string, "_string")) return false;
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, TabTest_1 val, string name = null)
+        {
+            if (!writer.StructBegin(TabTest_1.HASH_CODE, name))
+                return false;
+
+            if (!Write(writer, val._bool, "_bool")) return false;
+            if (!Write(writer, val._byte, "_byte")) return false;
+            if (!Write(writer, val._int, "_int")) return false;
+            if (!Write(writer, val._long, "_long")) return false;
+            if (!Write(writer, val._float, "_float")) return false;
+            if (!Write(writer, val._double, "_double")) return false;
+            if (!Write(writer, val._string, "_string")) return false;
+
+            return writer.StructEnd();
+        }
+
         public static bool Read(IReader reader, ref Enum1 val, string name = null)
         {
             int tmp = 0;

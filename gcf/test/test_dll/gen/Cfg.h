@@ -17,6 +17,19 @@ enum class GlobalType
     String = 3,
 };
 
+struct TabTest_1
+{
+    static const int32_t HASH_CODE = -296353828;
+
+    bool _bool = true; //< 测试bool
+    int8_t _byte = 1; //< 测试byte
+    int _int = 1; //< 测试int
+    int64_t _long = 1; //< 测试long
+    float _float = 1.000000; //< 测试float
+    double _double = 1.000000; //< 测试double
+    std::string _string = "string"; //< 测试string
+};
+
 extern const int g_1;
 extern const float f_1;
 extern const std::string s_1;
@@ -42,13 +55,13 @@ struct Struct0
 {
     struct Innser
     {
-        static const uint32_t HASH_CODE = 3334548982;
+        static const int32_t HASH_CODE = 1686872738;
 
         int a = 0;
         int b = 0;
     };
 
-    static const uint32_t HASH_CODE = 778842033;
+    static const int32_t HASH_CODE = -1900661952;
 
     std::vector<int> s0a;
     std::array<int, 10> s0b;
@@ -57,7 +70,7 @@ struct Struct0
 
 struct Struct1 : public Struct0
 {
-    static const uint32_t HASH_CODE = 70717381;
+    static const int32_t HASH_CODE = -487629328;
 
     int s1a = 1;
     float f1 = 0.0f;
@@ -72,7 +85,7 @@ struct Struct1 : public Struct0
 
 struct Struct2
 {
-    static const uint32_t HASH_CODE = 1416237547;
+    static const int32_t HASH_CODE = 726836598;
     static const int MAX = 100;
 
     int a = 1;
@@ -87,7 +100,7 @@ struct Struct2
 
 struct Inner
 {
-    static const uint32_t HASH_CODE = 3004470948;
+    static const int32_t HASH_CODE = -2071995248;
 
     int ii = 0;
     std::string name = "inner";
@@ -95,7 +108,7 @@ struct Inner
 
 struct Msg
 {
-    static const uint32_t HASH_CODE = 2322483568;
+    static const int32_t HASH_CODE = -1854228442;
 
     bool b = false;
     int i = 0;
@@ -115,7 +128,7 @@ enum class Wtf
 
 struct Sr3
 {
-    static const uint32_t HASH_CODE = 133125830;
+    static const int32_t HASH_CODE = 1645663838;
 
     int ID = 0; //< 模板ID
     int StageID = 0; //< 关卡ID

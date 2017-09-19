@@ -14,6 +14,9 @@ namespace serialize
         bool Read(IReader* reader, GlobalType& val, const char* name = nullptr);
         bool Write(IWriter* writer, GlobalType val, const char* name = nullptr);
 
+        bool Read(IReader* reader, TabTest_1& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const TabTest_1& val, const char* name = nullptr);
+
         bool Read(IReader* reader, Enum1& val, const char* name = nullptr);
         bool Write(IWriter* writer, Enum1 val, const char* name = nullptr);
 

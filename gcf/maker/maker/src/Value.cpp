@@ -3,109 +3,186 @@
 GCF_NAMESPACE_BEGIN
 //////////////////////////////////////////////////////////////////////////
 // RawValue
-RawValue::RawValue(bool value)
-    : _raw(RawCategory::Bool)
-    , _bool(value)
+namespace detail
 {
+    ValueImpl::ValueImpl(bool value)
+        : _raw(RawCategory::Bool)
+        , _bool(value)
+    {
+    }
+
+    ValueImpl::ValueImpl(int8_t value)
+        : _raw(RawCategory::Byte)
+        , _byte(value)
+    {
+    }
+
+    ValueImpl::ValueImpl(int32_t value)
+        : _raw(RawCategory::Int)
+        , _int(value)
+    {
+    }
+
+    ValueImpl::ValueImpl(int64_t value)
+        : _raw(RawCategory::Long)
+        , _int64_(value)
+    {
+    }
+
+    ValueImpl::ValueImpl(float value)
+        : _raw(RawCategory::Float)
+        , _float(value)
+    {
+    }
+
+    ValueImpl::ValueImpl(double value)
+        : _raw(RawCategory::Double)
+        , _double(value)
+    {
+    }
+
+    ValueImpl::ValueImpl(const std::string& value)
+        : _raw(RawCategory::String)
+        , _str(value)
+    {
+    }
+
+    ValueImpl::ValueImpl(RawCategory raw, IValue* val/* = nullptr*/)
+        : _raw(raw)
+        , _int64_(0)
+    {
+        if (val == nullptr)
+            return;
+
+        if (raw == RawCategory::Bool)
+            val->ToValue(_bool);
+        else if (raw == RawCategory::Byte)
+            val->ToValue(_byte);
+        else if (raw == RawCategory::Int)
+            val->ToValue(_int);
+        else if (raw == RawCategory::Long)
+            val->ToValue(_int64_);
+        else if (raw == RawCategory::Float)
+            val->ToValue(_float);
+        else if (raw == RawCategory::Double)
+            val->ToValue(_double);
+        else if (raw == RawCategory::String)
+            val->ToValue(_str);
+    }
+
+    bool ValueImpl::ToValue(bool& val) const
+    {
+        if (_raw == RawCategory::Bool)
+            val = _bool;
+        else
+            return false;
+
+        return true;
+    }
+
+    bool ValueImpl::ToValue(int8_t& val) const
+    {
+        if (_raw == RawCategory::Byte)
+            val = _byte;
+        else if (_raw == RawCategory::Int)
+            val = (int8_t)_int;
+        else if (_raw == RawCategory::Long)
+            val = (int8_t)_int64_;
+        else if (_raw == RawCategory::Float)
+            val = (int8_t)_float;
+        else if (_raw == RawCategory::Double)
+            val = (int8_t)_double;
+        else
+            return false;
+
+        return true;
+    }
+
+    bool ValueImpl::ToValue(int32_t& val) const
+    {
+        if (_raw == RawCategory::Byte)
+            val = _byte;
+        else if (_raw == RawCategory::Int)
+            val = _int;
+        else if (_raw == RawCategory::Long)
+            val = (int32_t)_int64_;
+        else if (_raw == RawCategory::Float)
+            val = (int32_t)_float;
+        else if (_raw == RawCategory::Double)
+            val = (int32_t)_double;
+        else
+            return false;
+
+        return true;
+    }
+
+    bool ValueImpl::ToValue(int64_t& val) const
+    {
+        if (_raw == RawCategory::Byte)
+            val = _byte;
+        else if (_raw == RawCategory::Int)
+            val = _int;
+        else if (_raw == RawCategory::Long)
+            val = _int64_;
+        else if (_raw == RawCategory::Float)
+            val = (int64_t)_float;
+        else if (_raw == RawCategory::Double)
+            val = (int64_t)_double;
+        else
+            return false;
+
+        return true;
+    }
+
+    bool ValueImpl::ToValue(float& val) const
+    {
+        if (_raw == RawCategory::Byte)
+            val = (float)_byte;
+        else if (_raw == RawCategory::Int)
+            val = (float)_int;
+        else if (_raw == RawCategory::Long)
+            val = (float)_int64_;
+        else if (_raw == RawCategory::Float)
+            val = _float;
+        else if (_raw == RawCategory::Double)
+            val = (float)_double;
+        else
+            return false;
+
+        return true;
+    }
+
+    bool ValueImpl::ToValue(double& val) const
+    {
+        if (_raw == RawCategory::Byte)
+            val = (double)_byte;
+        else if (_raw == RawCategory::Int)
+            val = (double)_int;
+        else if (_raw == RawCategory::Long)
+            val = (double)_int64_;
+        else if (_raw == RawCategory::Float)
+            val = _float;
+        else if (_raw == RawCategory::Double)
+            val = _double;
+        else
+            return false;
+
+        return true;
+    }
+
+    bool ValueImpl::ToValue(std::string& val) const
+    {
+        if (_raw == RawCategory::String)
+            val = _str;
+        else
+            return false;
+
+        return true;
+    }
 }
-
-RawValue::RawValue(int value)
-    : _raw(RawCategory::Int)
-    , _int(value)
-{
-}
-
-RawValue::RawValue(float value)
-    : _raw(RawCategory::Float)
-    , _float(value)
-{
-}
-
-RawValue::RawValue(const std::string& value)
-    : _raw(RawCategory::String)
-    , _str(value)
-{
-}
-
-bool RawValue::AsBool() const
-{
-    assert(_raw == RawCategory::Bool);
-    return _bool;
-}
-
-int8_t RawValue::AsByte() const
-{
-    assert(_raw == RawCategory::Byte);
-    return _byte;
-}
-
-int32_t RawValue::AsInt() const
-{
-    assert(_raw == RawCategory::Int);
-    return _int;
-}
-
-float RawValue::AsFloat() const
-{
-    assert(_raw == RawCategory::Float);
-    return _float;
-}
-
-double RawValue::AsDouble() const
-{
-    assert(_raw == RawCategory::Double);
-    return _double;
-}
-
-
-int64_t RawValue::AsLong() const
-{
-    assert(_raw == RawCategory::Long);
-    return _int64_;
-}
-
-
-const char* RawValue::AsString() const
-{
-    assert(_raw == RawCategory::String);
-    return _str.c_str();
-}
-
-bool RawValue::Value(bool& b) const
-{
-    if (_raw != RawCategory::Bool)
-        return false;
-    b = _bool;
-    return true;
-}
-
-bool RawValue::Value(int& i) const
-{
-    if (_raw != RawCategory::Int)
-        return false;
-    i = _int;
-    return true;
-}
-
-bool RawValue::Value(float& f) const
-{
-    if (_raw != RawCategory::Float)
-        return false;
-    f = _float;
-    return true;
-}
-
-bool RawValue::Value(std::string& str) const
-{
-    if (_raw != RawCategory::String)
-        return false;
-    str = _str;
-    return true;
-}
-
 //////////////////////////////////////////////////////////////////////////
 // RefValue
-IRawValue* RefValue::Original() const
+IValue* RefValue::Original() const
 {
     IValue* val = _var->Value();
     while (val)

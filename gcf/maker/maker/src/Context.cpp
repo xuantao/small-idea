@@ -59,14 +59,14 @@ namespace detail
     };
 
     static ConvetMask sConvertMask[7][7] = {
-    //          bool    byte    int    long    float  double  string
-    /*  bool*/{ Apt,    Err,    Err,    Err,    Err,    Err,    Err},
-    /*  byte*/{ Err,    Apt,    Apt,    Apt,    Apt,    Apt,    Err},
-    /*   int*/{ Err,    War,    Apt,    Apt,    Apt,    Apt,    Err},
-    /*  long*/{ Err,    War,    War,    Apt,    War,    Apt,    Err},
-    /* float*/{ Err,    Err,    War,    Apt,    Apt,    Apt,    Err},
-    /*double*/{ Err,    Err,    War,    War,    War,    Apt,    Err},
-    /*string*/{ Err,    Err,    Err,    Err,    Err,    Err,    Apt},
+        //          bool    byte    int    long    float  double  string
+        /*  bool*/{ Apt,    Err,    Err,    Err,    Err,    Err,    Err},
+        /*  byte*/{ Err,    Apt,    Apt,    Apt,    Apt,    Apt,    Err},
+        /*   int*/{ Err,    War,    Apt,    Apt,    Apt,    Apt,    Err},
+        /*  long*/{ Err,    War,    War,    Apt,    War,    Apt,    Err},
+        /* float*/{ Err,    Err,    War,    Apt,    Apt,    Apt,    Err},
+        /*double*/{ Err,    Err,    War,    War,    War,    Apt,    Err},
+        /*string*/{ Err,    Err,    Err,    Err,    Err,    Err,    Apt},
     };
 
     static ConvetMask CheckConvert(RawCategory f, RawCategory t)
@@ -86,9 +86,9 @@ Context::Context(Driver& driver)
     _SCOPE_->TypeSet()->Add(new RawType(TYPE_BOOL, RawCategory::Bool, _gloal->Scope()));
     _SCOPE_->TypeSet()->Add(new RawType(TYPE_BYTE, RawCategory::Byte, _gloal->Scope()));
     _SCOPE_->TypeSet()->Add(new RawType(TYPE_INT, RawCategory::Int, _gloal->Scope()));
-    _SCOPE_->TypeSet()->Add(new RawType(TYPE_FLOAT, RawCategory::Float, _gloal->Scope()));
-    _SCOPE_->TypeSet()->Add(new RawType(TYPE_FLOAT, RawCategory::Double, _gloal->Scope()));
     _SCOPE_->TypeSet()->Add(new RawType(TYPE_LONG, RawCategory::Long, _gloal->Scope()));
+    _SCOPE_->TypeSet()->Add(new RawType(TYPE_FLOAT, RawCategory::Float, _gloal->Scope()));
+    _SCOPE_->TypeSet()->Add(new RawType(TYPE_DOUBLE, RawCategory::Double, _gloal->Scope()));
     _SCOPE_->TypeSet()->Add(new RawType(TYPE_STRING, RawCategory::String, _gloal->Scope()));
 }
 
@@ -121,10 +121,16 @@ IType* Context::GetType(RawCategory raw) const
     {
     case RawCategory::Bool:
         return set->Get(TYPE_BOOL);
+    case RawCategory::Byte:
+        return set->Get(TYPE_BYTE);
     case RawCategory::Int:
         return set->Get(TYPE_INT);
+    case RawCategory::Long:
+        return set->Get(TYPE_LONG);
     case RawCategory::Float:
         return set->Get(TYPE_FLOAT);
+    case RawCategory::Double:
+        return set->Get(TYPE_DOUBLE);
     case RawCategory::String:
         return set->Get(TYPE_STRING);
     default:
@@ -406,22 +412,24 @@ void Context::OnEnumMemberRefer(const std::string& name, const std::string& refe
     if (var == nullptr)
         return;
 
+    int num = 0;
     IValue* val = nullptr;
     IVariate* ref = utility::FindVar(_SCOPE_, refer);
     if (ref == nullptr)
     {
         _driver.Error("can not find reference value:{0}", refer);
     }
-    else if (ref->Value() == nullptr
+    else if (
+        ref->Value() == nullptr
         || !ref->IsConst()
-        || !value_util::AsRaw(RawCategory::Int, ref->Value())
+        || !ref->Value()->ToValue(num)
         )
     {
         _driver.Error("reference value:{0} is not allow", refer);
     }
     else
     {
-        val = value_util::Create(ref);
+        val = value_util::Create(RawCategory::Int, ref);
     }
 
     if (val)
@@ -524,15 +532,16 @@ void Context::SetArrayRefer(const std::string& refer)
         return;
     }
 
-    //TODO: 整理value的接口定义
+    if (!var->IsConst() || var->Value() == nullptr || !var->Value()->ToValue(len))
+    {
+        _driver.Error("can not set variate:{0} as array length", refer);
+        return;
+    }
 
-    //IValue
-    //if (!value_util::Value(var->Value(), len))
-    //    _driver.Error("var with name:{0} cant not convert to length", refer);
-    //else if (len <= 0)
-    //    _driver.Warning("array with length is {0}", len);
+    if (len <= 0)
+        _driver.Warning("array with length is {0}", len);
 
-    //UpgradeArray(len);
+    UpgradeArray(len);
 }
 
 void Context::SetValue(RawCategory raw, const std::string& value)
@@ -551,8 +560,8 @@ void Context::SetValue(RawCategory raw, const std::string& value)
     }
 
     IRawType* rawType = static_cast<IRawType*>(type);
-    detail::ConvetMask mask = detail::CheckConvert(raw, rawType->RawCat());
-    if (mask == detail::ConvetMask::Err)
+    utility::ConvertRet mask = utility::Convert(raw, rawType->RawCat());
+    if (mask == utility::ConvertRet::Error)
     {
         _driver.Error("value:{0} type can not convert to type:{1}", value, rawType->Name());
         return;
@@ -564,8 +573,8 @@ void Context::SetValue(RawCategory raw, const std::string& value)
     else if (rawCat == RawCategory::Byte || rawCat == RawCategory::Long)
         rawCat = RawCategory::Int;
 
-    mask = detail::CheckConvert(raw, rawCat);
-    if (mask == detail::ConvetMask::War)
+    mask = utility::Convert(raw, rawCat);
+    if (mask == utility::ConvertRet::Warning)
         _driver.Warning("value:{0} type convert to type:{1}", value, rawType->Name());
 
     if (raw == RawCategory::String)
@@ -620,18 +629,18 @@ void Context::SetValue(const std::string& refer)
         return;
     }
 
-    detail::ConvetMask mask = detail::CheckConvert(rawSrc, rawType->RawCat());
-    if (mask == detail::ConvetMask::Err)
+    utility::ConvertRet mask = utility::Convert(rawSrc, rawType->RawCat());
+    if (mask == utility::ConvertRet::Error)
     {
         _driver.Error("value:{0} type can not convert to type:{1}", refType->Name(), rawType->Name());
         return;
     }
-    else if (mask == detail::ConvetMask::War)
+    else if (mask == utility::ConvertRet::Warning)
     {
-        _driver.Warning("type convert warnning");
+        _driver.Warning("type convert warning");
     }
 
-    _data.value = value_util::Create(ref);
+    _data.value = value_util::Create(rawType->RawCat(), ref);
     if (_data.value == nullptr)
         _driver.Error("create reference value:{0} failed", refer);
 }
@@ -666,12 +675,6 @@ IVariate* Context::AddEnumMember(const std::string& name)
 void Context::UpgradeArray(int length)
 {
     assert(_data.type);
-
-    //if (_var->Type()->TypeCat() == TypeCategory::Array)
-    //{
-    //    _driver.Error("does not support multi dimensional array");
-    //    return;
-    //}
 
     if (length < 0)
         length = 0;

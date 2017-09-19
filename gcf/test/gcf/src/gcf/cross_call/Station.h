@@ -25,7 +25,7 @@ namespace cross_call
         public:
             Cross(Station& station) : _staion(station) {}
         public:
-            virtual serialize::IWriter* Begin(uint32_t module) { return _staion.BeginCall(module); }
+            virtual serialize::IWriter* Begin(int32_t module) { return _staion.BeginCall(module); }
             virtual serialize::IReader* End() { return _staion.EndCall(); }
         protected:
             Station& _staion;
@@ -38,15 +38,15 @@ namespace cross_call
     public:
         IInvoker* Invoker() { return &_cross; }
 
-        bool Register(uint32_t module, IProcessor* processor);
-        IProcessor* Unregister(uint32_t module);
-        IProcessor* GetProcessor(uint32_t module) const;
+        bool Register(int32_t module, IProcessor* processor);
+        IProcessor* Unregister(int32_t module);
+        IProcessor* GetProcessor(int32_t module) const;
 
         void OnCall();
 
     protected:
         serialize::IWriter* RetParam();
-        serialize::IWriter* BeginCall(uint32_t module);
+        serialize::IWriter* BeginCall(int32_t module);
         serialize::IReader* EndCall();
 
     protected:

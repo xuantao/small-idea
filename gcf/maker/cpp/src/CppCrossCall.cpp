@@ -78,8 +78,8 @@ namespace cpp
             _TAB(0) << "class " << _cross->Name() << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(0) << "public:" << std::endl <<
-            _TAB(1) << "static const uint32_t MODULE_ID = " << _cross->ID() << ";" << std::endl <<
-            _TAB(1) << "static const uint32_t HASH_CODE = " << utility::HashValue(_cross) << ";" << std::endl;
+            _TAB(1) << "static const int32_t MODULE_ID = " << _cross->ID() << ";" << std::endl <<
+            _TAB(1) << "static const int32_t HASH_CODE = " << utility::HashValue(_cross) << ";" << std::endl;
         ++_tab;
 
         *_header << std::endl;
@@ -291,7 +291,7 @@ namespace cpp
         *_cpp <<
             _TAB(0) << "void " << _cross->Name() << "::Processor::Process(cross_call::IContext* context)" << std::endl <<
             _TAB(0) << "{" << std::endl <<
-            _TAB(1) << "uint32_t code = 0;" << std::endl <<
+            _TAB(1) << "int32_t code = 0;" << std::endl <<
             _TAB(1) << "Message msg = Message::Invalid;" << std::endl <<
             _TAB(1) << "context->Param()->Read(code);" << std::endl <<
             _TAB(1) << "context->Param()->Read((int&)msg);" << std::endl <<

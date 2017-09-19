@@ -126,7 +126,7 @@ namespace cs
         stream <<
             _TAB(0) << "public ";
         if (type->Inherited()) stream << "new ";
-        stream << "const uint HASH_CODE = " << utility::HashValue(type) << ";" <<
+        stream << "const int HASH_CODE = " << utility::HashValue(type) << ";" <<
             std::endl;
 
         IVarSet* varSet = type->OwnScope()->VarSet();

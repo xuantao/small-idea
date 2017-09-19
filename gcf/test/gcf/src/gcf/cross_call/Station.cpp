@@ -19,12 +19,12 @@ namespace cross_call
         delete _buffer;
     }
 
-    bool Station::Register(uint32_t module, IProcessor* processor)
+    bool Station::Register(int32_t module, IProcessor* processor)
     {
         return _procs.insert(std::make_pair(module, processor)).second;
     }
 
-    IProcessor* Station::Unregister(uint32_t module)
+    IProcessor* Station::Unregister(int32_t module)
     {
         IProcessor* proccessor = GetProcessor(module);
         if (proccessor)
@@ -32,7 +32,7 @@ namespace cross_call
         return proccessor;
     }
 
-    IProcessor* Station::GetProcessor(uint32_t module) const
+    IProcessor* Station::GetProcessor(int32_t module) const
     {
         const auto it = _procs.find(module);
         if (it == _procs.cend())
@@ -42,7 +42,7 @@ namespace cross_call
 
     void Station::OnCall()
     {
-        uint32_t module = 0;
+        int32_t module = 0;
         IProcessor* proc = nullptr;
 
         _buffer->Startup(BufferMode::Read);
@@ -67,7 +67,7 @@ namespace cross_call
         return _writer;
     }
 
-    serialize::IWriter* Station::BeginCall(uint32_t module)
+    serialize::IWriter* Station::BeginCall(int32_t module)
     {
         _buffer->Startup(BufferMode::Write);
         _writer->Write(module);

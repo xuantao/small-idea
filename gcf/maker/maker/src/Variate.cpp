@@ -1,6 +1,7 @@
 ﻿#include "Variate.h"
 #include "Type.h"
 #include "ValueUtil.h"
+#include "utility/Utility.h"
 
 GCF_NAMESPACE_BEGIN
 
@@ -44,17 +45,18 @@ bool Variate::BindValue(IValue* value)
         return false;   // not a valid variate
 
     IType* ty = _type;
-    bool allow = false;
     if (ty->TypeCat() == TypeCategory::Array)
         ty = static_cast<IArrayType*>(ty)->Original();
 
     // only basic type
+    utility::ConvertRet allow = utility::ConvertRet::Error;
     if (ty->TypeCat() == TypeCategory::Raw)
-        allow = value_util::AsRaw(static_cast<IRawType*>(ty)->RawCat(), value);
+        allow = utility::Convert(value->RawCat(), static_cast<IRawType*>(ty)->RawCat());
     else if (ty->TypeCat() == TypeCategory::Enum)
-        allow = value_util::AsRaw(RawCategory::Int, value);
+        allow = utility::Convert(value->RawCat(), RawCategory::Int);
 
-    if (!allow)
+    assert(allow != utility::ConvertRet::Error);
+    if (allow == utility::ConvertRet::Error)
         return false;
 
     _value = value;
