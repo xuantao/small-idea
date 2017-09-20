@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{12E13BF8-680A-4CAC-A4E4-9DD193B6F8AB}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>cs_test</RootNamespace>
-    <AssemblyName>cs_test</AssemblyName>
+    <RootNamespace>test_cs</RootNamespace>
+    <AssemblyName>test_cs</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CrossStation.cs" />
     <Compile Include="DllApi.cs" />
     <Compile Include="gcf\ArrayLength.cs" />
     <Compile Include="gcf\CrossCall\Binary.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="gen\TestS2C.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestC2SRsp.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

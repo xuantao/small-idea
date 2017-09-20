@@ -2,10 +2,11 @@
 #include "gen/Caller.h"
 #include "gen/TestC2S.h"
 #include "gen/TestS2C.h"
+#include "CrossStation.h"
 
 #define DLL_EXPORT extern "C" __declspec(dllexport)
 
-TestC2S::Requester* g_Invoker = nullptr;
+std::shared_ptr<TestC2S::Requester> g_Invoker;
 
 class ExeS2C : public TestS2C::IResponder
 {
@@ -135,71 +136,27 @@ public:
     }
 };
 
-
-class World
-{
-public:
-    bool Init(cross_call::ICrossCall* caller, void* buffer, int size)
-    {
-        _station = new cross_call::Station(caller, (char*)buffer, size);
-
-        _station->Register(Caller::MODULE_ID, _progress);
-        g_Invoker = new TestC2S::Requester(_station->Invoker());
-
-        _station->Register(TestS2C::MODULE_ID, new TestS2C::Processor(new ExeS2C()));
-
-        return true;
-
-    }
-
-    void Uninit()
-    {
-        delete _station;
-        _station = nullptr;
-
-        delete _progress;
-        _progress = nullptr;
-    }
-
-    cross_call::Station* GetStation() { return _station; }
-
-private:
-    Caller::Processor* _progress = nullptr;
-    cross_call::Station* _station = nullptr;
-};
-
-
-typedef void(*FnDoCall)();
-
-struct CrossCaller : cross_call::ICrossCall
-{
-    FnDoCall fnCall = nullptr;
-
-    void DoCall()
-    {
-        if (fnCall != nullptr)
-            fnCall();
-        else
-            printf("not init\n");
-    }
-};
-
-CrossCaller g_Caller;
-World g_World;
+typedef bool(*FnDoCall)();
 
 DLL_EXPORT bool Startup(FnDoCall call, void* buffer, int size)
 {
-    g_Caller.fnCall = call;
-    return g_World.Init(&g_Caller, buffer, size);
+    if (!CrossStation::Startup(call, (char*)buffer, size))
+        return false;
+
+    CrossStation::GetInstance()->Register(
+        std::make_shared<TestS2C::Processor>(std::make_shared<ExeS2C>()));
+
+    g_Invoker = std::make_shared<TestC2S::Requester>(
+        CrossStation::GetInstance()->Invoker());
+    return true;
 }
 
-DLL_EXPORT void OnCall()
+DLL_EXPORT bool OnCall()
 {
-    g_World.GetStation()->OnCall();
+    return CrossStation::GetInstance()->OnCall();
 }
 
 DLL_EXPORT void Stutdown()
 {
-    g_World.Uninit();
-    g_Caller.fnCall = nullptr;
+    CrossStation::GetInstance()->Shutdown();
 }

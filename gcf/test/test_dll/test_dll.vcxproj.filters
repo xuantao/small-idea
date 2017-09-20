@@ -37,6 +37,9 @@
     <ClCompile Include="gen\Cfg_Tab.cpp">
       <Filter>gen</Filter>
     </ClCompile>
+    <ClCompile Include="CrossStation.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gen\Caller.h">
@@ -62,6 +65,9 @@
     </ClInclude>
     <ClInclude Include="gen\Cfg_Tab.h">
       <Filter>gen</Filter>
+    </ClInclude>
+    <ClInclude Include="CrossStation.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

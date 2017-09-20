@@ -311,6 +311,8 @@ public class TestS2C
             _responder = responder;
         }
 
+        public int ID { get { return MODULE_ID; } }
+
         public void Process(CrossCall.IContext context)
         {
             int code = 0;

@@ -2,37 +2,46 @@
 
 namespace cross_call
 {
-    Station::Station(ICrossCall* caller, char* buffer, int size)
-        : _caller(caller)
-        , _context(*this)
+    Station::Station()
+        : _context(*this)
         , _cross(*this)
     {
-        _buffer = new SwapBuffer(buffer, size);
-        _reader = new BinaryReader(_buffer);
-        _writer = new BinaryWriter(_buffer);
     }
 
     Station::~Station()
     {
+    }
+
+    bool Station::Init(char* buffer, int size)
+    {
+        _buffer = new SwapBuffer(buffer, size);
+        _reader = new BinaryReader(_buffer);
+        _writer = new BinaryWriter(_buffer);
+        return true;
+    }
+
+    void Station::UnInit()
+    {
+        _procs.clear();
         delete _reader;
         delete _writer;
         delete _buffer;
     }
 
-    bool Station::Register(int32_t module, IProcessor* processor)
+    bool Station::Register(ProcessorPtr processor)
     {
-        return _procs.insert(std::make_pair(module, processor)).second;
+        return _procs.insert(std::make_pair(processor->ID(), processor)).second;
     }
 
-    IProcessor* Station::Unregister(int32_t module)
+    ProcessorPtr Station::Unregister(int32_t module)
     {
-        IProcessor* proccessor = GetProcessor(module);
+        ProcessorPtr proccessor = GetProcessor(module);
         if (proccessor)
             _procs.erase(module);
         return proccessor;
     }
 
-    IProcessor* Station::GetProcessor(int32_t module) const
+    ProcessorPtr Station::GetProcessor(int32_t module) const
     {
         const auto it = _procs.find(module);
         if (it == _procs.cend())
@@ -40,10 +49,10 @@ namespace cross_call
         return it->second;
     }
 
-    void Station::OnCall()
+    bool Station::OnCall()
     {
         int32_t module = 0;
-        IProcessor* proc = nullptr;
+        ProcessorPtr proc;
 
         _buffer->Startup(BufferMode::Read);
         _reader->Read(module);
@@ -59,6 +68,7 @@ namespace cross_call
         }
 
         _buffer->Endup();
+        return true;
     }
 
     serialize::IWriter* Station::RetParam()
@@ -78,7 +88,8 @@ namespace cross_call
     {
         _buffer->Endup();
 
-        _caller->DoCall();
+        DoCall();
+
         _buffer->Startup(BufferMode::Read);
         return _reader;
     }

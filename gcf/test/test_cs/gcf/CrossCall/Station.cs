@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 
 namespace CrossCall
 {
-    public class Station
+    public abstract class Station
     {
-        protected class Invok : IInvoker
+        class Invok : IInvoker
         {
             Station _station;
 
@@ -21,7 +21,7 @@ namespace CrossCall
             { return _station.EndCall(); }
         }
 
-        protected class Context : IContext
+        class Context : IContext
         {
             Station _station;
 
@@ -33,9 +33,8 @@ namespace CrossCall
             { return _station.RetParam(); }
         }
 
-        ICrossCall _caller;
-        IntPtr _ptr;
-        int _size;
+        protected IntPtr _ptr = IntPtr.Zero;
+        protected int _size;
 
         byte[] _pool;
         Invok _invoker;
@@ -47,11 +46,16 @@ namespace CrossCall
 
         Dictionary<int, IProcessor> _dicProc = new Dictionary<int, IProcessor>();
 
-        public Station(ICrossCall caller, IntPtr ptr, int size)
+        public IInvoker Invoker { get { return _invoker; } }
+
+        public int BufferSize { get { return _size; } }
+
+        protected bool Init(int size)
         {
-            _caller = caller;
-            _ptr = ptr;
             _size = size;
+            _ptr = Marshal.AllocHGlobal(size);
+            if (_ptr == IntPtr.Zero)
+                return false;
 
             _pool = new byte[size];
             _invoker = new Invok(this);
@@ -59,16 +63,33 @@ namespace CrossCall
             _buffer = new SwapBuffer(_pool);
             _reader = new BinaryReader(_buffer);
             _writer = new BinaryWriter(_buffer);
+
+            return true;
         }
 
-        public IInvoker Invoker { get { return _invoker; } }
-
-        public bool Register(int module, IProcessor processor)
+        protected void UnInit()
         {
-            if (_dicProc.ContainsKey(module))
+            _dicProc.Clear();
+            _writer = null;
+            _reader = null;
+            _buffer = null;
+            _param = null;
+            _invoker = null;
+            _pool = null;
+            Marshal.FreeHGlobal(_ptr);
+            _ptr = IntPtr.Zero;
+            _size = 0;
+        }
+
+        public bool Register(IProcessor processor)
+        {
+            if (processor == null)
                 return false;
 
-            _dicProc.Add(module, processor);
+            if (_dicProc.ContainsKey(processor.ID))
+                return false;
+
+            _dicProc.Add(processor.ID, processor);
             return true;
         }
 
@@ -87,7 +108,9 @@ namespace CrossCall
             return proc;
         }
 
-        public void OnCall()
+        protected abstract bool DoCall();
+
+        protected bool OnCall()
         {
             DoRecv();
 
@@ -103,6 +126,7 @@ namespace CrossCall
             }
 
             DoSend();
+            return true;
         }
 
         Serialize.IWriter BeginCall(int module)
@@ -115,7 +139,7 @@ namespace CrossCall
         Serialize.IReader EndCall()
         {
             DoSend();
-            _caller.DoCall();
+            DoCall();
             DoRecv();
             return _reader;
         }

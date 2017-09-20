@@ -158,7 +158,10 @@ namespace cs
             _TAB(1) << "public Processor(IResponder responder)" << std::endl <<
             _TAB(1) << "{" << std::endl <<
             _TAB(2) << "_responder = responder;" << std::endl <<
-            _TAB(1) << "}" << std::endl << std::endl;
+            _TAB(1) << "}" << std::endl << std::endl <<
+
+            _TAB(1) << "public int ID { get { return MODULE_ID; } }" << std::endl << std::endl;
+
         ++_tab;
 
         ImplProcessorDetail();

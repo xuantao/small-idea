@@ -6,6 +6,7 @@
 
 #include "Cfg.h"
 #include "gcf/gcf.h"
+#include <memory>
 
 class TestC2S
 {
@@ -94,10 +95,11 @@ public:
     class Processor : public cross_call::IProcessor
     {
     public:
-        Processor(IResponder* responder) : _responder(responder) { }
+        Processor(std::shared_ptr<IResponder> responder) : _responder(responder) { }
         virtual ~Processor() { }
 
     public:
+        virtual int ID() const { return MODULE_ID; }
         virtual void Process(cross_call::IContext* context);
 
     protected:
@@ -121,6 +123,6 @@ public:
         void OnTest_int_int_int_int(cross_call::IContext* context);
 
     protected:
-        IResponder* _responder = nullptr;
+        std::shared_ptr<IResponder> _responder;
     };
 };

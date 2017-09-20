@@ -21,6 +21,7 @@ namespace CrossCall
 
     public interface IProcessor
     {
+        int ID { get; }
         void Process(IContext context);
     }
 

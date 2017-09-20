@@ -54,7 +54,8 @@ namespace cpp
             _TAB(0) << "*/" << std::endl <<
             _TAB(0) << "#pragma once" << std::endl << std::endl <<
             _TAB(0) << "#include \"" << _name << ".h\"" << std::endl <<
-            _TAB(0) << "#include \"gcf/gcf.h\"" << std::endl << std::endl;
+            _TAB(0) << "#include \"gcf/gcf.h\"" << std::endl <<
+            _TAB(0) << "#include <memory>" << std::endl << std::endl;
 
         // cpp
         file = new std::ofstream(utility::ContactPath(_path, _cross->Name()) + ".cpp");
@@ -184,9 +185,10 @@ namespace cpp
             _TAB(0) << "class Processor : public cross_call::IProcessor" << std::endl <<
             _TAB(0) << "{" << std::endl <<
             _TAB(0) << "public:" << std::endl <<
-            _TAB(1) << "Processor(IResponder* responder) : _responder(responder)" << " { }" << std::endl <<
+            _TAB(1) << "Processor(std::shared_ptr<IResponder> responder) : _responder(responder)" << " { }" << std::endl <<
             _TAB(1) << "virtual ~Processor() { }" << std::endl << std::endl <<
             _TAB(0) << "public:" << std::endl <<
+            _TAB(1) << "virtual int ID() const { return MODULE_ID; }" << std::endl <<
             _TAB(1) << "virtual void Process(cross_call::IContext* context);" << std::endl << std::endl <<
             _TAB(0) << "protected:" << std::endl;
 
@@ -202,7 +204,7 @@ namespace cpp
 
         *_header << std::endl <<
             _TAB(0) << "protected:" << std::endl <<
-            _TAB(1) << "IResponder* _responder = nullptr;" << std::endl <<
+            _TAB(1) << "std::shared_ptr<IResponder> _responder;" << std::endl <<
             _TAB(0) << "};" << std::endl;
     }
 

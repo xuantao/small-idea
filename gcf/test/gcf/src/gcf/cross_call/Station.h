@@ -31,18 +31,25 @@ namespace cross_call
             Station& _staion;
         };
 
-    public:
-        Station(ICrossCall* caller, char* buffer, int size);
+    protected:
+        Station();
         ~Station();
+
+    protected:
+        bool Init(char* buffer, int size);
+        void UnInit();
 
     public:
         IInvoker* Invoker() { return &_cross; }
 
-        bool Register(int32_t module, IProcessor* processor);
-        IProcessor* Unregister(int32_t module);
-        IProcessor* GetProcessor(int32_t module) const;
+        bool Register(ProcessorPtr processor);
+        ProcessorPtr Unregister(int32_t module);
+        ProcessorPtr GetProcessor(int32_t module) const;
 
-        void OnCall();
+        bool OnCall();
+
+    protected:
+        virtual bool DoCall() = 0;
 
     protected:
         serialize::IWriter* RetParam();
@@ -50,10 +57,9 @@ namespace cross_call
         serialize::IReader* EndCall();
 
     protected:
-        ICrossCall* _caller = nullptr;
         Context _context;
         Cross _cross;
-        std::map<uint32_t, IProcessor*> _procs;
+        std::map<uint32_t, ProcessorPtr> _procs;
 
         SwapBuffer* _buffer = nullptr;
         BinaryReader* _reader = nullptr;

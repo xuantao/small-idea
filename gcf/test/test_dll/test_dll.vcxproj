@@ -142,6 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CrossStation.cpp" />
     <ClCompile Include="gen\Caller.cpp" />
     <ClCompile Include="gen\Cfg.cpp" />
     <ClCompile Include="gen\CfgUtility.cpp" />
@@ -153,6 +154,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CrossStation.h" />
     <ClInclude Include="gen\Caller.h" />
     <ClInclude Include="gen\Cfg.h" />
     <ClInclude Include="gen\CfgUtility.h" />
