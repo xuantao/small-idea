@@ -39,8 +39,8 @@ public class Caller
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Call_A_int_int);
 
-            Serialize.Utility.Write(writer, a);
-            Serialize.Utility.Write(writer, b);
+            Serialize.Utility.Write(writer, a, "a");
+            Serialize.Utility.Write(writer, b, "b");
 
             _invoker.End();
         }
@@ -51,7 +51,7 @@ public class Caller
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Call_B_string);
 
-            Serialize.Utility.Write(writer, str);
+            Serialize.Utility.Write(writer, str, "str");
 
             int __ret__ = 0;
             Serialize.Utility.Read(_invoker.End(), ref __ret__);
@@ -97,8 +97,8 @@ public class Caller
             int a = 0;
             int b = 0;
 
-            Serialize.Utility.Read(context.Param, ref a);
-            Serialize.Utility.Read(context.Param, ref b);
+            Serialize.Utility.Read(context.Param, ref a, "a");
+            Serialize.Utility.Read(context.Param, ref b, "b");
 
             _responder.Call_A(a, b);
         }
@@ -107,7 +107,7 @@ public class Caller
         {
             string str = "";
 
-            Serialize.Utility.Read(context.Param, ref str);
+            Serialize.Utility.Read(context.Param, ref str, "str");
 
             var __ret__ = _responder.Call_B(str);
             Serialize.Utility.Write(context.Ret(), __ret__);

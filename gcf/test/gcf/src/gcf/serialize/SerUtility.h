@@ -4,6 +4,7 @@
 #pragma once
 
 #include "ISerialize.h"
+#include <cstdio>
 #include <cassert>
 
 namespace serialize
@@ -20,26 +21,13 @@ namespace serialize
         bool Read(IReader* reader, float& val, const char* name = nullptr);
         bool Read(IReader* reader, double& val, const char* name = nullptr);
         bool Read(IReader* reader, std::string& val, const char* name = nullptr);
-
-        bool Read(IReader* reader, std::vector<bool> & vec, const char* name = nullptr);
-        //{
-        //    int size = 0;
-        //    if (reader->ArrayBegin(size, name))
-        //        return false;
-
-        //    vec.resize(size);
-        //    for (int i = 0; i < size; ++i)
-        //        if (!Read(reader, (bool)vec[i], nullptr))
-        //            return false;
-
-        //    return reader->ArrayEnd();
-        //}
+        bool Read(IReader* reader, std::vector<bool>& vec, const char* name = nullptr);
 
         template <class Ty>
         bool Read(IReader* reader, std::vector<Ty>& vec, const char* name = nullptr)
         {
             int size = 0;
-            if (reader->ArrayBegin(size, name))
+            if (!reader->ArrayBegin(size, name))
                 return false;
 
             vec.resize(size);
@@ -54,8 +42,12 @@ namespace serialize
         bool Read(IReader* reader, std::array<Ty, N>& arr, const char* name = nullptr)
         {
             for (size_t i = 0; i < N; ++i)
-                if (!Read(reader, arr[i]))
+            {
+                char arName[256] = {0};
+                std::snprintf(arName, 255, "%s_%d", name ? name : "", (int)i + 1);
+                if (!Read(reader, arr[i], name))
                     return false;
+            }
 
             return true;
         }
@@ -105,9 +97,13 @@ namespace serialize
         template <class Ty, size_t N>
         bool Write(IWriter* writer, const std::array<Ty, N>& arr, const char* name = nullptr)
         {
-            for (const auto& val : arr)
-                if (!Write(writer, val))
+            for (size_t i = 0; i < arr.size(); ++i)
+            {
+                char arName[256] = {0};
+                std::snprintf(arName, 255, "%s_%d", name ? name : "", (int)i + 1);
+                if (!Write(writer, arr[i], arName))
                     return false;
+            }
 
             return true;
         }

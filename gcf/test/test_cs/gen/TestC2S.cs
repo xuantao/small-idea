@@ -71,7 +71,7 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_bool);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.Write(writer, v, "v");
 
             bool __ret__ = false;
             Serialize.Utility.Read(_invoker.End(), ref __ret__);
@@ -84,7 +84,7 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_byte);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.Write(writer, v, "v");
 
             byte __ret__ = 0;
             Serialize.Utility.Read(_invoker.End(), ref __ret__);
@@ -97,7 +97,7 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_int);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.Write(writer, v, "v");
 
             int __ret__ = 0;
             Serialize.Utility.Read(_invoker.End(), ref __ret__);
@@ -110,7 +110,7 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_long);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.Write(writer, v, "v");
 
             long __ret__ = 0;
             Serialize.Utility.Read(_invoker.End(), ref __ret__);
@@ -123,7 +123,7 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_float);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.Write(writer, v, "v");
 
             float __ret__ = 0.0f;
             Serialize.Utility.Read(_invoker.End(), ref __ret__);
@@ -136,7 +136,7 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_double);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.Write(writer, v, "v");
 
             double __ret__ = 0.0;
             Serialize.Utility.Read(_invoker.End(), ref __ret__);
@@ -149,7 +149,7 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_string);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.Write(writer, v, "v");
 
             string __ret__ = "";
             Serialize.Utility.Read(_invoker.End(), ref __ret__);
@@ -162,7 +162,7 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_bool_A);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.DoWrite(writer, v, "v", Serialize.Utility.Write);
 
             _invoker.End();
         }
@@ -173,7 +173,7 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_byte_A2);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.DoWrite(writer, v, "v", Serialize.Utility.Write);
 
             _invoker.End();
         }
@@ -184,7 +184,9 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_int_A_A);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.DoWrite(writer, v, "v", (w1, v1, n1) => {
+                return Serialize.Utility.DoWrite(w1, v1, n1, Serialize.Utility.Write);
+            });
 
             _invoker.End();
         }
@@ -195,7 +197,9 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_long_A2_A);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.DoWrite(writer, v, "v", (w1, v1, n1) => {
+                return Serialize.Utility.DoWrite(w1, v1, n1, Serialize.Utility.Write);
+            });
 
             _invoker.End();
         }
@@ -206,7 +210,9 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_float_A_A2);
 
-            Serialize.Utility.Write(writer, v);
+            Serialize.Utility.DoWrite(writer, v, "v", (w1, v1, n1) => {
+                return Serialize.Utility.DoWrite(w1, v1, n1, Serialize.Utility.Write);
+            });
 
             _invoker.End();
         }
@@ -227,7 +233,7 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_Msg);
 
-            Serialize.Utility.Write(writer, msg);
+            Serialize.Utility.Write(writer, msg, "msg");
 
             _invoker.End();
         }
@@ -238,7 +244,7 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_Msg_A2);
 
-            Serialize.Utility.Write(writer, msg);
+            Serialize.Utility.DoWrite(writer, msg, "msg", Serialize.Utility.Write);
 
             _invoker.End();
         }
@@ -249,8 +255,8 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_int_int);
 
-            Serialize.Utility.Write(writer, a);
-            Serialize.Utility.Write(writer, b);
+            Serialize.Utility.Write(writer, a, "a");
+            Serialize.Utility.Write(writer, b, "b");
 
             Msg __ret__ = new Msg();
             Serialize.Utility.Read(_invoker.End(), ref __ret__);
@@ -263,12 +269,12 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_int_int_int);
 
-            Serialize.Utility.Write(writer, a);
-            Serialize.Utility.Write(writer, b);
-            Serialize.Utility.Write(writer, c);
+            Serialize.Utility.Write(writer, a, "a");
+            Serialize.Utility.Write(writer, b, "b");
+            Serialize.Utility.Write(writer, c, "c");
 
             List<Msg> __ret__ = new List<Msg>();
-            Serialize.Utility.Read(_invoker.End(), ref __ret__);
+            Serialize.Utility.DoRead(_invoker.End(), ref __ret__, "", Serialize.Utility.Read);
             return __ret__;
         }
 
@@ -278,13 +284,13 @@ public class TestC2S
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_int_int_int_int);
 
-            Serialize.Utility.Write(writer, a);
-            Serialize.Utility.Write(writer, b);
-            Serialize.Utility.Write(writer, c);
-            Serialize.Utility.Write(writer, d);
+            Serialize.Utility.Write(writer, a, "a");
+            Serialize.Utility.Write(writer, b, "b");
+            Serialize.Utility.Write(writer, c, "c");
+            Serialize.Utility.Write(writer, d, "d");
 
             FixedArray<Msg, ArrayLength_2> __ret__ = new FixedArray<Msg, ArrayLength_2>();
-            Serialize.Utility.Read(_invoker.End(), ref __ret__);
+            Serialize.Utility.DoRead(_invoker.End(), ref __ret__, "", Serialize.Utility.Read);
             return __ret__;
         }
     }
@@ -374,7 +380,7 @@ public class TestC2S
         {
             bool v = false;
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.Read(context.Param, ref v, "v");
 
             var __ret__ = _responder.Test(v);
             Serialize.Utility.Write(context.Ret(), __ret__);
@@ -384,7 +390,7 @@ public class TestC2S
         {
             byte v = 0;
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.Read(context.Param, ref v, "v");
 
             var __ret__ = _responder.Test(v);
             Serialize.Utility.Write(context.Ret(), __ret__);
@@ -394,7 +400,7 @@ public class TestC2S
         {
             int v = 0;
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.Read(context.Param, ref v, "v");
 
             var __ret__ = _responder.Test(v);
             Serialize.Utility.Write(context.Ret(), __ret__);
@@ -404,7 +410,7 @@ public class TestC2S
         {
             long v = 0;
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.Read(context.Param, ref v, "v");
 
             var __ret__ = _responder.Test(v);
             Serialize.Utility.Write(context.Ret(), __ret__);
@@ -414,7 +420,7 @@ public class TestC2S
         {
             float v = 0.0f;
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.Read(context.Param, ref v, "v");
 
             var __ret__ = _responder.Test(v);
             Serialize.Utility.Write(context.Ret(), __ret__);
@@ -424,7 +430,7 @@ public class TestC2S
         {
             double v = 0.0;
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.Read(context.Param, ref v, "v");
 
             var __ret__ = _responder.Test(v);
             Serialize.Utility.Write(context.Ret(), __ret__);
@@ -434,7 +440,7 @@ public class TestC2S
         {
             string v = "";
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.Read(context.Param, ref v, "v");
 
             var __ret__ = _responder.Test(v);
             Serialize.Utility.Write(context.Ret(), __ret__);
@@ -444,7 +450,7 @@ public class TestC2S
         {
             List<bool> v = new List<bool>();
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.DoRead(context.Param, ref v, "v", Serialize.Utility.Read);
 
             _responder.Test(v);
         }
@@ -453,7 +459,7 @@ public class TestC2S
         {
             FixedArray<byte, ArrayLength_2> v = new FixedArray<byte, ArrayLength_2>();
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.DoRead(context.Param, ref v, "v", Serialize.Utility.Read);
 
             _responder.Test(v);
         }
@@ -462,7 +468,9 @@ public class TestC2S
         {
             List<List<int>> v = new List<List<int>>();
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.DoRead(context.Param, ref v, "v", delegate (Serialize.IReader r1, ref List<int> v1, string n1) {
+                return Serialize.Utility.DoRead(r1, ref v1, n1, Serialize.Utility.Read);
+            });
 
             _responder.Test(v);
         }
@@ -471,7 +479,9 @@ public class TestC2S
         {
             List<FixedArray<long, ArrayLength_2>> v = new List<FixedArray<long, ArrayLength_2>>();
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.DoRead(context.Param, ref v, "v", delegate (Serialize.IReader r1, ref FixedArray<long, ArrayLength_2> v1, string n1) {
+                return Serialize.Utility.DoRead(r1, ref v1, n1, Serialize.Utility.Read);
+            });
 
             _responder.Test(v);
         }
@@ -480,7 +490,9 @@ public class TestC2S
         {
             FixedArray<List<float>, ArrayLength_2> v = new FixedArray<List<float>, ArrayLength_2>();
 
-            Serialize.Utility.Read(context.Param, ref v);
+            Serialize.Utility.DoRead(context.Param, ref v, "v", delegate (Serialize.IReader r1, ref List<float> v1, string n1) {
+                return Serialize.Utility.DoRead(r1, ref v1, n1, Serialize.Utility.Read);
+            });
 
             _responder.Test(v);
         }
@@ -496,7 +508,7 @@ public class TestC2S
         {
             Msg msg = new Msg();
 
-            Serialize.Utility.Read(context.Param, ref msg);
+            Serialize.Utility.Read(context.Param, ref msg, "msg");
 
             _responder.Test(msg);
         }
@@ -505,7 +517,7 @@ public class TestC2S
         {
             FixedArray<Msg, ArrayLength_2> msg = new FixedArray<Msg, ArrayLength_2>();
 
-            Serialize.Utility.Read(context.Param, ref msg);
+            Serialize.Utility.DoRead(context.Param, ref msg, "msg", Serialize.Utility.Read);
 
             _responder.Test(msg);
         }
@@ -515,8 +527,8 @@ public class TestC2S
             int a = 0;
             int b = 0;
 
-            Serialize.Utility.Read(context.Param, ref a);
-            Serialize.Utility.Read(context.Param, ref b);
+            Serialize.Utility.Read(context.Param, ref a, "a");
+            Serialize.Utility.Read(context.Param, ref b, "b");
 
             var __ret__ = _responder.Test(a, b);
             Serialize.Utility.Write(context.Ret(), __ret__);
@@ -528,12 +540,12 @@ public class TestC2S
             int b = 0;
             int c = 0;
 
-            Serialize.Utility.Read(context.Param, ref a);
-            Serialize.Utility.Read(context.Param, ref b);
-            Serialize.Utility.Read(context.Param, ref c);
+            Serialize.Utility.Read(context.Param, ref a, "a");
+            Serialize.Utility.Read(context.Param, ref b, "b");
+            Serialize.Utility.Read(context.Param, ref c, "c");
 
             var __ret__ = _responder.Test(a, b, c);
-            Serialize.Utility.Write(context.Ret(), __ret__);
+            Serialize.Utility.DoWrite(context.Ret(), __ret__, "", Serialize.Utility.Write);
         }
 
         void OnTest_int_int_int_int(CrossCall.IContext context)
@@ -543,13 +555,13 @@ public class TestC2S
             int c = 0;
             int d = 0;
 
-            Serialize.Utility.Read(context.Param, ref a);
-            Serialize.Utility.Read(context.Param, ref b);
-            Serialize.Utility.Read(context.Param, ref c);
-            Serialize.Utility.Read(context.Param, ref d);
+            Serialize.Utility.Read(context.Param, ref a, "a");
+            Serialize.Utility.Read(context.Param, ref b, "b");
+            Serialize.Utility.Read(context.Param, ref c, "c");
+            Serialize.Utility.Read(context.Param, ref d, "d");
 
             var __ret__ = _responder.Test(a, b, c, d);
-            Serialize.Utility.Write(context.Ret(), __ret__);
+            Serialize.Utility.DoWrite(context.Ret(), __ret__, "", Serialize.Utility.Write);
         }
     }
 }

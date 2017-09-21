@@ -53,6 +53,8 @@ namespace cpp
             delete _header;
         _header = nullptr;
 
+        CppVars();
+
         _vars.clear();
         _tab = 0;
         _lastIsVar = false;
@@ -245,7 +247,7 @@ namespace cpp
             if (!cpp_util::Convert(var, data))
                 continue;
 
-            if (var->Owner()->BindType() == nullptr) file << "static ";
+            //if (var->Owner()->BindType()) file << "static ";
             if (var->IsConst()) file << "const ";
 
             file << data.type << " ";

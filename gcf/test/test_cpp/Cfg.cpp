@@ -4,9 +4,8 @@
 */
 #include "Cfg.h"
 
-static const int g_1 = 1;
-static const float f_1 = 0.0f;
-static const std::string s_1 = "xuantao";
-static const bool b_1 = true;
-
-const std::string Msg::NAME = "name";
+const int g_1 = 1;
+const float f_1 = 2.000000f;
+const std::string s_1 = "xuantao";
+const bool b_1 = true;
+const std::string Msg::NAME = "MSG";

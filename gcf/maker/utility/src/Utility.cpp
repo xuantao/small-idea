@@ -37,6 +37,24 @@ namespace utility
         return (ConvertRet)detail::sConvertMask[(int)s][(int)d];
     }
 
+    const char* Tab(int tab)
+    {
+        static const char* const sTab[] = {
+            "    ",
+            "        ",
+            "            ",
+            "                ",
+            "                    ",
+            "                        ",
+            "                            ",
+            "                                ",
+        };
+
+        if (tab <= 0 || tab >= (sizeof(sTab) / sizeof(char*)))
+            return "";
+        return sTab[tab - 1];
+    }
+
     /*
      * 使用递归可以从头开始向数组插入元素
     */

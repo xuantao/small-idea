@@ -30,13 +30,13 @@ namespace Serialize
             if (!reader.StructBegin(TabTest_1.HASH_CODE, name))
                 return false;
 
-            if (!Read(reader, ref val._bool, "_bool")) return false;
-            if (!Read(reader, ref val._byte, "_byte")) return false;
-            if (!Read(reader, ref val._int, "_int")) return false;
-            if (!Read(reader, ref val._long, "_long")) return false;
-            if (!Read(reader, ref val._float, "_float")) return false;
-            if (!Read(reader, ref val._double, "_double")) return false;
-            if (!Read(reader, ref val._string, "_string")) return false;
+            Read(reader, ref val._bool, "_bool");
+            Read(reader, ref val._byte, "_byte");
+            Read(reader, ref val._int, "_int");
+            Read(reader, ref val._long, "_long");
+            Read(reader, ref val._float, "_float");
+            Read(reader, ref val._double, "_double");
+            Read(reader, ref val._string, "_string");
 
             return reader.StructEnd();
         }
@@ -46,13 +46,13 @@ namespace Serialize
             if (!writer.StructBegin(TabTest_1.HASH_CODE, name))
                 return false;
 
-            if (!Write(writer, val._bool, "_bool")) return false;
-            if (!Write(writer, val._byte, "_byte")) return false;
-            if (!Write(writer, val._int, "_int")) return false;
-            if (!Write(writer, val._long, "_long")) return false;
-            if (!Write(writer, val._float, "_float")) return false;
-            if (!Write(writer, val._double, "_double")) return false;
-            if (!Write(writer, val._string, "_string")) return false;
+            Write(writer, val._bool, "_bool");
+            Write(writer, val._byte, "_byte");
+            Write(writer, val._int, "_int");
+            Write(writer, val._long, "_long");
+            Write(writer, val._float, "_float");
+            Write(writer, val._double, "_double");
+            Write(writer, val._string, "_string");
 
             return writer.StructEnd();
         }
@@ -92,8 +92,8 @@ namespace Serialize
             if (!reader.StructBegin(Struct0.Innser.HASH_CODE, name))
                 return false;
 
-            if (!Read(reader, ref val.a, "a")) return false;
-            if (!Read(reader, ref val.b, "b")) return false;
+            Read(reader, ref val.a, "a");
+            Read(reader, ref val.b, "b");
 
             return reader.StructEnd();
         }
@@ -103,8 +103,8 @@ namespace Serialize
             if (!writer.StructBegin(Struct0.Innser.HASH_CODE, name))
                 return false;
 
-            if (!Write(writer, val.a, "a")) return false;
-            if (!Write(writer, val.b, "b")) return false;
+            Write(writer, val.a, "a");
+            Write(writer, val.b, "b");
 
             return writer.StructEnd();
         }
@@ -114,9 +114,9 @@ namespace Serialize
             if (!reader.StructBegin(Struct0.HASH_CODE, name))
                 return false;
 
-            if (!Read(reader, ref val.s0a, "s0a")) return false;
-            if (!Read(reader, ref val.s0b, "s0b")) return false;
-            if (!Read(reader, ref val.s0c, "s0c")) return false;
+            DoRead(reader, ref val.s0a, "s0a", Read);
+            DoRead(reader, ref val.s0b, "s0b", Read);
+            DoRead(reader, ref val.s0c, "s0c", Read);
 
             return reader.StructEnd();
         }
@@ -126,9 +126,9 @@ namespace Serialize
             if (!writer.StructBegin(Struct0.HASH_CODE, name))
                 return false;
 
-            if (!Write(writer, val.s0a, "s0a")) return false;
-            if (!Write(writer, val.s0b, "s0b")) return false;
-            if (!Write(writer, val.s0c, "s0c")) return false;
+            DoWrite(writer, val.s0a, "s0a", Write);
+            DoWrite(writer, val.s0b, "s0b", Write);
+            DoWrite(writer, val.s0c, "s0c", Write);
 
             return writer.StructEnd();
         }
@@ -138,18 +138,18 @@ namespace Serialize
             if (!reader.StructBegin(Struct1.HASH_CODE, name))
                 return false;
 
-            if (!Read(reader, ref val.s0a, "s0a")) return false;
-            if (!Read(reader, ref val.s0b, "s0b")) return false;
-            if (!Read(reader, ref val.s0c, "s0c")) return false;
-            if (!Read(reader, ref val.s1a, "s1a")) return false;
-            if (!Read(reader, ref val.f1, "f1")) return false;
-            if (!Read(reader, ref val.str2, "str2")) return false;
-            if (!Read(reader, ref val.str3, "str3")) return false;
-            if (!Read(reader, ref val.s1, "s1")) return false;
-            if (!Read(reader, ref val.s2, "s2")) return false;
-            if (!Read(reader, ref val.s3, "s3")) return false;
-            if (!Read(reader, ref val.s1arEnum, "s1arEnum")) return false;
-            if (!Read(reader, ref val.s1arEnum2, "s1arEnum2")) return false;
+            DoRead(reader, ref val.s0a, "s0a", Read);
+            DoRead(reader, ref val.s0b, "s0b", Read);
+            DoRead(reader, ref val.s0c, "s0c", Read);
+            Read(reader, ref val.s1a, "s1a");
+            Read(reader, ref val.f1, "f1");
+            Read(reader, ref val.str2, "str2");
+            Read(reader, ref val.str3, "str3");
+            Read(reader, ref val.s1, "s1");
+            DoRead(reader, ref val.s2, "s2", Read);
+            DoRead(reader, ref val.s3, "s3", Read);
+            DoRead(reader, ref val.s1arEnum, "s1arEnum", Read);
+            DoRead(reader, ref val.s1arEnum2, "s1arEnum2", Read);
 
             return reader.StructEnd();
         }
@@ -159,18 +159,18 @@ namespace Serialize
             if (!writer.StructBegin(Struct1.HASH_CODE, name))
                 return false;
 
-            if (!Write(writer, val.s0a, "s0a")) return false;
-            if (!Write(writer, val.s0b, "s0b")) return false;
-            if (!Write(writer, val.s0c, "s0c")) return false;
-            if (!Write(writer, val.s1a, "s1a")) return false;
-            if (!Write(writer, val.f1, "f1")) return false;
-            if (!Write(writer, val.str2, "str2")) return false;
-            if (!Write(writer, val.str3, "str3")) return false;
-            if (!Write(writer, val.s1, "s1")) return false;
-            if (!Write(writer, val.s2, "s2")) return false;
-            if (!Write(writer, val.s3, "s3")) return false;
-            if (!Write(writer, val.s1arEnum, "s1arEnum")) return false;
-            if (!Write(writer, val.s1arEnum2, "s1arEnum2")) return false;
+            DoWrite(writer, val.s0a, "s0a", Write);
+            DoWrite(writer, val.s0b, "s0b", Write);
+            DoWrite(writer, val.s0c, "s0c", Write);
+            Write(writer, val.s1a, "s1a");
+            Write(writer, val.f1, "f1");
+            Write(writer, val.str2, "str2");
+            Write(writer, val.str3, "str3");
+            Write(writer, val.s1, "s1");
+            DoWrite(writer, val.s2, "s2", Write);
+            DoWrite(writer, val.s3, "s3", Write);
+            DoWrite(writer, val.s1arEnum, "s1arEnum", Write);
+            DoWrite(writer, val.s1arEnum2, "s1arEnum2", Write);
 
             return writer.StructEnd();
         }
@@ -180,14 +180,14 @@ namespace Serialize
             if (!reader.StructBegin(Struct2.HASH_CODE, name))
                 return false;
 
-            if (!Read(reader, ref val.a, "a")) return false;
-            if (!Read(reader, ref val.b, "b")) return false;
-            if (!Read(reader, ref val.c, "c")) return false;
-            if (!Read(reader, ref val.d, "d")) return false;
-            if (!Read(reader, ref val.s, "s")) return false;
-            if (!Read(reader, ref val.s1, "s1")) return false;
-            if (!Read(reader, ref val.s2, "s2")) return false;
-            if (!Read(reader, ref val.s3, "s3")) return false;
+            Read(reader, ref val.a, "a");
+            Read(reader, ref val.b, "b");
+            Read(reader, ref val.c, "c");
+            Read(reader, ref val.d, "d");
+            Read(reader, ref val.s, "s");
+            Read(reader, ref val.s1, "s1");
+            DoRead(reader, ref val.s2, "s2", Read);
+            DoRead(reader, ref val.s3, "s3", Read);
 
             return reader.StructEnd();
         }
@@ -197,14 +197,14 @@ namespace Serialize
             if (!writer.StructBegin(Struct2.HASH_CODE, name))
                 return false;
 
-            if (!Write(writer, val.a, "a")) return false;
-            if (!Write(writer, val.b, "b")) return false;
-            if (!Write(writer, val.c, "c")) return false;
-            if (!Write(writer, val.d, "d")) return false;
-            if (!Write(writer, val.s, "s")) return false;
-            if (!Write(writer, val.s1, "s1")) return false;
-            if (!Write(writer, val.s2, "s2")) return false;
-            if (!Write(writer, val.s3, "s3")) return false;
+            Write(writer, val.a, "a");
+            Write(writer, val.b, "b");
+            Write(writer, val.c, "c");
+            Write(writer, val.d, "d");
+            Write(writer, val.s, "s");
+            Write(writer, val.s1, "s1");
+            DoWrite(writer, val.s2, "s2", Write);
+            DoWrite(writer, val.s3, "s3", Write);
 
             return writer.StructEnd();
         }
@@ -214,8 +214,8 @@ namespace Serialize
             if (!reader.StructBegin(Inner.HASH_CODE, name))
                 return false;
 
-            if (!Read(reader, ref val.ii, "ii")) return false;
-            if (!Read(reader, ref val.name, "name")) return false;
+            Read(reader, ref val.ii, "ii");
+            Read(reader, ref val.name, "name");
 
             return reader.StructEnd();
         }
@@ -225,8 +225,8 @@ namespace Serialize
             if (!writer.StructBegin(Inner.HASH_CODE, name))
                 return false;
 
-            if (!Write(writer, val.ii, "ii")) return false;
-            if (!Write(writer, val.name, "name")) return false;
+            Write(writer, val.ii, "ii");
+            Write(writer, val.name, "name");
 
             return writer.StructEnd();
         }
@@ -236,8 +236,8 @@ namespace Serialize
             if (!reader.StructBegin(Msg.Inner.HASH_CODE, name))
                 return false;
 
-            if (!Read(reader, ref val.idx, "idx")) return false;
-            if (!Read(reader, ref val.name, "name")) return false;
+            Read(reader, ref val.idx, "idx");
+            Read(reader, ref val.name, "name");
 
             return reader.StructEnd();
         }
@@ -247,8 +247,8 @@ namespace Serialize
             if (!writer.StructBegin(Msg.Inner.HASH_CODE, name))
                 return false;
 
-            if (!Write(writer, val.idx, "idx")) return false;
-            if (!Write(writer, val.name, "name")) return false;
+            Write(writer, val.idx, "idx");
+            Write(writer, val.name, "name");
 
             return writer.StructEnd();
         }
@@ -258,18 +258,18 @@ namespace Serialize
             if (!reader.StructBegin(Msg.HASH_CODE, name))
                 return false;
 
-            if (!Read(reader, ref val._bool, "_bool")) return false;
-            if (!Read(reader, ref val._byte, "_byte")) return false;
-            if (!Read(reader, ref val._int, "_int")) return false;
-            if (!Read(reader, ref val._long, "_long")) return false;
-            if (!Read(reader, ref val._float, "_float")) return false;
-            if (!Read(reader, ref val._double, "_double")) return false;
-            if (!Read(reader, ref val._string, "_string")) return false;
-            if (!Read(reader, ref val._int_ary, "_int_ary")) return false;
-            if (!Read(reader, ref val._int_ary_2, "_int_ary_2")) return false;
-            if (!Read(reader, ref val._inner, "_inner")) return false;
-            if (!Read(reader, ref val._inner_ary, "_inner_ary")) return false;
-            if (!Read(reader, ref val._inner_ary_2, "_inner_ary_2")) return false;
+            Read(reader, ref val._bool, "_bool");
+            Read(reader, ref val._byte, "_byte");
+            Read(reader, ref val._int, "_int");
+            Read(reader, ref val._long, "_long");
+            Read(reader, ref val._float, "_float");
+            Read(reader, ref val._double, "_double");
+            Read(reader, ref val._string, "_string");
+            DoRead(reader, ref val._int_ary, "_int_ary", Read);
+            DoRead(reader, ref val._int_ary_2, "_int_ary_2", Read);
+            Read(reader, ref val._inner, "_inner");
+            DoRead(reader, ref val._inner_ary, "_inner_ary", Read);
+            DoRead(reader, ref val._inner_ary_2, "_inner_ary_2", Read);
 
             return reader.StructEnd();
         }
@@ -279,18 +279,18 @@ namespace Serialize
             if (!writer.StructBegin(Msg.HASH_CODE, name))
                 return false;
 
-            if (!Write(writer, val._bool, "_bool")) return false;
-            if (!Write(writer, val._byte, "_byte")) return false;
-            if (!Write(writer, val._int, "_int")) return false;
-            if (!Write(writer, val._long, "_long")) return false;
-            if (!Write(writer, val._float, "_float")) return false;
-            if (!Write(writer, val._double, "_double")) return false;
-            if (!Write(writer, val._string, "_string")) return false;
-            if (!Write(writer, val._int_ary, "_int_ary")) return false;
-            if (!Write(writer, val._int_ary_2, "_int_ary_2")) return false;
-            if (!Write(writer, val._inner, "_inner")) return false;
-            if (!Write(writer, val._inner_ary, "_inner_ary")) return false;
-            if (!Write(writer, val._inner_ary_2, "_inner_ary_2")) return false;
+            Write(writer, val._bool, "_bool");
+            Write(writer, val._byte, "_byte");
+            Write(writer, val._int, "_int");
+            Write(writer, val._long, "_long");
+            Write(writer, val._float, "_float");
+            Write(writer, val._double, "_double");
+            Write(writer, val._string, "_string");
+            DoWrite(writer, val._int_ary, "_int_ary", Write);
+            DoWrite(writer, val._int_ary_2, "_int_ary_2", Write);
+            Write(writer, val._inner, "_inner");
+            DoWrite(writer, val._inner_ary, "_inner_ary", Write);
+            DoWrite(writer, val._inner_ary_2, "_inner_ary_2", Write);
 
             return writer.StructEnd();
         }
@@ -315,9 +315,9 @@ namespace Serialize
             if (!reader.StructBegin(Sr3.HASH_CODE, name))
                 return false;
 
-            if (!Read(reader, ref val.ID, "ID")) return false;
-            if (!Read(reader, ref val.StageID, "StageID")) return false;
-            if (!Read(reader, ref val.Name, "Name")) return false;
+            Read(reader, ref val.ID, "ID");
+            Read(reader, ref val.StageID, "StageID");
+            Read(reader, ref val.Name, "Name");
 
             return reader.StructEnd();
         }
@@ -327,9 +327,9 @@ namespace Serialize
             if (!writer.StructBegin(Sr3.HASH_CODE, name))
                 return false;
 
-            if (!Write(writer, val.ID, "ID")) return false;
-            if (!Write(writer, val.StageID, "StageID")) return false;
-            if (!Write(writer, val.Name, "Name")) return false;
+            Write(writer, val.ID, "ID");
+            Write(writer, val.StageID, "StageID");
+            Write(writer, val.Name, "Name");
 
             return writer.StructEnd();
         }

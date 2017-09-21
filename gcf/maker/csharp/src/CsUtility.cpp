@@ -196,6 +196,139 @@ namespace cs_util
 
         return "";
     }
+
+    static void sReadVar(std::ostream& stream, IType* type, int tab, int dep, bool useNs)
+    {
+        if (type->TypeCat() == TypeCategory::Array)
+        {
+            stream << "delegate (";
+            if (useNs)
+                stream << "Serialize.";
+            stream <<
+                "IReader r" << dep << ", ref " << cs_util::TypeName(type) << " v" << dep << ", string n" << dep << ") {" << std::endl;
+
+            stream << utility::Tab(tab) << "return ";
+            if (useNs)
+                stream << "Serialize.Utility.";
+            stream << "DoRead(r" << dep << ", ref v" << dep << ", n" << dep << ", ";
+            sReadVar(stream, static_cast<IArrayType*>(type)->Prev(), tab + 1, dep + 1, useNs);
+
+            stream << ");" << std::endl <<
+                utility::Tab(tab - 1) << "}";
+        }
+        else
+        {
+            if (useNs)
+                stream << "Serialize.Utility.";
+            stream << "Read";
+        }
+    }
+
+    void ReadVar(std::ostream& stream,
+        IType* type,
+        const std::string& reader,
+        const std::string& valName,
+        const std::string& rdName,
+        int tab,
+        bool useNs)
+    {
+        if (type->TypeCat() == TypeCategory::Array)
+        {
+            stream << utility::Tab(tab);
+            if (useNs)
+                stream << "Serialize.Utility.";
+            stream << "DoRead(" << reader << ", ref " << valName << ", \"" << rdName << "\", ";
+            sReadVar(stream, static_cast<IArrayType*>(type)->Prev(), tab + 1, 1, useNs);
+            stream << ");" << std::endl;
+        }
+        else if (type->TypeCat() == TypeCategory::Fucntion)
+        {
+            assert(false);
+        }
+        else
+        {
+            stream << utility::Tab(tab);
+            if (useNs)
+                stream << "Serialize.Utility.";
+            stream << "Read(" << reader << ", ref " << valName << ", \"" << rdName << "\");" << std::endl;
+        }
+    }
+
+    void ReadVar(std::ostream& stream, IVariate* var, int tab, bool useNs)
+    {
+        ReadVar(stream, var->Type(), "reader", "val." + var->Name(), var->Name(), tab, useNs);
+    }
+
+    void ReadVarDetail(std::ostream& stream, IType* type, int tab, bool useNs)
+    {
+        sReadVar(stream, type, tab, 1, useNs);
+    }
+
+    static void sWriteVar(std::ostream& stream, IType* type, int tab, int dep, bool useNs)
+    {
+        if (type->TypeCat() == TypeCategory::Array)
+        {
+            stream <<
+                "(w" << dep << ", v" << dep << ", n" << dep << ") => {" << std::endl;
+
+            stream << utility::Tab(tab) << "return ";
+            if (useNs)
+                stream << "Serialize.Utility.";
+            stream << "DoWrite(w" << dep << ", v" << dep << ", n" << dep << ", ";
+
+            sWriteVar(stream, static_cast<IArrayType*>(type)->Prev(), tab + 1, dep + 1, useNs);
+            stream << ");" << std::endl <<
+                utility::Tab(tab - 1) << "}";
+        }
+        else
+        {
+            if (useNs)
+                stream << "Serialize.Utility.";
+            stream << "Write";
+        }
+    }
+
+    void WriteVar(
+        std::ostream& stream,
+        IType* type,
+        const std::string& writer,
+        const std::string& valName,
+        const std::string& wrName,
+        int tab,
+        bool useNs
+    )
+    {
+        if (type->TypeCat() == TypeCategory::Array)
+        {
+            stream << utility::Tab(tab);
+            if (useNs)
+                stream << "Serialize.Utility.";
+            stream << "DoWrite(" << writer << ", " << valName << ", \"" << wrName << "\", ";
+            sWriteVar(stream, static_cast<IArrayType*>(type)->Prev(), tab + 1, 1, useNs);
+            stream << ");" << std::endl;
+        }
+        else if (type->TypeCat() == TypeCategory::Fucntion)
+        {
+            assert(false);
+        }
+        else
+        {
+            stream << utility::Tab(tab);
+            if (useNs)
+                stream << "Serialize.Utility.";
+            stream << "Write(" << writer << ", " << valName << ", \"" << wrName << "\");" << std::endl;
+        }
+    }
+
+    void WriteVar(std::ostream& stream, IVariate* var, int tab, bool useNs)
+    {
+        WriteVar(stream, var->Type(), "writer", "val." + var->Name(), var->Name(), tab, useNs);
+    }
+
+    void WriteVarDetail(std::ostream& stream, IType* type, int tab, bool useNs)
+    {
+        sWriteVar(stream, type, tab, 1, useNs);
+    }
 }
 
 GCF_NAMESPACE_END

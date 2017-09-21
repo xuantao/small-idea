@@ -125,8 +125,9 @@ namespace cs
                 if (var->IsConst())
                     continue;
 
-                *_stream <<
-                    _TAB(1) << "if (!Read(reader, ref val." << var->Name() << ", \"" << var->Name() << "\")) return false;" << std::endl;
+                //*_stream <<
+                //    _TAB(1) << "if (!Read(reader, ref val." << var->Name() << ", \"" << var->Name() << "\")) return false;" << std::endl;
+                cs_util::ReadVar(*_stream, var, _tab + 1, false);
             }
 
             *_stream << std::endl <<
@@ -166,8 +167,9 @@ namespace cs
                 if (var->IsConst())
                     continue;
 
-                *_stream <<
-                    _TAB(1) << "if (!Write(writer, val." << var->Name() << ", \"" << var->Name() << "\")) return false;" << std::endl;
+                cs_util::WriteVar(*_stream, var, _tab + 1, false);
+                //*_stream <<
+                //    _TAB(1) << "if (!Write(writer, val." << var->Name() << ", \"" << var->Name() << "\")) return false;" << std::endl;
             }
 
             *_stream << std::endl <<

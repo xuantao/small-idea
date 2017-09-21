@@ -19,7 +19,7 @@ public:
 
     virtual int8_t Test(int8_t v)
     {
-        printf("cpp Test(int8_t v:%d)", v);
+        printf("cpp Test(int8_t v:%d)\n", v);
         return v + 1;
     }
 

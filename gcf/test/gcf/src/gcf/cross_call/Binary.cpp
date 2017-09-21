@@ -66,6 +66,7 @@ namespace cross_call
         int32_t size = 0;
         if (!Read(size)) return false;
 
+        val.clear();
         while (size)
         {
             char buf[1024] = {0};

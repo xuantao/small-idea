@@ -22,7 +22,7 @@ bool CrossStation::Startup(std::function<bool()> caller, char* buffer, int size)
     }
 
     sInstance = station;
-    return false;
+    return true;
 }
 
 CrossStation::CrossStation()

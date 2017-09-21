@@ -38,7 +38,7 @@ namespace serialize
         bool Read(IReader* reader, std::vector<bool>& vec, const char* name/* = nullptr*/)
         {
             int size = 0;
-            if (reader->ArrayBegin(size, name))
+            if (!reader->ArrayBegin(size, name))
                 return false;
 
             vec.resize(size);

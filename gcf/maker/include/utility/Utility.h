@@ -36,6 +36,8 @@ namespace utility
 
     ConvertRet Convert(RawCategory s, RawCategory d);
 
+    const char* Tab(int tab);
+
     bool Convert(const std::string& str, bool& out);
     bool Convert(const std::string& str, int8_t& out);
     bool Convert(const std::string& str, int32_t& out);

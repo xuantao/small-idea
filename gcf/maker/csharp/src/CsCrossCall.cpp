@@ -199,22 +199,35 @@ namespace cs
         for (int i = 0; i < varSet->Size(); ++i)
         {
             IVariate* var = varSet->Get(i);
-            *_stream <<
-                _TAB(1) << "Serialize.Utility.Write(writer, " << var->Name() << ");" << std::endl;
+            //*_stream <<
+            //    _TAB(1) << "Serialize.Utility.Write(writer, " << var->Name() << ");" << std::endl;
+            //cs_util::WriteVar(*_stream, var, _tab + 1, true);
+            cs_util::WriteVar(*_stream, var->Type(), "writer", var->Name(), var->Name(), _tab + 1, true);
         }
 
         *_stream << std::endl;
         if (func->RetType())
         {
-            std::string defVal = cs_util::DefValue(func->RetType());
-
-            *_stream << _TAB(1) << cs_util::TypeName(func->RetType()) << " __ret__";
-            if (!defVal.empty()) *_stream << " = " << defVal;
+            IType* retTy = func->RetType();
+            std::string tyName = cs_util::TypeName(retTy);
+            *_stream << _TAB(1) << tyName << " __ret__ = ";
+            if (func->RetType()->TypeCat() == TypeCategory::Raw)
+                *_stream << cs_util::DefValue(retTy);
+            else
+                *_stream << "new " << tyName << "()";
             *_stream << ";" << std::endl;
 
-            *_stream <<
-                _TAB(1) << "Serialize.Utility.Read(_invoker.End(), ref __ret__);" << std::endl <<
-                _TAB(1) << "return __ret__;" << std::endl;
+            if (retTy->TypeCat() == TypeCategory::Array)
+            {
+                *_stream << _TAB(1) << "Serialize.Utility.DoRead(_invoker.End(), ref __ret__, \"\", ";
+                cs_util::ReadVarDetail(*_stream, static_cast<IArrayType*>(retTy)->Prev(), _tab + 1, true);
+                *_stream << ");" << std::endl;
+            }
+            else
+            {
+                *_stream << _TAB(1) << "Serialize.Utility.Read(_invoker.End(), ref __ret__);" << std::endl;
+            }
+            *_stream << _TAB(1) << "return __ret__;" << std::endl;
         }
         else
         {
@@ -281,7 +294,8 @@ namespace cs
         for (int i = 0; i < varSet->Size(); ++i)
         {
             IVariate* var = varSet->Get(i);
-            *_stream << _TAB(1) << "Serialize.Utility.Read(context.Param, ref " << var->Name() << ");" << std::endl;
+            //*_stream << _TAB(1) << "Serialize.Utility.Read(context.Param, ref " << var->Name() << ");" << std::endl;
+            cs_util::ReadVar(*_stream, var->Type(), "context.Param", var->Name(), var->Name(), _tab + 1, true);
         }
         *_stream << std::endl;
 
@@ -299,7 +313,20 @@ namespace cs
         }
         *_stream << ");" << std::endl;
 
-        if (func->RetType()) *_stream << _TAB(1) << "Serialize.Utility.Write(context.Ret(), __ret__);" << std::endl;
+        if (func->RetType())
+        {
+            IType* retType = func->RetType();
+            if (retType->TypeCat() == TypeCategory::Array)
+            {
+                *_stream << _TAB(1) << "Serialize.Utility.DoWrite(context.Ret(), __ret__, \"\", ";
+                cs_util::WriteVarDetail(*_stream, static_cast<IArrayType*>(retType)->Prev(), _tab + 1, true);
+                *_stream << ");" << std::endl;
+            }
+            else
+            {
+                *_stream << _TAB(1) << "Serialize.Utility.Write(context.Ret(), __ret__);" << std::endl;
+            }
+        }
 
         *_stream <<
             _TAB(0) << "}" << std::endl;

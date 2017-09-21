@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Serialize
 {
+    public delegate bool ReadCallback<T>(IReader reader, ref T val, string name);
+    public delegate bool WritCallback<T>(IWriter writer, T val, string name);
+
     public static partial class Utility
     {
         public static bool Read(IReader reader, ref bool val, string name = null)
@@ -109,98 +112,65 @@ namespace Serialize
             return writer.Write(val, name);
         }
 
-        //private static bool Write(IWriter writer, object obj, string name = null)
-        //{
-        //    if (obj is bool)
-        //        return Write(writer, (bool)obj, name);
-        //    else if (obj is byte)
-        //        return Write(writer, (byte)obj, name);
-        //    else if (obj is int)
-        //        return Write(writer, (int)obj, name);
-        //    else if (obj is long)
-        //        return Write(writer, (long)obj, name);
-        //    else if (obj is float)
-        //        return Write(writer, (float)obj, name);
-        //    else if (obj is double)
-        //        return Write(writer, (double)obj, name);
-        //    else if (obj is string)
-        //        return Write(writer, (string)obj, name);
-        //    else
-        //        throw new NotImplementedException();
-        //    return false;
-        //}
-
-        public static bool Write<T>(IWriter writer, List<T> lst, string name = null)
+        public static bool Write<T>(IWriter writer, T val, string name = null)
         {
-            if (!writer.ArrayBegin(lst.Count, name))
+            throw new NotFiniteNumberException();
+        }
+
+        public static bool DoRead<T>(IReader reader, ref List<T> val, string name, ReadCallback<T> call)
+            where T : new()
+        {
+            int size = 0;
+            if (!reader.ArrayBegin(ref size, name))
                 return false;
 
-            for (int i = 0; i < lst.Count; ++i)
+            for (int i = 0; i < size; ++i)
             {
-                if (!SWrite(writer, lst[i], null))
-                    return false;
+                T tmp = new T();
+                call(reader, ref tmp, null);
+                val.Add(tmp);
+            }
+
+            return reader.ArrayEnd();
+        }
+
+        public static bool DoRead<T, L>(IReader reader, ref FixedArray<T, L> val, string name, ReadCallback<T> call)
+            where T : new()
+            where L : IArrayLength, new()
+        {
+            for (int i = 0; i < val.Length; ++i)
+            {
+                string valName = string.Format("{0}_{1}", string.IsNullOrEmpty(name) ? "" : name, i);
+                call(reader, ref ((T[])val)[i], valName);
+            }
+
+            return true;
+        }
+
+        public static bool DoWrite<T>(IWriter writer, List<T> val, string name, WritCallback<T> call)
+        {
+            if (!writer.ArrayBegin(val.Count, name))
+                return false;
+
+            for (int i = 0; i < val.Count; ++i)
+            {
+                call(writer, val[i], null);
             }
 
             return writer.ArrayEnd();
         }
 
-        public static bool Write<T, L>(IWriter writer, FixedArray<T, L> arr, string name = null)
+        public static bool DoWrite<T, L>(IWriter writer, FixedArray<T, L> val, string name, WritCallback<T> call)
             where T : new()
             where L : IArrayLength, new()
         {
-            for (int i = 0; i < arr.Length; ++i)
-                if (!SWrite(writer, arr[i], null))
-                    return false;
+            for (int i = 0; i < val.Length; ++i)
+            {
+                string valName = string.Format("{0}_{1}", string.IsNullOrEmpty(name) ? "" : name, i);
+                call(writer, val[i], valName);
+            }
 
             return true;
         }
-
-        private static bool SWrite<T>(IWriter writer, T obj, string name = null)
-        {
-            return Write(writer, obj, name);
-        }
-
-        private static bool Write<T>(IWriter writer, T obj, string name = null)
-        {
-            //throw new NotImplementedException();
-            //if (obj is IList<>)
-            //    ;
-            return true;
-        }
-
-        //private static bool SWrite(IWriter writer, object obj, string name = null)
-        //{
-        //    //object obj = tmp;
-        //    if (obj is bool)
-        //        return Write(writer, (bool)obj, name);
-        //    else if (obj is byte)
-        //        return Write(writer, (byte)obj, name);
-        //    else if (obj is int)
-        //        return Write(writer, (int)obj, name);
-        //    else if (obj is long)
-        //        return Write(writer, (long)obj, name);
-        //    else if (obj is float)
-        //        return Write(writer, (float)obj, name);
-        //    else if (obj is double)
-        //        return Write(writer, (double)obj, name);
-        //    else if (obj is string)
-        //        return Write(writer, (string)obj, name);
-        //    //else if (obj is List<T>)
-        //    //    return Write<T>(writer, obj as List<T>, name);
-        //    else
-        //        throw new NotImplementedException();
-        //}
-
-        //private static bool SWrite<T>(IWriter writer, List<T> lst, string name = null)
-        //{
-        //    return Write(writer, lst, name);
-        //}
-
-        //private static bool SWrite<T, L>(IWriter writer, FixedArray<T, L> arr, string name = null)
-        //    where T : new()
-        //    where L : IArrayLength, new()
-        //{
-        //    return Write(writer, arr, name);
-        //}
     }
 }
