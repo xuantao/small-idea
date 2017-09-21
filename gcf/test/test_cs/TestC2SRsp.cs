@@ -102,4 +102,9 @@ public class TestC2SRsp : TestC2S.IResponder
         Console.WriteLine("cs Test(int a:{0}, int b:{1}, int c:{2}, int d:{3})", a, b, c, d);
         return new FixedArray<Msg, ArrayLength_2>();
     }
+
+    public KGPlayerData GetPlayerData()
+    {
+        return new KGPlayerData();
+    }
 }

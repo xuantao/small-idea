@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public class TestS2C
 {
     public const int MODULE_ID = 3;
-    public const int HASH_CODE = 850647883;
+    public const int HASH_CODE = 2061985061;
 
     public enum Message
     {
@@ -33,6 +33,7 @@ public class TestS2C
         Test_int_int,
         Test_int_int_int,
         Test_int_int_int_int,
+        GetPlayerData,
     }
 
     public interface IResponder
@@ -56,6 +57,7 @@ public class TestS2C
         Msg Test(int a, int b);
         List<Msg> Test(int a, int b, int c);
         FixedArray<Msg, ArrayLength_2> Test(int a, int b, int c, int d);
+        KGPlayerData GetPlayerData();
     };
 
     public class Requester
@@ -306,6 +308,18 @@ public class TestS2C
             Serialize.Utility.DoRead(_invoker.End(), ref __ret__, "", Serialize.Utility.Read);
             return __ret__;
         }
+
+        public KGPlayerData GetPlayerData()
+        {
+            Serialize.IWriter writer = _invoker.Begin(MODULE_ID);
+            writer.Write(HASH_CODE);
+            writer.Write((int)Message.GetPlayerData);
+
+
+            KGPlayerData __ret__ = new KGPlayerData();
+            Serialize.Utility.Read(_invoker.End(), ref __ret__);
+            return __ret__;
+        }
     }
 
     public class Processor : CrossCall.IProcessor
@@ -386,6 +400,9 @@ public class TestS2C
                 break;
             case Message.Test_int_int_int_int:
                 OnTest_int_int_int_int(context);
+                break;
+            case Message.GetPlayerData:
+                OnGetPlayerData(context);
                 break;
             default:
                 break;
@@ -587,6 +604,14 @@ public class TestS2C
 
             var __ret__ = _responder.Test(a, b, c, d);
             Serialize.Utility.DoWrite(context.Ret(), __ret__, "", Serialize.Utility.Write);
+        }
+
+        void OnGetPlayerData(CrossCall.IContext context)
+        {
+
+
+            var __ret__ = _responder.GetPlayerData();
+            Serialize.Utility.Write(context.Ret(), __ret__);
         }
     }
 }

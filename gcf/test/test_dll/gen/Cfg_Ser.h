@@ -38,6 +38,27 @@ namespace serialize
         bool Read(IReader* reader, Inner& val, const char* name = nullptr);
         bool Write(IWriter* writer, const Inner& val, const char* name = nullptr);
 
+        bool Read(IReader* reader, SkillLevel& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const SkillLevel& val, const char* name = nullptr);
+
+        bool Read(IReader* reader, KGSkillData& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const KGSkillData& val, const char* name = nullptr);
+
+        bool Read(IReader* reader, KGTalentData& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const KGTalentData& val, const char* name = nullptr);
+
+        bool Read(IReader* reader, KGEquipmentItemData& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const KGEquipmentItemData& val, const char* name = nullptr);
+
+        bool Read(IReader* reader, KGEquipmentSlotData& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const KGEquipmentSlotData& val, const char* name = nullptr);
+
+        bool Read(IReader* reader, KGEquipmentData& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const KGEquipmentData& val, const char* name = nullptr);
+
+        bool Read(IReader* reader, KGPlayerData& val, const char* name = nullptr);
+        bool Write(IWriter* writer, const KGPlayerData& val, const char* name = nullptr);
+
         bool Read(IReader* reader, Msg::Inner& val, const char* name = nullptr);
         bool Write(IWriter* writer, const Msg::Inner& val, const char* name = nullptr);
 

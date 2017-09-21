@@ -12,7 +12,7 @@ class TestS2C
 {
 public:
     static const int32_t MODULE_ID = 3;
-    static const int32_t HASH_CODE = 850647883;
+    static const int32_t HASH_CODE = 2061985061;
 
     enum class Message
     {
@@ -36,6 +36,7 @@ public:
         Test_int_int,
         Test_int_int_int,
         Test_int_int_int_int,
+        GetPlayerData,
     };
 
     class IResponder
@@ -63,6 +64,7 @@ public:
         virtual Msg Test(int a, int b) = 0;
         virtual std::vector<Msg> Test(int a, int b, int c) = 0;
         virtual std::array<Msg, 2> Test(int a, int b, int c, int d) = 0;
+        virtual KGPlayerData GetPlayerData() = 0;
     };
 
     class Requester
@@ -90,6 +92,7 @@ public:
         Msg Test(int a, int b);
         std::vector<Msg> Test(int a, int b, int c);
         std::array<Msg, 2> Test(int a, int b, int c, int d);
+        KGPlayerData GetPlayerData();
 
     protected:
         cross_call::IInvoker* _invoker = nullptr;
@@ -125,6 +128,7 @@ public:
         void OnTest_int_int(cross_call::IContext* context);
         void OnTest_int_int_int(cross_call::IContext* context);
         void OnTest_int_int_int_int(cross_call::IContext* context);
+        void OnGetPlayerData(cross_call::IContext* context);
 
     protected:
         std::shared_ptr<IResponder> _responder;

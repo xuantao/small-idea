@@ -106,6 +106,76 @@ struct Inner
     std::string name = "inner";
 };
 
+extern const int MAX_TALENT_COUNT;
+extern const int MAX_SKILL_COUNT;
+extern const int MAX_MOUNT_SLOT_COUNT;
+extern const int MAX_PLAYER_DATA_SHELL_COUNT;
+extern const int MAX_EQUIPMENT_COUNT;
+
+struct SkillLevel
+{
+    static const int32_t HASH_CODE = -1463516307;
+
+    int64_t m_nSkillID = 0;
+    int m_nSkillLevel = 0;
+};
+
+struct KGSkillData
+{
+    static const int32_t HASH_CODE = 51293418;
+
+    std::array<SkillLevel, 16> m_SkillInfo;
+};
+
+struct KGTalentData
+{
+    static const int32_t HASH_CODE = -2098121292;
+
+    std::array<int, 128> m_nTalent;
+};
+
+struct KGEquipmentItemData
+{
+    static const int32_t HASH_CODE = -1048349466;
+
+    int m_nTypeID = 0;
+    int m_nQualityLevel = 0;
+    int m_nNeedPlayerLevel = 0;
+    std::array<int, 3> m_MountAttrIds;
+    int m_nRandSeed = 0;
+};
+
+struct KGEquipmentSlotData
+{
+    static const int32_t HASH_CODE = -2111042310;
+
+    int m_nLevel = 0;
+    std::array<int, 3> m_MountItemTypeIds;
+};
+
+struct KGEquipmentData
+{
+    static const int32_t HASH_CODE = -1047003838;
+
+    std::array<KGEquipmentItemData, 12> m_EquipmentItemData;
+    std::array<KGEquipmentSlotData, 12> m_EquipmentSlotData;
+};
+
+struct KGPlayerData
+{
+    static const int32_t HASH_CODE = 668747640;
+
+    int m_nForceID = 0;
+    int m_nStar = 0;
+    int m_nQuality = 0;
+    int m_nLevel = 0;
+    int m_nExteriorID = 0;
+    int m_nWeaponRepresentID = 0;
+    KGSkillData m_SkillData;
+    KGTalentData m_TalentData;
+    KGEquipmentData m_EquipmentData;
+};
+
 struct Msg
 {
     struct Inner

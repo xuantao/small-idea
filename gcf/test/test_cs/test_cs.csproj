@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientDataDefine.cs" />
     <Compile Include="CrossStation.cs" />
     <Compile Include="DllApi.cs" />
     <Compile Include="gcf\ArrayLength.cs" />

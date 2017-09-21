@@ -321,3 +321,9 @@ public class ArrayLength_64 : IArrayLength
 {
     public int Length { get { return 64; } }
 }
+
+
+public class ArrayLength_128 : IArrayLength
+{
+    public int Length { get { return 128; } }
+}

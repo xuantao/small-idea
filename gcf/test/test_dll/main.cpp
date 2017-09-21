@@ -3,6 +3,7 @@
 #include "gen/TestC2S.h"
 #include "gen/TestS2C.h"
 #include "CrossStation.h"
+#include "TestOrg.h"
 
 #define DLL_EXPORT extern "C" __declspec(dllexport)
 
@@ -133,6 +134,14 @@ public:
         g_Invoker->Test(1, 2);
         g_Invoker->Test(1, 2, 3);
         g_Invoker->Test(1, 2, 3, 4);
+
+        auto data = g_Invoker->GetPlayerData();
+        printf("cpp Test()\n");
+    }
+
+    virtual KGPlayerData GetPlayerData()
+    {
+        return KGPlayerData();
     }
 };
 
@@ -159,4 +168,17 @@ DLL_EXPORT bool OnCall()
 DLL_EXPORT void Stutdown()
 {
     CrossStation::GetInstance()->Shutdown();
+}
+
+DLL_EXPORT void GetPlayerData(void* bufer)
+{
+    test::KGPlayerData data;
+    data.m_nForceID = 1;
+    data.m_nStar = 2;
+    data.m_nQuality = 3;
+    data.m_nLevel = 4;
+    data.m_nExteriorID = 5;
+    data.m_nWeaponRepresentID = 6;
+
+    memcpy(bufer, &data, sizeof(test::KGPlayerData));
 }

@@ -231,6 +231,176 @@ namespace Serialize
             return writer.StructEnd();
         }
 
+        public static bool Read(IReader reader, ref SkillLevel val, string name = null)
+        {
+            if (!reader.StructBegin(SkillLevel.HASH_CODE, name))
+                return false;
+
+            Read(reader, ref val.m_nSkillID, "m_nSkillID");
+            Read(reader, ref val.m_nSkillLevel, "m_nSkillLevel");
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, SkillLevel val, string name = null)
+        {
+            if (!writer.StructBegin(SkillLevel.HASH_CODE, name))
+                return false;
+
+            Write(writer, val.m_nSkillID, "m_nSkillID");
+            Write(writer, val.m_nSkillLevel, "m_nSkillLevel");
+
+            return writer.StructEnd();
+        }
+
+        public static bool Read(IReader reader, ref KGSkillData val, string name = null)
+        {
+            if (!reader.StructBegin(KGSkillData.HASH_CODE, name))
+                return false;
+
+            DoRead(reader, ref val.m_SkillInfo, "m_SkillInfo", Read);
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, KGSkillData val, string name = null)
+        {
+            if (!writer.StructBegin(KGSkillData.HASH_CODE, name))
+                return false;
+
+            DoWrite(writer, val.m_SkillInfo, "m_SkillInfo", Write);
+
+            return writer.StructEnd();
+        }
+
+        public static bool Read(IReader reader, ref KGTalentData val, string name = null)
+        {
+            if (!reader.StructBegin(KGTalentData.HASH_CODE, name))
+                return false;
+
+            DoRead(reader, ref val.m_nTalent, "m_nTalent", Read);
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, KGTalentData val, string name = null)
+        {
+            if (!writer.StructBegin(KGTalentData.HASH_CODE, name))
+                return false;
+
+            DoWrite(writer, val.m_nTalent, "m_nTalent", Write);
+
+            return writer.StructEnd();
+        }
+
+        public static bool Read(IReader reader, ref KGEquipmentItemData val, string name = null)
+        {
+            if (!reader.StructBegin(KGEquipmentItemData.HASH_CODE, name))
+                return false;
+
+            Read(reader, ref val.m_nTypeID, "m_nTypeID");
+            Read(reader, ref val.m_nQualityLevel, "m_nQualityLevel");
+            Read(reader, ref val.m_nNeedPlayerLevel, "m_nNeedPlayerLevel");
+            DoRead(reader, ref val.m_MountAttrIds, "m_MountAttrIds", Read);
+            Read(reader, ref val.m_nRandSeed, "m_nRandSeed");
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, KGEquipmentItemData val, string name = null)
+        {
+            if (!writer.StructBegin(KGEquipmentItemData.HASH_CODE, name))
+                return false;
+
+            Write(writer, val.m_nTypeID, "m_nTypeID");
+            Write(writer, val.m_nQualityLevel, "m_nQualityLevel");
+            Write(writer, val.m_nNeedPlayerLevel, "m_nNeedPlayerLevel");
+            DoWrite(writer, val.m_MountAttrIds, "m_MountAttrIds", Write);
+            Write(writer, val.m_nRandSeed, "m_nRandSeed");
+
+            return writer.StructEnd();
+        }
+
+        public static bool Read(IReader reader, ref KGEquipmentSlotData val, string name = null)
+        {
+            if (!reader.StructBegin(KGEquipmentSlotData.HASH_CODE, name))
+                return false;
+
+            Read(reader, ref val.m_nLevel, "m_nLevel");
+            DoRead(reader, ref val.m_MountItemTypeIds, "m_MountItemTypeIds", Read);
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, KGEquipmentSlotData val, string name = null)
+        {
+            if (!writer.StructBegin(KGEquipmentSlotData.HASH_CODE, name))
+                return false;
+
+            Write(writer, val.m_nLevel, "m_nLevel");
+            DoWrite(writer, val.m_MountItemTypeIds, "m_MountItemTypeIds", Write);
+
+            return writer.StructEnd();
+        }
+
+        public static bool Read(IReader reader, ref KGEquipmentData val, string name = null)
+        {
+            if (!reader.StructBegin(KGEquipmentData.HASH_CODE, name))
+                return false;
+
+            DoRead(reader, ref val.m_EquipmentItemData, "m_EquipmentItemData", Read);
+            DoRead(reader, ref val.m_EquipmentSlotData, "m_EquipmentSlotData", Read);
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, KGEquipmentData val, string name = null)
+        {
+            if (!writer.StructBegin(KGEquipmentData.HASH_CODE, name))
+                return false;
+
+            DoWrite(writer, val.m_EquipmentItemData, "m_EquipmentItemData", Write);
+            DoWrite(writer, val.m_EquipmentSlotData, "m_EquipmentSlotData", Write);
+
+            return writer.StructEnd();
+        }
+
+        public static bool Read(IReader reader, ref KGPlayerData val, string name = null)
+        {
+            if (!reader.StructBegin(KGPlayerData.HASH_CODE, name))
+                return false;
+
+            Read(reader, ref val.m_nForceID, "m_nForceID");
+            Read(reader, ref val.m_nStar, "m_nStar");
+            Read(reader, ref val.m_nQuality, "m_nQuality");
+            Read(reader, ref val.m_nLevel, "m_nLevel");
+            Read(reader, ref val.m_nExteriorID, "m_nExteriorID");
+            Read(reader, ref val.m_nWeaponRepresentID, "m_nWeaponRepresentID");
+            Read(reader, ref val.m_SkillData, "m_SkillData");
+            Read(reader, ref val.m_TalentData, "m_TalentData");
+            Read(reader, ref val.m_EquipmentData, "m_EquipmentData");
+
+            return reader.StructEnd();
+        }
+
+        public static bool Write(IWriter writer, KGPlayerData val, string name = null)
+        {
+            if (!writer.StructBegin(KGPlayerData.HASH_CODE, name))
+                return false;
+
+            Write(writer, val.m_nForceID, "m_nForceID");
+            Write(writer, val.m_nStar, "m_nStar");
+            Write(writer, val.m_nQuality, "m_nQuality");
+            Write(writer, val.m_nLevel, "m_nLevel");
+            Write(writer, val.m_nExteriorID, "m_nExteriorID");
+            Write(writer, val.m_nWeaponRepresentID, "m_nWeaponRepresentID");
+            Write(writer, val.m_SkillData, "m_SkillData");
+            Write(writer, val.m_TalentData, "m_TalentData");
+            Write(writer, val.m_EquipmentData, "m_EquipmentData");
+
+            return writer.StructEnd();
+        }
+
         public static bool Read(IReader reader, ref Msg.Inner val, string name = null)
         {
             if (!reader.StructBegin(Msg.Inner.HASH_CODE, name))

@@ -11,6 +11,11 @@ public static class GlobalVar
     public const float f_1 = 2.000000f;
     public const string s_1 = "xuantao";
     public const bool b_1 = true;
+    public const int MAX_TALENT_COUNT = 128;
+    public const int MAX_SKILL_COUNT = 16;
+    public const int MAX_MOUNT_SLOT_COUNT = 3;
+    public const int MAX_PLAYER_DATA_SHELL_COUNT = 3;
+    public const int MAX_EQUIPMENT_COUNT = 12;
 
 }
 public enum GlobalType
@@ -88,6 +93,63 @@ public class Inner
 
     public int ii = 0;
     public string name = "inner";
+}
+public class SkillLevel
+{
+    public const int HASH_CODE = -1463516307;
+
+    public long m_nSkillID = 0;
+    public int m_nSkillLevel = 0;
+}
+public class KGSkillData
+{
+    public const int HASH_CODE = 51293418;
+
+    public FixedArray<SkillLevel, ArrayLength_16> m_SkillInfo = new FixedArray<SkillLevel, ArrayLength_16>();
+}
+public class KGTalentData
+{
+    public const int HASH_CODE = -2098121292;
+
+    public FixedArray<int, ArrayLength_128> m_nTalent = new FixedArray<int, ArrayLength_128>();
+}
+public class KGEquipmentItemData
+{
+    public const int HASH_CODE = -1048349466;
+
+    public int m_nTypeID = 0;
+    public int m_nQualityLevel = 0;
+    public int m_nNeedPlayerLevel = 0;
+    public FixedArray<int, ArrayLength_3> m_MountAttrIds = new FixedArray<int, ArrayLength_3>();
+    public int m_nRandSeed = 0;
+}
+public class KGEquipmentSlotData
+{
+    public const int HASH_CODE = -2111042310;
+
+    public int m_nLevel = 0;
+    public FixedArray<int, ArrayLength_3> m_MountItemTypeIds = new FixedArray<int, ArrayLength_3>();
+}
+public class KGEquipmentData
+{
+    public const int HASH_CODE = -1047003838;
+
+    public FixedArray<KGEquipmentItemData, ArrayLength_12> m_EquipmentItemData = new FixedArray<KGEquipmentItemData, ArrayLength_12>();
+    public FixedArray<KGEquipmentSlotData, ArrayLength_12> m_EquipmentSlotData = new FixedArray<KGEquipmentSlotData, ArrayLength_12>();
+}
+public class KGPlayerData
+{
+    public const int HASH_CODE = 668747640;
+
+    public int m_nForceID = 0;
+    public int m_nStar = 0;
+    public int m_nQuality = 0;
+    public int m_nLevel = 0;
+    public int m_nExteriorID = 0;
+    public int m_nWeaponRepresentID = 0;
+    public KGSkillData m_SkillData = new KGSkillData();
+    public KGTalentData m_TalentData = new KGTalentData();
+    public KGEquipmentData m_EquipmentData = new KGEquipmentData();
 }
 public class Msg
 {

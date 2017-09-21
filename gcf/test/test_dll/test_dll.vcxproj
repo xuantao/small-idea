@@ -163,6 +163,7 @@
     <ClInclude Include="gen\Cfg_Tab.h" />
     <ClInclude Include="gen\TestC2S.h" />
     <ClInclude Include="gen\TestS2C.h" />
+    <ClInclude Include="TestOrg.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

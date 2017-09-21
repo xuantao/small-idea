@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 class Writer : Serialize.IWriter
 {
@@ -151,7 +153,7 @@ namespace cs_test
 
         static void TestCrossCall()
         {
-            CrossStation.Startup(Caller.Instance, 1024);
+            CrossStation.Startup(Caller.Instance, 1024 * 24);
             var station = CrossStation.Instance;
             station.Register(new TestC2S.Processor(new TestC2SRsp()));
 
@@ -212,103 +214,46 @@ namespace cs_test
 
             req.Test();
 
+            Stopwatch watch = Stopwatch.StartNew();
+            watch.Start();
+            for (int i = 0; i < 10000; ++i)
+            {
+                KGPlayerData data = req.GetPlayerData();
+            }
+
+            long cost = watch.ElapsedMilliseconds;
+            watch.Stop();
+
             station.Shutdown();
+
+            Console.WriteLine("test cross call, cost:{0}", cost);
         }
 
-        static void Visit(int val)
+        static void TestOrgCall()
         {
-            Console.WriteLine("Visit(int val:{0})", val);
+            Stopwatch watch = Stopwatch.StartNew();
+            watch.Start();
+
+            for (int i = 0; i < 10000; ++i)
+            {
+                DummyJX3MClient.PlayerData playerData = new DummyJX3MClient.PlayerData(1);
+                var size = Marshal.SizeOf(playerData);
+                var ptr = Marshal.AllocHGlobal(size);
+                Marshal.StructureToPtr(playerData, ptr, false);
+                DllApi.GetPlayerData(ptr);
+                Marshal.FreeHGlobal(ptr);
+            }
+
+            long cost = watch.ElapsedMilliseconds;
+            watch.Stop();
+
+            Console.WriteLine("test org call, cost:{0}", cost);
         }
-
-        static void Visit(float val)
-        {
-            Console.WriteLine("Visit(int val:{0})", val);
-        }
-
-        //static void Visit<T>(T val)
-        //{
-        //    Console.WriteLine("Visit(int val:{0})", val);
-        //}
-
-
-        //static void Visit<T>(List<T> lst)
-        //{
-        //    foreach (var v in lst)
-        //        Visit(v);
-        //}
-
-        //static void Visit<T, K>(T obj) where T : IList<K>
-        //{
-        //    Console.WriteLine("Visit<T, K>(T obj:{0})", obj);
-        //    foreach (var v in obj)
-        //        Visit(v);
-        //}
-
-        //static void VisitList<T, K>(object obj)
-        //{
-        //    // Console.WriteLine("obj:{0}", obj);
-
-        //    if (obj is List<T>)
-        //        foreach (var o in (obj as List<T>))
-        //        {
-        //            VisitList<K, K>(o);
-        //        }
-        //    else
-        //        Visit(obj);
-        //}
-
-        static void Visit(object val)
-        {
-            Console.WriteLine("{0}", val);
-        }
-
-        static void Visit<T, L>(FixedArray<T, L> ar)
-            where T : new()
-            where L : IArrayLength, new()
-        {
-            for (int i = 0; i < ar.Length; ++i)
-                Console.WriteLine("fa:{0}", ar[i]);
-        }
-
-        static void Visit<T>(List<T> l)
-        {
-            foreach (var v in l)
-                Visit(v);
-        }
-
-        static void Visit<T>(List<List<T>> ll)
-        {
-            foreach (var l in ll)
-                Visit(l);
-        }
-
-        static void Visit<T>(List<List<List<T>>> lll)
-        {
-            foreach (var ll in lll)
-                Visit(ll);
-        }
-
-        //static void Visit<T>(T obj)
-        //{
-        //    Console.WriteLine("obj:{0}", obj);
-        //}
-
-        //static void DoRead<T>(ref List<T> val, Action<ref T> call)
-        //{
-        //    int size = 1;
-
-        //    for (int i = 0; i < size; ++i)
-        //    {
-        //        T t = default(T);
-        //        call(ref t);
-        //        val.Add(t);
-        //    }
-        //}
 
         static void Main(string[] args)
         {
             TestCrossCall();
-
+            TestOrgCall();
             //List<int> l = new List<int> { 1, 2, 3 };
 
             //List<List<int>> ll = new List<List<int>>();

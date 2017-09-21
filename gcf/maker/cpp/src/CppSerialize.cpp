@@ -199,7 +199,7 @@ namespace cpp
                     continue;
 
                 *_cpp <<
-                    _TAB(1) << "if (!Write(writer, val." << var->Name() << "), \"" << var->Name() << "\") return false;" << std::endl;
+                    _TAB(1) << "if (!Write(writer, val." << var->Name() << ", \"" << var->Name() << "\")) return false;" << std::endl;
             }
 
             *_cpp << std::endl <<

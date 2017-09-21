@@ -13,4 +13,7 @@ public static class DllApi
 
     [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
     public static extern void Stutdown();
+
+    [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void GetPlayerData(IntPtr ptr);
 }

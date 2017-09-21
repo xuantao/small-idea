@@ -69,5 +69,8 @@
     <ClInclude Include="CrossStation.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="TestOrg.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
