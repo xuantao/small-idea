@@ -143,6 +143,17 @@ public:
     {
         return KGPlayerData();
     }
+
+    virtual void SetPlayerData(const KGPlayerData& data)
+    {
+        //printf("SetPlayerData(KGPlayerData data)\n");
+    }
+
+    virtual KGPlayerData TranslatePlayerData(const KGPlayerData& data)
+    {
+        //printf("SetPlayerData(KGPlayerData data:{0})\n");
+        return KGPlayerData();
+    }
 };
 
 typedef bool(*FnDoCall)();

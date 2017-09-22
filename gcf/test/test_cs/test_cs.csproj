@@ -58,6 +58,7 @@
     <Compile Include="gen\Cfg_Ser.cs" />
     <Compile Include="gen\TestC2S.cs" />
     <Compile Include="gen\TestS2C.cs" />
+    <Compile Include="Profile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestC2SRsp.cs" />

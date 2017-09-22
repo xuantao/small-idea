@@ -198,6 +198,8 @@ cross TestC2S
     Msg[2] Test(int a, int b, int c, int d);
 
     KGPlayerData GetPlayerData();
+    void SetPlayerData(KGPlayerData data);
+    KGPlayerData TranslatePlayerData(KGPlayerData data);
 }
 
 cross TestS2C
@@ -226,4 +228,6 @@ cross TestS2C
     Msg[2] Test(int a, int b, int c, int d);
 
     KGPlayerData GetPlayerData();
+    void SetPlayerData(KGPlayerData data);
+    KGPlayerData TranslatePlayerData(KGPlayerData data);
 }

@@ -12,7 +12,7 @@ class TestS2C
 {
 public:
     static const int32_t MODULE_ID = 3;
-    static const int32_t HASH_CODE = 2061985061;
+    static const int32_t HASH_CODE = -841149956;
 
     enum class Message
     {
@@ -37,6 +37,8 @@ public:
         Test_int_int_int,
         Test_int_int_int_int,
         GetPlayerData,
+        SetPlayerData_KGPlayerData,
+        TranslatePlayerData_KGPlayerData,
     };
 
     class IResponder
@@ -65,6 +67,8 @@ public:
         virtual std::vector<Msg> Test(int a, int b, int c) = 0;
         virtual std::array<Msg, 2> Test(int a, int b, int c, int d) = 0;
         virtual KGPlayerData GetPlayerData() = 0;
+        virtual void SetPlayerData(const KGPlayerData& data) = 0;
+        virtual KGPlayerData TranslatePlayerData(const KGPlayerData& data) = 0;
     };
 
     class Requester
@@ -93,6 +97,8 @@ public:
         std::vector<Msg> Test(int a, int b, int c);
         std::array<Msg, 2> Test(int a, int b, int c, int d);
         KGPlayerData GetPlayerData();
+        void SetPlayerData(const KGPlayerData& data);
+        KGPlayerData TranslatePlayerData(const KGPlayerData& data);
 
     protected:
         cross_call::IInvoker* _invoker = nullptr;
@@ -129,6 +135,8 @@ public:
         void OnTest_int_int_int(cross_call::IContext* context);
         void OnTest_int_int_int_int(cross_call::IContext* context);
         void OnGetPlayerData(cross_call::IContext* context);
+        void OnSetPlayerData_KGPlayerData(cross_call::IContext* context);
+        void OnTranslatePlayerData_KGPlayerData(cross_call::IContext* context);
 
     protected:
         std::shared_ptr<IResponder> _responder;

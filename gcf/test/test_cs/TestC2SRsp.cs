@@ -107,4 +107,15 @@ public class TestC2SRsp : TestC2S.IResponder
     {
         return new KGPlayerData();
     }
+
+    public void SetPlayerData(KGPlayerData data)
+    {
+        Console.WriteLine("SetPlayerData(KGPlayerData data:{0})", data);
+    }
+
+    public KGPlayerData TranslatePlayerData(KGPlayerData data)
+    {
+        Console.WriteLine("SetPlayerData(KGPlayerData data:{0})", data);
+        return new KGPlayerData();
+    }
 }

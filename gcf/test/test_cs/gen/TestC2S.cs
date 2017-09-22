@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public class TestC2S
 {
     public const int MODULE_ID = 2;
-    public const int HASH_CODE = 607980266;
+    public const int HASH_CODE = 118996722;
 
     public enum Message
     {
@@ -33,6 +33,8 @@ public class TestC2S
         Test_int_int_int,
         Test_int_int_int_int,
         GetPlayerData,
+        SetPlayerData_KGPlayerData,
+        TranslatePlayerData_KGPlayerData,
     }
 
     public interface IResponder
@@ -56,6 +58,8 @@ public class TestC2S
         List<Msg> Test(int a, int b, int c);
         FixedArray<Msg, ArrayLength_2> Test(int a, int b, int c, int d);
         KGPlayerData GetPlayerData();
+        void SetPlayerData(KGPlayerData data);
+        KGPlayerData TranslatePlayerData(KGPlayerData data);
     };
 
     public class Requester
@@ -307,6 +311,30 @@ public class TestC2S
             Serialize.Utility.Read(_invoker.End(), ref __ret__);
             return __ret__;
         }
+
+        public void SetPlayerData(KGPlayerData data)
+        {
+            Serialize.IWriter writer = _invoker.Begin(MODULE_ID);
+            writer.Write(HASH_CODE);
+            writer.Write((int)Message.SetPlayerData_KGPlayerData);
+
+            Serialize.Utility.Write(writer, data, "data");
+
+            _invoker.End();
+        }
+
+        public KGPlayerData TranslatePlayerData(KGPlayerData data)
+        {
+            Serialize.IWriter writer = _invoker.Begin(MODULE_ID);
+            writer.Write(HASH_CODE);
+            writer.Write((int)Message.TranslatePlayerData_KGPlayerData);
+
+            Serialize.Utility.Write(writer, data, "data");
+
+            KGPlayerData __ret__ = new KGPlayerData();
+            Serialize.Utility.Read(_invoker.End(), ref __ret__);
+            return __ret__;
+        }
     }
 
     public class Processor : CrossCall.IProcessor
@@ -387,6 +415,12 @@ public class TestC2S
                 break;
             case Message.GetPlayerData:
                 OnGetPlayerData(context);
+                break;
+            case Message.SetPlayerData_KGPlayerData:
+                OnSetPlayerData_KGPlayerData(context);
+                break;
+            case Message.TranslatePlayerData_KGPlayerData:
+                OnTranslatePlayerData_KGPlayerData(context);
                 break;
             default:
                 break;
@@ -586,6 +620,25 @@ public class TestC2S
 
 
             var __ret__ = _responder.GetPlayerData();
+            Serialize.Utility.Write(context.Ret(), __ret__);
+        }
+
+        void OnSetPlayerData_KGPlayerData(CrossCall.IContext context)
+        {
+            KGPlayerData data = new KGPlayerData();
+
+            Serialize.Utility.Read(context.Param, ref data, "data");
+
+            _responder.SetPlayerData(data);
+        }
+
+        void OnTranslatePlayerData_KGPlayerData(CrossCall.IContext context)
+        {
+            KGPlayerData data = new KGPlayerData();
+
+            Serialize.Utility.Read(context.Param, ref data, "data");
+
+            var __ret__ = _responder.TranslatePlayerData(data);
             Serialize.Utility.Write(context.Ret(), __ret__);
         }
     }

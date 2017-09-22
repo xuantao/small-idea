@@ -1,15 +1,13 @@
-/*
+﻿/*
  * this file is auto generated.
  * please does not edit it manual!
 */
-using System;
-using System.Collections;
 using System.Collections.Generic;
 
 public class TestS2C
 {
     public const int MODULE_ID = 3;
-    public const int HASH_CODE = 2061985061;
+    public const int HASH_CODE = -841149956;
 
     public enum Message
     {
@@ -34,6 +32,8 @@ public class TestS2C
         Test_int_int_int,
         Test_int_int_int_int,
         GetPlayerData,
+        SetPlayerData_KGPlayerData,
+        TranslatePlayerData_KGPlayerData,
     }
 
     public interface IResponder
@@ -58,6 +58,8 @@ public class TestS2C
         List<Msg> Test(int a, int b, int c);
         FixedArray<Msg, ArrayLength_2> Test(int a, int b, int c, int d);
         KGPlayerData GetPlayerData();
+        void SetPlayerData(KGPlayerData data);
+        KGPlayerData TranslatePlayerData(KGPlayerData data);
     };
 
     public class Requester
@@ -199,7 +201,8 @@ public class TestS2C
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_int_A_A);
 
-            Serialize.Utility.DoWrite(writer, v, "v", (w1, v1, n1) => {
+            Serialize.Utility.DoWrite(writer, v, "v", (w1, v1, n1) =>
+            {
                 return Serialize.Utility.DoWrite(w1, v1, n1, Serialize.Utility.Write);
             });
 
@@ -212,7 +215,8 @@ public class TestS2C
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_long_A2_A);
 
-            Serialize.Utility.DoWrite(writer, v, "v", (w1, v1, n1) => {
+            Serialize.Utility.DoWrite(writer, v, "v", (w1, v1, n1) =>
+            {
                 return Serialize.Utility.DoWrite(w1, v1, n1, Serialize.Utility.Write);
             });
 
@@ -225,7 +229,8 @@ public class TestS2C
             writer.Write(HASH_CODE);
             writer.Write((int)Message.Test_float_A_A2);
 
-            Serialize.Utility.DoWrite(writer, v, "v", (w1, v1, n1) => {
+            Serialize.Utility.DoWrite(writer, v, "v", (w1, v1, n1) =>
+            {
                 return Serialize.Utility.DoWrite(w1, v1, n1, Serialize.Utility.Write);
             });
 
@@ -315,9 +320,41 @@ public class TestS2C
             writer.Write(HASH_CODE);
             writer.Write((int)Message.GetPlayerData);
 
-
+            ProfileManager.Instance.Start("read player data");
             KGPlayerData __ret__ = new KGPlayerData();
             Serialize.Utility.Read(_invoker.End(), ref __ret__);
+            ProfileManager.Instance.Stop("read player data");
+            return __ret__;
+        }
+
+        public void SetPlayerData(KGPlayerData data)
+        {
+            Serialize.IWriter writer = _invoker.Begin(MODULE_ID);
+            writer.Write(HASH_CODE);
+            writer.Write((int)Message.SetPlayerData_KGPlayerData);
+
+            ProfileManager.Instance.Start("[SetPlayerData] do write");
+            Serialize.Utility.Write(writer, data, "data");
+            ProfileManager.Instance.Stop("[SetPlayerData] do write");
+            _invoker.End();
+        }
+
+        public KGPlayerData TranslatePlayerData(KGPlayerData data)
+        {
+            Serialize.IWriter writer = _invoker.Begin(MODULE_ID);
+            writer.Write(HASH_CODE);
+            writer.Write((int)Message.TranslatePlayerData_KGPlayerData);
+
+            ProfileManager.Instance.Start("do read");
+            Serialize.Utility.Write(writer, data, "data");
+            ProfileManager.Instance.Stop("do read");
+
+            KGPlayerData __ret__ = new KGPlayerData();
+
+            var reader = _invoker.End();
+            ProfileManager.Instance.Start("do write");
+            Serialize.Utility.Read(reader, ref __ret__);
+            ProfileManager.Instance.Stop("do write");
             return __ret__;
         }
     }
@@ -403,6 +440,12 @@ public class TestS2C
                 break;
             case Message.GetPlayerData:
                 OnGetPlayerData(context);
+                break;
+            case Message.SetPlayerData_KGPlayerData:
+                OnSetPlayerData_KGPlayerData(context);
+                break;
+            case Message.TranslatePlayerData_KGPlayerData:
+                OnTranslatePlayerData_KGPlayerData(context);
                 break;
             default:
                 break;
@@ -510,7 +553,8 @@ public class TestS2C
         {
             List<List<int>> v = new List<List<int>>();
 
-            Serialize.Utility.DoRead(context.Param, ref v, "v", delegate (Serialize.IReader r1, ref List<int> v1, string n1) {
+            Serialize.Utility.DoRead(context.Param, ref v, "v", delegate (Serialize.IReader r1, ref List<int> v1, string n1)
+            {
                 return Serialize.Utility.DoRead(r1, ref v1, n1, Serialize.Utility.Read);
             });
 
@@ -521,7 +565,8 @@ public class TestS2C
         {
             List<FixedArray<long, ArrayLength_2>> v = new List<FixedArray<long, ArrayLength_2>>();
 
-            Serialize.Utility.DoRead(context.Param, ref v, "v", delegate (Serialize.IReader r1, ref FixedArray<long, ArrayLength_2> v1, string n1) {
+            Serialize.Utility.DoRead(context.Param, ref v, "v", delegate (Serialize.IReader r1, ref FixedArray<long, ArrayLength_2> v1, string n1)
+            {
                 return Serialize.Utility.DoRead(r1, ref v1, n1, Serialize.Utility.Read);
             });
 
@@ -532,7 +577,8 @@ public class TestS2C
         {
             FixedArray<List<float>, ArrayLength_2> v = new FixedArray<List<float>, ArrayLength_2>();
 
-            Serialize.Utility.DoRead(context.Param, ref v, "v", delegate (Serialize.IReader r1, ref List<float> v1, string n1) {
+            Serialize.Utility.DoRead(context.Param, ref v, "v", delegate (Serialize.IReader r1, ref List<float> v1, string n1)
+            {
                 return Serialize.Utility.DoRead(r1, ref v1, n1, Serialize.Utility.Read);
             });
 
@@ -611,6 +657,25 @@ public class TestS2C
 
 
             var __ret__ = _responder.GetPlayerData();
+            Serialize.Utility.Write(context.Ret(), __ret__);
+        }
+
+        void OnSetPlayerData_KGPlayerData(CrossCall.IContext context)
+        {
+            KGPlayerData data = new KGPlayerData();
+
+            Serialize.Utility.Read(context.Param, ref data, "data");
+
+            _responder.SetPlayerData(data);
+        }
+
+        void OnTranslatePlayerData_KGPlayerData(CrossCall.IContext context)
+        {
+            KGPlayerData data = new KGPlayerData();
+
+            Serialize.Utility.Read(context.Param, ref data, "data");
+
+            var __ret__ = _responder.TranslatePlayerData(data);
             Serialize.Utility.Write(context.Ret(), __ret__);
         }
     }

@@ -241,6 +241,30 @@ KGPlayerData TestC2S::Requester::GetPlayerData()
     return __ret__;
 }
 
+void TestC2S::Requester::SetPlayerData(const KGPlayerData& data)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::SetPlayerData_KGPlayerData);
+
+    serialize::utility::Write(writer, data);
+
+    _invoker->End();
+}
+
+KGPlayerData TestC2S::Requester::TranslatePlayerData(const KGPlayerData& data)
+{
+    serialize::IWriter* writer = _invoker->Begin(MODULE_ID);
+    writer->Write(HASH_CODE);
+    writer->Write((int)Message::TranslatePlayerData_KGPlayerData);
+
+    serialize::utility::Write(writer, data);
+
+    KGPlayerData __ret__;
+    serialize::utility::Read(_invoker->End(), __ret__);
+    return __ret__;
+}
+
 void TestC2S::Processor::Process(cross_call::IContext* context)
 {
     int32_t code = 0;
@@ -307,6 +331,12 @@ void TestC2S::Processor::Process(cross_call::IContext* context)
         break;
     case Message::GetPlayerData:
         OnGetPlayerData(context);
+        break;
+    case Message::SetPlayerData_KGPlayerData:
+        OnSetPlayerData_KGPlayerData(context);
+        break;
+    case Message::TranslatePlayerData_KGPlayerData:
+        OnTranslatePlayerData_KGPlayerData(context);
         break;
     default:
         assert(false);
@@ -501,6 +531,25 @@ void TestC2S::Processor::OnGetPlayerData(cross_call::IContext* context)
 
 
     auto __ret__ = _responder->GetPlayerData();
+    serialize::utility::Write(context->Ret(), __ret__);
+}
+
+void TestC2S::Processor::OnSetPlayerData_KGPlayerData(cross_call::IContext* context)
+{
+    KGPlayerData data;
+
+    serialize::utility::Read(context->Param(), data);
+
+    _responder->SetPlayerData(data);
+}
+
+void TestC2S::Processor::OnTranslatePlayerData_KGPlayerData(cross_call::IContext* context)
+{
+    KGPlayerData data;
+
+    serialize::utility::Read(context->Param(), data);
+
+    auto __ret__ = _responder->TranslatePlayerData(data);
     serialize::utility::Write(context->Ret(), __ret__);
 }
 

@@ -138,9 +138,17 @@ namespace CrossCall
 
         Serialize.IReader EndCall()
         {
+            ProfileManager.Instance.Start("do send");
             DoSend();
+            ProfileManager.Instance.Stop("do send");
+
+            ProfileManager.Instance.Start("do call");
             DoCall();
+            ProfileManager.Instance.Stop("do call");
+
+            ProfileManager.Instance.Start("do recv");
             DoRecv();
+            ProfileManager.Instance.Stop("do recv");
             return _reader;
         }
 
