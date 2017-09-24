@@ -245,10 +245,67 @@ namespace cs_test
             //Console.WriteLine("test cross call, TranslatePlayerData cost:{0}", cost);
 
             watch.Stop();
+            //ProfileManager.Instance.Log();
+
+
+            ProfileManager.Instance.Start("test org int");
+            for (int i = 0; i < test_count; ++i)
+            {
+                var val = DllApi.TestInt(i);
+            }
+            ProfileManager.Instance.Stop("test org int");
+
+            ProfileManager.Instance.Start("test org float");
+            for (int i = 0; i < test_count; ++i)
+            {
+                var val = DllApi.TestFloat((float)i);
+            }
+            ProfileManager.Instance.Stop("test org float");
+
+            ProfileManager.Instance.Start("test org long");
+            for (int i = 0; i < test_count; ++i)
+            {
+                var val = DllApi.TestInt64((long)i);
+            }
+            ProfileManager.Instance.Stop("test org long");
+
+            ProfileManager.Instance.Start("test org double");
+            for (int i = 0; i < test_count; ++i)
+            {
+                var val = DllApi.TestDouble((double)i);
+            }
+            ProfileManager.Instance.Stop("test org double");
+
+            ProfileManager.Instance.Start("test cross int");
+            for (int i = 0; i < test_count; ++i)
+            {
+                var val = req.Test(i);
+            }
+            ProfileManager.Instance.Stop("test cross int");
+
+            ProfileManager.Instance.Start("test cross float");
+            for (int i = 0; i < test_count; ++i)
+            {
+                var val = req.Test((float)i);
+            }
+            ProfileManager.Instance.Stop("test cross float");
+
+            ProfileManager.Instance.Start("test cross long");
+            for (int i = 0; i < test_count; ++i)
+            {
+                var val = req.Test((long)i);
+            }
+            ProfileManager.Instance.Stop("test cross long");
+
+            ProfileManager.Instance.Start("test cross double");
+            for (int i = 0; i < test_count; ++i)
+            {
+                var val = req.Test((double)i);
+            }
+            ProfileManager.Instance.Stop("test cross double");
+
+
             ProfileManager.Instance.Log();
-
-
-            station.Shutdown();
         }
 
         static void TestOrgCall()
@@ -263,7 +320,7 @@ namespace cs_test
                 var ptr = Marshal.AllocHGlobal(size);
                 Marshal.StructureToPtr(playerData, ptr, false);
                 DllApi.GetPlayerData(ptr);
-                var newData = Marshal.PtrToStructure<DummyJX3MClient.PlayerData>(ptr);
+                //var newData = Marshal.PtrToStructure<DummyJX3MClient.PlayerData>(ptr);
                 Marshal.FreeHGlobal(ptr);
             }
 
@@ -307,6 +364,7 @@ namespace cs_test
 
             //VisitList<int, int>(lst);
 
+            //CrossStation.Instance.Shutdown();
             Console.ReadKey();
         }
     }

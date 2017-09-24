@@ -20,6 +20,7 @@ namespace serialize
         virtual bool StructEnd() = 0;
         virtual bool ArrayBegin(int& length, const char* name = nullptr) = 0;
         virtual bool ArrayEnd() = 0;
+
         virtual bool Read(bool& val, const char* name = nullptr) = 0;
         virtual bool Read(int8_t& val, const char* name = nullptr) = 0;
         virtual bool Read(int32_t& val, const char* name = nullptr) = 0;
@@ -27,6 +28,14 @@ namespace serialize
         virtual bool Read(float& val, const char* name = nullptr) = 0;
         virtual bool Read(double& val, const char* name = nullptr) = 0;
         virtual bool Read(std::string& val, const char* name = nullptr) = 0;
+
+        //virtual bool ReadArray(bool& val, const char* name = nullptr) = 0;
+        //virtual bool Read(int8_t& val, const char* name = nullptr) = 0;
+        virtual bool Read(int32_t* val, int count, const char* name = nullptr) = 0;
+        //virtual bool Read(int64_t& val, const char* name = nullptr) = 0;
+        //virtual bool Read(float& val, const char* name = nullptr) = 0;
+        //virtual bool Read(double& val, const char* name = nullptr) = 0;
+        //virtual bool Read(std::string& val, const char* name = nullptr) = 0;
     };
 
     class IWriter

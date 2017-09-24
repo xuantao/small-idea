@@ -333,9 +333,9 @@ public class TestS2C
             writer.Write(HASH_CODE);
             writer.Write((int)Message.SetPlayerData_KGPlayerData);
 
-            ProfileManager.Instance.Start("[SetPlayerData] do write");
+            //ProfileManager.Instance.Start("[SetPlayerData] do write");
             Serialize.Utility.Write(writer, data, "data");
-            ProfileManager.Instance.Stop("[SetPlayerData] do write");
+            //ProfileManager.Instance.Stop("[SetPlayerData] do write");
             _invoker.End();
         }
 

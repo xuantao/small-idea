@@ -23,6 +23,8 @@ namespace cross_call
         virtual bool Read(double& val, const char* name = nullptr);
         virtual bool Read(std::string& val, const char* name = nullptr);
 
+        virtual bool Read(int32_t* val, int32_t count, const char* name = nullptr);
+
     protected:
         IBinaryStream* _stream = nullptr;
     };

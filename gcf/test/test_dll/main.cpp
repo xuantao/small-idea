@@ -26,25 +26,25 @@ public:
 
     virtual int Test(int32_t v)
     {
-        printf("cpp Test(int32_t v:%d)\n", v);
+        //printf("cpp Test(int32_t v:%d)\n", v);
         return v + 1;
     }
 
     virtual int64_t Test(int64_t v)
     {
-        printf("cpp Test(int64_t v:%lld)\n", v);
+        //printf("cpp Test(int64_t v:%lld)\n", v);
         return v + 1;
     }
 
     virtual float Test(float f)
     {
-        printf("cpp Test(float f:%f)\n", f);
+        //printf("cpp Test(float f:%f)\n", f);
         return f + 1.0f;
     }
 
     virtual double Test(double v)
     {
-        printf("cpp Test(double v:%f)\n", v);
+        //printf("cpp Test(double v:%f)\n", v);
         return v + 1.0f;
     }
 
@@ -192,4 +192,29 @@ DLL_EXPORT void GetPlayerData(void* bufer)
     data.m_nWeaponRepresentID = 6;
 
     memcpy(bufer, &data, sizeof(test::KGPlayerData));
+}
+
+DLL_EXPORT int TestInt(int val)
+{
+    return val + 1;
+}
+
+DLL_EXPORT float TestFloat(float val)
+{
+    return val + 1;
+}
+
+DLL_EXPORT int64_t TestInt64(int64_t val)
+{
+    return val + 1;
+}
+
+DLL_EXPORT double TestDouble(double val)
+{
+    return val + 1;
+}
+
+
+DLL_EXPORT void TestString(const char* str)
+{
 }

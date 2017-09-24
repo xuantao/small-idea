@@ -62,8 +62,12 @@ namespace CrossCall
             if (_mode != BufferMode.Write || _wp + data.Length > _pool.Length)
                 return false;
 
+            //ProfileManager.Instance.Start("write bytes");
+
             Array.Copy(data, 0, _pool, _wp, data.Length);
             _wp += data.Length;
+
+            //ProfileManager.Instance.Stop("write bytes");
             return true;
         }
     }

@@ -166,8 +166,8 @@ namespace Serialize
         {
             for (int i = 0; i < val.Length; ++i)
             {
-                string valName = string.Format("{0}_{1}", string.IsNullOrEmpty(name) ? "" : name, i);
-                call(writer, val[i], valName);
+                //string valName = string.Format("{0}_{1}", string.IsNullOrEmpty(name) ? "" : name, i);
+                call(writer, val[i], null);
             }
 
             return true;

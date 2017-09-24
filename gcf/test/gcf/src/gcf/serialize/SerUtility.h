@@ -38,13 +38,19 @@ namespace serialize
             return reader->ArrayEnd();
         }
 
+        template <size_t N>
+        bool Read(IReader* reader, std::array<int32_t, N>& arr, const char* name = nullptr)
+        {
+            return reader->Read(&arr[0], (int32_t)N, name);
+        }
+
         template <class Ty, size_t N>
         bool Read(IReader* reader, std::array<Ty, N>& arr, const char* name = nullptr)
         {
             for (size_t i = 0; i < N; ++i)
             {
-                char arName[256] = {0};
-                std::snprintf(arName, 255, "%s_%d", name ? name : "", (int)i + 1);
+                //char arName[256] = {0};
+                //std::snprintf(arName, 255, "%s_%d", name ? name : "", (int)i + 1);
                 if (!Read(reader, arr[i], name))
                     return false;
             }
@@ -99,9 +105,9 @@ namespace serialize
         {
             for (size_t i = 0; i < arr.size(); ++i)
             {
-                char arName[256] = {0};
-                std::snprintf(arName, 255, "%s_%d", name ? name : "", (int)i + 1);
-                if (!Write(writer, arr[i], arName))
+                //char arName[256] = {0};
+                //std::snprintf(arName, 255, "%s_%d", name ? name : "", (int)i + 1);
+                if (!Write(writer, arr[i], name))
                     return false;
             }
 

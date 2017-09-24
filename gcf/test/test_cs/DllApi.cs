@@ -16,4 +16,16 @@ public static class DllApi
 
     [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
     public static extern void GetPlayerData(IntPtr ptr);
+
+    [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+    public static extern int TestInt(int ptr);
+
+    [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float TestFloat(float ptr);
+
+    [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+    public static extern long TestInt64(long ptr);
+
+    [DllImport(DLL, CallingConvention = CallingConvention.Cdecl)]
+    public static extern double TestDouble(double ptr);
 }
