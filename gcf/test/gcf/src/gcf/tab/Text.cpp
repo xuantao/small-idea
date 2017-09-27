@@ -3,11 +3,27 @@
 
 namespace tab
 {
-    std::vector<std::string> sSplit(const std::string& str, const std::string& split)
+    std::vector<char*> sSplit(char* text)
     {
-        //TODO:
-        assert(false);
-        return std::vector<std::string>();
+        std::vector<char*> ret;
+        ret.push_back(text);
+
+        while (*text)
+        {
+            if (*text == ',')
+            {
+                *text = 0;
+                ++text;
+
+                ret.push_back(text);
+            }
+            else
+            {
+                ++text;
+            }
+        }
+
+        return std::move(ret);
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -226,7 +242,7 @@ namespace tab
         if (_isArray)
         {
             if (_array.tellp()) _array << ",";
-            _array << "str";
+            _array << str;
             return true;
         }
         else

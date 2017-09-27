@@ -31,7 +31,7 @@ namespace tab
         ITokenStream* _tokens = nullptr;
         bool _isArray = false;
         int _idx = 0;
-        std::vector<std::string> _array;
+        std::vector<char*> _array;
     };
 
     class TextWriter : public serialize::IWriter
