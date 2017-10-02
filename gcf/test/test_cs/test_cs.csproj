@@ -53,17 +53,21 @@
     <Compile Include="gcf\FixedArray.cs" />
     <Compile Include="gcf\Serialize\ISerialize.cs" />
     <Compile Include="gcf\Serialize\SerUtility.cs" />
+    <Compile Include="gcf\Tab\IndexMap.cs" />
+    <Compile Include="gcf\Tab\ITokenStream.cs" />
     <Compile Include="gcf\Tab\Parser.cs" />
+    <Compile Include="gcf\Tab\TextReader.cs" />
+    <Compile Include="gcf\Tab\TextWriter.cs" />
     <Compile Include="gen\Caller.cs" />
     <Compile Include="gen\Cfg.cs" />
     <Compile Include="gen\Cfg_Ser.cs" />
-    <Compile Include="gen\Cfg_Tab.cs" />
     <Compile Include="gen\TestC2S.cs" />
     <Compile Include="gen\TestS2C.cs" />
     <Compile Include="Profile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestC2SRsp.cs" />
+    <Compile Include="TestTab.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

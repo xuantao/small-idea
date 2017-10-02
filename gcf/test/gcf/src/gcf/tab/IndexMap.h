@@ -6,7 +6,7 @@ namespace tab
     /*
      * 数据编号映射
      * 解析器的表头到tab表中的文件头的映射关卡
-     * TODO: 命名不够明确，还需再仔细思考
+     * TODO: 命名
     */
     class IndexMap
     {
