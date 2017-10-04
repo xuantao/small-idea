@@ -43,7 +43,7 @@ namespace Serialize
             return reader.Read(ref val, name);
         }
 
-        private static bool Read<T>(IReader reader, ref T tmp, string name = null)
+        public static bool Read<T>(IReader reader, ref T tmp, string name = null)
         {
             throw new NotImplementedException();
         }

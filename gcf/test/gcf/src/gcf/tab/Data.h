@@ -6,12 +6,6 @@ namespace tab
 {
     namespace detail
     {
-        //template <class Ty>
-        //const char* const * Titles()
-        //{
-        //    return nullptr;
-        //}
-
         template <class Ty>
         struct Loader
         {

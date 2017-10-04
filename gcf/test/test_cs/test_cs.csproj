@@ -61,6 +61,7 @@
     <Compile Include="gen\Caller.cs" />
     <Compile Include="gen\Cfg.cs" />
     <Compile Include="gen\Cfg_Ser.cs" />
+    <Compile Include="gen\Cfg_Tab.cs" />
     <Compile Include="gen\TestC2S.cs" />
     <Compile Include="gen\TestS2C.cs" />
     <Compile Include="Profile.cs" />

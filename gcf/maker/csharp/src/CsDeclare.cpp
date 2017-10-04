@@ -103,7 +103,13 @@ namespace cs
 
     void Declare::ExportType(std::ostream& stream, const IStructType* type)
     {
-        stream << _TAB(0) << "public class " << type->Name();
+        stream << _TAB(0);
+        if (type->CfgCat() == CfgCategory::Tab)
+            stream << "public partial class ";
+        else
+            stream << "public class ";
+        stream << type->Name();
+
         if (type->Inherited())
             stream << _TAB(0) << " : " << cs_util::TypeName(type->Inherited(), type->Owner());
         stream << std::endl << _TAB(0) << "{" << std::endl;

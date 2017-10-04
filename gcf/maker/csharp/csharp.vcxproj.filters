@@ -25,6 +25,9 @@
     <ClCompile Include="src\CsCrossCall.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\CsTab.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CsDeclare.h">
@@ -40,6 +43,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\CsCrossCall.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CsTab.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

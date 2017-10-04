@@ -146,6 +146,7 @@
     <ClCompile Include="src\CsDeclare.cpp" />
     <ClCompile Include="src\CsExporter.cpp" />
     <ClCompile Include="src\CsSerialize.cpp" />
+    <ClCompile Include="src\CsTab.cpp" />
     <ClCompile Include="src\CsUtility.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
@@ -154,6 +155,7 @@
     <ClInclude Include="src\CsDeclare.h" />
     <ClInclude Include="src\CsExporter.h" />
     <ClInclude Include="src\CsSerialize.h" />
+    <ClInclude Include="src\CsTab.h" />
     <ClInclude Include="src\CsUtility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

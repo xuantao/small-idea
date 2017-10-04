@@ -26,7 +26,7 @@ public enum GlobalType
     Float = 2,
     String = 3,
 }
-public class TabTest_1
+public partial class TabTest_1
 {
     public const int HASH_CODE = -296353828;
 
@@ -185,7 +185,7 @@ public enum Wtf
     Float = 2,
     String = 3,
 }
-public class Sr3
+public partial class Sr3
 {
     public const int HASH_CODE = 1645663838;
 

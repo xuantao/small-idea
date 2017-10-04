@@ -51,9 +51,17 @@ namespace tab
         if (data == nullptr)
             return false;
 
+        size_t len = std::strlen(data);
+        if (_buff.size() <= len)
+            _buff.resize(len + 1, 0);
+        else
+            _buff[len] = 0;
+
+        memcpy(&_buff[0], data, len);
+
         _isArray = true;
         _idx = 0;
-        _array = sSplit(data, ",");
+        _array = sSplit(&_buff[0]);
         length = (int)_array.size();
         return true;
     }
@@ -154,7 +162,7 @@ namespace tab
         if (_isArray)
         {
             assert(_idx <= (int)_array.size());
-            return _array[_idx++].c_str();
+            return _array[_idx++];
         }
         else
         {

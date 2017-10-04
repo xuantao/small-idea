@@ -330,41 +330,44 @@ namespace cs_test
             Console.WriteLine("test org call, cost:{0}", cost);
         }
 
+        public class TabList<T> where T : new()
+        {
+
+            public void Load(Serialize.IReader reader)
+            {
+                T d = new T();
+                Serialize.Utility.Read(reader, ref d);
+                _data.Add(d);
+            }
+
+            List<T> _data = new List<T>();
+        }
+
+
+        public abstract class TabMap<K, V> where V : new()
+        {
+            protected abstract K Key(V value);
+            protected virtual bool Filter(V value) { return true; }
+
+            public void Load(Serialize.IReader reader)
+            {
+                V d = new V();
+                Serialize.Utility.Read(reader, ref d);
+                if (!Filter(d))
+                    return;
+                _dicData.Add(Key(d), d);
+            }
+
+            Dictionary<K, V> _dicData = new Dictionary<K, V>();
+        }
+
+
+
         static void Main(string[] args)
         {
-            TestCrossCall();
-            TestOrgCall();
-            //List<int> l = new List<int> { 1, 2, 3 };
+            var info = Sr3.TabInfo;
+            var info2 = TabTest_1.TabInfo;
 
-            //List<List<int>> ll = new List<List<int>>();
-            //ll.Add(l);
-            //ll.Add(l);
-
-            //List<List<List<int>>> lll = new List<List<List<int>>>();
-            //lll.Add(ll);
-
-            //Console.Write("list 1");
-            //Visit(l);
-
-            //Console.Write("list 2");
-            //Visit(ll);
-
-            //Console.Write("list 3");
-            //Visit(lll);
-
-            //FixedArray<int, ArrayLength_2> f2 = new FixedArray<int, ArrayLength_2>();
-            //List<FixedArray<int, ArrayLength_2>> lf = new List<FixedArray<int, ArrayLength_2>>();
-            //lf.Add(f2);
-            //Console.Write("list lf");
-            //Visit(lf);
-            //Serialize.Utility.TestWrite();
-            //VisitList<List<List<int>>, List<int>>(lll);
-
-            //VisitList<List<int>, int>(ll);
-
-            //VisitList<int, int>(lst);
-
-            //CrossStation.Instance.Shutdown();
             Console.ReadKey();
         }
     }

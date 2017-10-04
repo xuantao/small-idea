@@ -2,6 +2,7 @@
 #include "TabDef.h"
 #include "../serialize/ISerialize.h"
 #include <sstream>
+#include <vector>
 
 namespace tab
 {
@@ -31,6 +32,7 @@ namespace tab
         ITokenStream* _tokens = nullptr;
         bool _isArray = false;
         int _idx = 0;
+        std::vector<char> _buff;
         std::vector<char*> _array;
     };
 

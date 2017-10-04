@@ -1,6 +1,7 @@
 ﻿#include "CsExporter.h"
 #include "CsDeclare.h"
 #include "CsSerialize.h"
+#include "CsTab.h"
 #include "CsCrossCall.h"
 #include "utility/Utility.h"
 
@@ -9,6 +10,7 @@ GCF_NAMESPACE_BEGIN
 CsExporter::CsExporter()
 {
     _exporters.push_back(cs::Serialize::Create());
+    _exporters.push_back(cs::Tab::Create());
 }
 
 CsExporter::~CsExporter()
