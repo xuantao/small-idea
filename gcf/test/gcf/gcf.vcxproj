@@ -33,7 +33,6 @@
     <ClInclude Include="src\gcf\tab\IndexMap.h" />
     <ClInclude Include="src\gcf\tab\Parser.h" />
     <ClInclude Include="src\gcf\tab\TabDef.h" />
-    <ClInclude Include="src\gcf\tab\Text.h" />
     <ClInclude Include="src\gcf\tab\TextLoader.h" />
   </ItemGroup>
   <ItemGroup>
@@ -46,7 +45,6 @@
     <ClCompile Include="src\gcf\tab\FileData.cpp" />
     <ClCompile Include="src\gcf\tab\IndexMap.cpp" />
     <ClCompile Include="src\gcf\tab\Parser.cpp" />
-    <ClCompile Include="src\gcf\tab\Text.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

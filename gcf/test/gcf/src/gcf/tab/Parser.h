@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "Text.h"
 #include "IndexMap.h"
+#include "../serialize/SerText.h"
 
 namespace tab
 {
@@ -25,14 +25,14 @@ namespace tab
         bool Push(const char*);
 
     protected:
-        class TokenStream : public ITokenStream
+        class TokenStream : public serialize::ITokenStream
         {
         public:
             TokenStream(Parser& parser) : _parser(parser) {}
             ~TokenStream() {}
         public:
-            virtual const char* Pop() { return _parser.Pop(); }
-            virtual bool Push(const char* token) { return _parser.Push(token); }
+            virtual const char* Read() { return _parser.Pop(); }
+            virtual bool Write(const char* token) { return _parser.Push(token); }
         protected:
             Parser& _parser;
         };
@@ -40,7 +40,7 @@ namespace tab
     protected:
         const IndexMap& _idxMap;
         TokenStream _stream;
-        TextReader _reader;
+        serialize::TextReader _reader;
         int _idx = -1;
         std::vector<char*> _tokens;
     };

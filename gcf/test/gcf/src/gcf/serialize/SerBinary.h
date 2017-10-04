@@ -6,7 +6,7 @@ namespace serialize
     class BinaryReader : public serialize::IReader
     {
     public:
-        BinaryReader(IBinaryStream* buffer);
+        BinaryReader(IBinaryStream* stream);
         virtual ~BinaryReader() {}
 
     public:
@@ -23,8 +23,6 @@ namespace serialize
         virtual bool Read(double& val, const char* name = nullptr);
         virtual bool Read(std::string& val, const char* name = nullptr);
 
-        virtual bool Read(int32_t* val, int32_t count, const char* name = nullptr);
-
     protected:
         IBinaryStream* _stream = nullptr;
     };
@@ -32,7 +30,7 @@ namespace serialize
     class BinaryWriter : public serialize::IWriter
     {
     public:
-        BinaryWriter(IBinaryStream* buffer);
+        BinaryWriter(IBinaryStream* stream);
         virtual ~BinaryWriter() {}
 
     public:

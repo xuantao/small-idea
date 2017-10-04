@@ -28,7 +28,7 @@ namespace serialize
 
     //////////////////////////////////////////////////////////////////////////
     // TextReader
-    TextReader::TextReader(ITokenStream* tokens) : _tokens(tokens)
+    TextReader::TextReader(ITokenStream* stream) : _stream(stream)
     {
     }
 
@@ -38,7 +38,11 @@ namespace serialize
 
     bool TextReader::ArrayBegin(int& length, const char* name/*= nullptr*/)
     {
-        const char* data = _tokens->Read();
+        assert(_isArray == false && "struct serialize text only support one array");
+        if (_isArray)
+            return false;
+
+        const char* data = _stream->Read();
         if (data == nullptr)
             return false;
 
@@ -159,13 +163,13 @@ namespace serialize
         }
         else
         {
-            return _tokens->Read();
+            return _stream->Read();
         }
     }
 
     //////////////////////////////////////////////////////////////////////////
     // TextWriter
-    TextWriter::TextWriter(ITokenStream* tokens) : _tokens(tokens)
+    TextWriter::TextWriter(ITokenStream* stream) : _stream(stream)
     {
     }
 
@@ -175,6 +179,12 @@ namespace serialize
 
     bool TextWriter::ArrayBegin(int length, const char* name/*= nullptr*/)
     {
+        assert(_isArray == false && "struct serialize text only support one array");
+        if (_isArray)
+            return false;
+
+        assert(_array.tellp() == 0 && "last array has some error");
+
         _isArray = true;
         return true;
     }
@@ -186,7 +196,7 @@ namespace serialize
         _array.str("");
         _array.clear();
 
-        return _tokens->Write(str.c_str());
+        return _stream->Write(str.c_str());
     }
 
     bool TextWriter::Write(bool val, const char* name/*= nullptr*/)
@@ -239,7 +249,7 @@ namespace serialize
         }
         else
         {
-            return _tokens->Write(str);
+            return _stream->Write(str);
         }
     }
 }

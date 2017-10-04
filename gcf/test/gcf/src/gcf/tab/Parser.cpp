@@ -3,7 +3,6 @@
 
 namespace tab
 {
-    //static const char* EMPTY_STRING = "";
     Parser::Parser(const IndexMap& idxMap)
         : _idxMap(idxMap)
         , _stream(*this)

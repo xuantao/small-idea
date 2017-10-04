@@ -8,7 +8,7 @@ namespace serialize
     class TextReader : public IReader
     {
     public:
-        TextReader(ITokenStream* tokens);
+        TextReader(ITokenStream* stream);
         ~TextReader();
 
     public:
@@ -28,7 +28,7 @@ namespace serialize
         const char* DoRead();
 
     protected:
-        ITokenStream* _tokens = nullptr;
+        ITokenStream* _stream = nullptr;
         bool _isArray = false;
         int _idx = 0;
         std::vector<char> _buff;
@@ -59,7 +59,7 @@ namespace serialize
         bool DoWrite(const char* str);
 
     protected:
-        ITokenStream* _tokens = nullptr;
+        ITokenStream* _stream = nullptr;
         bool _isArray = false;
         std::stringstream _array;
     };

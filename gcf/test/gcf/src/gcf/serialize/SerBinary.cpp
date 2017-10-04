@@ -70,11 +70,6 @@ namespace serialize
         return true;
     }
 
-    bool BinaryReader::Read(int32_t* val, int32_t count, const char* name/* = nullptr*/)
-    {
-        return _stream->Read(val, 4 * count);
-    }
-
     //////////////////////////////////////////////////////////////////////////
     // NormalWriter
     BinaryWriter::BinaryWriter(IBinaryStream* stream)

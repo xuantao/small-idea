@@ -37,9 +37,6 @@
     <ClInclude Include="src\gcf\cross_call\SwapBuffer.h">
       <Filter>gcf\cross_call</Filter>
     </ClInclude>
-    <ClInclude Include="src\gcf\tab\Text.h">
-      <Filter>gcf\tab</Filter>
-    </ClInclude>
     <ClInclude Include="src\gcf\tab\TabDef.h">
       <Filter>gcf\tab</Filter>
     </ClInclude>
@@ -77,9 +74,6 @@
     </ClCompile>
     <ClCompile Include="src\gcf\cross_call\SwapBuffer.cpp">
       <Filter>gcf\cross_call</Filter>
-    </ClCompile>
-    <ClCompile Include="src\gcf\tab\Text.cpp">
-      <Filter>gcf\tab</Filter>
     </ClCompile>
     <ClCompile Include="src\gcf\tab\Parser.cpp">
       <Filter>gcf\tab</Filter>
