@@ -28,14 +28,6 @@ namespace serialize
         virtual bool Read(float& val, const char* name = nullptr) = 0;
         virtual bool Read(double& val, const char* name = nullptr) = 0;
         virtual bool Read(std::string& val, const char* name = nullptr) = 0;
-
-        //virtual bool ReadArray(bool& val, const char* name = nullptr) = 0;
-        //virtual bool Read(int8_t& val, const char* name = nullptr) = 0;
-        virtual bool Read(int32_t* val, int count, const char* name = nullptr) = 0;
-        //virtual bool Read(int64_t& val, const char* name = nullptr) = 0;
-        //virtual bool Read(float& val, const char* name = nullptr) = 0;
-        //virtual bool Read(double& val, const char* name = nullptr) = 0;
-        //virtual bool Read(std::string& val, const char* name = nullptr) = 0;
     };
 
     class IWriter
@@ -55,5 +47,25 @@ namespace serialize
         virtual bool Write(float val, const char* name = nullptr) = 0;
         virtual bool Write(double val, const char* name = nullptr) = 0;
         virtual bool Write(const std::string& val, const char* name = nullptr) = 0;
+    };
+
+    class IBinaryStream
+    {
+    public:
+        virtual ~IBinaryStream() {}
+
+    public:
+        virtual bool Read(void* buf, int32_t size) = 0;
+        virtual bool Write(const void* buf, int32_t size) = 0;
+    };
+
+    class ITokenStream
+    {
+    public:
+        virtual ~ITokenStream() {}
+
+    public:
+        virtual const char* Read() = 0;
+        virtual bool Write(const char* token) = 0;
     };
 }

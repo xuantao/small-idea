@@ -102,6 +102,7 @@ namespace tab
     class DataList
     {
     public:
+        // load text
         bool Load(char* data, int startLine = 3, bool hasDefault = true)
         {
             detail::Loader<Ty> loader(data, hasDefault);
@@ -118,6 +119,12 @@ namespace tab
             }
 
             return true;
+        }
+
+        // load binary
+        bool Load(const void* data, int size)
+        {
+            return false;
         }
     protected:
         std::vector<Ty> _data;

@@ -1,7 +1,7 @@
-﻿#include "Text.h"
+﻿#include "SerText.h"
 #include <cassert>
 
-namespace tab
+namespace serialize
 {
     std::vector<char*> sSplit(char* text)
     {
@@ -36,18 +36,9 @@ namespace tab
     {
     }
 
-    bool TextReader::StructBegin(int32_t code, const char* name/*= nullptr*/)
-    {
-        return true;
-    }
-    bool TextReader::StructEnd()
-    {
-        return true;
-    }
-
     bool TextReader::ArrayBegin(int& length, const char* name/*= nullptr*/)
     {
-        const char* data = _tokens->Pop();
+        const char* data = _tokens->Read();
         if (data == nullptr)
             return false;
 
@@ -76,7 +67,7 @@ namespace tab
 
     bool TextReader::Read(bool& val, const char* name/*= nullptr*/)
     {
-        const char* token = Pop();
+        const char* token = DoRead();
         if (token == nullptr)
             return false;
         if (*token == 0)
@@ -101,7 +92,7 @@ namespace tab
 
     bool TextReader::Read(int8_t& val, const char* name/*= nullptr*/)
     {
-        const char* token = Pop();
+        const char* token = DoRead();
         if (token == nullptr) return false;
         if (*token == 0) return true;
 
@@ -111,7 +102,7 @@ namespace tab
 
     bool TextReader::Read(int32_t& val, const char* name/*= nullptr*/)
     {
-        const char* token = Pop();
+        const char* token = DoRead();
         if (token == nullptr) return false;
         if (*token == 0) return true;
 
@@ -121,7 +112,7 @@ namespace tab
 
     bool TextReader::Read(int64_t& val, const char* name/*= nullptr*/)
     {
-        const char* token = Pop();
+        const char* token = DoRead();
         if (token == nullptr) return false;
         if (*token == 0) return true;
 
@@ -131,7 +122,7 @@ namespace tab
 
     bool TextReader::Read(float& val, const char* name/*= nullptr*/)
     {
-        const char* token = Pop();
+        const char* token = DoRead();
         if (token == nullptr) return false;
         if (*token == 0) return true;
 
@@ -141,7 +132,7 @@ namespace tab
 
     bool TextReader::Read(double& val, const char* name/*= nullptr*/)
     {
-        const char* token = Pop();
+        const char* token = DoRead();
         if (token == nullptr) return false;
         if (*token == 0) return true;
 
@@ -151,7 +142,7 @@ namespace tab
 
     bool TextReader::Read(std::string& val, const char* name/*= nullptr*/)
     {
-        const char* token = Pop();
+        const char* token = DoRead();
         if (token == nullptr) return false;
         if (*token == 0) return true;
 
@@ -159,7 +150,7 @@ namespace tab
         return true;
     }
 
-    const char* TextReader::Pop()
+    const char* TextReader::DoRead()
     {
         if (_isArray)
         {
@@ -168,7 +159,7 @@ namespace tab
         }
         else
         {
-            return _tokens->Pop();
+            return _tokens->Read();
         }
     }
 
@@ -180,15 +171,6 @@ namespace tab
 
     TextWriter::~TextWriter()
     {
-    }
-
-    bool TextWriter::StructBegin(int32_t code, const char* name/*= nullptr*/)
-    {
-        return true;
-    }
-    bool TextWriter::StructEnd()
-    {
-        return true;
     }
 
     bool TextWriter::ArrayBegin(int length, const char* name/*= nullptr*/)
@@ -204,50 +186,50 @@ namespace tab
         _array.str("");
         _array.clear();
 
-        return _tokens->Push(str.c_str());
+        return _tokens->Write(str.c_str());
     }
 
     bool TextWriter::Write(bool val, const char* name/*= nullptr*/)
     {
-        return Push(val ? "true" : "false");
+        return DoWrite(val ? "true" : "false");
     }
 
     bool TextWriter::Write(int8_t val, const char* name/*= nullptr*/)
     {
         std::string str = std::to_string(val);
-        return Push(str.c_str());
+        return DoWrite(str.c_str());
     }
 
     bool TextWriter::Write(int32_t val, const char* name/*= nullptr*/)
     {
         std::string str = std::to_string(val);
-        return Push(str.c_str());
+        return DoWrite(str.c_str());
     }
 
     bool TextWriter::Write(int64_t val, const char* name/*= nullptr*/)
     {
         std::string str = std::to_string(val);
-        return Push(str.c_str());
+        return DoWrite(str.c_str());
     }
 
     bool TextWriter::Write(float val, const char* name/*= nullptr*/)
     {
         std::string str = std::to_string(val);
-        return Push(str.c_str());
+        return DoWrite(str.c_str());
     }
 
     bool TextWriter::Write(double val, const char* name/*= nullptr*/)
     {
         std::string str = std::to_string(val);
-        return Push(str.c_str());
+        return DoWrite(str.c_str());
     }
 
     bool TextWriter::Write(const std::string& val, const char* name/*= nullptr*/)
     {
-        return Push(val.c_str());
+        return DoWrite(val.c_str());
     }
 
-    bool TextWriter::Push(const char* str)
+    bool TextWriter::DoWrite(const char* str)
     {
         if (_isArray)
         {
@@ -257,7 +239,7 @@ namespace tab
         }
         else
         {
-            return _tokens->Push(str);
+            return _tokens->Write(str);
         }
     }
 }

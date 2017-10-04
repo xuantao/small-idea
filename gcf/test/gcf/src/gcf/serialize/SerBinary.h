@@ -1,20 +1,18 @@
 ﻿#pragma once
-#include "TabDef.h"
-#include "../serialize/ISerialize.h"
-#include <sstream>
-#include <vector>
+#include "ISerialize.h"
 
-namespace tab
+namespace serialize
 {
-    class TextReader : public serialize::IReader
+    class BinaryReader : public serialize::IReader
     {
     public:
-        TextReader(ITokenStream* tokens);
-        ~TextReader();
+        BinaryReader(IBinaryStream* buffer);
+        virtual ~BinaryReader() {}
 
     public:
-        virtual bool StructBegin(int32_t code, const char* name = nullptr);
-        virtual bool StructEnd();
+        virtual bool StructBegin(int32_t code, const char* name = nullptr) { return true; }
+        virtual bool StructEnd() { return true; }
+
         virtual bool ArrayBegin(int& length, const char* name = nullptr);
         virtual bool ArrayEnd();
         virtual bool Read(bool& val, const char* name = nullptr);
@@ -24,26 +22,23 @@ namespace tab
         virtual bool Read(float& val, const char* name = nullptr);
         virtual bool Read(double& val, const char* name = nullptr);
         virtual bool Read(std::string& val, const char* name = nullptr);
-    protected:
-        const char* Pop();
+
+        virtual bool Read(int32_t* val, int32_t count, const char* name = nullptr);
 
     protected:
-        ITokenStream* _tokens = nullptr;
-        bool _isArray = false;
-        int _idx = 0;
-        std::vector<char> _buff;
-        std::vector<char*> _array;
+        IBinaryStream* _stream = nullptr;
     };
 
-    class TextWriter : public serialize::IWriter
+    class BinaryWriter : public serialize::IWriter
     {
     public:
-        TextWriter(ITokenStream* tokens);
-        ~TextWriter();
+        BinaryWriter(IBinaryStream* buffer);
+        virtual ~BinaryWriter() {}
 
     public:
-        virtual bool StructBegin(int32_t code, const char* name = nullptr);
-        virtual bool StructEnd();
+        virtual bool StructBegin(int32_t code, const char* name = nullptr) { return true; }
+        virtual bool StructEnd() { return true; }
+
         virtual bool ArrayBegin(int length, const char* name = nullptr);
         virtual bool ArrayEnd();
         virtual bool Write(bool val, const char* name = nullptr);
@@ -55,11 +50,6 @@ namespace tab
         virtual bool Write(const std::string& val, const char* name = nullptr);
 
     protected:
-        bool Push(const char* str);
-
-    protected:
-        ITokenStream* _tokens = nullptr;
-        bool _isArray = false;
-        std::stringstream _array;
+        IBinaryStream* _stream = nullptr;
     };
 }

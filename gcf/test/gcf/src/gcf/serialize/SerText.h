@@ -1,20 +1,20 @@
 ﻿#pragma once
-#include "TabDef.h"
-#include "../serialize/ISerialize.h"
+#include "ISerialize.h"
 #include <sstream>
 #include <vector>
 
-namespace tab
+namespace serialize
 {
-    class TextReader : public serialize::IReader
+    class TextReader : public IReader
     {
     public:
         TextReader(ITokenStream* tokens);
         ~TextReader();
 
     public:
-        virtual bool StructBegin(int32_t code, const char* name = nullptr);
-        virtual bool StructEnd();
+        virtual bool StructBegin(int32_t code, const char* name = nullptr) { return true; }
+        virtual bool StructEnd() { return true; }
+
         virtual bool ArrayBegin(int& length, const char* name = nullptr);
         virtual bool ArrayEnd();
         virtual bool Read(bool& val, const char* name = nullptr);
@@ -25,7 +25,7 @@ namespace tab
         virtual bool Read(double& val, const char* name = nullptr);
         virtual bool Read(std::string& val, const char* name = nullptr);
     protected:
-        const char* Pop();
+        const char* DoRead();
 
     protected:
         ITokenStream* _tokens = nullptr;
@@ -35,15 +35,16 @@ namespace tab
         std::vector<char*> _array;
     };
 
-    class TextWriter : public serialize::IWriter
+    class TextWriter : public IWriter
     {
     public:
         TextWriter(ITokenStream* tokens);
         ~TextWriter();
 
     public:
-        virtual bool StructBegin(int32_t code, const char* name = nullptr);
-        virtual bool StructEnd();
+        virtual bool StructBegin(int32_t code, const char* name = nullptr) { return true; }
+        virtual bool StructEnd() { return true; }
+
         virtual bool ArrayBegin(int length, const char* name = nullptr);
         virtual bool ArrayEnd();
         virtual bool Write(bool val, const char* name = nullptr);
@@ -55,7 +56,7 @@ namespace tab
         virtual bool Write(const std::string& val, const char* name = nullptr);
 
     protected:
-        bool Push(const char* str);
+        bool DoWrite(const char* str);
 
     protected:
         ITokenStream* _tokens = nullptr;

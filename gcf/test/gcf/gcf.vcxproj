@@ -25,18 +25,25 @@
     <ClInclude Include="src\gcf\cross_call\SwapBuffer.h" />
     <ClInclude Include="src\gcf\gcf.h" />
     <ClInclude Include="src\gcf\serialize\ISerialize.h" />
+    <ClInclude Include="src\gcf\serialize\SerBinary.h" />
+    <ClInclude Include="src\gcf\serialize\SerText.h" />
     <ClInclude Include="src\gcf\serialize\SerUtility.h" />
     <ClInclude Include="src\gcf\tab\Data.h" />
+    <ClInclude Include="src\gcf\tab\FileData.h" />
     <ClInclude Include="src\gcf\tab\IndexMap.h" />
     <ClInclude Include="src\gcf\tab\Parser.h" />
     <ClInclude Include="src\gcf\tab\TabDef.h" />
     <ClInclude Include="src\gcf\tab\Text.h" />
+    <ClInclude Include="src\gcf\tab\TextLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gcf\cross_call\Binary.cpp" />
     <ClCompile Include="src\gcf\cross_call\Station.cpp" />
     <ClCompile Include="src\gcf\cross_call\SwapBuffer.cpp" />
+    <ClCompile Include="src\gcf\serialize\SerBinary.cpp" />
+    <ClCompile Include="src\gcf\serialize\SerText.cpp" />
     <ClCompile Include="src\gcf\serialize\SerUtility.cpp" />
+    <ClCompile Include="src\gcf\tab\FileData.cpp" />
     <ClCompile Include="src\gcf\tab\IndexMap.cpp" />
     <ClCompile Include="src\gcf\tab\Parser.cpp" />
     <ClCompile Include="src\gcf\tab\Text.cpp" />

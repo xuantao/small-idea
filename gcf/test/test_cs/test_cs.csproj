@@ -55,6 +55,7 @@
     <Compile Include="gcf\Serialize\SerUtility.cs" />
     <Compile Include="gcf\Tab\IndexMap.cs" />
     <Compile Include="gcf\Tab\ITokenStream.cs" />
+    <Compile Include="gcf\Tab\Loader.cs" />
     <Compile Include="gcf\Tab\Parser.cs" />
     <Compile Include="gcf\Tab\TextReader.cs" />
     <Compile Include="gcf\Tab\TextWriter.cs" />
