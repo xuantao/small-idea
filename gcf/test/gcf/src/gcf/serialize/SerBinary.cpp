@@ -5,7 +5,7 @@ namespace serialize
 {
     //////////////////////////////////////////////////////////////////////////
     // NormalReader
-    BinaryReader::BinaryReader(IBinaryStream* stream)
+    BinaryReader::BinaryReader(IBinaryReadStream* stream)
         : _stream(stream)
     {
     }
@@ -72,7 +72,7 @@ namespace serialize
 
     //////////////////////////////////////////////////////////////////////////
     // NormalWriter
-    BinaryWriter::BinaryWriter(IBinaryStream* stream)
+    BinaryWriter::BinaryWriter(IBinaryWriteStream* stream)
         : _stream(stream)
     {
     }

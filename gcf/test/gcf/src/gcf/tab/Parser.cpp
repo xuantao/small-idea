@@ -51,10 +51,4 @@ namespace tab
         assert(realIdx <= _tokens.size());
         return _tokens[realIdx];
     }
-
-    bool Parser::Push(const char*)
-    {
-        assert(false);
-        return false;
-    }
 }

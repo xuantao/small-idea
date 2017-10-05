@@ -28,7 +28,7 @@ namespace serialize
 
     //////////////////////////////////////////////////////////////////////////
     // TextReader
-    TextReader::TextReader(ITokenStream* stream) : _stream(stream)
+    TextReader::TextReader(ITokenReadStream* stream) : _stream(stream)
     {
     }
 
@@ -169,7 +169,7 @@ namespace serialize
 
     //////////////////////////////////////////////////////////////////////////
     // TextWriter
-    TextWriter::TextWriter(ITokenStream* stream) : _stream(stream)
+    TextWriter::TextWriter(ITokenWriteStream* stream) : _stream(stream)
     {
     }
 
@@ -183,7 +183,7 @@ namespace serialize
         if (_isArray)
             return false;
 
-        assert(_array.tellp() == 0 && "last array has some error");
+        //assert(_array.tellp() == 0 && "last array has some error");
 
         _isArray = true;
         return true;

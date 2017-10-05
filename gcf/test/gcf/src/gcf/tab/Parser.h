@@ -22,17 +22,15 @@ namespace tab
 
     protected:
         const char* Pop();
-        bool Push(const char*);
 
     protected:
-        class TokenStream : public serialize::ITokenStream
+        class TokenStream : public serialize::ITokenReadStream
         {
         public:
             TokenStream(Parser& parser) : _parser(parser) {}
             ~TokenStream() {}
         public:
             virtual const char* Read() { return _parser.Pop(); }
-            virtual bool Write(const char* token) { return _parser.Push(token); }
         protected:
             Parser& _parser;
         };

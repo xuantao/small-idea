@@ -15,8 +15,8 @@ namespace cross_call
     bool Station::Init(char* buffer, int size)
     {
         _buffer = new SwapBuffer(buffer, size);
-        _reader = new BinaryReader(_buffer);
-        _writer = new BinaryWriter(_buffer);
+        _reader = new Reader(_buffer);
+        _writer = new Writer(_buffer);
         return true;
     }
 

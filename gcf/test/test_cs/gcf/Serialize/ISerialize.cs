@@ -29,4 +29,16 @@
         bool Write(double val, string name = null);
         bool Write(string val, string name = null);
     }
+
+    public interface IBinaryStream
+    {
+        bool Read(byte[] data);
+        bool Write(byte[] data);
+    }
+
+    public interface ITokenStream
+    {
+        string Read();
+        bool Write(string token);
+    }
 }

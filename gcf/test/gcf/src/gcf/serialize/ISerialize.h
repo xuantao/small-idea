@@ -10,6 +10,42 @@
 
 namespace serialize
 {
+    class IBinaryReadStream
+    {
+    public:
+        virtual ~IBinaryReadStream() {}
+
+    public:
+        virtual bool Read(void* buf, int32_t size) = 0;
+    };
+
+    class IBinaryWriteStream
+    {
+    public:
+        virtual ~IBinaryWriteStream() {}
+
+    public:
+        virtual bool Write(const void* buf, int32_t size) = 0;
+    };
+
+    class ITokenReadStream
+    {
+    public:
+        virtual ~ITokenReadStream() {}
+
+    public:
+        virtual const char* Read() = 0;
+    };
+
+    class ITokenWriteStream
+    {
+    public:
+        virtual ~ITokenWriteStream() {}
+
+    public:
+        virtual bool Write(const char* token) = 0;
+    };
+
     class IReader
     {
     public:
@@ -47,25 +83,5 @@ namespace serialize
         virtual bool Write(float val, const char* name = nullptr) = 0;
         virtual bool Write(double val, const char* name = nullptr) = 0;
         virtual bool Write(const std::string& val, const char* name = nullptr) = 0;
-    };
-
-    class IBinaryStream
-    {
-    public:
-        virtual ~IBinaryStream() {}
-
-    public:
-        virtual bool Read(void* buf, int32_t size) = 0;
-        virtual bool Write(const void* buf, int32_t size) = 0;
-    };
-
-    class ITokenStream
-    {
-    public:
-        virtual ~ITokenStream() {}
-
-    public:
-        virtual const char* Read() = 0;
-        virtual bool Write(const char* token) = 0;
     };
 }

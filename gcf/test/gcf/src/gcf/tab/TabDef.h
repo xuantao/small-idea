@@ -2,12 +2,16 @@
 
 namespace tab
 {
-    class ITokenStream
+    namespace detail
+    {
+        template <typename Ty>
+        struct Info;
+    }
+
+    template <class Ty>
+    class Loader
     {
     public:
-        virtual ~ITokenStream() {}
-    public:
-        virtual const char* Pop() = 0;
-        virtual bool Push(const char* token) = 0;
+        virtual bool Load(Ty& val) = 0;
     };
 }

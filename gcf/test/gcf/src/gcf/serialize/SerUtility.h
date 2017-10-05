@@ -38,43 +38,19 @@ namespace serialize
             return reader->ArrayEnd();
         }
 
-        template <size_t N>
-        bool Read(IReader* reader, std::array<int32_t, N>& arr, const char* name = nullptr)
-        {
-            return reader->Read(&arr[0], (int32_t)N, name);
-        }
-
         template <class Ty, size_t N>
         bool Read(IReader* reader, std::array<Ty, N>& arr, const char* name = nullptr)
         {
             for (size_t i = 0; i < N; ++i)
             {
-                //char arName[256] = {0};
-                //std::snprintf(arName, 255, "%s_%d", name ? name : "", (int)i + 1);
-                if (!Read(reader, arr[i], name))
+                char arName[256] = {0};
+                snprintf(arName, 255, "%s_%d", name ? name : "", (int)i + 1);
+                if (!Read(reader, arr[i], arName))
                     return false;
             }
 
             return true;
         }
-
-        //template <class Ky, class Ty>
-        //bool Read(IReader* reader, std::map<Ky, Ty>& map)
-        //{
-        //    int size = 0;
-        //    if (!Read(reader, size)) return false;
-        //    if (size < 0) return false;
-
-        //    for (size_t i = 0; i < N; ++i)
-        //    {
-        //        std::pair<Ky, Ty> pair;
-        //        if (!Read(reader, pair.first)) return false;
-        //        if (!Read(reader, pair.second)) return false;
-
-        //        map.insert(std::move(pair));
-        //    }
-        //    return true;
-        //}
 
         /*
          * write functions
@@ -105,30 +81,13 @@ namespace serialize
         {
             for (size_t i = 0; i < arr.size(); ++i)
             {
-                //char arName[256] = {0};
-                //std::snprintf(arName, 255, "%s_%d", name ? name : "", (int)i + 1);
-                if (!Write(writer, arr[i], name))
+                char arName[256] = {0};
+                snprintf(arName, 255, "%s_%d", name ? name : "", (int)i + 1);
+                if (!Write(writer, arr[i], arName))
                     return false;
             }
 
             return true;
         }
-
-        //template <class Ky, class Ty>
-        //bool Write(IWriter* writer, const std::map<Ky, Ty>& map)
-        //{
-        //    if (!Write(writer, (int)map.size()))
-        //        return false;
-
-        //    for (const auto& pair : map)
-        //    {
-        //        if (!Write(writer, pair.first))
-        //            return false;
-        //        if (!Write(writer, pair.second))
-        //            return false;
-        //    }
-
-        //    return true;
-        //}
     }
 }

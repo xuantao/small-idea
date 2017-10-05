@@ -1,15 +1,13 @@
 ﻿#pragma once
+#include "TabDef.h"
 #include "Parser.h"
 #include "FileData.h"
 #include "../serialize/SerUtility.h"
 
 namespace tab
 {
-    template <typename Ty>
-    struct Info;
-
     template <class Ty>
-    struct TextLoader
+    class TextLoader : public Loader<Ty>
     {
     public:
         TextLoader() : _parser(_idxMap)
@@ -17,26 +15,13 @@ namespace tab
         }
 
     public:
-        bool Setup(const char* file, int startLine, bool hasDefault)
-        {
-            auto fd = FileData::shared_from_this();
-            if (!fd->Load(file, true))
-                return false;
-
-            if (!Setup(fd->Data(), startLine, hasDefault))
-                return false;
-
-            _fileData = fd; // hold the file data
-            return true;
-        }
-
         bool Setup(char* data, int startLine, bool hasDefault)
         {
             char* title = GetLine(data);
             if (title == nullptr)
                 return false;
 
-            if (!_idxMap.Setup(Info<Ty>::titles, title))
+            if (!_idxMap.Setup(detail::Info<Ty>::titles, title))
                 return false;
 
             for (int i = 1; i < startLine; ++i)
@@ -45,7 +30,7 @@ namespace tab
                     return false;   // not enough data
             }
 
-            if (_hasDefault)
+            if (hasDefault)
             {
                 char* text = GetLine(data);
                 if (text == nullptr)
@@ -60,16 +45,17 @@ namespace tab
             return true;
         }
 
-        bool Load(Ty& out)
+    public:
+        virtual bool Load(Ty& val)
         {
-            char* line = GetLine();
+            char* line = GetLine(_data);
             if (line == nullptr)
                 return false;
 
             if (_hasDefault)
-                out = _default;
+                val = _default;
 
-            return serialize::utility::Read(_parser.Parse(line), out);
+            return serialize::utility::Read(_parser.Parse(line), val);
         }
 
     protected:
@@ -104,7 +90,6 @@ namespace tab
         }
 
     protected:
-        std::shared_ptr<FileData> _fileData;
         char* _data = nullptr;
         bool _hasDefault = false;
         Ty _default;

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "ICrossCall.h"
+#include "../serialize/ISerialize.h"
 
 namespace cross_call
 {
@@ -10,7 +11,7 @@ namespace cross_call
         Write,
     };
 
-    class SwapBuffer : public IBinaryStream
+    class SwapBuffer : public serialize::IBinaryReadStream, public serialize::IBinaryWriteStream
     {
     public:
         SwapBuffer(char* buffer, int size);

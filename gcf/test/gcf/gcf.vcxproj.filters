@@ -22,9 +22,6 @@
     <ClInclude Include="src\gcf\serialize\ISerialize.h">
       <Filter>gcf\serialize</Filter>
     </ClInclude>
-    <ClInclude Include="src\gcf\serialize\SerUtility.h">
-      <Filter>gcf\serialize</Filter>
-    </ClInclude>
     <ClInclude Include="src\gcf\cross_call\Binary.h">
       <Filter>gcf\cross_call</Filter>
     </ClInclude>
@@ -61,11 +58,17 @@
     <ClInclude Include="src\gcf\serialize\SerText.h">
       <Filter>gcf\serialize</Filter>
     </ClInclude>
+    <ClInclude Include="src\gcf\serialize\SerUtility.h">
+      <Filter>gcf\serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gcf\tab\BinaryLoader.h">
+      <Filter>gcf\tab</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gcf\serialize\SerMemoryStream.h">
+      <Filter>gcf\serialize</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\gcf\serialize\SerUtility.cpp">
-      <Filter>gcf\serialize</Filter>
-    </ClCompile>
     <ClCompile Include="src\gcf\cross_call\Binary.cpp">
       <Filter>gcf\cross_call</Filter>
     </ClCompile>
@@ -84,10 +87,16 @@
     <ClCompile Include="src\gcf\tab\FileData.cpp">
       <Filter>gcf\tab</Filter>
     </ClCompile>
+    <ClCompile Include="src\gcf\serialize\SerBinary.cpp">
+      <Filter>gcf\serialize</Filter>
+    </ClCompile>
     <ClCompile Include="src\gcf\serialize\SerText.cpp">
       <Filter>gcf\serialize</Filter>
     </ClCompile>
-    <ClCompile Include="src\gcf\serialize\SerBinary.cpp">
+    <ClCompile Include="src\gcf\serialize\SerUtility.cpp">
+      <Filter>gcf\serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gcf\serialize\SerMemoryStream.cpp">
       <Filter>gcf\serialize</Filter>
     </ClCompile>
   </ItemGroup>

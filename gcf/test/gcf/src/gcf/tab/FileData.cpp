@@ -18,10 +18,11 @@ namespace tab
         assert(_data == nullptr);
 
         std::ifstream stream;
-        if (text)
-            stream.open(file);
-        else
-            stream.open(file, std::ios::in | std::ios::binary);
+        /* NOTE: 经测试，以文本方式读取文件，文件末尾处理有点奇怪 */
+        //if (text)
+        //    stream.open(file);
+        //else
+        stream.open(file, std::ios::in | std::ios::binary);
 
         if (!stream.is_open())
             return false;
@@ -33,7 +34,7 @@ namespace tab
         // skip bom header
         if (text && _size >= 3)
         {
-            int8_t bom[3] = {0};
+            uint8_t bom[3] = {0};
             stream.read((char*)bom, 3);
             if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf)
                 _size -= 3;
@@ -45,6 +46,9 @@ namespace tab
         _data[_size] = 0;
 
         stream.read(_data, _size);
+        //if (text)
+        //    _data[stream.gcount()] = 0;
+
         stream.close();
         return true;
     }

@@ -1,132 +1,119 @@
 ﻿#pragma once
 #include "Parser.h"
-#include "../serialize/SerUtility.h"
+#include "FileData.h"
+#include "TextLoader.h"
+#include "BinaryLoader.h"
+#include <vector>
+#include <map>
+#include <cassert>
 
 namespace tab
 {
-    namespace detail
-    {
-        template <class Ty>
-        struct Loader
-        {
-        public:
-            Loader(char* text, bool hasDefault)
-                : _parser(_idxMap)
-                , _data(text)
-                , _hasDefault(hasDefault)
-            {
-            }
-
-        public:
-            bool Setup(int startLine)
-            {
-                char* title = GetLine();
-                if (title == nullptr)
-                    return false;
-
-                if (!_idxMap.Setup(Info<Ty>::titles, title))
-                    return false;
-
-                for (int i = 1; i < startLine; ++i)
-                {
-                    if (GetLine() == nullptr)
-                        return false;   // not enough data
-                }
-
-                if (_hasDefault)
-                {
-                    char* text = GetLine();
-                    if (text == nullptr)
-                        return false;
-
-                    if (!serialize::utility::Read(_parser.Parse(text), _default))
-                        return false;
-                }
-
-                return true;
-            }
-
-            bool LoadOne(Ty& out)
-            {
-                char* line = GetLine();
-                if (line == nullptr)
-                    return false;
-
-                if (_hasDefault)
-                    out = _default;
-
-                return serialize::utility::Read(_parser.Parse(line), out);
-            }
-
-        protected:
-            // this will skip empty line
-            char* GetLine()
-            {
-                char* rd = _data + _rdPos;
-                char* text = nullptr;
-
-                while (true)
-                {
-                    text = rd;
-
-                    // move to line end
-                    while (*rd != '\n' && *rd != 0)
-                        ++rd;
-
-                    if (*rd == 0)
-                        break;
-
-                    *rd = 0;
-                    ++rd;
-
-                    if (*text != 0)
-                        break;
-                }
-
-                _rdPos = (int)(rd - _data);
-                return *text ? text : nullptr;
-            }
-
-        protected:
-            char* _data = nullptr;
-            bool _hasDefault = false;
-            Ty _default;
-
-            int _rdPos = 0;
-            IndexMap _idxMap;
-            Parser _parser;
-        };
-    }
-
     template <class Ty>
-    class DataList
+    class DataBase
     {
     public:
-        // load text
-        bool Load(char* data, int startLine = 3, bool hasDefault = true)
+        bool LoadText(const char* file, int startLine = 3, bool hasDefault = true)
         {
-            detail::Loader<Ty> loader(data, hasDefault);
-            if (!loader.Setup(startLine))
+            FileData fd;
+            if (!fd.Load(file, true))
                 return false;
 
+            return LoadText(fd.Data(), startLine, hasDefault);
+        }
+
+        bool LoadText(char* data, int startLine = 3, bool hasDefault = true)
+        {
+            TextLoader<Ty> loader;
+            if (!loader.Setup(data, startLine, hasDefault))
+                return false;
+
+            return Load(loader);
+        }
+
+        bool LoadBinary(const char* file)
+        {
+            FileData fd;
+            if (!fd->Load(file, false))
+                return false;
+
+            return LoadBinary(fd.Data(), fd.Size());
+        }
+
+        bool LoadBinary(const void* data, size_t size)
+        {
+            BinaryLoader<Ty> loader;
+            if (!loader.Setup(data, size))
+                return false;
+
+            return Load(loader);
+        }
+
+    public:
+        virtual bool Load(Loader<Ty>& loader) = 0;
+    };
+
+    template <class Ty>
+    class DataList : public DataBase<Ty>
+    {
+    public:
+        virtual bool Load(Loader<Ty>& loader)
+        {
             while (true)
             {
-                Ty tyData;
-                if (!loader.LoadOne(tyData))
+                Ty val;
+                if (loader.Load(val))
+                    _data.push_back(val);
+                else
                     break;
-
-                _data.push_back(tyData);
             }
-
             return true;
         }
 
-        // load binary
-        bool Load(const void* data, int size)
+        const std::vector<Ty>& Data() const
         {
-            return false;
+            return _data;
         }
     protected:
         std::vector<Ty> _data;
+    };
+
+    template <typename Ky, class Ty>
+    class DataMap : public DataBase<Ty>
+    {
+    public:
+        const Ty* Get(const Ky& key) const
+        {
+            auto it = _data.find(key);
+            if (it == _data.cend())
+                return nullptr;
+
+            return &(it->second);
+        }
+
+    public:
+        virtual bool Load(Loader<Ty>& loader)
+        {
+            while (true)
+            {
+                Ty val;
+                if (!loader.Load(val))
+                    break;
+
+                if (!Filter(val))
+                    continue;
+
+                auto pd = _data.insert(std::make_pair(Key(val), val));
+                assert(pd.second);
+            }
+            return true;
+        }
+
+    protected:
+        virtual Ky Key(Ty& val) = 0;
+        virtual bool Filter(Ty& val) { return true; }
+
+    protected:
+        std::map<Ky, Ty> _data;
     };
 }

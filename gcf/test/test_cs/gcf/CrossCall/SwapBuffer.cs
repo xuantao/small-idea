@@ -20,9 +20,13 @@ namespace CrossCall
         int _wp;        // write pos
 
         byte[] _pool;
+        //System.IO.UnmanagedMemoryStream _stream;
+        //System.IO.BinaryReader _reader;
 
         public SwapBuffer(byte[] pool)
-        { _pool = pool; }
+        {
+            _pool = pool;
+        }
 
         public BufferMode Mode { get { return _mode; } }
 

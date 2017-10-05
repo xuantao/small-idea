@@ -62,7 +62,7 @@ namespace cross_call
         std::map<uint32_t, ProcessorPtr> _procs;
 
         SwapBuffer* _buffer = nullptr;
-        BinaryReader* _reader = nullptr;
-        BinaryWriter* _writer = nullptr;
+        Reader* _reader = nullptr;
+        Writer* _writer = nullptr;
     };
 }
