@@ -365,8 +365,14 @@ namespace cs_test
 
         static void Main(string[] args)
         {
-            var info = Sr3.TabInfo;
-            var info2 = TabTest_1.TabInfo;
+            //var info = Sr3.TabInfo;
+            //var info2 = TabTest_1.TabInfo;
+
+            TestStream testStream = new TestStream();
+            testStream.Init();
+            testStream.TestWrite();
+            testStream.TestRead();
+            testStream.Test2();
 
             Console.ReadKey();
         }
