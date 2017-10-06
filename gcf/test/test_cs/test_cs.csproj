@@ -73,12 +73,10 @@
     <Compile Include="gcf\Serialize\TextReader.cs" />
     <Compile Include="gcf\Serialize\TextWriter.cs" />
     <Compile Include="gcf\Serialize\Utility.cs" />
+    <Compile Include="gcf\Tab\Data.cs" />
     <Compile Include="gcf\Tab\IndexMap.cs" />
-    <Compile Include="gcf\Tab\ITokenStream.cs" />
     <Compile Include="gcf\Tab\Loader.cs" />
     <Compile Include="gcf\Tab\Parser.cs" />
-    <Compile Include="gcf\Tab\TextReader.cs" />
-    <Compile Include="gcf\Tab\TextWriter.cs" />
     <Compile Include="gen\Caller.cs" />
     <Compile Include="gen\Cfg.cs" />
     <Compile Include="gen\Cfg_Ser.cs" />
@@ -94,6 +92,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="TestC2SRsp.cs" />
+    <Compile Include="TestCrossCall.cs" />
     <Compile Include="TestStream.cs" />
     <Compile Include="TestTab.cs" />
   </ItemGroup>

@@ -13,9 +13,9 @@ namespace Serialize
     public class TextWriter : IWriter
     {
         StringBuilder _array = null;
-        ITokenStream _stream = null;
+        ITokenWriteStream _stream = null;
 
-        public TextWriter(ITokenStream stream)
+        public TextWriter(ITokenWriteStream stream)
         {
             _stream = stream;
         }

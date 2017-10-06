@@ -14,9 +14,9 @@ namespace Serialize
         int _index = 0;
         bool _isArray = false;
         string[] _array = null;
-        ITokenStream _stream = null;
+        ITokenReadStream _stream = null;
 
-        public TextReader(ITokenStream stream)
+        public TextReader(ITokenReadStream stream)
         {
             _stream = stream;
         }

@@ -172,5 +172,10 @@ namespace Serialize
 
             return true;
         }
+
+        public static ReadCallback<T> GetReader<T>()
+        {
+            return (ReadCallback<T>)Read;
+        }
     }
 }

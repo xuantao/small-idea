@@ -7,7 +7,7 @@
 namespace tab
 {
     template <class Ty>
-    class BinaryLoader : public Loader<Ty>
+    class BinaryLoader : public ILoader<Ty>
     {
     public:
         bool Setup(const void* data, size_t size)

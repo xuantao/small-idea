@@ -1,13 +1,23 @@
 ﻿#pragma once
 #include "TabDef.h"
 #include "Parser.h"
-#include "FileData.h"
 #include "../serialize/SerUtility.h"
+#include "../serialize/SerBinary.h"
+#include "../serialize/SerMemoryStream.h"
+
+
 
 namespace tab
 {
     template <class Ty>
-    class TextLoader : public Loader<Ty>
+    class ILoader
+    {
+    public:
+        virtual bool Load(Ty& val) = 0;
+    };
+
+    template <class Ty>
+    class TextLoader : public ILoader<Ty>
     {
     public:
         TextLoader() : _parser(_idxMap)
@@ -96,5 +106,45 @@ namespace tab
 
         IndexMap _idxMap;
         Parser _parser;
+    };
+
+    template <class Ty>
+    class BinaryLoader : public ILoader<Ty>
+    {
+    public:
+        BinaryLoader() : _reader(&_stream)
+        {
+        }
+
+    public:
+        int HashCode() const { return _code; }
+
+        bool Setup(const void* data, size_t size)
+        {
+            if (!_stream.Init(data, size))
+                return false;
+
+            if (!_reader.Read(_code, nullptr))
+                return false;
+            if (!_reader.Read(_count, nullptr))
+                return false;
+
+            return _count >= 0;
+        }
+
+        virtual bool Load(Ty& val)
+        {
+            if (_count == 0)
+                return false;
+
+            --_count;
+            return serialize::utility::Read(&_reader, val, nullptr);
+        }
+
+    protected:
+        int _code = 0;
+        int _count = 0;
+        serialize::MemoryReadOnly _stream;
+        serialize::BinaryReader _reader;
     };
 }

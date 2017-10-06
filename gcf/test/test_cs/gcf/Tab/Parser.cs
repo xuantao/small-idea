@@ -1,23 +1,19 @@
-﻿using System;
-
-namespace Tab
+﻿namespace Tab
 {
     public class Parser
     {
-        class TokenStream : ITokenStream
+        class TokenStream : Serialize.ITokenReadStream
         {
             Parser _parser = null;
             public TokenStream(Parser parser)
             { _parser = parser; }
-            public string Pop()
+            public string Read()
             { return _parser.Pop(); }
-            public bool Push(string token)
-            { throw new NotImplementedException(); }
         }
 
         IndexMap _idxMap;
         TokenStream _stream;
-        TextReader _reader;
+        Serialize.TextReader _reader;
         int _index = 0;
         string[] _data = null;
 
@@ -25,7 +21,7 @@ namespace Tab
         {
             _idxMap = idxMap;
             _stream = new TokenStream(this);
-            _reader = new TextReader(_stream);
+            _reader = new Serialize.TextReader(_stream);
         }
 
         public Serialize.IReader Parse(string line)

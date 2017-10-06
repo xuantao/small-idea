@@ -12,18 +12,33 @@ namespace cross_call
     void SwapBuffer::Startup(BufferMode mode)
     {
         _mode = mode;
-        _rp = _wp = 4;
+        if (_mode == BufferMode::Read)
+        {
+            _wp = _size;
+            _rp = 4;
+        }
+        else
+        {
+            _rp = _size;
+            _wp = 4;
+        }
     }
 
     int SwapBuffer::Endup()
     {
+        int ds = 0;
         if (_mode == BufferMode::Write)
-            _header->ds = _wp;
+        {
+            ds = _header->ds = _wp;
+            _wp = _size;
+        }
         else
-            _header->ds = 0;
+        {
+            ds = _rp;
+            _rp = _size;
+        }
 
-        _rp = _wp = 4;
-        return _header->ds;
+        return ds;
     }
 
     bool SwapBuffer::Read(void* buf, int32_t size)

@@ -9,7 +9,6 @@ public class Profile
 
     string _name;
     long _times = 0;
-    long _cost = 0;
 
     public string Name
     { get { return _name; } }

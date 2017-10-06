@@ -1,24 +1,19 @@
 ﻿/*
  * 二进制序列化
- */
-
-using System;
+*/
 
 namespace CrossCall
 {
     /*
      * 二进制数据Reader 
      */
-    public class BinaryReader : Serialize.IReader
+    public class BinaryReader : Serialize.BinaryReader
     {
-        protected IBinaryStream _stream = null;
-
-        public BinaryReader(IBinaryStream stream)
+        public BinaryReader(System.IO.BinaryReader reader) : base(reader)
         {
-            _stream = stream;
         }
 
-        public bool StructBegin(int code, string name = null)
+        public override bool StructBegin(int code, string name = null)
         {
             int check = 0;
             if (!Read(ref check, null))
@@ -26,162 +21,25 @@ namespace CrossCall
 
             return check == code;
         }
-
-        public bool StructEnd()
-        {
-            return true;
-        }
-
-        public bool ArrayBegin(ref int length, string name = null)
-        {
-            byte[] data = { 0, 0, 0, 0 };
-            if (!_stream.Read(data)) return false;
-
-            length = BitConverter.ToInt32(data, 0);
-            return true;
-        }
-
-        public bool ArrayEnd()
-        {
-            return true;
-        }
-
-        public bool Read(ref bool val, string name = null)
-        {
-            byte[] data = { 0 };
-            if (!_stream.Read(data)) return false;
-
-            val = BitConverter.ToBoolean(data, 0);
-            return true;
-        }
-
-        public bool Read(ref byte val, string name = null)
-        {
-            byte[] data = { 0 };
-            if (!_stream.Read(data)) return false;
-
-            val = data[0];
-            return true;
-        }
-
-        public bool Read(ref int val, string name = null)
-        {
-            byte[] data = { 0, 0, 0, 0 };
-            if (!_stream.Read(data)) return false;
-
-            val = BitConverter.ToInt32(data, 0);
-            return true;
-        }
-
-        public bool Read(ref long val, string name = null)
-        {
-            byte[] data = { 0, 0, 0, 0, 0, 0, 0, 0 };
-            if (!_stream.Read(data)) return false;
-
-            val = BitConverter.ToInt64(data, 0);
-            return true;
-        }
-
-        public bool Read(ref float val, string name = null)
-        {
-            byte[] data = { 0, 0, 0, 0 };
-            if (!_stream.Read(data)) return false;
-
-            val = BitConverter.ToSingle(data, 0);
-            return true;
-        }
-
-        public bool Read(ref double val, string name = null)
-        {
-            byte[] data = { 0, 0, 0, 0, 0, 0, 0, 0 };
-            if (!_stream.Read(data)) return false;
-
-            val = BitConverter.ToDouble(data, 0);
-            return true;
-        }
-
-        public bool Read(ref string val, string name = null)
-        {
-            int len = 0;
-            if (!Read(ref len, null))
-                return false;
-
-            byte[] data = new byte[len];
-            if (!_stream.Read(data))
-                return false;
-
-            val = System.Text.Encoding.UTF8.GetString(data);
-            return true;
-        }
     }
 
     /*
      * 二进制数据Writer
      */
-    public class BinaryWriter : Serialize.IWriter
+    public class BinaryWriter : Serialize.BinaryWriter
     {
-        protected IBinaryStream _stream = null;
-
-        public BinaryWriter(IBinaryStream stream)
+        public BinaryWriter(System.IO.BinaryWriter writer) : base(writer)
         {
-            _stream = stream;
         }
 
-        public bool StructBegin(int code, string name = null)
+        public override bool StructBegin(int code, string name = null)
         {
-            return _stream.Write(BitConverter.GetBytes(code));
+            return Write(code);
         }
 
-        public bool StructEnd()
+        public override bool StructEnd()
         {
             return true;
-        }
-
-        public bool ArrayBegin(int length, string name = null)
-        {
-            return _stream.Write(BitConverter.GetBytes(length));
-        }
-
-        public bool ArrayEnd()
-        {
-            return true;
-        }
-
-        public bool Write(bool val, string name = null)
-        {
-            return _stream.Write(BitConverter.GetBytes(val));
-        }
-
-        public bool Write(byte val, string name = null)
-        {
-            byte[] by = { val };
-            return _stream.Write(by);
-        }
-
-        public bool Write(int val, string name = null)
-        {
-            return _stream.Write(BitConverter.GetBytes(val));
-        }
-
-        public bool Write(long val, string name = null)
-        {
-            return _stream.Write(BitConverter.GetBytes(val));
-        }
-
-        public bool Write(float val, string name = null)
-        {
-            return _stream.Write(BitConverter.GetBytes(val));
-        }
-
-        public bool Write(double val, string name = null)
-        {
-            return _stream.Write(BitConverter.GetBytes(val));
-        }
-
-        public bool Write(string val, string name = null)
-        {
-            return _stream.Write(BitConverter.GetBytes(val.Length)) &&
-                _stream.Write(System.Text.Encoding.UTF8.GetBytes(val));
         }
     }
 }

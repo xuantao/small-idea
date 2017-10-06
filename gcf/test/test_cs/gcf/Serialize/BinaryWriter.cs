@@ -1,29 +1,33 @@
-﻿using System;
-
-namespace Serialize
+﻿namespace Serialize
 {
+    /*
+     * 二进制数据写入
+     * NOTE:
+     * 针对System.IO.BinaryWriter的字符串处理做了转换
+    */
     public class BinaryWriter : IWriter
     {
-        protected IBinaryStream _stream = null;
+        protected System.IO.BinaryWriter _writer;
 
-        public BinaryWriter(IBinaryStream stream)
+        public BinaryWriter(System.IO.BinaryWriter writer)
         {
-            _stream = stream;
+            _writer = writer;
         }
 
-        public bool StructBegin(int code, string name = null)
+        public virtual bool StructBegin(int code, string name = null)
         {
             return true;
         }
 
-        public bool StructEnd()
+        public virtual bool StructEnd()
         {
             return true;
         }
 
         public bool ArrayBegin(int length, string name = null)
         {
-            return _stream.Write(BitConverter.GetBytes(length));
+            _writer.Write(length);
+            return true;
         }
 
         public bool ArrayEnd()
@@ -33,39 +37,46 @@ namespace Serialize
 
         public bool Write(bool val, string name = null)
         {
-            return _stream.Write(BitConverter.GetBytes(val));
+            _writer.Write(val);
+            return true;
         }
 
         public bool Write(byte val, string name = null)
         {
-            byte[] by = { val };
-            return _stream.Write(by);
+            _writer.Write(val);
+            return true;
         }
 
         public bool Write(int val, string name = null)
         {
-            return _stream.Write(BitConverter.GetBytes(val));
+            _writer.Write(val);
+            return true;
         }
 
         public bool Write(long val, string name = null)
         {
-            return _stream.Write(BitConverter.GetBytes(val));
+            _writer.Write(val);
+            return true;
         }
 
         public bool Write(float val, string name = null)
         {
-            return _stream.Write(BitConverter.GetBytes(val));
+            _writer.Write(val);
+            return true;
         }
 
         public bool Write(double val, string name = null)
         {
-            return _stream.Write(BitConverter.GetBytes(val));
+            _writer.Write(val);
+            return true;
         }
 
         public bool Write(string val, string name = null)
         {
-            return _stream.Write(BitConverter.GetBytes(val.Length)) &&
-                _stream.Write(System.Text.Encoding.UTF8.GetBytes(val));
+            var bytes = System.Text.Encoding.UTF8.GetBytes(val);
+            _writer.Write(bytes.Length);
+            _writer.Write(bytes);
+            return true;
         }
     }
 }

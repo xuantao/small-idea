@@ -28,7 +28,7 @@ namespace CrossCall
             public Context(Station station)
             { _station = station; }
             public Serialize.IReader Param
-            { get { return _station._reader; } }
+            { get { return _station._buffer.Reader; } }
             public Serialize.IWriter Ret()
             { return _station.RetParam(); }
         }
@@ -36,14 +36,9 @@ namespace CrossCall
         protected IntPtr _ptr = IntPtr.Zero;
         protected int _size;
 
-        byte[] _pool;
         Invok _invoker;
         Context _param;
-
         SwapBuffer _buffer;
-        BinaryReader _reader;
-        BinaryWriter _writer;
-
         Dictionary<int, IProcessor> _dicProc = new Dictionary<int, IProcessor>();
 
         public IInvoker Invoker { get { return _invoker; } }
@@ -57,12 +52,9 @@ namespace CrossCall
             if (_ptr == IntPtr.Zero)
                 return false;
 
-            _pool = new byte[size];
             _invoker = new Invok(this);
             _param = new Context(this);
-            _buffer = new SwapBuffer(_pool);
-            _reader = new BinaryReader(_buffer);
-            _writer = new BinaryWriter(_buffer);
+            _buffer = new SwapBuffer(_ptr, size);
 
             return true;
         }
@@ -70,12 +62,9 @@ namespace CrossCall
         protected void UnInit()
         {
             _dicProc.Clear();
-            _writer = null;
-            _reader = null;
             _buffer = null;
             _param = null;
             _invoker = null;
-            _pool = null;
             Marshal.FreeHGlobal(_ptr);
             _ptr = IntPtr.Zero;
             _size = 0;
@@ -116,7 +105,7 @@ namespace CrossCall
 
             int module = 0;
             IProcessor proc = null;
-            if (_reader.Read(ref module, null) && _dicProc.TryGetValue(module, out proc))
+            if (_buffer.Reader.Read(ref module, null) && _dicProc.TryGetValue(module, out proc))
             {
                 proc.Process(_param);
             }
@@ -131,47 +120,33 @@ namespace CrossCall
 
         Serialize.IWriter BeginCall(int module)
         {
-            _buffer.Startup(BufferMode.Write, 0);
-            _writer.Write(module);
-            return _writer;
+            _buffer.Startup(BufferMode.Write);
+            _buffer.Writer.Write(module);
+            return _buffer.Writer;
         }
 
         Serialize.IReader EndCall()
         {
-            ProfileManager.Instance.Start("do send");
             DoSend();
-            ProfileManager.Instance.Stop("do send");
-
-            ProfileManager.Instance.Start("do call");
             DoCall();
-            ProfileManager.Instance.Stop("do call");
-
-            ProfileManager.Instance.Start("do recv");
             DoRecv();
-            ProfileManager.Instance.Stop("do recv");
-            return _reader;
+            return _buffer.Reader;
         }
 
         Serialize.IWriter RetParam()
         {
-            _buffer.Startup(BufferMode.Write, 0);
-            return _writer;
+            _buffer.Startup(BufferMode.Write);
+            return _buffer.Writer;
         }
 
         void DoRecv()
         {
-            int size = Marshal.ReadInt32(_ptr, 0);
-            Marshal.Copy(_ptr, _pool, 0, size);
-            _buffer.Startup(BufferMode.Read, size);
+            _buffer.Startup(BufferMode.Read);
         }
 
         void DoSend()
         {
-            int size = _buffer.Endup();
-            if (_buffer.Mode == BufferMode.Write)
-                Marshal.Copy(_pool, 0, _ptr, size);
-            else
-                Marshal.WriteInt32(_ptr, 0);    // clear
+            _buffer.Endup();
         }
     }
 }

@@ -1,8 +1,7 @@
 ﻿#pragma once
 #include "Parser.h"
 #include "FileData.h"
-#include "TextLoader.h"
-#include "BinaryLoader.h"
+#include "Loader.h"
 #include <vector>
 #include <map>
 #include <cassert>
@@ -46,34 +45,51 @@ namespace tab
             if (!loader.Setup(data, size))
                 return false;
 
+            if (loader.HashCode() != Ty::HASH_CODE)
+                return false;
+
             return Load(loader);
         }
 
-    public:
-        virtual bool Load(Loader<Ty>& loader) = 0;
+    protected:
+        bool Load(ILoader<Ty>& loader)
+        {
+            while (true)
+            {
+                Ty val;
+                if (!loader.Load(val))
+                    break;
+
+                if (!OnLoad(val))
+                    return false;
+            }
+
+            return true;
+        }
+
+        virtual bool OnLoad(Ty& val) = 0;
     };
 
     template <class Ty>
     class DataList : public DataBase<Ty>
     {
     public:
-        virtual bool Load(Loader<Ty>& loader)
-        {
-            while (true)
-            {
-                Ty val;
-                if (loader.Load(val))
-                    _data.push_back(val);
-                else
-                    break;
-            }
-            return true;
-        }
-
-        const std::vector<Ty>& Data() const
+        const std::vector<Ty>& Datas() const
         {
             return _data;
         }
+
+    protected:
+        virtual bool OnLoad(Ty& val)
+        {
+            if (!Filter(val))
+                return true;
+
+            _data.push_back(val);
+            return true;
+        }
+
+        virtual bool Filter(Ty& val) { return true; }
     protected:
         std::vector<Ty> _data;
     };
@@ -91,21 +107,19 @@ namespace tab
             return &(it->second);
         }
 
-    public:
-        virtual bool Load(Loader<Ty>& loader)
+        const std::map<Ky, Ty>& Datas() const
         {
-            while (true)
-            {
-                Ty val;
-                if (!loader.Load(val))
-                    break;
+            return _data;
+        }
 
-                if (!Filter(val))
-                    continue;
+    protected:
+        virtual bool OnLoad(Ty& val)
+        {
+            if (!Filter(val))
+                return true;
 
-                auto pd = _data.insert(std::make_pair(Key(val), val));
-                assert(pd.second);
-            }
+            auto pd = _data.insert(std::make_pair(Key(val), val));
+            assert(pd.second);
             return true;
         }
 

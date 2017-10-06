@@ -3,6 +3,8 @@
  * please does not edit it manual!
 */
 
+using System;
+
 namespace Tab
 {
     public class Info
@@ -11,6 +13,27 @@ namespace Tab
         public string[] Types;
         public string[] Descs;
     }
+
+    public static partial class Utility
+    {
+
+
+        public static Info GetInfo(TabTest_1 _)
+        {
+            return TabTest_1.TabInfo;
+        }
+
+        public static Info GetInfo(Sr3 _)
+        {
+            return Sr3.TabInfo;
+        }
+
+        public static Info GetInfo(object _)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 } // namespace Tab
 public partial class TabTest_1
 {

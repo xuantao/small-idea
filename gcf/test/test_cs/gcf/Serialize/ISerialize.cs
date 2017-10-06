@@ -1,5 +1,15 @@
 ﻿namespace Serialize
 {
+    public interface ITokenReadStream
+    {
+        string Read();
+    }
+
+    public interface ITokenWriteStream
+    {
+        bool Write(string token);
+    }
+
     public interface IReader
     {
         bool StructBegin(int code, string name = null);
@@ -28,17 +38,5 @@
         bool Write(float val, string name = null);
         bool Write(double val, string name = null);
         bool Write(string val, string name = null);
-    }
-
-    public interface IBinaryStream
-    {
-        bool Read(byte[] data);
-        bool Write(byte[] data);
-    }
-
-    public interface ITokenStream
-    {
-        string Read();
-        bool Write(string token);
     }
 }

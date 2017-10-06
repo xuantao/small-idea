@@ -29,13 +29,12 @@
     <ClInclude Include="src\gcf\serialize\SerMemoryStream.h" />
     <ClInclude Include="src\gcf\serialize\SerText.h" />
     <ClInclude Include="src\gcf\serialize\SerUtility.h" />
-    <ClInclude Include="src\gcf\tab\BinaryLoader.h" />
     <ClInclude Include="src\gcf\tab\Data.h" />
     <ClInclude Include="src\gcf\tab\FileData.h" />
     <ClInclude Include="src\gcf\tab\IndexMap.h" />
+    <ClInclude Include="src\gcf\tab\Loader.h" />
     <ClInclude Include="src\gcf\tab\Parser.h" />
     <ClInclude Include="src\gcf\tab\TabDef.h" />
-    <ClInclude Include="src\gcf\tab\TextLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gcf\cross_call\Binary.cpp" />

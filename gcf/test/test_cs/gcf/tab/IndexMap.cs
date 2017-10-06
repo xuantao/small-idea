@@ -17,7 +17,9 @@
                 return false;
 
             _idxMap = new int[titles.Length];
-            _idxMap.SetValue(-1, 0, _idxMap.Length - 1);
+            for (var i = 0; i < titles.Length; ++i)
+                _idxMap[i] = -1;
+
             for (int titleIndex = 0; titleIndex < titles.Length; ++titleIndex)
             {
                 for (int elementIndex = 0; elementIndex < elements.Length; ++elementIndex)
@@ -29,7 +31,7 @@
                         _idxMap[titleIndex] = elementIndex;
                 }
             }
-            return false;
+            return true;
         }
 
         public int Index(int idx)

@@ -46,9 +46,6 @@
     <ClInclude Include="src\gcf\tab\Data.h">
       <Filter>gcf\tab</Filter>
     </ClInclude>
-    <ClInclude Include="src\gcf\tab\TextLoader.h">
-      <Filter>gcf\tab</Filter>
-    </ClInclude>
     <ClInclude Include="src\gcf\tab\FileData.h">
       <Filter>gcf\tab</Filter>
     </ClInclude>
@@ -61,11 +58,11 @@
     <ClInclude Include="src\gcf\serialize\SerUtility.h">
       <Filter>gcf\serialize</Filter>
     </ClInclude>
-    <ClInclude Include="src\gcf\tab\BinaryLoader.h">
-      <Filter>gcf\tab</Filter>
-    </ClInclude>
     <ClInclude Include="src\gcf\serialize\SerMemoryStream.h">
       <Filter>gcf\serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gcf\tab\Loader.h">
+      <Filter>gcf\tab</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
