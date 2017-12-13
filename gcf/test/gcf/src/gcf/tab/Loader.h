@@ -5,8 +5,6 @@
 #include "../serialize/SerBinary.h"
 #include "../serialize/SerMemoryStream.h"
 
-
-
 namespace tab
 {
     template <class Ty>
