@@ -87,9 +87,7 @@ public:
     }
 
 private:
-    typedef std::map<_Ty, size_t> REF_MAP;
-
-    REF_MAP _Vals;
+    std::map<_Ty, size_t> _Vals;
 };
 
 NAMESPACE_ZH_END

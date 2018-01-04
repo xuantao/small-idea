@@ -9,7 +9,7 @@
 
 NAMESPACE_ZH_BEGIN
 
-template <size_t N, size_t A>
+template <size_t N, size_t A = sizeof(void*)>
 class scoped_buffer_allocator
 {
 public:

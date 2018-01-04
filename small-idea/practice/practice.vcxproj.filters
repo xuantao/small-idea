@@ -64,6 +64,9 @@
     <ClInclude Include="src\scoped.h">
       <Filter>src\util</Filter>
     </ClInclude>
+    <ClInclude Include="src\scope_guard.h">
+      <Filter>src\container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
