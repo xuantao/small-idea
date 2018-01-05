@@ -93,5 +93,8 @@
     <ClCompile Include="src\scoped.cpp">
       <Filter>src\util</Filter>
     </ClCompile>
+    <ClCompile Include="src\test\scope_guard_test.cpp">
+      <Filter>src\test</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

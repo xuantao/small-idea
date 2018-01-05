@@ -1,6 +1,6 @@
 /*
  * scope guard
- * guard resources or roll back initialize operaters
+ * guard resources or roll back initialize operators
  * xuantao, 2018
 */
 #pragma once
@@ -13,7 +13,7 @@ namespace detail
         virtual void execute() = 0;
         virtual size_t size() = 0;
 
-        roll_back_node* next = nullptr;
+        roll_back_node* prev = nullptr;
     };
 
     template <typename Fy>
@@ -23,7 +23,7 @@ namespace detail
 
         roll_back_executor(const Fy& f) : func(f) {}
         roll_back_executor(Fy&& f) : func(std::forward<Fy>(f)) {}
-        ~roll_back_executor() { }
+        ~roll_back_executor() {}
 
         void execute() { func(); }
         size_t size() const { return sizeof(_MyType); }
@@ -43,55 +43,76 @@ public:
     scope_guard(allocator& alloc) : _alloc(alloc) {}
     scope_guard(allocator&& alloc) : _alloc(std::forward<allocator>(alloc)) {}
 
-    ~scope_guard() { if (!_dismiss) roll_back(); }
+    ~scope_guard()
+    {
+        if (!_dismiss)
+            roll_back();
+        clear();
+    }
+
+    scope_guard(const scope_guard&) = delete;
+    scope_guard& operator = (const scope_guard&) = delete;
 
 public:
     template <typename Fy>
-    void Append(const Fy& func)
+    void append(const Fy& func)
     {
-        auto* p = (detail::roll_back_executor<Fy>*)_alloc.allocate(sizeof(detail::roll_back_executor<Fy>));
+        typedef detail::roll_back_executor<Fy> executor;
+        auto p = (executor*)_alloc.allocate(sizeof(executor));
         assert(p);
 
-        new p detail::roll_back_executor(func);
-        p->next = _node;
-        _node = p;
+        new p executor(func);
+        push(p);
     }
 
     template <typename Fy>
-    void Append(Fy&& func)
+    void append(Fy&& func)
     {
-        auto* p = (detail::roll_back_executor<Fy>*)_alloc.allocate(sizeof(detail::roll_back_executor<Fy>));
+        typedef detail::roll_back_executor<Fy> executor;
+        auto p = (executor*)_alloc.allocate(sizeof(executor));
         assert(p);
 
-        new p detail::roll_back_executor(func);
-        p->next = _node;
-        _node = p;
+        new p executor(std::forward<Fy>(func));
+        push(p);
     }
 
-    void Dissmis()
+    void dissmis()
     {
         _dismiss = true;
     }
 
 private:
+    void push(detail::roll_back_node* node)
+    {
+        node->prev = _tail;
+        _tail = node;
+    }
+
     void roll_back()
     {
-        auto node = _node;
-        _node = nullptr;
+        auto node = _tail;
+        while (node)
+        {
+            node->execute();
+            node = node->prev;
+        }
+    }
 
+    void clear()
+    {
+        auto node = _tail;
         while (node)
         {
             auto cur = node;
-            node = node->next;
+            node = cur->prev;
 
-            cur->execute();
             cur->~roll_back_node();
-            _alloc.dealloc(cur, cur->size());
+            _alloc.deallocate(cur, cur->size());
         }
     }
 
 private:
     bool _dismiss = false;
-    detail::roll_back_node* _node = nullptr;
+    detail::roll_back_node* _tail = nullptr;
     allocator _alloc;
 };

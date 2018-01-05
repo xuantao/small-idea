@@ -170,6 +170,7 @@
     <ClCompile Include="src\test\scoped_map_test.cpp" />
     <ClCompile Include="src\test\scoped_set_test.cpp" />
     <ClCompile Include="src\test\scoped_vector_test.cpp" />
+    <ClCompile Include="src\test\scope_guard_test.cpp" />
     <ClCompile Include="src\test\test_util.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
