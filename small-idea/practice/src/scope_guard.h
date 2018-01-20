@@ -5,144 +5,142 @@
 */
 #pragma once
 
-#include <cassert>
+#include "common.h"
 
-namespace detail
+namespace scope_guard_detail
 {
-    struct roll_back_node
+    template <typename Ty>
+    struct node_base
     {
-        virtual ~roll_back_node() {}
-        virtual void execute() = 0;
-        virtual size_t size() const = 0;
+        Ty* next = nullptr;
+    };
 
-        roll_back_node* prev = nullptr;
+    struct caller : node_base<caller>
+    {
+        virtual ~caller() {}
+        virtual void call() = 0;
+        virtual size_t size() const = 0;
     };
 
     template <typename Fy>
-    struct roll_back_executor : roll_back_node
+    struct caller_impl final : caller
     {
-        typedef roll_back_executor<Fy> _MyType;
+        typedef caller_impl<Fy> _MyType;
+        typedef Fy FuncType;
 
-        roll_back_executor(const Fy& f) : func(f) {}
-        roll_back_executor(Fy&& f) : func(std::forward<Fy>(f)) {}
-        ~roll_back_executor() {}
+        caller_impl(const FuncType& fn) : _func(fn)
+        { }
 
-        void execute() { func(); }
-        size_t size() const { return sizeof(_MyType); }
+        caller_impl(FuncType&& fn) : _func(std::forward<FuncType>(fn))
+        { }
 
-        Fy func;
+        virtual ~caller_impl() {}
+
+        void call() override { _func(); }
+        size_t size() const override { return sizeof(_MyType); }
+
+    private:
+        FuncType _func;
     };
 
-    template <size_t _Capacity>
-    class _allocator
+    template <size_t _Capacity, size_t _Align>
+    struct allocator : node_base <allocator < _Capacity, _Align>>
     {
-    public:
-        constexpr size_t capacity() const { return _Capacity; }
-
         void* allocate(size_t s)
         {
-            if (_pos + s > capacity())
+            void* p = &_data[_Capacity - _size];
+            if (!std::align(_Align, s, p, _size))
                 return nullptr;
 
-            void* p = &_data[_pos];
-            _pos += s;
+            _size -= s;
             return p;
         }
 
-        void deallocate(void* p, size_t s)
-        {
-        }
+        void deallocate(void* p, size_t s) { }
 
     protected:
+        size_t _size = _Capacity;
         char _data[_Capacity];
-        int _pos = 0;
     };
 
     template <size_t _Bsize>
-    class guard_allocator
+    class scope_guard_allocator
     {
-        enum { BlockSize = _Bsize };
-
-        struct alloc_node
-        {
-            void* allocate(size_t s)
-            {
-                if (_pos + s > BlockSize)
-                    return nullptr;
-
-                void* p = &_data[_pos];
-                _pos += s;
-                return p;
-            }
-
-            void deallocate(void* p, size_t s)
-            {
-            }
-
-            alloc_node* prev = nullptr;
-        private:
-            char _data[BlockSize];
-            int _pos = 0;
-        };
+    public:
+        enum { BlockSize = _Bsize, Align = sizeof(void*) };
+        typedef allocator<BlockSize, Align> allocator;
 
     public:
-        guard_allocator()
-        {
-            _alloc = &_default;
-        }
+        scope_guard_allocator() : _alloc(&_default)
+        { }
 
-        ~guard_allocator()
+        ~scope_guard_allocator()
         {
-            while (_alloc->prev)
+            while (_alloc->next)
             {
                 auto tmp = _alloc;
-                _alloc = _alloc->prev;
+                _alloc = _alloc->next;
+
                 delete tmp;
             }
+#ifdef LOG_DEBUG_INFO
+            if (_inc_size)
+                std::cerr << "scope_guard_allocator should inc size to:" << (BlockSize + _inc_size) << std::endl;
+#endif // LOG_DEBUG_INFO
         }
 
         void* allocate(size_t s)
         {
-            if (s >= BlockSize)
-                return new char[s];
-
-            void* p = nullptr;
-            do
+            if (need_raw_alloc(s))
             {
-                p = _alloc->allocate(s);
-                if (p == nullptr)
-                {
-                    auto tmp = new alloc_node();
-                    tmp->prev = _alloc;
-                    _alloc = tmp;
-                }
-            } while (p == nullptr);
+#if LOG_DEBUG_INFO
+                _inc_size += s;
+#endif // LOG_DEBUG_INFO
+                return new char[s]; // ignore alignment cause alloc error
+                                    // when s is closer BlockSize, align operate may be not alloc successfully
+            }
 
+            void* p = _alloc->allocate(s);
+            if (p != nullptr)
+                return p;
+
+            auto tmp = new allocator();
+            tmp->next = _alloc;
+            _alloc = tmp;
+
+            p = _alloc->allocate(s);
+            assert(p);
             return p;
         }
 
         void deallocate(void* p, size_t s)
         {
-            if (s >= _Bsize)
-                delete p;
+            if (need_raw_alloc(s))
+                delete[] static_cast<char*>(p);
         }
 
     private:
-        alloc_node _default;
-        alloc_node* _alloc = nullptr;
+        inline bool need_raw_alloc(size_t s) const
+        {
+            // ignore alignment cause alloc error
+            // when s is closer BlockSize,
+            // align operate may be not alloc successfully
+            return (s + Align > BlockSize);
+        }
+
+    private:
+        allocator* _alloc = nullptr;
+        allocator _default;
+#if LOG_DEBUG_INFO
+        size_t _inc_size = 0;
+#endif // LOG_DEBUG_INFO
     };
 
     template <>
-    class guard_allocator<0>
+    class scope_guard_allocator<0>
     {
     public:
         enum { BlockSize = 0 };
-        typedef guard_allocator<0> _MyType;
-
-    public:
-        guard_allocator() {}
-        guard_allocator(const _MyType&) = delete;
-        _MyType& operator = (const _MyType&) = delete;
 
     public:
         void* allocate(size_t s)
@@ -152,93 +150,82 @@ namespace detail
 
         void deallocate(void* p, size_t s)
         {
-            delete p;
+            delete[] static_cast<char*>(p);
         }
+    };
+
+    template <size_t _BlockSize>
+    class scope_guard
+    {
+    public:
+        enum { BlockSize = _BlockSize };
+        typedef scope_guard_allocator<_BlockSize> allocator;
+
+    public:
+        scope_guard() {}
+        ~scope_guard()
+        {
+            if (!_dismiss)
+                roll_back();
+            clear();
+        }
+
+        scope_guard(const scope_guard&) = delete;
+        scope_guard& operator = (const scope_guard&) = delete;
+
+    public:
+        template <typename Fy>
+        void append(Fy&& func)
+        {
+            typedef typename std::decay<Fy>::type decay;
+            typedef caller_impl<decay> caller_impl;
+
+            auto buff = _alloc.allocate(sizeof(caller_impl));
+            assert(buff);
+
+            auto node = new (buff) caller_impl(std::forward<Fy>(func));
+
+            node->next = _head;
+            _head = node;
+        }
+
+        void dissmis()
+        {
+            _dismiss = true;
+        }
+
+    private:
+        void roll_back()
+        {
+            auto node = _head;
+            while (node)
+            {
+                node->call();
+                node = node->next;
+            }
+        }
+
+        void clear()
+        {
+            auto node = _head;
+            _head = nullptr;
+
+            while (node)
+            {
+                auto tmp = node;
+                auto size = node->size();
+                node = tmp->next;
+
+                tmp->~caller();
+                _alloc.deallocate(tmp, size);
+            }
+        }
+
+    private:
+        bool _dismiss = false;
+        caller* _head = nullptr;
+        allocator _alloc;
     };
 }
 
-template <size_t _BlockSize = 512>
-class scope_guard
-{
-public:
-    enum { BlockSize = _BlockSize };
-    typedef detail::guard_allocator<_BlockSize> allocator;
-
-public:
-    scope_guard() {}
-    ~scope_guard()
-    {
-        if (!_dismiss)
-            roll_back();
-        clear();
-    }
-
-    scope_guard(const scope_guard&) = delete;
-    scope_guard& operator = (const scope_guard&) = delete;
-
-public:
-    template <typename Fy>
-    void append(const Fy& func)
-    {
-        typedef detail::roll_back_executor<typedef std::remove_const<Fy>::type> executor;
-        auto p = (executor*)_alloc.allocate(sizeof(executor));
-        assert(p);
-
-        new (p) executor(func);
-        push(p);
-    }
-
-    template <typename Fy>
-    void append(Fy&& func)
-    {
-        typedef detail::roll_back_executor<Fy> executor;
-        auto p = (executor*)_alloc.allocate(sizeof(executor));
-        assert(p);
-
-        new (p) executor(std::forward<Fy>(func));
-        push(p);
-    }
-
-    void dissmis()
-    {
-        _dismiss = true;
-    }
-
-private:
-    void push(detail::roll_back_node* node)
-    {
-        node->prev = _tail;
-        _tail = node;
-    }
-
-    void roll_back()
-    {
-        auto node = _tail;
-        while (node)
-        {
-            node->execute();
-            node = node->prev;
-        }
-    }
-
-    void clear()
-    {
-        auto node = _tail;
-        _tail = nullptr;
-
-        while (node)
-        {
-            auto cur = node;
-            auto size = node->size();
-            node = cur->prev;
-
-            cur->~roll_back_node();
-            _alloc.deallocate(cur, size);
-        }
-    }
-
-private:
-    bool _dismiss = false;
-    detail::roll_back_node* _tail = nullptr;
-    allocator _alloc;
-};
+typedef scope_guard_detail::scope_guard<512> scope_guard;

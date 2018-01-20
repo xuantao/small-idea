@@ -4,11 +4,10 @@
 */
 #pragma once
 
-#include <utility>
-#include <iterator>
-#include <cassert>
 #include "../fixed_allocator.h"
 #include "../scoped_buffer.h"
+#include <utility>
+#include <iterator>
 
 NAMESPACE_ZH_BEGIN
 

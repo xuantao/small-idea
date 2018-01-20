@@ -4,9 +4,8 @@
 */
 #pragma once
 
+#include "..\common.h"
 #include <iterator>
-#include <cassert>
-#include "..\def.h"
 
 NAMESPACE_ZH_BEGIN
 

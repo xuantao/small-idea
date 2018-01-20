@@ -4,7 +4,6 @@
 */
 #pragma once
 
-#include <cassert>
 #include "scoped_buffer.h"
 
 NAMESPACE_ZH_BEGIN
@@ -104,7 +103,7 @@ private:
 #if SCOPED_ALLOCATOR_BOUNDARY_CHECK
     static const uint8_t _CHECK_VALUE = 0xAA;
     /*
-    * 通过在每段Buff的后面写入一些特定字节, 当释放Buff的时候判断是否被修改来检测是否被写越界了.
+     * 通过在每段Buff的后面写入一些特定字节, 当释放Buff的时候判断是否被修改来检测是否被写越界了.
     */
     void write_bytes(uint8_t* buffer, size_t size)
     {

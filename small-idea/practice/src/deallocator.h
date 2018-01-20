@@ -3,8 +3,8 @@
 */
 #pragma once
 
-#include <cstdint>
-#include "def.h"
+
+#include "common.h"
 
 NAMESPACE_ZH_BEGIN
 

@@ -4,9 +4,9 @@
 */
 #pragma once
 
+#include "common.h"
 #include <map>
 #include <functional>
-#include "def.h"
 
 NAMESPACE_ZH_BEGIN
 

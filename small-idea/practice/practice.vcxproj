@@ -146,8 +146,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\common.h" />
     <ClInclude Include="src\deallocator.h" />
-    <ClInclude Include="src\def.h" />
     <ClInclude Include="src\detail\_tree.h" />
     <ClInclude Include="src\detail\_vector.h" />
     <ClInclude Include="src\fixed_allocator.h" />

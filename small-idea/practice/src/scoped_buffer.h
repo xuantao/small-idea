@@ -4,7 +4,6 @@
 */
 #pragma once
 
-#include <type_traits>
 #include "deallocator.h"
 
 NAMESPACE_ZH_BEGIN
