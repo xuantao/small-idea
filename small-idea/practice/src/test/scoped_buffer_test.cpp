@@ -2,8 +2,9 @@
 #include "../scoped_buffer_allocator.h"
 #include "../scoped.h"
 #include "test_util.h"
+#include "test.h"
 
-USING_NAMESPACE_ZH;
+USING_NAMESPACE;
 
 namespace
 {

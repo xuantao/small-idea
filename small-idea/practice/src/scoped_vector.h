@@ -7,7 +7,7 @@
 #include "scoped_buffer.h"
 #include "detail/_vector.h"
 
-NAMESPACE_ZH_BEGIN
+NAMESPACE_BEGIN
 
 /*
  * 域范围内有效的vector容器
@@ -232,4 +232,4 @@ protected:
     _val_type _val;
 };
 
-NAMESPACE_ZH_END
+NAMESPACE_END

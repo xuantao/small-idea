@@ -6,7 +6,7 @@
 
 #include "scoped_buffer.h"
 
-NAMESPACE_ZH_BEGIN
+NAMESPACE_BEGIN
 /*
 * 用scoped_buffer构造的Obj数组
 */
@@ -81,4 +81,4 @@ protected:
             (&get()[--idx])->~Ty();
     }
 };
-NAMESPACE_ZH_END
+NAMESPACE_END

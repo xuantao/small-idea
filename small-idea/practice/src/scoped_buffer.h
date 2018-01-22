@@ -6,7 +6,7 @@
 
 #include "deallocator.h"
 
-NAMESPACE_ZH_BEGIN
+NAMESPACE_BEGIN
 
 /*
  * scoped buffer, 作用域范围内有效的Buffer
@@ -33,8 +33,8 @@ public:
     }
 
 protected:
-    scoped_buffer(const scoped_buffer& other);
-    scoped_buffer& operator = (const scoped_buffer&);
+    scoped_buffer(const scoped_buffer& other) = delete;
+    scoped_buffer& operator = (const scoped_buffer&) = delete;
 
 public:
     inline void* get() const { return _buffer; }
@@ -59,4 +59,4 @@ protected:
     size_t _size;
 };
 
-NAMESPACE_ZH_END
+NAMESPACE_END

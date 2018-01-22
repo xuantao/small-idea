@@ -160,6 +160,7 @@
     <ClInclude Include="src\scoped_set.h" />
     <ClInclude Include="src\scoped_vector.h" />
     <ClInclude Include="src\scope_guard.h" />
+    <ClInclude Include="src\test\test.h" />
     <ClInclude Include="src\test\test_util.h" />
   </ItemGroup>
   <ItemGroup>

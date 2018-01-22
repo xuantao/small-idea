@@ -3,7 +3,7 @@
 #include "scoped.h"
 #include "scoped_buffer_allocator.h"
 
-NAMESPACE_ZH_BEGIN
+NAMESPACE_BEGIN
 
 namespace scoped
 {
@@ -53,4 +53,4 @@ namespace scoped
     }
 }
 
-NAMESPACE_ZH_END
+NAMESPACE_END

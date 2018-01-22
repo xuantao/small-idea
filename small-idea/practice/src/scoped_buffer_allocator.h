@@ -6,7 +6,7 @@
 
 #include "scoped_buffer.h"
 
-NAMESPACE_ZH_BEGIN
+NAMESPACE_BEGIN
 
 template <size_t N, size_t A = sizeof(void*)>
 class scoped_buffer_allocator
@@ -133,4 +133,4 @@ protected:
     uint8_t _pool[N];
 };
 
-NAMESPACE_ZH_END
+NAMESPACE_END

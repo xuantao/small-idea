@@ -1,8 +1,9 @@
 ﻿#include "../scoped_map.h"
 #include "../scoped.h"
 #include "test_util.h"
+#include "test.h"
 
-USING_NAMESPACE_ZH;
+USING_NAMESPACE;
 
 static void test_normal()
 {

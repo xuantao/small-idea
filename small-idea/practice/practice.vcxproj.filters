@@ -8,17 +8,14 @@
     <Filter Include="src\scoped">
       <UniqueIdentifier>{e54b6d2d-75f1-479f-974c-150c89c7ec70}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\container">
-      <UniqueIdentifier>{4d6b9021-34d3-47ef-8dda-855e9a96a993}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\test">
       <UniqueIdentifier>{c9ca6323-17a7-4bb4-a3e2-db9679df975f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\util">
-      <UniqueIdentifier>{95af1806-edc2-40f8-bcd0-48edf630fe34}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\scoped\detail">
       <UniqueIdentifier>{3d480500-ff79-4fb6-b2ed-880f9c5f7ed4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\utility">
+      <UniqueIdentifier>{4d6b9021-34d3-47ef-8dda-855e9a96a993}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -56,16 +53,19 @@
       <Filter>src\scoped</Filter>
     </ClInclude>
     <ClInclude Include="src\ref_count_set.h">
-      <Filter>src\container</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scoped.h">
-      <Filter>src\util</Filter>
+      <Filter>src\utility</Filter>
     </ClInclude>
     <ClInclude Include="src\scope_guard.h">
-      <Filter>src\container</Filter>
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\test\test.h">
+      <Filter>src\test</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scoped.h">
+      <Filter>src\utility</Filter>
     </ClInclude>
     <ClInclude Include="src\common.h">
-      <Filter>src</Filter>
+      <Filter>src\utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -90,11 +90,11 @@
     <ClCompile Include="src\test\scoped_map_test.cpp">
       <Filter>src\test</Filter>
     </ClCompile>
-    <ClCompile Include="src\scoped.cpp">
-      <Filter>src\util</Filter>
-    </ClCompile>
     <ClCompile Include="src\test\scope_guard_test.cpp">
       <Filter>src\test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scoped.cpp">
+      <Filter>src\utility</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

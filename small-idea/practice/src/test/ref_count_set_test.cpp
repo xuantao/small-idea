@@ -1,9 +1,10 @@
 ﻿#include <stdio.h>
 #include "../ref_count_set.h"
+#include "test.h"
 
-USING_NAMESPACE_ZH;
+USING_NAMESPACE;
 
-void TestRefCount()
+void ref_count_set_test()
 {
     int a = 11;
     ref_count_set<int> rfs;
@@ -19,15 +20,15 @@ void TestRefCount()
     rfs.insert(13);
 
     printf("first visit\n");
-    rfs.traverse([ ](const int& v, size_t c) {
-        printf("\ton vistor v:%d, c:%lld\n", v, c);
+    rfs.traverse([ ](const int& v, std::ptrdiff_t c) {
+        printf("\ton visitor v:%2d, c:%2d\n", v, (int)c);
         return true;
     });
 
     rfs.clear();
     printf("second visit\n");
-    rfs.traverse([ ](const int& v, size_t c) {
-        printf("\ton vistor v:%d, c:%lld\n", v, c);
+    rfs.traverse([ ](const int& v, std::ptrdiff_t c) {
+        printf("\ton visitor v:%2d, c:%2d\n", v, (int)c);
         return true;
     });
 

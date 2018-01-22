@@ -7,7 +7,7 @@
 #include "..\common.h"
 #include <iterator>
 
-NAMESPACE_ZH_BEGIN
+NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -273,4 +273,4 @@ namespace detail
     };
 }
 
-NAMESPACE_ZH_END
+NAMESPACE_END

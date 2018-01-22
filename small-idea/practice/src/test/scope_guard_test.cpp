@@ -1,6 +1,9 @@
 #include "../scope_guard.h"
+#include "test.h"
 #include <memory>
 #include <functional>
+
+USING_NAMESPACE;
 
 namespace {
     struct MyOp
@@ -48,7 +51,21 @@ static void test_scope_guard_normal()
 }
 
 
-void test_scope_guard()
+static void test_scope_guard_raw_alloc()
 {
+    typedef scope_guard_detail::scope_guard<0> scope_guard;
+    int a = 0;
+    bool b = true;
+    scope_guard guarder;
+
+    guarder.append([&] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+    guarder.append([=] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+    guarder.append([&a, b] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+    guarder.append([a, &b] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+}
+
+void scope_guard_test()
+{
+    test_scope_guard_raw_alloc();
     test_scope_guard_normal();
 }

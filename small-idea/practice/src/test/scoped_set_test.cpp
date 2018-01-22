@@ -5,8 +5,9 @@
 #include "../scoped.h"
 #include "../scoped_set.h"
 #include "test_util.h"
+#include "test.h"
 
-USING_NAMESPACE_ZH;
+USING_NAMESPACE;
 
 #ifdef _WINDOWS
 

@@ -7,7 +7,7 @@
 #include "../common.h"
 #include <stdio.h>
 
-NAMESPACE_ZH_BEGIN
+NAMESPACE_BEGIN
 
 namespace test
 {
@@ -87,4 +87,4 @@ namespace test
     };
 }
 
-NAMESPACE_ZH_END
+NAMESPACE_END

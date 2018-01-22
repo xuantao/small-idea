@@ -9,9 +9,17 @@
 #include <cassert>
 #include <memory>
 
-#define NAMESPACE_ZH_BEGIN namespace zh {
-#define NAMESPACE_ZH_END }
-#define USING_NAMESPACE_ZH using namespace zh
+#ifndef NAMESPACE_BEGIN
+    #define NAMESPACE_BEGIN namespace zh {
+#endif // NAMESPACE_BEGIN
+
+#ifndef NAMESPACE_END
+    #define NAMESPACE_END }
+#endif // NAMESPACE_END
+
+#ifndef USING_NAMESPACE
+    #define USING_NAMESPACE using namespace zh
+#endif // USING_NAMESPACE
 
 #define SCOPED_ALLOCATOR_BLOCK_SIZE 1024 * 1024
 #define SCOPED_ALLOCATOR_ALIGN_SIZE sizeof(void*)

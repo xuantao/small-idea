@@ -6,9 +6,8 @@
 
 #include "common.h"
 #include <map>
-#include <functional>
 
-NAMESPACE_ZH_BEGIN
+NAMESPACE_BEGIN
 
 /*
  * 使用Map简单包装一个带引用计数的Set
@@ -18,9 +17,10 @@ class ref_count_set
 {
 public:
     typedef typename std::remove_reference<Ty>::type _Ty;
+    typedef std::ptrdiff_t diff_t;
 
 public:
-    size_t insert(const _Ty& val)
+    diff_t insert(const _Ty& val)
     {
         auto it = _Vals.find(val);
         if (it == _Vals.end())
@@ -30,11 +30,15 @@ public:
         return it->second;
     }
 
-    size_t erase(const _Ty& val)
+    /*
+     * if does not contain the val, will return -1
+     * when ref count dec to 0, will remove the val from set
+    */
+    diff_t erase(const _Ty& val)
     {
         auto it = _Vals.find(val);
         if (it == _Vals.end())
-            return 0;
+            return -1;
 
         --it->second;
         if (it->second > 0)
@@ -54,7 +58,7 @@ public:
         return _Vals.size();
     }
 
-    size_t ref_count(const _Ty& val) const
+    diff_t ref_count(const _Ty& val) const
     {
         auto it = _Vals.find(val);
         if (it == _Vals.cend())
@@ -67,27 +71,21 @@ public:
         return ref_count(val) > 0;
     }
 
+    /*
+     * visit all elements with function declare like void(const Ty& key, diff_t count)
+    */
     template <class Func>
-    bool traverse(Func&& Visitor) const
+    bool traverse(Func&& visitor) const
     {
-        bool bResult = true;
-        for (auto it = _Vals.cbegin(); it != _Vals.cend();)
-        {
-            const _Ty& v = it->first;
-            size_t c = it->second;
-            ++it;
+        for (const auto& pair : _Vals)
+            if (!visitor(pair.first, pair.second))
+                return false;
 
-            if (!Visitor(v, c))
-            {
-                bResult = false;
-                break;
-            }
-        }
-        return bResult;
+        return true;
     }
 
 private:
-    std::map<_Ty, size_t> _Vals;
+    std::map<_Ty, diff_t> _Vals;
 };
 
-NAMESPACE_ZH_END
+NAMESPACE_END

@@ -7,7 +7,7 @@
 #include "detail/_tree.h"
 #include <xstddef>
 
-NAMESPACE_ZH_BEGIN
+NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -54,4 +54,4 @@ public:
     }
 };
 
-NAMESPACE_ZH_END
+NAMESPACE_END

@@ -6,20 +6,23 @@
 
 #include "common.h"
 
-NAMESPACE_ZH_BEGIN
+NAMESPACE_BEGIN
 
-/*
- * 指定内存大小的对象
-*/
-template <class Ty>
-struct block_size_type
+namespace detail
 {
-    int8_t _[sizeof(Ty)];
-};
+    /*
+     * 指定内存大小的对象
+    */
+    template <class Ty>
+    struct block_size_type
+    {
+        int8_t _[sizeof(Ty)];
+    };
 
-template <>
-struct block_size_type<void>
-{};
+    template <>
+    struct block_size_type<void>
+    {};
+}
 
 /*
  * 固定大小对象内存分配器
@@ -34,7 +37,7 @@ protected:
     union _node
     {
         _node* next;
-        block_size_type<Ty> _;
+        detail::block_size_type<Ty> _;
     };
     typedef _node* _node_ptr;
 public:
@@ -49,11 +52,12 @@ public:
     static const size_type element_size = sizeof(_node);
 
 public:
-    fixed_allocator(void* pool, size_type size)
-        : _size(size), _root(static_cast<_node_ptr>(pool))
+    fixed_allocator(void* pool, size_type pool_size)
+        : _root(static_cast<_node_ptr>(pool))
+        , _size(pool_size)
     {
         // build single direction list
-        for (size_type i = 0; i < max_size(); ++i)
+        for (size_type i = 0, ms = max_size(); i < ms; ++i)
             _root[i].next = &_root[i + 1];
 
         if (max_size())
@@ -61,24 +65,17 @@ public:
     }
 
     fixed_allocator(fixed_allocator&& other)
-        : _size(other._size), _root(other._root)
+        : _root(other._root)
+        , _size(other._size)
     {
-        other._size = 0;
         other._root = nullptr;
-    }
-
-    fixed_allocator(const fixed_allocator&)
-    {
-        static_assert(false, "this allocator can not been copy");
+        other._size = 0;
     }
 
     ~fixed_allocator() {}
 
-    fixed_allocator& operator = (const fixed_allocator&)
-    {
-        static_assert(false, "this allocator can not been assign copy");
-        return *this;
-    }
+    fixed_allocator(const fixed_allocator&) = delete;
+    fixed_allocator& operator = (const fixed_allocator&) = delete;
 
 public:
     pointer address(reference ref) const
@@ -96,20 +93,20 @@ public:
         if (_root == nullptr)
             return nullptr;
 
-        pointer node = reinterpret_cast<pointer>(_root);
+        pointer p = reinterpret_cast<pointer>(_root);
         _root = _root->next;
 
-        return node;
+        return p;
     }
 
-    void deallocate(Ty* ptr)
+    void deallocate(pointer ptr)
     {
         _node_ptr node = reinterpret_cast<_node_ptr>(ptr);
         node->next = _root;
         _root = node;
     }
 
-    size_type max_size() const
+    inline size_type max_size() const
     {
         return _size / element_size;
     }
@@ -131,4 +128,4 @@ protected:
     size_type _size;
 };
 
-NAMESPACE_ZH_END
+NAMESPACE_END

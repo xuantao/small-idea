@@ -7,6 +7,8 @@
 
 #include "common.h"
 
+NAMESPACE_BEGIN
+
 namespace scope_guard_detail
 {
     template <typename Ty>
@@ -44,7 +46,7 @@ namespace scope_guard_detail
     };
 
     template <size_t _Capacity, size_t _Align>
-    struct allocator : node_base <allocator < _Capacity, _Align>>
+    struct allocator : node_base<allocator<_Capacity, _Align>>
     {
         void* allocate(size_t s)
         {
@@ -145,11 +147,13 @@ namespace scope_guard_detail
     public:
         void* allocate(size_t s)
         {
+            printf("alloc   size:%2d\n", (int)s);
             return new char[s];
         }
 
         void deallocate(void* p, size_t s)
         {
+            printf("dealloc size:%2d\n", (int)s);
             delete[] static_cast<char*>(p);
         }
     };
@@ -214,7 +218,7 @@ namespace scope_guard_detail
             {
                 auto tmp = node;
                 auto size = node->size();
-                node = tmp->next;
+                node = node->next;
 
                 tmp->~caller();
                 _alloc.deallocate(tmp, size);
@@ -229,3 +233,5 @@ namespace scope_guard_detail
 }
 
 typedef scope_guard_detail::scope_guard<512> scope_guard;
+
+NAMESPACE_END
