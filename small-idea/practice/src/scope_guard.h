@@ -98,8 +98,7 @@ namespace scope_guard_detail
 #if LOG_DEBUG_INFO
                 _inc_size += s;
 #endif // LOG_DEBUG_INFO
-                return new char[s]; // ignore alignment cause alloc error
-                                    // when s is closer BlockSize, align operate may be not alloc successfully
+                return new char[s];
             }
 
             void* p = _alloc->allocate(s);
@@ -167,19 +166,14 @@ namespace scope_guard_detail
 
     public:
         scope_guard() {}
-        ~scope_guard()
-        {
-            if (!_dismiss)
-                roll_back();
-            clear();
-        }
+        ~scope_guard() { done(); }
 
         scope_guard(const scope_guard&) = delete;
         scope_guard& operator = (const scope_guard&) = delete;
 
     public:
         template <typename Fy>
-        void append(Fy&& func)
+        void push(Fy&& func)
         {
             typedef typename std::decay<Fy>::type decay;
             typedef caller_impl<decay> caller_impl;
@@ -193,9 +187,16 @@ namespace scope_guard_detail
             _head = node;
         }
 
-        void dissmis()
+        inline bool is_dissmissed() const { return _dismiss; }
+
+        inline void dismiss() { _dismiss = true; }
+
+        bool done()
         {
-            _dismiss = true;
+            if (!is_dissmissed())
+                roll_back();
+            clear();
+            return is_dissmissed();
         }
 
     private:

@@ -35,19 +35,19 @@ static void test_scope_guard_normal()
     scope_guard guard;
 
     //MyOp op1;                         // not allow, the op1 lifetime is not allow
-    //guard.append(std::ref(op1));
+    //guard.push(std::ref(op1));
 
-    guard.append(op);
-    guard.append(static_cast<const MyOp&>(op));
-    guard.append(std::ref(op));
+    guard.push(op);
+    guard.push(static_cast<const MyOp&>(op));
+    guard.push(std::ref(op));
 
-    guard.append(MyOp());
+    guard.push(MyOp());
 
-    guard.append([&] {printf("a=%d\n", a); });
-    guard.append([=] {printf("a=%d\n", a); });
+    guard.push([&] {printf("a=%d\n", a); });
+    guard.push([=] {printf("a=%d\n", a); });
 
-    guard.append(test_scope_func_1);
-    guard.append(std::bind(test_scope_func_2, 1));
+    guard.push(test_scope_func_1);
+    guard.push(std::bind(test_scope_func_2, 1));
 }
 
 
@@ -58,10 +58,10 @@ static void test_scope_guard_raw_alloc()
     bool b = true;
     scope_guard guarder;
 
-    guarder.append([&] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
-    guarder.append([=] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
-    guarder.append([&a, b] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
-    guarder.append([a, &b] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+    guarder.push([&] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+    guarder.push([=] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+    guarder.push([&a, b] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+    guarder.push([a, &b] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
 }
 
 void scope_guard_test()
