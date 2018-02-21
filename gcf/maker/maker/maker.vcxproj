@@ -147,6 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Args.cpp" />
+    <ClCompile Include="src\Attribute.cpp" />
     <ClCompile Include="src\Context.cpp" />
     <ClCompile Include="src\DllModule.cpp" />
     <ClCompile Include="src\Driver.cpp" />
@@ -165,6 +166,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\gcf\gcf.h" />
     <ClInclude Include="src\Args.h" />
+    <ClInclude Include="src\Attribute.h" />
     <ClInclude Include="src\Context.h" />
     <ClInclude Include="src\DllModule.h" />
     <ClInclude Include="src\Driver.h" />

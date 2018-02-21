@@ -44,6 +44,7 @@ public:
 
 public:
     const std::string& File() const;
+    int LineNO() const;
     location& Location();
 
 public:

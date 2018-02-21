@@ -4,6 +4,7 @@
 #include "Value.h"
 #include "ValueUtil.h"
 #include "Variate.h"
+#include "Attribute.h"
 #include "FileData.h"
 #include "utility/Utility.h"
 #include <stdio.h>
@@ -221,7 +222,17 @@ void Context::OnNsEnd()
 
 void Context::OnCrossBegin(const std::string& name)
 {
-    CrossCall* module = new CrossCall(name, (uint32_t)_modules.size() + 1, _SCOPE_);
+    CrossCall* module = new CrossCall(
+        _driver.GetScanner()->File(),
+        _driver.GetScanner()->LineNO(),
+        name,
+        (uint32_t)_modules.size() + 1,
+        _SCOPE_
+    );
+
+    module->Attributes(_data.attr_set);
+    _data.attr_set = nullptr;
+
     // do need a module set?
     _stackScope.push_back(module->Scope());
 
@@ -238,7 +249,17 @@ void Context::OnCrossEnd()
 
 void Context::OnFuncBegin(const std::string& name)
 {
-    Function* func = new Function(name, _data.type, _SCOPE_);
+    Function* func = new Function(
+        _driver.GetScanner()->File(),
+        _driver.GetScanner()->LineNO(),
+        name,
+        _data.type,
+        _SCOPE_
+    );
+
+    func->Attributes(_data.attr_set);
+
+    _data.attr_set = nullptr;
     _data.type = nullptr;
 
     _stackScope.push_back(func->Scope());
@@ -265,14 +286,23 @@ void Context::OnStructBegin(const std::string& name, CfgCategory cfg)
 {
     std::string newName = name;
     IElement* element = _SCOPE_->GetElement(name);
-
     if (element != nullptr)
     {
         _driver.Warning("struct {0} name conflict", name);
         newName = ConflictName(name);
     }
 
-    StructType* sType = new StructType(newName, _SCOPE_, cfg);
+    StructType* sType = new StructType(
+        _driver.GetScanner()->File(),
+        _driver.GetScanner()->LineNO(),
+        newName,
+        _SCOPE_,
+        cfg
+    );
+
+    sType->Attributes(_data.attr_set);
+    _data.attr_set = nullptr;
+
     if (_SCOPE_->TypeSet() == nullptr)
         _driver.Error("can not declare type in this scope:{0}", _SCOPE_->Name());
     else
@@ -381,8 +411,16 @@ void Context::OnEnumBegin(const std::string& name)
         return;
     }
 
-    EnumType* eType = new EnumType(newName, _SCOPE_);
+    EnumType* eType = new EnumType(
+        _driver.GetScanner()->File(),
+        _driver.GetScanner()->LineNO(),
+        newName,
+        _SCOPE_
+    );
     _SCOPE_->TypeSet()->Add(eType);
+
+    eType->Attributes(_data.attr_set);
+    _data.attr_set = nullptr;
 
     if (!IsTypeScope())
     {
@@ -461,25 +499,50 @@ void Context::OnVariate(const std::string& name)
         // error
     }
 
-    Variate* var = new Variate(name, _SCOPE_);
+    Variate* var = new Variate(
+        _driver.GetScanner()->File(),
+        _driver.GetScanner()->LineNO(),
+        name,
+        _SCOPE_
+    );
     var->SetType(_data.type);
-    var->BindValue(_data.value);
-    var->SetDesc(_data.desc);
+    _data.type = nullptr;
+
+    var->Attributes(_data.attr_set);
+    _data.attr_set = nullptr;
+
+    if (!_data.vals.empty())
+    {
+        if (!var->BindValue(_data.vals.front()))
+            ; //TODO: error
+        _data.vals.clear();
+    }
+
     if (_data.isConst)
         var->SetConst();
+    _data.isConst = false;
+
+    var->SetDesc(_data.desc);
+    _data.desc = "";
 
     _SCOPE_->VarSet()->Add(var);
-
-    _data.desc = "";
-    _data.isConst = false;
-    _data.type = nullptr;
-    _data.value = nullptr;
 
     if (nullptr == _SCOPE_->BindType())
     {
         _stackFile.back()->Add(var);
         _mergeFile->Add(var);
     }
+}
+
+void Context::OnAttribute(const std::string& name)
+{
+    if (_data.attr_set == nullptr)
+        _data.attr_set = new AttributeSet();
+
+    if (!_data.attr_set->Push(name, _data.vals))
+        _driver.Error("same attribute:{0}", name);
+
+    _data.vals.clear();
 }
 
 void Context::SetConst()
@@ -551,49 +614,64 @@ void Context::SetArrayRefer(const std::string& refer)
 
 void Context::SetValue(RawCategory raw, const std::string& value)
 {
-    assert(_data.type);
-    assert(_data.value == nullptr);
+    //assert(_data.type);
+    //assert(_data.value == nullptr);
 
-    IType* type = _data.type;
-    if (type->TypeCat() == TypeCategory::Array)
-        type = static_cast<IArrayType*>(type)->Original();
+    //IType* type = _data.type;
+    //if (type->TypeCat() == TypeCategory::Array)
+    //    type = static_cast<IArrayType*>(type)->Original();
 
-    if (type->TypeCat() != TypeCategory::Raw)
-    {
-        _driver.Error("only raw type:{0} can be assign value", type->Name());
-        return;
-    }
+    //if (type->TypeCat() != TypeCategory::Raw)
+    //{
+    //    _driver.Error("only raw type:{0} can be assign value", type->Name());
+    //    return;
+    //}
 
-    IRawType* rawType = static_cast<IRawType*>(type);
-    utility::ConvertRet mask = utility::Convert(raw, rawType->RawCat());
-    if (mask == utility::ConvertRet::Error)
-    {
-        _driver.Error("value:{0} type can not convert to type:{1}", value, rawType->Name());
-        return;
-    }
+    //IRawType* rawType = static_cast<IRawType*>(type);
+    //utility::ConvertRet mask = utility::Convert(raw, rawType->RawCat());
+    //if (mask == utility::ConvertRet::Error)
+    //{
+    //    _driver.Error("value:{0} type can not convert to type:{1}", value, rawType->Name());
+    //    return;
+    //}
 
-    RawCategory rawCat = rawType->RawCat();
-    if (rawCat == RawCategory::Double)
-        rawCat = RawCategory::Float;
-    else if (rawCat == RawCategory::Byte || rawCat == RawCategory::Long)
-        rawCat = RawCategory::Int;
+    //RawCategory rawCat = rawType->RawCat();
+    //if (rawCat == RawCategory::Double)
+    //    rawCat = RawCategory::Float;
+    //else if (rawCat == RawCategory::Byte || rawCat == RawCategory::Long)
+    //    rawCat = RawCategory::Int;
 
-    mask = utility::Convert(raw, rawCat);
-    if (mask == utility::ConvertRet::Warning)
-        _driver.Warning("value:{0} type convert to type:{1}", value, rawType->Name());
+    //mask = utility::Convert(raw, rawCat);
+    //if (mask == utility::ConvertRet::Warning)
+    //    _driver.Warning("value:{0} type convert to type:{1}", value, rawType->Name());
 
+    IValue* val = nullptr;
     if (raw == RawCategory::String)
-        _data.value = value_util::Create(raw, value.substr(1, value.length() - 2));
+        val = value_util::Create(raw, value.substr(1, value.length() - 2));
     else
-        _data.value = value_util::Create(rawType->RawCat(), value);
+        val = value_util::Create(raw, value);
 
-    if (_data.value == nullptr)
+    if (val == nullptr)
+    {
         _driver.Error("create with type:{0} value:{1} failed", raw, value);
+        return;
+    }
+
+    _data.vals.push_back(val);
+
+
+    //if (raw == RawCategory::String)
+    //    _data.value = value_util::Create(raw, value.substr(1, value.length() - 2));
+    //else
+    //    _data.value = value_util::Create(rawType->RawCat(), value);
+
+    //if (_data.value == nullptr)
+    //    _driver.Error("create with type:{0} value:{1} failed", raw, value);
 }
 
 void Context::SetValue(const std::string& refer)
 {
-    assert(_data.value == nullptr);
+    //assert(_data.value == nullptr);
 
     IVariate* ref = utility::FindVar(_SCOPE_, refer);
     if (ref == nullptr)
@@ -607,18 +685,18 @@ void Context::SetValue(const std::string& refer)
         _driver.Error("reference value:{0} must be constant", refer);
     }
 
-    IType* type = _data.type;
-    if (type->TypeCat() == TypeCategory::Array)
-        type = static_cast<IArrayType*>(type)->Original();
+    //IType* type = _data.type;
+    //if (type->TypeCat() == TypeCategory::Array)
+    //    type = static_cast<IArrayType*>(type)->Original();
 
-    if (type->TypeCat() != TypeCategory::Raw)
-    {
-        _driver.Error("only raw type:{0} can be assign value", type->Name());
-        return;
-    }
+    //if (type->TypeCat() != TypeCategory::Raw)
+    //{
+    //    _driver.Error("only raw type:{0} can be assign value", type->Name());
+    //    return;
+    //}
 
     RawCategory rawSrc;
-    IRawType* rawType = static_cast<IRawType*>(type);
+    //IRawType* rawType = static_cast<IRawType*>(type);
     IType* refType = ref->Type();
     if (refType->TypeCat() == TypeCategory::Enum)
     {
@@ -630,24 +708,31 @@ void Context::SetValue(const std::string& refer)
     }
     else
     {
-        _driver.Error("value:{0} type can not convert to type:{1}", type->Name(), refType->Name());
+        //_driver.Error("value:{0} type can not convert to type:{1}", type->Name(), refType->Name());
+        //TODO: error, 只能引用枚举或原生类型
         return;
     }
 
-    utility::ConvertRet mask = utility::Convert(rawSrc, rawType->RawCat());
-    if (mask == utility::ConvertRet::Error)
-    {
-        _driver.Error("value:{0} type can not convert to type:{1}", refType->Name(), rawType->Name());
-        return;
-    }
-    else if (mask == utility::ConvertRet::Warning)
-    {
-        _driver.Warning("type convert warning");
-    }
+    //utility::ConvertRet mask = utility::Convert(rawSrc, rawType->RawCat());
+    //if (mask == utility::ConvertRet::Error)
+    //{
+    //    _driver.Error("value:{0} type can not convert to type:{1}", refType->Name(), rawType->Name());
+    //    return;
+    //}
+    //else if (mask == utility::ConvertRet::Warning)
+    //{
+    //    _driver.Warning("type convert warning");
+    //}
 
-    _data.value = value_util::Create(rawType->RawCat(), ref);
-    if (_data.value == nullptr)
+    auto val = value_util::Create(rawSrc, ref);
+    if (val)
+        _data.vals.push_back(val);
+    else
         _driver.Error("create reference value:{0} failed", refer);
+
+    //_data.value = value_util::Create(rawType->RawCat(), ref);
+    //if (_data.value == nullptr)
+    //    _driver.Error("create reference value:{0} failed", refer);
 }
 
 IVariate* Context::AddEnumMember(const std::string& name)
@@ -663,10 +748,18 @@ IVariate* Context::AddEnumMember(const std::string& name)
         return nullptr;
 
     IEnumType* eType = static_cast<IEnumType*>(ty);
-    Variate* var = new Variate(_SCOPE_);
+    Variate* var = new Variate(
+        _driver.GetScanner()->File(),
+        _driver.GetScanner()->LineNO(),
+        name,
+        _SCOPE_
+    );
+
     var->SetType(eType);
-    var->SetName(name);
     var->SetConst();
+
+    var->Attributes(_data.attr_set);
+    _data.attr_set = nullptr;
 
     if (!_SCOPE_->VarSet()->Add(var))
     {

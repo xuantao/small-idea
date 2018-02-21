@@ -8,7 +8,7 @@ using System.Collections.Generic;
 public static class GlobalVar
 {
     public const int g_1 = 1;
-    public const float f_1 = 2.000000f;
+    public const float f_1 = 2;
     public const string s_1 = "xuantao";
     public const bool b_1 = true;
     public const int MAX_TALENT_COUNT = 128;
@@ -34,8 +34,8 @@ public partial class TabTest_1
     public byte _byte = 1;
     public int _int = 1;
     public long _long = 1;
-    public float _float = 1.000000f;
-    public double _double = 1.000000;
+    public float _float = 1;
+    public double _double = 1;
     public string _string = "string";
 }
 public enum Enum1
@@ -169,7 +169,7 @@ public class Msg
     public int _int = 2;
     public long _long = 3;
     public float _float = 4.000000f;
-    public double _double = 5.000000;
+    public double _double = 5.000000f;
     public string _string = "msg";
     public List<int> _int_ary = new List<int>();
     public FixedArray<int, ArrayLength_2> _int_ary_2 = new FixedArray<int, ArrayLength_2>();

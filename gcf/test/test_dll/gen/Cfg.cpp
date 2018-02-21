@@ -5,7 +5,7 @@
 #include "Cfg.h"
 
 const int g_1 = 1;
-const float f_1 = 2.000000f;
+const float f_1 = 2;
 const std::string s_1 = "xuantao";
 const bool b_1 = true;
 const int MAX_TALENT_COUNT = 128;

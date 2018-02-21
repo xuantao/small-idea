@@ -76,6 +76,11 @@ const std::string& Scanner::File() const
     return _stack.back()->file;
 }
 
+int Scanner::LineNO() const
+{
+    return lineno();
+}
+
 location& Scanner::Location()
 {
     if (_stack.empty())

@@ -9,9 +9,11 @@ enum Wtf
     String,
 };
 
+[ServerOnly(1, "xuantao", true)]
 tab struct Sr3
 {
 	int ID;			//< 模板ID
+	[ClientOnly]
 	int StageID;	//< 关卡ID
 	string Name;	//< 名称
 }

@@ -3,17 +3,22 @@
 #include "Value.h"
 #include "Scope.h"
 #include "ValueUtil.h"
-#include "utility/Utility.h"
 #include <algorithm>
 
 GCF_NAMESPACE_BEGIN
 
 //////////////////////////////////////////////////////////////////////////
 // Enum Type
-EnumType::EnumType(const std::string& name, IScope* owner)
-    : _name(name)
+EnumType::EnumType(
+    const std::string file,
+    int line,
+    const std::string& name,
+    IScope* owner
+)   : _name(name)
     , _owner(owner)
     , _vars(nullptr)
+    , _file(file)
+    , _line(line)
 {
     NormalScope* scope = new NormalScope(name, owner);
     _vars = new EnumVarSet();
@@ -35,10 +40,17 @@ EnumType::~EnumType()
 
 //////////////////////////////////////////////////////////////////////////
 // StructType
-StructType::StructType(const std::string& name, IScope* owner, CfgCategory cfg)
-    : _name(name)
+StructType::StructType(
+    std::string file,
+    int line,
+    const std::string& name,
+    IScope* owner,
+    CfgCategory cfg
+)   : _name(name)
     , _owner(owner)
     , _cfg(cfg)
+    , _file(file)
+    , _line(line)
 {
     StructTypeSet* tySet = new StructTypeSet(this);
     StructVarSet* vars = new StructVarSet(this);
@@ -109,11 +121,18 @@ void StructType::DeclCompleted()
 
 //////////////////////////////////////////////////////////////////////////
 // Function
-Function::Function(const std::string& name, IType* ret, IScope* owner)
-    : _name(name)
+Function::Function(
+    const std::string file,
+    int line,
+    const std::string& name,
+    IType* ret,
+    IScope* owner
+)   : _name(name)
     , _rawName(name)
     , _ret(ret)
     , _owner(owner)
+    , _file(file)
+    , _line(line)
 {
     NormalScope* scope = new NormalScope(name, owner);
     scope->VarSet(new VarSetNormal());
@@ -224,8 +243,16 @@ Namespace::~Namespace()
 
 //////////////////////////////////////////////////////////////////////////
 // Module
-CrossCall::CrossCall(const std::string& name, int32_t moduleID, IScope* owner)
-    : _name(name), _owner(owner), _ID(moduleID)
+CrossCall::CrossCall(const std::string file,
+    int line,
+    const std::string& name,
+    int32_t moduleID,
+    IScope* owner
+)   : _file(file)
+    , _line(line)
+    , _name(name)
+    , _owner(owner)
+    , _ID(moduleID)
 {
     NormalScope* scope = new NormalScope(name, owner);
     scope->TypeSet(new ModuleSetType());

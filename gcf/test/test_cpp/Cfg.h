@@ -25,8 +25,8 @@ struct TabTest_1
     int8_t _byte = 1; //< 测试byte
     int _int = 1; //< 测试int
     int64_t _long = 1; //< 测试long
-    float _float = 1.000000f; //< 测试float
-    double _double = 1.000000; //< 测试double
+    float _float = 1; //< 测试float
+    double _double = 1; //< 测试double
     std::string _string = "string"; //< 测试string
 };
 
@@ -194,7 +194,7 @@ struct Msg
     int _int = 2;
     int64_t _long = 3;
     float _float = 4.000000f;
-    double _double = 5.000000;
+    double _double = 5.000000f;
     std::string _string = "msg";
     std::vector<int> _int_ary;
     std::array<int, 2> _int_ary_2;

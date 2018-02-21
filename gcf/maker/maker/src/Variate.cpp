@@ -5,14 +5,15 @@
 
 GCF_NAMESPACE_BEGIN
 
-Variate::Variate(const std::string& name, IScope* owner)
-    : _name(name)
+Variate::Variate(
+    const std::string file,
+    int line,
+    const std::string& name,
+    IScope* owner
+)   : _name(name)
     , _owner(owner)
-{
-}
-
-Variate::Variate(IScope* owner)
-    : _owner(owner)
+    , _file(file)
+    , _line(line)
 {
 }
 

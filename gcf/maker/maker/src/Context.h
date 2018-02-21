@@ -10,6 +10,7 @@ GCF_NAMESPACE_BEGIN
 class Driver;
 class Variate;
 class FileData;
+class AttributeSet;
 
 struct Cfg
 {
@@ -67,6 +68,7 @@ public:
     void OnEnumEnd();
 
     void OnVariate(const std::string& name);
+    void OnAttribute(const std::string& name);
 
 public:
     void SetConst();
@@ -109,7 +111,8 @@ protected:
         std::string desc;
         bool isConst = false;
         IType* type = nullptr;
-        IValue* value = nullptr;
+        AttributeSet* attr_set = nullptr;
+        std::vector<IValue*> vals;
     } _data;
 };
 

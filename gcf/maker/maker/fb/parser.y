@@ -98,7 +98,8 @@ Program : /* empty */           { }
         ;
 
 /* const value */
-ConstValue  : VarConst Variate S_SEMICOLON VarDesc      { CONTEXT.OnVariate($2); }
+ConstValue  : VarConst Variate S_SEMICOLON VarDesc    { CONTEXT.OnVariate($2); }
+            | Attribute VarConst Variate S_SEMICOLON VarDesc    { CONTEXT.OnVariate($3); }
             ;
 
  /* name space */
@@ -120,10 +121,11 @@ NsDetail    : /* empty */           { }
             ;
 
 /* enum declear */
-EnumDecl    : EnumBegin EnumMember EnumEnd      { }
+EnumDecl    : EnumBegin EnumMember EnumEnd              { }
+            | Attribute EnumBegin EnumMember EnumEnd    { }
             ;
 
-EnumBegin   : ENUM IDENTIFIER S_LBRACE          { CONTEXT.OnEnumBegin($2); }
+EnumBegin   : ENUM IDENTIFIER S_LBRACE    { CONTEXT.OnEnumBegin($2); }
             ;
 
 EnumEnd     : S_RBRACE                          { CONTEXT.OnEnumEnd(); }
@@ -147,15 +149,16 @@ _EnumVar    : IDENTIFIER                            { CONTEXT.OnEnumMember($1); 
 /* structure declear */
 StructDecl  : STRUCT IDENTIFIER S_SEMICOLON { CONTEXT.OnPredefine($2); }
             | StyBegin StyDetail StyEnd     { }
+            | Attribute StyBegin StyDetail StyEnd     { }
             ;
 
 StyBegin    : _StyBegin S_LBRACE                    { }
             | _StyBegin S_COLON StyInherit S_LBRACE { }
             ;
 
-_StyBegin   : STRUCT IDENTIFIER         { CONTEXT.OnStructBegin($2, CfgCategory::None); }
-            | TAB STRUCT IDENTIFIER     { CONTEXT.OnStructBegin($3, CfgCategory::Tab); }
-            | JSON STRUCT IDENTIFIER    { CONTEXT.OnStructBegin($3, CfgCategory::Json); }
+_StyBegin   : STRUCT IDENTIFIER           { CONTEXT.OnStructBegin($2, CfgCategory::None); }
+            | TAB STRUCT IDENTIFIER       { CONTEXT.OnStructBegin($3, CfgCategory::Tab); }
+            | JSON STRUCT IDENTIFIER      { CONTEXT.OnStructBegin($3, CfgCategory::Json); }
             ;
 
 StyEnd      : S_RBRACE                  { CONTEXT.OnStructEnd(); }
@@ -171,7 +174,8 @@ StyDetail   : /* empty */           { }
             | StyDetail StyInner    { }
             ;
 
-StyMember   : VarConst Variate S_SEMICOLON VarDesc  { CONTEXT.OnVariate($2); }
+StyMember   : VarConst Variate S_SEMICOLON VarDesc              { CONTEXT.OnVariate($2); }
+            | Attribute VarConst Variate S_SEMICOLON VarDesc    { CONTEXT.OnVariate($3); }
             ;
 
 StyInner    : StyBegin StyDetail StyEnd { }
@@ -234,10 +238,10 @@ Type        : BOOL      { CONTEXT.SetType(RawCategory::Bool); }
 
 Value       : VALUE_TRUE            { CONTEXT.SetValue(RawCategory::Bool, $1); }
             | VALUE_FALSE           { CONTEXT.SetValue(RawCategory::Bool, $1); }
-            | VALUE_INT             { CONTEXT.SetValue(RawCategory::Int, $1); }
-            | S_MINUS VALUE_INT     { CONTEXT.SetValue(RawCategory::Int, "-" + $2); }
-            | VALUE_FLOAT           { CONTEXT.SetValue(RawCategory::Float, $1); }
-            | S_MINUS VALUE_FLOAT   { CONTEXT.SetValue(RawCategory::Float, "-" + $2); }
+            | VALUE_INT             { CONTEXT.SetValue(RawCategory::Long, $1); }
+            | S_MINUS VALUE_INT     { CONTEXT.SetValue(RawCategory::Long, "-" + $2); }
+            | VALUE_FLOAT           { CONTEXT.SetValue(RawCategory::Double, $1); }
+            | S_MINUS VALUE_FLOAT   { CONTEXT.SetValue(RawCategory::Double, "-" + $2); }
             | VALUE_STRING          { CONTEXT.SetValue(RawCategory::String, $1); }
             | RefName               { CONTEXT.SetValue($1); }
             ;
@@ -253,6 +257,20 @@ _Array      : S_LBRACK S_RBRACK             { CONTEXT.SetArray(); }
 Variate     : Type IDENTIFIER                   { $$= $2; }
             | Type IDENTIFIER S_ASSIGN Value    { $$= $2; }
             | Type IDENTIFIER Array             { $$= $2; }
+            ;
+
+Attribute   : _Attribute                      { }
+            ;
+_Attribute  : S_LBRACK AttrDetail S_RBRACK              { }
+            ;
+AttrDetail  : _AttrDetail                               { }
+            | AttrDetail S_COMMA _AttrDetail            { }
+            ;
+_AttrDetail : IDENTIFIER                                { CONTEXT.OnAttribute($1); }
+            | IDENTIFIER S_LPAREN AttrParam S_RPAREN    { CONTEXT.OnAttribute($1); }
+            ;
+AttrParam   : Value
+            | AttrParam S_COMMA Value
             ;
 
 %%

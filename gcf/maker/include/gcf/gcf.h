@@ -106,6 +106,8 @@ class IVarSet;
 class INsSet;
 class IScope;
 class INamespace;
+class IAttribute;
+class IAttributeSet;
 
 GCF_API class IElement
 {
@@ -113,6 +115,9 @@ public:
     virtual ~IElement() {}
 public:
     virtual ElementCategory ElementCat() const = 0;
+    virtual const std::string& File() const = 0;
+    virtual int Line() const = 0;
+    virtual const IAttributeSet* Attributes() const = 0;
 };
 
 /*
@@ -347,6 +352,35 @@ public:
 public:
     virtual IVariate* Var() const = 0;
     virtual IValue* Original() const = 0;
+};
+
+/*
+ * 属性
+*/
+GCF_API class IAttribute
+{
+public:
+    virtual ~IAttribute() {}
+
+public:
+    virtual const std::string Name() const = 0;
+    virtual const IValue* GetParam(int index) const = 0;
+    virtual int ParamSize() const = 0;
+};
+
+/*
+ * 属性集合
+*/
+GCF_API class IAttributeSet
+{
+public:
+    virtual ~IAttributeSet() {}
+
+public:
+    virtual const IAttribute* Get(const std::string& name) const = 0;
+    virtual const IAttribute* Get(int index) const = 0;
+    virtual int Size() const = 0;
+    virtual bool Traverse(const std::function<bool(const IAttribute*)>& func) const = 0;
 };
 
 /*

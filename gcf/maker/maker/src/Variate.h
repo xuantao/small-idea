@@ -6,22 +6,35 @@ GCF_NAMESPACE_BEGIN
 class Variate : public IVariate
 {
 public:
-    Variate(const std::string& name, IScope* owner);
-    Variate(IScope* owner);
+    Variate(
+        const std::string file,
+        int line,
+        const std::string& name,
+        IScope* owner
+    );
+
     ~Variate();
 
 public:
-    virtual ElementCategory ElementCat() const { return ElementCategory::Var; }
-    virtual bool IsConst() const { return _const; }
-    virtual IType* Belong() const { return nullptr; }
-    virtual IScope* Owner() const { return _owner; }
-    virtual IType* Type() const { return _type; }
-    virtual const std::string& Name() const { return _name; }
-    virtual const std::string& Desc() const { return _desc; }
-    virtual IValue* Value() const { return _value; }
-    virtual bool BindValue(IValue* value);
+    /* IElement */
+    ElementCategory ElementCat() const override { return ElementCategory::Var; }
+    const std::string& File() const override { return _file; }
+    int Line() const override { return _line; }
+    const IAttributeSet* Attributes() const override { return _attributes; }
+
+    /* IVariate */
+    bool IsConst() const override { return _const; }
+    IScope* Owner() const override { return _owner; }
+    IType* Type() const override { return _type; }
+    const std::string& Name() const override { return _name; }
+    const std::string& Desc() const override { return _desc; }
+    IValue* Value() const override { return _value; }
+    bool BindValue(IValue* value) override;
 
 public:
+    void Attributes(IAttributeSet* attributs) { _attributes = attributs; }
+    IAttributeSet* Attributes() { return _attributes; }
+    IType* Belong() const { return nullptr; }
     void SetType(IType* type) { _type = type; }
     void SetName(const std::string& name) { _name = name; }
     void SetConst() { _const = true; }
@@ -29,12 +42,15 @@ public:
     void UpgradeArray(int length = 0);
 
 protected:
+    std::string _file;
+    int _line = 0;
     std::string _name;
     std::string _desc;
     IScope* _owner = nullptr;
     IType* _type = nullptr;
     IValue* _value = nullptr;
     bool _const = false;
+    IAttributeSet* _attributes = nullptr;
 };
 
 GCF_NAMESPACE_END
