@@ -193,8 +193,8 @@ struct Msg
     int8_t _byte = 1;
     int _int = 2;
     int64_t _long = 3;
-    float _float = 4.000000f;
-    double _double = 5.000000f;
+    float _float = 4.000000;
+    double _double = 5.000000;
     std::string _string = "msg";
     std::vector<int> _int_ary;
     std::array<int, 2> _int_ary_2;

@@ -97,8 +97,8 @@ Program : /* empty */           { }
         | Program NsDecl        { }
         ;
 
-/* const value */
-ConstValue  : VarConst Variate S_SEMICOLON VarDesc    { CONTEXT.OnVariate($2); }
+ /* const value */
+ConstValue  : VarConst Variate S_SEMICOLON VarDesc              { CONTEXT.OnVariate($2); }
             | Attribute VarConst Variate S_SEMICOLON VarDesc    { CONTEXT.OnVariate($3); }
             ;
 
@@ -120,12 +120,12 @@ NsDetail    : /* empty */           { }
             | NsDetail CrossDecl    { }
             ;
 
-/* enum declear */
+ /* enum declare */
 EnumDecl    : EnumBegin EnumMember EnumEnd              { }
             | Attribute EnumBegin EnumMember EnumEnd    { }
             ;
 
-EnumBegin   : ENUM IDENTIFIER S_LBRACE    { CONTEXT.OnEnumBegin($2); }
+EnumBegin   : ENUM IDENTIFIER S_LBRACE          { CONTEXT.OnEnumBegin($2); }
             ;
 
 EnumEnd     : S_RBRACE                          { CONTEXT.OnEnumEnd(); }
@@ -146,74 +146,82 @@ _EnumVar    : IDENTIFIER                            { CONTEXT.OnEnumMember($1); 
             | IDENTIFIER S_ASSIGN RefName           { CONTEXT.OnEnumMemberRefer($1, $3); }
             ;
 
-/* structure declear */
-StructDecl  : STRUCT IDENTIFIER S_SEMICOLON { CONTEXT.OnPredefine($2); }
-            | StyBegin StyDetail StyEnd     { }
-            | Attribute StyBegin StyDetail StyEnd     { }
+/* structure declare */
+StructDecl  : STRUCT IDENTIFIER S_SEMICOLON         { CONTEXT.OnPredefine($2); }
+            | StyBegin StyDetail StyEnd             { }
+            | Attribute StyBegin StyDetail StyEnd   { }
             ;
 
 StyBegin    : _StyBegin S_LBRACE                    { }
             | _StyBegin S_COLON StyInherit S_LBRACE { }
             ;
 
-_StyBegin   : STRUCT IDENTIFIER           { CONTEXT.OnStructBegin($2, CfgCategory::None); }
-            | TAB STRUCT IDENTIFIER       { CONTEXT.OnStructBegin($3, CfgCategory::Tab); }
-            | JSON STRUCT IDENTIFIER      { CONTEXT.OnStructBegin($3, CfgCategory::Json); }
+_StyBegin   : STRUCT IDENTIFIER                     { CONTEXT.OnStructBegin($2, CfgCategory::None); }
+            | TAB STRUCT IDENTIFIER                 { CONTEXT.OnStructBegin($3, CfgCategory::Tab); }
+            | JSON STRUCT IDENTIFIER                { CONTEXT.OnStructBegin($3, CfgCategory::Json); }
             ;
 
-StyEnd      : S_RBRACE                  { CONTEXT.OnStructEnd(); }
-            | S_RBRACE S_SEMICOLON      { CONTEXT.OnStructEnd(); }
+StyEnd      : S_RBRACE                              { CONTEXT.OnStructEnd(); }
+            | S_RBRACE S_SEMICOLON                  { CONTEXT.OnStructEnd(); }
             ;
 
-StyInherit  : IDENTIFIER                    { CONTEXT.OnStructInherit($1); }
-            | StyInherit S_COMMA IDENTIFIER { CONTEXT.OnStructInherit($3); }
+StyInherit  : IDENTIFIER                            { CONTEXT.OnStructInherit($1); }
+            | StyInherit S_COMMA IDENTIFIER         { CONTEXT.OnStructInherit($3); }
             ;
 
-StyDetail   : /* empty */           { }
-            | StyDetail StyMember   { }
-            | StyDetail StyInner    { }
+StyDetail   : /* empty */                           { }
+            | StyDetail StyMember                   { }
+            | StyDetail StyInner                    { }
             ;
 
-StyMember   : VarConst Variate S_SEMICOLON VarDesc              { CONTEXT.OnVariate($2); }
-            | Attribute VarConst Variate S_SEMICOLON VarDesc    { CONTEXT.OnVariate($3); }
+StyMember   : _StyMember                            { }
+            | Attribute _StyMember                  { }
             ;
 
-StyInner    : StyBegin StyDetail StyEnd { }
+_StyMember  : VarConst Variate S_SEMICOLON VarDesc  { CONTEXT.OnVariate($2); }
             ;
 
-/* cross call declear */
-CrossDecl   : CrossBegin CrossFunc CrossEnd { }
+StyInner    : StyBegin StyDetail StyEnd             { }
             ;
 
-CrossBegin  : CROSS IDENTIFIER S_LBRACE     { CONTEXT.OnCrossBegin($2); }
+/* cross call declare */
+CrossDecl   : CrossBegin CrossFunc CrossEnd             { }
+            | Attribute CrossBegin CrossFunc CrossEnd   { }
             ;
 
-CrossEnd    : S_RBRACE                  { CONTEXT.OnCrossEnd(); }
-            | S_RBRACE S_SEMICOLON      { CONTEXT.OnCrossEnd(); }
+CrossBegin  : CROSS IDENTIFIER S_LBRACE                 { CONTEXT.OnCrossBegin($2); }
             ;
 
-CrossFunc   : /* empty */               { }
-            | CrossFunc FuncBegin FuncParam FuncEnd { }
+CrossEnd    : S_RBRACE                                  { CONTEXT.OnCrossEnd(); }
+            | S_RBRACE S_SEMICOLON                      { CONTEXT.OnCrossEnd(); }
             ;
 
-FuncBegin   : VOID IDENTIFIER S_LPAREN          { CONTEXT.OnFuncBegin($2); }
-            | Type IDENTIFIER S_LPAREN          { CONTEXT.OnFuncBegin($2); }
-            | Type Array IDENTIFIER S_LPAREN    { CONTEXT.OnFuncBegin($3); }
+CrossFunc   : /* empty */                               { }
+            | CrossFunc Func                            { }
             ;
 
-FuncEnd     : S_RPAREN              { CONTEXT.OnFuncEnd(); }
-            | S_RPAREN S_SEMICOLON  { CONTEXT.OnFuncEnd(); }
+ /* function */
+Func        : FuncBegin FuncParam FuncEnd               { }
+            | Attribute FuncBegin FuncParam FuncEnd     { }
+
+FuncBegin   : VOID IDENTIFIER S_LPAREN                  { CONTEXT.OnFuncBegin($2); }
+            | Type IDENTIFIER S_LPAREN                  { CONTEXT.OnFuncBegin($2); }
+            | Type Array IDENTIFIER S_LPAREN            { CONTEXT.OnFuncBegin($3); }
             ;
 
-FuncParam   : /* empty */           { }
-            | FuncParam _FuncParam  { }
+FuncEnd     : S_RPAREN                                  { CONTEXT.OnFuncEnd(); }
+            | S_RPAREN S_SEMICOLON                      { CONTEXT.OnFuncEnd(); }
             ;
 
-_FuncParam  : Variate                       { CONTEXT.OnVariate($1); }
-            | _FuncParam S_COMMA Variate    { CONTEXT.OnVariate($3); }
+FuncParam   : /* empty */                               { }
+            | FuncParam _FuncParam                      { }
             ;
 
-/* common detect */
+_FuncParam  : Variate                                   { CONTEXT.OnVariate($1); }
+            | _FuncParam S_COMMA Variate                { CONTEXT.OnVariate($3); }
+            ;
+
+ /* common detect */
 VarConst    : /* empty */   { }
             | CONST         { CONTEXT.SetConst(); }
             ;
@@ -221,7 +229,7 @@ VarDesc     : /* empty */   { }
             | VALUE_DESC    { CONTEXT.SetDesc($1); }
             ;
 
-/* gobal or enum value reference */
+ /* gobal or enum value reference */
 RefName     : IDENTIFIER                { $$ = $1; }
             | RefName S_DOT IDENTIFIER  { $$ = $1 + '.' + $3; }
             ;
@@ -246,6 +254,7 @@ Value       : VALUE_TRUE            { CONTEXT.SetValue(RawCategory::Bool, $1); }
             | RefName               { CONTEXT.SetValue($1); }
             ;
 
+ /* array, multi/sized/unsized */
 Array       : _Array            { }
             | Array _Array      { }
             ;
@@ -259,7 +268,9 @@ Variate     : Type IDENTIFIER                   { $$= $2; }
             | Type IDENTIFIER Array             { $$= $2; }
             ;
 
-Attribute   : _Attribute                      { }
+ /* struct, member's attributes */
+Attribute   : _Attribute                                { }
+            | Attribute _Attribute                      { }
             ;
 _Attribute  : S_LBRACK AttrDetail S_RBRACK              { }
             ;
@@ -269,8 +280,8 @@ AttrDetail  : _AttrDetail                               { }
 _AttrDetail : IDENTIFIER                                { CONTEXT.OnAttribute($1); }
             | IDENTIFIER S_LPAREN AttrParam S_RPAREN    { CONTEXT.OnAttribute($1); }
             ;
-AttrParam   : Value
-            | AttrParam S_COMMA Value
+AttrParam   : Value                                     { }
+            | AttrParam S_COMMA Value                   { }
             ;
 
 %%

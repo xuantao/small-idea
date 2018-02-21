@@ -615,7 +615,7 @@ namespace  gcf  {
     /// \param yyvalue   the value to check
     static bool yy_table_value_is_error_ (int yyvalue);
 
-    static const signed char yypact_ninf_;
+    static const short int yypact_ninf_;
     static const signed char yytable_ninf_;
 
     /// Convert a scanner token number \a t to a symbol number.
@@ -757,8 +757,8 @@ namespace  gcf  {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 182,           //< Last index in yytable_.
-      yynnts_ = 43,  //< Number of nonterminal symbols.
+      yylast_ = 197,           //< Last index in yytable_.
+      yynnts_ = 45,  //< Number of nonterminal symbols.
       yyempty_ = -2,
       yyfinal_ = 3, //< Termination state number.
       yyterror_ = 1,
@@ -849,8 +849,8 @@ namespace  gcf  {
       case 37: // "0.0f"
       case 38: // "empty"
       case 39: // "desc"
-      case 72: // RefName
-      case 77: // Variate
+      case 74: // RefName
+      case 79: // Variate
         value.copy< std::string > (other.value);
         break;
 
@@ -878,8 +878,8 @@ namespace  gcf  {
       case 37: // "0.0f"
       case 38: // "empty"
       case 39: // "desc"
-      case 72: // RefName
-      case 77: // Variate
+      case 74: // RefName
+      case 79: // Variate
         value.copy< std::string > (v);
         break;
 
@@ -928,8 +928,8 @@ namespace  gcf  {
       case 37: // "0.0f"
       case 38: // "empty"
       case 39: // "desc"
-      case 72: // RefName
-      case 77: // Variate
+      case 74: // RefName
+      case 79: // Variate
         value.template destroy< std::string > ();
         break;
 
@@ -954,8 +954,8 @@ namespace  gcf  {
       case 37: // "0.0f"
       case 38: // "empty"
       case 39: // "desc"
-      case 72: // RefName
-      case 77: // Variate
+      case 74: // RefName
+      case 79: // Variate
         value.move< std::string > (s.value);
         break;
 

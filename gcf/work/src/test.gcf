@@ -12,7 +12,6 @@ tab struct TabTest_1
     string _string = "string";      //< 测试string
 }
 
-//@ xxxxxxxxxxx
 const int g_1 = 1;
 const float f_1 = 2;
 const string s_1 = "xuantao";

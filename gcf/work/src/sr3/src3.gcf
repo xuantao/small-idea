@@ -10,6 +10,7 @@ enum Wtf
 };
 
 [ServerOnly(1, "xuantao", true)]
+[Label("xxxxxxx")]
 tab struct Sr3
 {
 	int ID;			//< 模板ID
