@@ -4,14 +4,14 @@ GCF_NAMESPACE_BEGIN
 
 AttributeSet::~AttributeSet()
 {
-    for each (auto attr in _attributes)
+    for (auto attr : _attributes)
         delete attr;
     _attributes.clear();
 }
 
 const IAttribute* AttributeSet::Get(const std::string& name) const
 {
-    for each (auto attr in _attributes)
+    for (auto attr : _attributes)
     {
         if (attr->Name() == name)
             return attr;
@@ -27,7 +27,7 @@ const IAttribute* AttributeSet::Get(int index) const
 
 bool AttributeSet::Traverse(const std::function<bool(const IAttribute*)>& func) const
 {
-    for each (auto attr in _attributes)
+    for (auto attr : _attributes)
     {
         if (!func(attr))
             return false;
