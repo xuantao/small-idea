@@ -164,7 +164,7 @@ public:
 };
 
 /*
-* Enum Type
+ * Enum Type
 */
 GCF_API class IEnumType : public IType
 {

@@ -55,7 +55,7 @@ namespace detail
     enum ConvetMask
     {
         Apt,    // accept
-        War,    // warnning
+        War,    // warning
         Err     // error
     };
 
