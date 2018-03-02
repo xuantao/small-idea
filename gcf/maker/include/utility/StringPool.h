@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "CfgDef.h"
+#include "gcf/gcf.h"
 
 GCF_NAMESPACE_BEGIN
 

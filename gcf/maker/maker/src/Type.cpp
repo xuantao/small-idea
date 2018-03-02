@@ -10,15 +10,11 @@ GCF_NAMESPACE_BEGIN
 //////////////////////////////////////////////////////////////////////////
 // Enum Type
 EnumType::EnumType(
-    const std::string file,
-    int line,
     const std::string& name,
-    IScope* owner
-)   : _name(name)
+    IScope* owner)
+    : _name(name)
     , _owner(owner)
     , _vars(nullptr)
-    , _file(file)
-    , _line(line)
 {
     NormalScope* scope = new NormalScope(name, owner);
     _vars = new EnumVarSet();
@@ -35,22 +31,21 @@ EnumType::~EnumType()
     delete _vars;
     _vars = nullptr;
 
+    delete _location;
+    _location = nullptr;
+
     _owner = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // StructType
 StructType::StructType(
-    std::string file,
-    int line,
     const std::string& name,
     IScope* owner,
-    CfgCategory cfg
-)   : _name(name)
+    CfgCategory cfg)
+    : _name(name)
     , _owner(owner)
     , _cfg(cfg)
-    , _file(file)
-    , _line(line)
 {
     StructTypeSet* tySet = new StructTypeSet(this);
     StructVarSet* vars = new StructVarSet(this);
@@ -80,6 +75,9 @@ StructType::~StructType()
 
     delete _scope;
     _scope = nullptr;
+
+    delete _location;
+    _location = nullptr;
 
     _owner = nullptr;
     _inherit = nullptr;
@@ -122,17 +120,13 @@ void StructType::DeclCompleted()
 //////////////////////////////////////////////////////////////////////////
 // Function
 Function::Function(
-    const std::string file,
-    int line,
     const std::string& name,
     IType* ret,
-    IScope* owner
-)   : _name(name)
+    IScope* owner)
+    : _name(name)
     , _rawName(name)
     , _ret(ret)
     , _owner(owner)
-    , _file(file)
-    , _line(line)
 {
     NormalScope* scope = new NormalScope(name, owner);
     scope->VarSet(new VarSetNormal());
@@ -145,6 +139,9 @@ Function::~Function()
     delete _scope->VarSet();
     delete _scope;
     _scope = nullptr;
+
+    delete _location;
+    _location = nullptr;
 }
 
 void Function::DeclCompleted()
@@ -243,14 +240,11 @@ Namespace::~Namespace()
 
 //////////////////////////////////////////////////////////////////////////
 // Module
-CrossCall::CrossCall(const std::string file,
-    int line,
+CrossCall::CrossCall(
     const std::string& name,
     int32_t moduleID,
-    IScope* owner
-)   : _file(file)
-    , _line(line)
-    , _name(name)
+    IScope* owner)
+    : _name(name)
     , _owner(owner)
     , _ID(moduleID)
 {
@@ -264,5 +258,8 @@ CrossCall::~CrossCall()
     delete _scope->TypeSet();
     delete _scope;
     _scope = nullptr;
+
+    delete _location;
+    _location = nullptr;
 }
 GCF_NAMESPACE_END

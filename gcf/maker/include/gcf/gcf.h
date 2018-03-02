@@ -109,14 +109,22 @@ class INamespace;
 class IAttribute;
 class IAttributeSet;
 
+GCF_API class ILocation
+{
+public:
+    virtual ~ILocation() {}
+public:
+    virtual const char* File() const = 0;
+    virtual int Line() const = 0;
+};
+
 GCF_API class IElement
 {
 public:
     virtual ~IElement() {}
 public:
     virtual ElementCategory ElementCat() const = 0;
-    virtual const std::string& File() const = 0;
-    virtual int Line() const = 0;
+    virtual const ILocation* Location() const = 0;
     virtual const IAttributeSet* Attributes() const = 0;
 };
 
@@ -409,5 +417,52 @@ public:
 };
 
 typedef IExporter* (*CreateExporter)();
+
+GCF_API class ISerializer
+{
+public:
+    virtual ~ISerializer() {}
+
+public:
+    virtual void BeginObj(const char* name) = 0;
+    virtual void EndObj() = 0;
+    virtual void Append(const char* name, bool val) = 0;
+    virtual void Append(const char* name, int val) = 0;
+    virtual void Append(const char* name, float val) = 0;
+    virtual void Append(const char* name, const char* val) = 0;
+
+    virtual void BeginArray(const char* name) = 0;
+    virtual void EndArray() = 0;
+    virtual void Append(bool val) = 0;
+    virtual void Append(int val) = 0;
+    virtual void Append(float val) = 0;
+    virtual void Append(const char* val) = 0;
+};
+
+GCF_API class IDeserializer
+{
+public:
+    virtual ~IDeserializer() {}
+};
+
+enum class FileBlockCategory
+{
+    Comment,
+    Include,
+    NsBegin,
+    NsEnd,
+    Element,
+};
+
+GCF_API class IFileBlock
+{
+public:
+    virtual ~IFileBlock() {}
+
+public:
+    virtual FileBlockCategory Category() const = 0;
+    virtual const char* Text() const = 0;
+    virtual IElement* Element() const = 0;
+};
 
 GCF_NAMESPACE_END

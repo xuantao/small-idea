@@ -12,37 +12,6 @@
 
 #define _SCOPE_ _stackScope.back()
 
-//std::ostream& operator << (std::ostream& out, gcf::RawCategory raw)
-//{
-    //switch (raw)
-    //{
-    //case gcf::RawCategory::Bool:
-    //    out << "Bool";
-    //    break;
-    //case gcf::RawCategory::Byte:
-    //    out << "Byte";
-    //    break;
-    //case gcf::RawCategory::Int:
-    //    out << "Int";
-    //    break;
-    //case gcf::RawCategory::Long:
-    //    out << "Long";
-    //    break;
-    //case gcf::RawCategory::Float:
-    //    out << "Float";
-    //    break;
-    //case gcf::RawCategory::Double:
-    //    out << "Double";
-    //    break;
-    //case gcf::RawCategory::String:
-    //    out << "String";
-    //    break;
-    //default:
-    //    break;
-    //}
-//    return out;
-//}
-
 GCF_NAMESPACE_BEGIN
 
 static std::ostream& operator << (std::ostream& out, RawCategory raw)
@@ -412,8 +381,6 @@ void Context::OnEnumBegin(const std::string& name)
     }
 
     EnumType* eType = new EnumType(
-        _driver.GetScanner()->File(),
-        _driver.GetScanner()->LineNO(),
         newName,
         _SCOPE_
     );

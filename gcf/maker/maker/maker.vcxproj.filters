@@ -129,5 +129,8 @@
     <ClInclude Include="src\Attribute.h">
       <Filter>src\gcf</Filter>
     </ClInclude>
+    <ClInclude Include="src\Location.h">
+      <Filter>src\gcf</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

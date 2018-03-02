@@ -20,8 +20,7 @@ public:
 public:
     /* IElement */
     ElementCategory ElementCat() const override { return ElementCategory::Type; }
-    const std::string& File() const override { return utility::EMPTY_STR; }
-    int Line() const override { return 0; }
+    const ILocation* Location() const override { return nullptr; }
     const IAttributeSet* Attributes() const override { return nullptr; }
 
     /* IType */
@@ -46,8 +45,6 @@ class EnumType : public IEnumType
 {
 public:
     EnumType(
-        const std::string file,
-        int line,
         const std::string& name,
         IScope* owner
     );
@@ -57,8 +54,7 @@ public:
 public:
     /* IElement */
     ElementCategory ElementCat() const override { return ElementCategory::Type; }
-    const std::string& File() const override { return _file; }
-    int Line() const override { return _line; }
+    const ILocation* Location() const override { return _location; }
     const IAttributeSet* Attributes() const override { return _attributes; }
 
     /* IType */
@@ -68,13 +64,13 @@ public:
     IScope* Scope() const override { return _scope; }
 
 public:
+    void Location(ILocation* loc) { _location = loc; }
     void Attributes(IAttributeSet* attributs) { _attributes = attributs; }
     IAttributeSet* Attributes() { return _attributes; }
 
 protected:
     std::string _name;
-    std::string _file;
-    int _line = 0;
+    ILocation* _location = nullptr;
     IScope* _owner = nullptr;
     IScope* _scope = nullptr;
     IVarSet* _vars = nullptr;
@@ -88,8 +84,6 @@ class StructType : public IStructType
 {
 public:
     StructType(
-        std::string file,
-        int line,
         const std::string& name,
         IScope* owner,
         CfgCategory cfg
@@ -100,8 +94,7 @@ public:
 public:
     /* IElement */
     ElementCategory ElementCat() const override { return ElementCategory::Type; }
-    const std::string& File() const override { return _file; }
-    int Line() const override { return _line; }
+    const ILocation* Location() const override { return _location; }
     const IAttributeSet* Attributes() const override { return _attributes; }
 
     /* IType */
@@ -119,13 +112,13 @@ public:
     IScope* OwnScope() const override { return _ownScope; }
 
 public:
+    void Location(ILocation* loc) { _location = loc; }
     void Attributes(IAttributeSet* attributs) { _attributes = attributs; }
     IAttributeSet* Attributes() { return _attributes; }
     void DeclCompleted();
 
 protected:
-    std::string _file;
-    int _line = 0;
+    ILocation* _location = nullptr;
     std::string _name;
     CfgCategory _cfg;
     int32_t _hashCode = 0;
@@ -149,8 +142,7 @@ public:
 public:
     /* IElement */
     ElementCategory ElementCat() const override { return ElementCategory::Type; }
-    const std::string& File() const override { return utility::EMPTY_STR; }
-    int Line() const override { return 0; }
+    const ILocation* Location() const override { return nullptr; }
     const IAttributeSet* Attributes() const override { return nullptr; }
 
     /* IType */
@@ -177,8 +169,6 @@ class Function : public IFunction
 {
 public:
     Function(
-        const std::string file,
-        int line,
         const std::string& name,
         IType* ret,
         IScope* owner
@@ -189,8 +179,7 @@ public:
 public:
     /* IElement */
     ElementCategory ElementCat() const override { return ElementCategory::Type; }
-    const std::string& File() const override { return _file; }
-    int Line() const override { return _line; }
+    const ILocation* Location() const override { return _location; }
     const IAttributeSet* Attributes() const override { return _attributes; }
 
     /* IType */
@@ -205,6 +194,7 @@ public:
     virtual const std::string& RawName() const { return _rawName; }
 
 public:
+    void Location(ILocation* loc) { _location = loc; }
     void Attributes(IAttributeSet* attributs) { _attributes = attributs; }
     IAttributeSet* Attributes() { return _attributes; }
     void DeclCompleted();
@@ -213,8 +203,7 @@ protected:
     std::string GetName(const IType* type);
 
 protected:
-    std::string _file;
-    int _line = 0;
+    ILocation* _location = nullptr;
     std::string _name;
     std::string _rawName;
     int32_t _hashCode = 0;
@@ -236,8 +225,7 @@ public:
 public:
     /* IElement */
     ElementCategory ElementCat() const override { return ElementCategory::Namespace; }
-    const std::string& File() const override { return utility::EMPTY_STR; }
-    int Line() const override { return 0; }
+    const ILocation* Location() const override { return nullptr; }
     const IAttributeSet* Attributes() const override { return nullptr; }
 
     /* INamespace */
@@ -261,8 +249,6 @@ class CrossCall : public ICrossCall
 {
 public:
     CrossCall(
-        const std::string file,
-        int line,
         const std::string& name,
         int32_t ID,
         IScope* owner
@@ -273,8 +259,7 @@ public:
 public:
     /* IElement */
     virtual ElementCategory ElementCat() const { return ElementCategory::CrossCall; }
-    const std::string& File() const override { return _file; }
-    int Line() const override { return _line; }
+    const ILocation* Location() const override { return _location; }
     const IAttributeSet* Attributes() const override { return _attributes; }
 
     /* ICrossCall */
@@ -284,12 +269,12 @@ public:
     virtual IScope* Scope() const { return _scope; }
 
 public:
+    void Location(ILocation* loc) { _location = loc; }
     void Attributes(IAttributeSet* attributs) { _attributes = attributs; }
     IAttributeSet* Attributes() { return _attributes; }
 
 protected:
-    std::string _file;
-    int _line = 0;
+    ILocation* _location = nullptr;
     std::string _name;
     int32_t _ID = 0;;
     IScope* _owner = nullptr;

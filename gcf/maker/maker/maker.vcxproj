@@ -172,6 +172,7 @@
     <ClInclude Include="src\Driver.h" />
     <ClInclude Include="src\FileData.h" />
     <ClInclude Include="src\FlexLexer.h" />
+    <ClInclude Include="src\Location.h" />
     <ClInclude Include="src\location.hh" />
     <ClInclude Include="src\Parser.hpp" />
     <ClInclude Include="src\position.hh" />

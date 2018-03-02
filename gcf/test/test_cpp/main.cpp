@@ -7,6 +7,22 @@
 #include <fstream>
 #include <stdio.h>
 
+namespace test_name_space
+{
+    struct test_name_space
+    {
+        int a;
+    };
+}
+
+namespace test_name_space
+{
+    struct test_b
+    {
+        int a;
+    };
+}
+
 void testReader(serialize::IReader* reader, int count)
 {
     for (int i = 0; i < count; ++i)
@@ -62,6 +78,8 @@ int main(int argc, char* argv[])
     Wtf wtf2 = Enum::Value<Wtf>(4);
     int idx1 = Enum::Index(GlobalType::Int);
     int idx2 = Enum::Index<GlobalType>("Int");
+
+    test_name_space::test_name_space tns;
 
     system("pause");
     return 1;

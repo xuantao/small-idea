@@ -96,7 +96,7 @@ namespace utility
     template <class... Types>
     void Log(std::ostream& out, const char* format, Types&&... args)
     {
-        typedef detail::TupleLogger<sizeof...(Types)> Logger;
+        constexpr size_t arg_len = sizeof...(Types);
         std::tuple<Types...> tp(args...);
         std::regex reg("\\{\\d+\\}");
         std::cmatch cm;
@@ -109,7 +109,7 @@ namespace utility
             pos += cm.position();
             idx = atoi(format + pos + 1);
 
-            if (idx >= Logger::C)
+            if (idx < 0 || idx >= arg_len)
             {
                 out << "(out range at pos:" << pos << ", ";
                 out.write(format + pos, cm.length());
@@ -117,7 +117,7 @@ namespace utility
             }
             else
             {
-                Logger::log(out, idx, tp);
+                detail::TupleLogger<arg_len>::log(out, idx, tp);
             }
 
             pos += cm.length();
