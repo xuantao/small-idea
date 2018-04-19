@@ -22,16 +22,10 @@
     <ClInclude Include="src\scoped_buffer.h">
       <Filter>src\scoped</Filter>
     </ClInclude>
-    <ClInclude Include="src\scoped_buffer_allocator.h">
-      <Filter>src\scoped</Filter>
-    </ClInclude>
     <ClInclude Include="src\scoped_obj_buffer.h">
       <Filter>src\scoped</Filter>
     </ClInclude>
     <ClInclude Include="src\scoped_vector.h">
-      <Filter>src\scoped</Filter>
-    </ClInclude>
-    <ClInclude Include="src\deallocator.h">
       <Filter>src\scoped</Filter>
     </ClInclude>
     <ClInclude Include="src\detail\_vector.h">
@@ -66,6 +60,12 @@
     </ClInclude>
     <ClInclude Include="src\common.h">
       <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scoped_allocator.h">
+      <Filter>src\scoped</Filter>
+    </ClInclude>
+    <ClInclude Include="src\iscoped_deallocator.h">
+      <Filter>src\scoped</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

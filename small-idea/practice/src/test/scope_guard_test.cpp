@@ -3,7 +3,7 @@
 #include <memory>
 #include <functional>
 
-USING_NAMESPACE;
+UTILITY_USING_NAMESPACE;
 
 namespace {
     struct MyOp

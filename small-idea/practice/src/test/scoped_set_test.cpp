@@ -7,7 +7,7 @@
 #include "test_util.h"
 #include "test.h"
 
-USING_NAMESPACE;
+UTILITY_USING_NAMESPACE;
 
 #ifdef _WINDOWS
 
@@ -56,7 +56,7 @@ public:
 
     TreeTester(const std::set<int>& s)
     {
-        Build(s.cbegin()._Mynode());
+        //Build(s.cbegin()._Mynode());
     }
 
 public:

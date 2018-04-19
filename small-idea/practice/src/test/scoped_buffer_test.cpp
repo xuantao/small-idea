@@ -1,14 +1,14 @@
 ﻿#include <memory>
-#include "../scoped_buffer_allocator.h"
+#include "../scoped_allocator.h"
 #include "../scoped.h"
 #include "test_util.h"
 #include "test.h"
 
-USING_NAMESPACE;
+UTILITY_USING_NAMESPACE;
 
 namespace
 {
-    typedef scoped_buffer_allocator<56, 8> scoped_allocator;
+    typedef scoped_allocator<56, 8> scoped_allocator;
     scoped_allocator _allocator;
 }
 

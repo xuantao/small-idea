@@ -6,7 +6,7 @@
 
 #include "detail/_tree.h"
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -92,4 +92,4 @@ protected:
     }
 };
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

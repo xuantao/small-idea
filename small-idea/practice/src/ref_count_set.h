@@ -7,7 +7,7 @@
 #include "common.h"
 #include <map>
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 /*
  * 使用Map简单包装一个带引用计数的Set
@@ -88,4 +88,4 @@ private:
     std::map<_Ty, diff_t> _Vals;
 };
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

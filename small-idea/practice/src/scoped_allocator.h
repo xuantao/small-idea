@@ -6,45 +6,32 @@
 
 #include "scoped_buffer.h"
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 template <size_t N, size_t A = sizeof(void*)>
-class scoped_buffer_allocator
+class scoped_allocator
 {
-public:
-#if SCOPED_ALLOCATOR_BOUNDARY_CHECK
-    static const size_t capacity_size = N - A;
-#else
-    static const size_t capacity_size = N;
-#endif SCOPED_ALLOCATOR_BOUNDARY_CHECK
-
-    static const size_t align_size = A;
-
-protected:
-    class adaptor : public deallocator
+private:
+    struct deallocator : public iscoped_deallocator
     {
-    public:
-        adaptor(scoped_buffer_allocator& allocator) : _allocator(allocator) {}
-    public:
-        void deallocate(void* buffer, size_t size) { _allocator.deallocate(buffer, size); }
-    protected:
-        scoped_buffer_allocator& _allocator;
+        deallocator(scoped_allocator& allocator) : _allocator(allocator) {}
+        void deallocate(void* buffer, size_t size) override { _allocator.deallocate(buffer, size); }
+
+        scoped_allocator& _allocator;
     };
 
 public:
-    scoped_buffer_allocator()
-        : _alloced(0), _adaptor(*this)
+    scoped_allocator()
+        : _alloced(0), _dealloc(*this)
     {
+        void* p = _pool;
+        size_t s = N;
+        std::align(A, 0, p, s);
+        _alloced = N - s;   // align base size;
     }
 
-    scoped_buffer_allocator(scoped_buffer_allocator&& other)
-        : _adaptor(0), _adaptor(*this)
-    {
-    }
-
-protected:
-    scoped_buffer_allocator(const scoped_buffer_allocator&) { static_assert(false, "allocator not allow copy"); }
-    scoped_buffer_allocator& operator = (const scoped_buffer_allocator&) { static_assert(false, "allocator not allow copy"); }
+    scoped_allocator(const scoped_allocator&) = delete;
+    scoped_allocator& operator = (const scoped_allocator&) = delete;
 
 public:
     scoped_buffer allocate(size_t size)
@@ -68,29 +55,24 @@ public:
 
         _alloced += align_size;
 
-        return scoped_buffer(&_adaptor, buffer, size);
+        return scoped_buffer(&_dealloc, buffer, size);
     }
 
-    size_t size() const
-    {
-        return _alloced;
-    }
+    inline size_t size() const { return _alloced; }
+    inline size_t capacity() const { return N; }
 
-    size_t capacity() const
-    {
-        return N;
-    }
 protected:
     void deallocate(void* buffer, size_t size)
     {
         size_t align_size = align(size);
         uint8_t* addres = (uint8_t*)buffer;
+
 #if SCOPED_ALLOCATOR_BOUNDARY_CHECK
         if (size && align_size == size)
             align_size += A;
 #endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
 
-        assert((addres >= _pool && (addres - _pool) <= N) && "not allocate from this obj");
+        assert((addres >= _pool && (addres - _pool) <= N) && "not allocate from this object");
         assert((addres - _pool == _alloced - align_size) && "deallocate order not as allocated");
 
         _alloced -= align_size;
@@ -120,6 +102,7 @@ private:
         assert(over == 0 && "buffer has been overrides");
     }
 #endif // SCOPED_ALLOCATOR_BOUNDARY_CHECK
+
     size_t align(size_t size)
     {
         size_t rem = size % A;
@@ -129,8 +112,8 @@ private:
 
 protected:
     size_t _alloced;
-    adaptor _adaptor;
+    deallocator _dealloc;
     uint8_t _pool[N];
 };
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

@@ -7,7 +7,7 @@
 #include "detail/_tree.h"
 #include <xstddef>
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -54,4 +54,4 @@ public:
     }
 };
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

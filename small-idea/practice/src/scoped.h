@@ -12,7 +12,7 @@
 #include <set>
 #include <map>
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 namespace scoped
 {
@@ -68,4 +68,4 @@ namespace scoped
     }
 }
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

@@ -3,7 +3,7 @@
 #include "test_util.h"
 #include "test.h"
 
-USING_NAMESPACE;
+UTILITY_USING_NAMESPACE;
 
 static void test_normal()
 {

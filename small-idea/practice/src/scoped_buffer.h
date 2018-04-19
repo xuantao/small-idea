@@ -4,14 +4,14 @@
 */
 #pragma once
 
-#include "deallocator.h"
+#include "iscoped_deallocator.h"
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 /*
  * scoped buffer, 作用域范围内有效的Buffer
- * scoped_buffer 对象用来管理和控制缓存的生命期
- * scoped_buffer 不可以被复制/持有
+ * 对象用来管理和控制缓存的生命期
+ * 不可以被复制/持有
 */
 class scoped_buffer
 {
@@ -21,7 +21,7 @@ public:
         capture(std::forward<scoped_buffer>(other));
     }
 
-    scoped_buffer(deallocator* dealloc, void* buffer, size_t size)
+    scoped_buffer(iscoped_deallocator* dealloc, void* buffer, size_t size)
         : _deallocator(dealloc), _buffer(buffer), _size(size)
     {
     }
@@ -54,9 +54,9 @@ protected:
     }
 
 protected:
-    deallocator* _deallocator;
+    iscoped_deallocator* _deallocator;
     void* _buffer;
     size_t _size;
 };
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

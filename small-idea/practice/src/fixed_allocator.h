@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -128,4 +128,4 @@ protected:
     size_type _size;
 };
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

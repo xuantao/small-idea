@@ -7,7 +7,7 @@
 
 #include "common.h"
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 namespace scope_guard_detail
 {
@@ -235,4 +235,4 @@ namespace scope_guard_detail
 
 typedef scope_guard_detail::scope_guard<512> scope_guard;
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

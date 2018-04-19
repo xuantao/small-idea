@@ -9,7 +9,7 @@
 #include <utility>
 #include <iterator>
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -871,4 +871,4 @@ namespace detail
     };
 }
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

@@ -6,15 +6,16 @@
 
 #include "scoped_buffer.h"
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 /*
-* 用scoped_buffer构造的Obj数组
+ * 用scoped_buffer构造的Obj数组
 */
 template <class Ty>
-class scoped_obj_buffer : public scoped_buffer
+class scoped_obj_buffer : private scoped_buffer
 {
 public:
     typedef std::ptrdiff_t difference_type;
+
 public:
     scoped_obj_buffer(scoped_obj_buffer&& other)
         : scoped_buffer(std::forward<scoped_buffer>(other))
@@ -39,13 +40,13 @@ public:
         destruct();
     }
 
-private:
-    scoped_obj_buffer(const scoped_obj_buffer&) { static_assert(false, "not allow copy"); }
-    scoped_obj_buffer& operator = (const scoped_obj_buffer&) { static_assert(false, "not allow copy"); }
+    scoped_obj_buffer(const scoped_obj_buffer&) = delete;
+    scoped_obj_buffer& operator = (const scoped_obj_buffer&) = delete;
 
 public:
-    Ty* get() const { return (Ty*)scoped_buffer::get(); }
-    size_t count() const { return size() / sizeof(Ty); }
+    inline Ty* get() const { return (Ty*)scoped_buffer::get(); }
+    inline size_t count() const { return scoped_buffer::size() / sizeof(Ty); }
+    inline bool empty() const { return count() == 0; }
 
     const Ty& operator [] (difference_type idx) const
     {
@@ -63,7 +64,7 @@ protected:
     {
         size_t c = count();
         for (size_t i = 0; i < c; ++i)
-            new (&get()[i]) Ty();
+            new (get() + i) Ty();
     }
 
     template <typename ...Args>
@@ -71,14 +72,14 @@ protected:
     {
         size_t c = count();
         for (size_t i = 0; i < c; ++i)
-            new (&get()[i]) Ty(std::forward<Args>(args)...);
+            new (get() + i) Ty(std::forward<Args>(args)...);
     }
 
     void destruct()
     {
         size_t idx = count();
         while (idx)
-            (&get()[--idx])->~Ty();
+            (get()[--idx]).~Ty();
     }
 };
-NAMESPACE_END
+UTILITY_NAMESPACE_END

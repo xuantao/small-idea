@@ -7,7 +7,7 @@
 #include "scoped_buffer.h"
 #include "detail/_vector.h"
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 /*
  * 域范围内有效的vector容器
@@ -18,7 +18,6 @@ template <class Ty>
 class scoped_vector
 {
 public:
-    typedef scoped_vector<Ty> _my_type;
     typedef Ty value_type;
     typedef Ty* pointer;
     typedef Ty& reference;
@@ -42,7 +41,7 @@ public:
     {
     }
 
-    scoped_vector(_my_type&& other)
+    scoped_vector(scoped_vector&& other)
         : _buff(std::move(other._buff))
         , _val(std::move(other._val))
     {
@@ -56,16 +55,8 @@ public:
         Next() = 0;
     }
 
-protected:
-    _my_type(const _my_type& other)
-    {
-        static_assert(false, "not allow copy");
-    }
-
-    _my_type& operator = (const _my_type& other)
-    {
-        static_assert(false, "not allow copy");
-    }
+    scoped_vector(const scoped_vector& other) = delete;
+    scoped_vector& operator = (const scoped_vector& other) = delete;
 
 public:
     reference operator [] (difference_type idx)
@@ -76,7 +67,7 @@ public:
 
     const_reference operator [] (difference_type idx) const
     {
-        return const_cast<_my_type*>(this)->operator [](idx);
+        return const_cast<scoped_vector*>(this)->operator [](idx);
     }
 
     reference front()
@@ -87,7 +78,7 @@ public:
 
     const_reference front() const
     {
-        return const_cast<_my_type*>(this)->front();
+        return const_cast<scoped_vector*>(this)->front();
     }
 
     reference back()
@@ -98,7 +89,7 @@ public:
 
     const_reference back() const
     {
-        return const_cast<_my_type*>(this)->back();
+        return const_cast<scoped_vector*>(this)->back();
     }
 
     iterator begin()
@@ -140,7 +131,7 @@ public:
     }
 
     template <class _Ty>
-    iterator insert(const_iterator position, _Ty&& val)
+    inline iterator insert(const_iterator position, _Ty&& val)
     {
         return insert(position, 1, std::forward<_Ty>(val));
     }
@@ -167,7 +158,7 @@ public:
         return iterator(&_val, idx);
     }
 
-    iterator erase(const_iterator position)
+    inline iterator erase(const_iterator position)
     {
         return erase(position, position + 1);
     }
@@ -194,25 +185,11 @@ public:
         return iterator(&_val, begIdx);
     }
 
-    bool empty() const
-    {
-        return _val.empty();
-    }
+    inline bool empty() const { return _val.empty(); }
+    inline size_type size() const { return _val.size(); }
+    inline size_type capacity() const { return _buff.size() / sizeof(Ty); }
+    inline size_type max_size() const { return capacity(); }
 
-    size_type size() const
-    {
-        return _val.size();
-    }
-
-    size_type capacity() const
-    {
-        return _buff.size() / sizeof(Ty);
-    }
-
-    size_type max_size() const
-    {
-        return capacity();
-    }
 protected:
     template <class _Ty>
     inline void construct(Ty* pTy, _Ty&& ty)
@@ -232,4 +209,4 @@ protected:
     _val_type _val;
 };
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

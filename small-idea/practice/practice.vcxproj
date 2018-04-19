@@ -147,14 +147,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h" />
-    <ClInclude Include="src\deallocator.h" />
     <ClInclude Include="src\detail\_tree.h" />
     <ClInclude Include="src\detail\_vector.h" />
     <ClInclude Include="src\fixed_allocator.h" />
+    <ClInclude Include="src\iscoped_deallocator.h" />
     <ClInclude Include="src\ref_count_set.h" />
     <ClInclude Include="src\scoped.h" />
     <ClInclude Include="src\scoped_buffer.h" />
-    <ClInclude Include="src\scoped_buffer_allocator.h" />
+    <ClInclude Include="src\scoped_allocator.h" />
     <ClInclude Include="src\scoped_map.h" />
     <ClInclude Include="src\scoped_obj_buffer.h" />
     <ClInclude Include="src\scoped_set.h" />

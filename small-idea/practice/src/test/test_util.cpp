@@ -1,6 +1,6 @@
 ﻿#include "test_util.h"
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 namespace test
 {
@@ -8,4 +8,4 @@ namespace test
     int Obj::index = 0;
 }
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

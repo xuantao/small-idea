@@ -1,56 +1,71 @@
 ﻿#include <vector>
 #include <memory>
 #include "scoped.h"
-#include "scoped_buffer_allocator.h"
+#include "scoped_allocator.h"
 
-NAMESPACE_BEGIN
+UTILITY_NAMESPACE_BEGIN
 
 namespace scoped
 {
-    class default_deallocator : public deallocator
+    namespace detail
     {
-    public:
-        virtual void deallocate(void* buff, size_t size)
+        struct ScopedBufferPool
         {
-            delete buff;
-        }
-    };
+            typedef scoped_allocator<
+                SCOPED_ALLOCATOR_BLOCK_SIZE,
+                SCOPED_ALLOCATOR_ALIGN_SIZE> scoped_allocator;
+            typedef std::auto_ptr<scoped_allocator> scoped_allocator_ptr;
 
-    typedef scoped_buffer_allocator<
-        SCOPED_ALLOCATOR_BLOCK_SIZE,
-        SCOPED_ALLOCATOR_ALIGN_SIZE> scoped_allocator;
-    typedef std::auto_ptr<scoped_allocator> scoped_allocator_ptr;
+            struct default_deallocator : public iscoped_deallocator
+            {
+                void deallocate(void* buff, size_t size) override { delete buff; }
+            };
 
-#if SCOPED_ALLOCATOR_MULTITHREAD
-    //TODO: 在这里添加多线程支持
-#else
-    scoped_buffer allocate_impl(size_t size)
-    {
-        static std::vector<scoped_allocator_ptr> s_alloc;
+            static constexpr size_t max_alloc_size =
+                SCOPED_ALLOCATOR_BLOCK_SIZE - SCOPED_ALLOCATOR_ALIGN_SIZE * 3;
 
-        for (auto it = s_alloc.begin(); it != s_alloc.end(); ++it)
-        {
-            scoped_allocator_ptr& allocator = *it;
-            if (allocator->capacity() - allocator->size() > size)
-                return allocator->allocate(size);
-        }
+            ScopedBufferPool()
+            {
+                increment();
+            }
 
-        s_alloc.push_back(scoped_allocator_ptr(new scoped_allocator()));
-        return s_alloc.back()->allocate(size);
-    }
-#endif // SCOPED_ALLOCATOR_MULTITHREAD
+            scoped_buffer allocate(size_t size)
+            {
+                /* 超出容器最大范围, 则直接从堆里面分配 */
+                if (size >= max_alloc_size)
+                    return scoped_buffer(&_dealloc, new char[size], size);
+
+                auto b1 = _pool.back()->allocate(size);
+                if (!b1.empty())
+                    return b1;
+
+                increment();
+
+                auto b2 = _pool.back()->allocate(size);
+                assert(!b2.empty());
+                return b2;
+            }
+
+            inline void increment()
+            {
+                _pool.push_back(scoped_allocator_ptr(new scoped_allocator()));
+            }
+
+            default_deallocator _dealloc;
+            std::vector<scoped_allocator_ptr> _pool;
+        };
+    } // namespace detail
 
     scoped_buffer allocate(size_t size)
     {
-        static default_deallocator s_default;
-        /*
-         * 超出容器最大范围, 则直接从堆里面分配
-        */
-        if (size > scoped_allocator::capacity_size)
-            return scoped_buffer(&s_default, new char[size], size);
+#if SCOPED_ALLOCATOR_MULTITHREAD
+        static thread_local detail::ScopedBufferPool sPool;
+#else
+        static detail::ScopedBufferPool sPool;
+#endif // SCOPED_ALLOCATOR_MULTITHREAD
 
-        return allocate_impl(size);
+        return sPool.allocate(size);
     }
-}
+} // namespace scoped
 
-NAMESPACE_END
+UTILITY_NAMESPACE_END

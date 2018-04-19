@@ -2,7 +2,7 @@
 #include "../ref_count_set.h"
 #include "test.h"
 
-USING_NAMESPACE;
+UTILITY_USING_NAMESPACE;
 
 void ref_count_set_test()
 {
