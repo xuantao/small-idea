@@ -11,7 +11,7 @@
 
 #define UTILITY_NAMESPACE_BEGIN namespace utilty {
 #define UTILITY_NAMESPACE_END }
-#define UTILITY_USING_NAMESPACE using namespace utilty
+#define UTILITY_USING_NAMESPACE using namespace utilty;
 #define UTILITY_NAMESPCE utilty::
 
 #define SCOPED_ALLOCATOR_BLOCK_SIZE 1024 * 1024

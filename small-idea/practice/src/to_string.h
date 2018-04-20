@@ -12,7 +12,7 @@
 
 inline int to_string(char* buff, size_t size, const char* val)
 {
-    return snprintf(buff, size, "%s", val ? val : "nullptr");
+    return snprintf(buff, size, "%s", (const char*)(val ? val : "nullptr"));
 }
 
 inline int to_string(char* buff, size_t size, const std::string& val)

@@ -270,19 +270,20 @@ namespace logger
 } // namespace logger
 
 
-struct log_proxy
+struct ilog_proxy
 {
-    virtual ~log_proxy() {}
+    virtual ~ilog_proxy() {}
     virtual void log(int level, const char* msg) = 0;
 };
 
-void set_log_proxy(log_proxy* proxy);
-log_proxy* get_log_proxy();
+void set_log_proxy(ilog_proxy* proxy);
+ilog_proxy* get_log_proxy();
 
 template <typename... Args>
 inline void log_info(int level, Args&&... args)
 {
-
+    char buff[1024];
+    logger::log(buff, 1024, std::forward<Args>(args)...);
 }
 
 inline void log_info_fmt(int level, const char* fmt, ...)
