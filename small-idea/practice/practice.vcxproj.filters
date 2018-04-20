@@ -67,6 +67,12 @@
     <ClInclude Include="src\iscoped_deallocator.h">
       <Filter>src\scoped</Filter>
     </ClInclude>
+    <ClInclude Include="src\to_string.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\logger.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

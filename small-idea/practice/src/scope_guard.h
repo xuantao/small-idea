@@ -156,83 +156,81 @@ namespace scope_guard_detail
             delete[] static_cast<char*>(p);
         }
     };
+} // namespace detail
 
-    template <size_t _BlockSize>
-    class scope_guard
+template <size_t _BlockSize>
+class scope_guard
+{
+public:
+    enum { BlockSize = _BlockSize };
+    typedef detail::scope_guard_allocator<_BlockSize> allocator;
+
+public:
+    scope_guard() {}
+    ~scope_guard() { done(); }
+
+    scope_guard(const scope_guard&) = delete;
+    scope_guard& operator = (const scope_guard&) = delete;
+
+public:
+    template <typename Fy>
+    void push(Fy&& func)
     {
-    public:
-        enum { BlockSize = _BlockSize };
-        typedef scope_guard_allocator<_BlockSize> allocator;
+        typedef typename std::decay<Fy>::type decay;
+        typedef detail::caller_impl<decay> caller_impl;
 
-    public:
-        scope_guard() {}
-        ~scope_guard() { done(); }
+        auto buff = _alloc.allocate(sizeof(caller_impl));
+        assert(buff);
 
-        scope_guard(const scope_guard&) = delete;
-        scope_guard& operator = (const scope_guard&) = delete;
+        auto node = new (buff) caller_impl(std::forward<Fy>(func));
 
-    public:
-        template <typename Fy>
-        void push(Fy&& func)
+        node->next = _head;
+        _head = node;
+    }
+
+    inline bool is_dissmissed() const { return _dismiss; }
+
+    inline void dismiss() { _dismiss = true; }
+
+    bool done()
+    {
+        if (!is_dissmissed())
+            roll_back();
+        clear();
+        return is_dissmissed();
+    }
+
+private:
+    void roll_back()
+    {
+        auto node = _head;
+        while (node)
         {
-            typedef typename std::decay<Fy>::type decay;
-            typedef caller_impl<decay> caller_impl;
-
-            auto buff = _alloc.allocate(sizeof(caller_impl));
-            assert(buff);
-
-            auto node = new (buff) caller_impl(std::forward<Fy>(func));
-
-            node->next = _head;
-            _head = node;
+            node->call();
+            node = node->next;
         }
+    }
 
-        inline bool is_dissmissed() const { return _dismiss; }
+    void clear()
+    {
+        auto node = _head;
+        _head = nullptr;
 
-        inline void dismiss() { _dismiss = true; }
-
-        bool done()
+        while (node)
         {
-            if (!is_dissmissed())
-                roll_back();
-            clear();
-            return is_dissmissed();
+            auto tmp = node;
+            auto size = node->size();
+            node = node->next;
+
+            tmp->~caller();
+            _alloc.deallocate(tmp, size);
         }
+    }
 
-    private:
-        void roll_back()
-        {
-            auto node = _head;
-            while (node)
-            {
-                node->call();
-                node = node->next;
-            }
-        }
-
-        void clear()
-        {
-            auto node = _head;
-            _head = nullptr;
-
-            while (node)
-            {
-                auto tmp = node;
-                auto size = node->size();
-                node = node->next;
-
-                tmp->~caller();
-                _alloc.deallocate(tmp, size);
-            }
-        }
-
-    private:
-        bool _dismiss = false;
-        caller* _head = nullptr;
-        allocator _alloc;
-    };
-}
-
-typedef scope_guard_detail::scope_guard<512> scope_guard;
+private:
+    bool _dismiss = false;
+    caller* _head = nullptr;
+    allocator _alloc;
+};
 
 UTILITY_NAMESPACE_END

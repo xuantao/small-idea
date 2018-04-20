@@ -151,6 +151,7 @@
     <ClInclude Include="src\detail\_vector.h" />
     <ClInclude Include="src\fixed_allocator.h" />
     <ClInclude Include="src\iscoped_deallocator.h" />
+    <ClInclude Include="src\logger.h" />
     <ClInclude Include="src\ref_count_set.h" />
     <ClInclude Include="src\scoped.h" />
     <ClInclude Include="src\scoped_buffer.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="src\scope_guard.h" />
     <ClInclude Include="src\test\test.h" />
     <ClInclude Include="src\test\test_util.h" />
+    <ClInclude Include="src\to_string.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
