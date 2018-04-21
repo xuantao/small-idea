@@ -166,6 +166,7 @@
     <ClInclude Include="src\to_string.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\scoped.cpp" />
     <ClCompile Include="src\test\ref_count_set_test.cpp" />
@@ -174,6 +175,8 @@
     <ClCompile Include="src\test\scoped_set_test.cpp" />
     <ClCompile Include="src\test\scoped_vector_test.cpp" />
     <ClCompile Include="src\test\scope_guard_test.cpp" />
+    <ClCompile Include="src\test\test_logger.cpp" />
+    <ClCompile Include="src\test\test_to_string.cpp" />
     <ClCompile Include="src\test\test_util.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

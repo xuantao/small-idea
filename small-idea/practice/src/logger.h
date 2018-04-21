@@ -50,6 +50,14 @@ namespace logger
             >::type type;
         };
 
+        struct log_buff
+        {
+            char* buff;
+            bool failed;
+            size_t write_size;
+            size_t capacity;
+        };
+
         template <typename Ty>
         inline int log_dispatch_pointer(char* buff, size_t size, Ty* val, std::true_type)
         {
