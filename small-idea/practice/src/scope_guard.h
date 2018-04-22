@@ -158,12 +158,12 @@ namespace scope_guard_detail
     };
 } // namespace detail
 
-template <size_t _BlockSize>
+template <size_t _BlockSize = 512>
 class scope_guard
 {
 public:
     enum { BlockSize = _BlockSize };
-    typedef detail::scope_guard_allocator<_BlockSize> allocator;
+    typedef scope_guard_detail::scope_guard_allocator<_BlockSize> allocator;
 
 public:
     scope_guard() {}
@@ -177,7 +177,7 @@ public:
     void push(Fy&& func)
     {
         typedef typename std::decay<Fy>::type decay;
-        typedef detail::caller_impl<decay> caller_impl;
+        typedef scope_guard_detail::caller_impl<decay> caller_impl;
 
         auto buff = _alloc.allocate(sizeof(caller_impl));
         assert(buff);
@@ -229,7 +229,7 @@ private:
 
 private:
     bool _dismiss = false;
-    caller* _head = nullptr;
+    scope_guard_detail::caller* _head = nullptr;
     allocator _alloc;
 };
 

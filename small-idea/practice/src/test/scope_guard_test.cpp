@@ -32,7 +32,7 @@ static void test_scope_guard_normal()
     int a = 0;
     bool b = 1;
     MyOp op;
-    scope_guard guard;
+    scope_guard<> guard;
 
     //MyOp op1;                         // not allow, the op1 lifetime is not allow
     //guard.push(std::ref(op1));
@@ -53,7 +53,7 @@ static void test_scope_guard_normal()
 
 static void test_scope_guard_raw_alloc()
 {
-    typedef scope_guard_detail::scope_guard<0> scope_guard;
+    typedef scope_guard<0> scope_guard;
     int a = 0;
     bool b = true;
     scope_guard guarder;

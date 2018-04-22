@@ -4,12 +4,16 @@
 */
 #pragma once
 #include "common.h"
+#include <vector>
+#include <list>
+#include <map>
+#include <set>
 
 UTILITY_NAMESPACE_BEGIN
 
 namespace logger
 {
-    template <typename... Args> int log(char* buff, size_t size, Args&&... args);
+    template <typename Ty> int log(char* buff, size_t size, Ty&& val);
 
     namespace detail
     {
@@ -54,8 +58,7 @@ namespace logger
         {
             char* buff;
             bool failed;
-            size_t write_size;
-            size_t capacity;
+            int capacity;
         };
 
         template <typename Ty>
@@ -106,150 +109,142 @@ namespace logger
         }
 
         template <typename Ty>
-        void log_mul_impl(char*& buff, int& capacity, int& write_size, bool is_last, Ty&& val)
+        inline void log_mul_impl(log_buff& lb, Ty&& val)
         {
-            if (write_size < 0)
+            if (lb.failed || lb.capacity <= 0)
                 return;
 
-            int w = log_impl(buff, capacity, std::forward<Ty>(val));
-            write_size += w;
-            capacity -= w;
+            int w = log(lb, lb.capacity, std::forward<Ty>(val));
+            lb.failed = w < 0;
+            if (lb.failed)
+                return;
 
-            if (w < 0)
-                capacity = w;
-            else if (w > capacity)
-                capacity = 0;
-            else
-                buff += w;
+            lb.buff += w;
+            lb.capacity -= w;
+        }
 
-            if (!is_last)
-            {
-                if (capacity >= 1)
-                {
-                    buff[0] = ',';
-                    buff += 1;
-                    capacity -= 1;
-                    write_size += 1;
-                }
+        template <typename Ty>
+        inline void log_mul(log_buff& lb, Ty&& val, const char* sep, bool is_last)
+        {
+            log_mul_impl(lb, std::forward<Ty>(val));
+            if (is_last && sep && *sep)
+                log_mul_impl(lb, sep);
+        }
 
-                if (capacity >= 1)
-                {
-                    buff[0] = '';
-                    buff += 1;
-                    write_size += 1;
-                    capacity -= 1;
-                }
-            }
+        template <typename... Args, size_t... Idxs>
+        inline int log_mul(char* buff, size_t size, const char* sep, std::tuple<Args...>& vals, index_sequence<Idxs...>)
+        {
+            using its = int[];
+            log_buff lb{buff, false, (int)size};
+
+            its{0,
+                (log_mul(lb, std::forward<Args>(std::get<Idxs>(vals)), sep, Idxs + 1 == N), 0)...
+            };
+
+            if (lb.failed) return -1;
+            else if (lb.capacity <= 0) return size;
+            else return size - lb.capacity;
         }
 
         template <typename...Args, size_t... Idxs>
-        int log_mul_impl(char* buff, size_t size, std::tuple<Args..>& vals, index_sequence<idxs...>)
+        inline int log_mul(char* buff, size_t size, std::tuple<Args...>& vals, index_sequence<Idxs...>)
         {
             using its = int[];
-            int capacity = (int)size;
-            int write_size = 0;
-            constexpr N = sizeof...(Args);
+            log_buff lb{buff, false, (int)size};
 
-            if (capacity >= 1)
-            {
-                buff[0] = '{';
-                buff += 1;
-                capacity -= 1;
-                write_size += 1;
-            }
-
-            its{ 0,
-                (log_mul_impl(buff, capacity, write_size, Idxs + 1 == N, std::forward<Args>(std::get<Idxs>(vals))), 0)...
+            its{0,
+                (log_mul_impl(lb, std::forward<Args>(std::get<Idxs>(vals))), 0)...
             };
 
-            if (write_size < 0)
-                return write_size;
-
-            if (write_size < (int)size)
-            {
-                buff[0] = '}';
-                buff += 1;
-                write_size += 1;
-            }
-
-            return write_size;
+            if (lb.failed) return -1;
+            else if (lb.capacity <= 0) return size;
+            else return size - lb.capacity;
         }
     } // namespace detail
 
     template <typename... Args>
-    inline int log(char* buff, size_t size, Args&&... args)
+    inline int log_ser(char* buff, size_t size, const char* sep, Args&&... args)
     {
-        return detail::log_mul_impl(
-            buff,
-            size,
+        return detail::log_mul(buff, size, sep,
+            std::make_tuple(std::forward<Args>(args)...),
+            make_index_sequence_t<sizeof...(Args)>()
+        );
+    }
+
+    template <typename... Args>
+    inline int log_mul(char* buff, size_t size, Args&&... args)
+    {
+        return detail::log_mul(buff, size,
             std::make_tuple(std::forward<Args>(args)...),
             make_index_sequence_t<sizeof...(Args)>()
         );
     }
 
     template <typename Iter>
-    int log(char* buff, size_t size, Iter beg, Iter end)
+    int log_iter(char* buff, size_t size, Iter beg, Iter end)
     {
-        int ws = 0;
-        int capacity = (int)size;
+        detail::log_buff lb{buff, false, (int)size};
 
-        if (!capacity)
-            return ws;          // full
-
-        *buff = '{';
-        buff += 1;
-        ws += 1;
-        capacity -= 1;
-
-        if (!capacity)
-            return ws;          // full
-
+        detail::log_impl(lb, '{');
         for (; beg != end; ++beg)
-            detail::log_mul_impl(buff, capacity, ws, (beg + 1 == end), *beg);
-
-        if (ws >= 0 && ws < (int)size)
         {
-            *buff = '}';
-            ws += 1;
+            detail::log_impl(lb, *beg);
+            if (beg + 1 != end)
+                detail::log_impl(lb, ", ");
         }
+        detail::log_impl(lb, '}');
 
-        return ws;
+        if (lb.failed) return -1;
+        else if (lb.capacity <= 0) return size;
+        else return size - lb.capacity;
+    }
+
+    template <typename Ty>
+    inline int log(char* buff, size_t size, Ty&& val)
+    {
+        return detail::log_impl(buff, size, std::forward<Ty>(val));
     }
 
     template <typename Ky, typename Vy>
     inline int log(char* buff, size_t size, const std::pair<Ky, Vy>& pair)
     {
-        return log(buff, size, pair.first, pair.second);
+        return log_ser(buff, size, ":", '{', pair.first, pair.second, '}');
     }
 
     template <typename Ty, size_t N>
     inline int log(char* buff, size_t size, const std::array<Ty, N>& val)
     {
-        return log(buff, size, val.cbegin(), val.cend());
+        return log_iter(buff, size, val.cbegin(), val.cend());
+    }
+
+    template <size_t N>
+    inline int log(char* buff, size_t size, char val[N])
+    {
+        return log(buff, size, val);
     }
 
     template <typename Ty, size_t N>
-    inline int log(char* buff, size_t size, Ty[N] val)
+    inline int log(char* buff, size_t size, Ty val[N])
     {
-        return log(buff, size, &val[0], &val[N]);
+        return log_iter(buff, size, &val[0], &val[N]);
     }
 
     template <typename Ty>
     inline int log(char* buff, size_t size, const std::vector<Ty>& val)
     {
-        return log(buff, size, val.cbegin(), val.cend());
+        return log_iter(buff, size, val.cbegin(), val.cend());
     }
 
     template <typename Ty>
     inline int log(char* buff, size_t size, const std::list<Ty>& val)
     {
-        return log(buff, size, val.cbegin(), val.cend());
+        return log_iter(buff, size, val.cbegin(), val.cend());
     }
 
     template <typename Ky, typename Ty>
     inline int log(char* buff, size_t size, const std::map<Ky, Ty>& val)
     {
-        return log(buff, size, val.cbegin(), val.cend());
+        return log_iter(buff, size, val.cbegin(), val.cend());
     }
 
     template <typename R, typename... Args>
