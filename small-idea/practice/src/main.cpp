@@ -9,12 +9,13 @@
 
 int main(int argc, char* argv[])
 {
-    ref_count_set_test();
-    scoped_buffer_test();
-    scoped_vector_test();
-    scoped_set_test();
-    scoped_map_test();
-    scope_guard_test();
+    test_logger();
+    //ref_count_set_test();
+    //scoped_buffer_test();
+    //scoped_vector_test();
+    //scoped_set_test();
+    //scoped_map_test();
+    //scope_guard_test();
 
     system("pause");
     return 0;

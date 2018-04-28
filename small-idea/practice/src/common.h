@@ -38,10 +38,10 @@ struct make_index_sequence : make_index_sequence<N - 1, N - 1, Indices...> {};
 template<size_t... Indices>
 struct make_index_sequence<0, Indices...>
 {
-    typedef make_index_sequence<Indices...> type;
+    typedef index_sequence<Indices...> type;
 };
 
 template <size_t N>
-using make_index_sequence_t = typename make_index_sequence<N>::Type;
+using make_index_sequence_t = typename make_index_sequence<N>::type;
 
 UTILITY_NAMESPACE_END

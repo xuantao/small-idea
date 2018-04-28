@@ -4,13 +4,15 @@
 */
 #pragma once
 #include "common.h"
+#include "to_string.h"
 #include <vector>
 #include <list>
 #include <map>
 #include <set>
+#include <algorithm>
 
 UTILITY_NAMESPACE_BEGIN
-
+/*
 namespace logger
 {
     template <typename Ty> int log(char* buff, size_t size, Ty&& val);
@@ -28,7 +30,7 @@ namespace logger
         template <typename Ty>
         struct has_to_string
         {
-            template <typename U>static U get_val();
+            template <typename U> static U get_val();
             template <typename U> static auto check(int) -> decltype(to_string((char*)0, 0, get_val<U>()), std::true_type());
             template <typename U> static std::false_type check(...);
 
@@ -60,6 +62,29 @@ namespace logger
             bool failed;
             int capacity;
         };
+
+        struct val_name
+        {
+            const char* name;
+            size_t length;
+        };
+
+        inline void log_str_array(log_buff lb, const char* src, size_t n)
+        {
+            int s = (int)(n - (src[n - 1] ? 0 : 1));    // 数组有可能最后一个元素不是结束符
+            s = std::min(s, lb.capacity);
+            //strncpy(lb.buff, src, s);
+            lb.buff += s;
+            lb.capacity -= s;
+        }
+
+        inline int log_str_array(char* buff, size_t size, const char* src, size_t n)
+        {
+            size_t s = n - (src[n - 1] ? 0 : 1);    // 数组有可能最后一个元素不是结束符
+            s = std::min(s, size);
+            //strncpy(buff, src, s);
+            return (int)s;
+        }
 
         template <typename Ty>
         inline int log_dispatch_pointer(char* buff, size_t size, Ty* val, std::true_type)
@@ -109,7 +134,7 @@ namespace logger
         }
 
         template <typename Ty>
-        inline void log_mul_impl(log_buff& lb, Ty&& val)
+        inline void log_impl(log_buff& lb, Ty&& val)
         {
             if (lb.failed || lb.capacity <= 0)
                 return;
@@ -124,21 +149,35 @@ namespace logger
         }
 
         template <typename Ty>
-        inline void log_mul(log_buff& lb, Ty&& val, const char* sep, bool is_last)
+        inline void log_impl(log_buff& lb, Ty&& val, std::pair<const val_name&, Ty>&& val)
         {
-            log_mul_impl(lb, std::forward<Ty>(val));
-            if (is_last && sep && *sep)
-                log_mul_impl(lb, sep);
+            if (lb.failed || lb.capacity <= 0)
+                return;
+
+            if (length)
+            {
+                log_str_array(lb, val.first.name, val.first.length);
+                log_impl(lb, ':');
+            }
+            log_impl(lb, val.second);
+        }
+
+        template <typename Ty>
+        inline void log_sep(log_buff& lb, Ty&& val, const char* sep, bool is_last)
+        {
+            log_impl(lb, std::forward<Ty>(val));
+            if (!is_last && sep && *sep)
+                log_impl(lb, sep);
         }
 
         template <typename... Args, size_t... Idxs>
-        inline int log_mul(char* buff, size_t size, const char* sep, std::tuple<Args...>& vals, index_sequence<Idxs...>)
+        inline int log_sep(char* buff, size_t size, const char* sep, std::tuple<Args...>& vals, index_sequence<Idxs...>)
         {
             using its = int[];
             log_buff lb{buff, false, (int)size};
 
             its{0,
-                (log_mul(lb, std::forward<Args>(std::get<Idxs>(vals)), sep, Idxs + 1 == N), 0)...
+                (log_sep(lb, std::forward<Args>(std::get<Idxs>(vals)), sep, Idxs + 1 == N), 0)...
             };
 
             if (lb.failed) return -1;
@@ -153,19 +192,81 @@ namespace logger
             log_buff lb{buff, false, (int)size};
 
             its{0,
-                (log_mul_impl(lb, std::forward<Args>(std::get<Idxs>(vals))), 0)...
+                (log_impl(lb, std::forward<Args>(std::get<Idxs>(vals))), 0)...
             };
 
             if (lb.failed) return -1;
             else if (lb.capacity <= 0) return size;
             else return size - lb.capacity;
         }
+
+        inline const char* skip_str(const char* str)
+        {
+            if (*str != '"')
+                return str;
+
+            do {
+                ++str;
+                if (*str == '"' && str[-1] != '\\')
+                {
+                    ++str;
+                    break;
+                }
+            } while (*str);
+
+            return str;
+        }
+
+        template <size_t N>
+        void _parse_names(const char* names, std::array<val_name, N>& ary)
+        {
+            const char* tmp = names;
+            size_t index = 0;
+
+            for (; index < N; ++index)
+            {
+                auto& els = ary[index];
+
+                tmp = skip_str(tmp);
+                while (*tmp == ' ' || *tmp == '\t')
+                    ++tmp;  // remove empty char
+
+                els.name = tmp;
+
+                const char* next = strchr(tmp, ',');
+                if (next)
+                {
+                    els.length = strlen(tmp);
+                    break;
+                }
+
+                els.length = next - tmp;
+                tmp = next + 1;
+            }
+
+            for (; index < N; ++i)
+                ary[index].length = 0;
+        }
+
+        template <typename... Args, size_t... Idxs>
+        inline void log_with_name(char* buf, size_t size, const char* names, std::tuple<Args...>& vals, index_sequence<Idxs...> is)
+        {
+            constexpr size_t N = sizeof...(Args);
+            std::array<val_name, N> name_array;
+
+            _parse_names(names, name_array);
+
+            return detail::log_sep(buff, size, ", ",
+                std::make_tuple(std::make_pair(std::get<Idxs>(name_array), std::get<Idxs>(vals))...),
+                is
+            );
+        }
     } // namespace detail
 
     template <typename... Args>
-    inline int log_ser(char* buff, size_t size, const char* sep, Args&&... args)
+    inline int log_sep(char* buff, size_t size, const char* sep, Args&&... args)
     {
-        return detail::log_mul(buff, size, sep,
+        return detail::log_sep(buff, size, sep,
             std::make_tuple(std::forward<Args>(args)...),
             make_index_sequence_t<sizeof...(Args)>()
         );
@@ -208,7 +309,7 @@ namespace logger
     template <typename Ky, typename Vy>
     inline int log(char* buff, size_t size, const std::pair<Ky, Vy>& pair)
     {
-        return log_ser(buff, size, ":", '{', pair.first, pair.second, '}');
+        return log_sep(buff, size, ":", '{', pair.first, pair.second, '}');
     }
 
     template <typename Ty, size_t N>
@@ -218,13 +319,21 @@ namespace logger
     }
 
     template <size_t N>
-    inline int log(char* buff, size_t size, char val[N])
+    inline int log(char* buff, size_t size, const char (&val)[N])
     {
-        return log(buff, size, val);
+        static_assert(N > 0, "char array size must be greater than 0");
+        return detail::log_str_array(buff, size, val, N);
+    }
+
+    template <size_t N>
+    inline int log(char* buff, size_t size, char (&val)[N])
+    {
+        static_assert(N > 0, "char array size must be greater than 0");
+        return detail::log_str_array(buff, size, val, N);
     }
 
     template <typename Ty, size_t N>
-    inline int log(char* buff, size_t size, Ty val[N])
+    inline int log(char* buff, size_t size, Ty (&val)[N])
     {
         return log_iter(buff, size, &val[0], &val[N]);
     }
@@ -272,7 +381,6 @@ namespace logger
     }
 } // namespace logger
 
-
 struct ilog_proxy
 {
     virtual ~ilog_proxy() {}
@@ -286,12 +394,25 @@ template <typename... Args>
 inline void log_info(int level, Args&&... args)
 {
     char buff[1024];
-    logger::log(buff, 1024, std::forward<Args>(args)...);
+    logger::log_sep(buff, 1024, ", ", std::forward<Args>(args)...);
+    get_log_proxy()->log(level, buff);
 }
 
-inline void log_info_fmt(int level, const char* fmt, ...)
+template <typename... Args>
+inline void log_fmt(int level, const char* fmt, Args&&... args)
 {
 
 }
 
+template <typename... Args>
+inline void log_with_name(int level, const char* names, Args&&... args)
+{
+    char buff[1024];
+    logger::detail::log_with_name(buff, 1024, names,
+        std::make_tuple(std::forward<Args>(args)...),
+        make_index_sequence_t<sizeof...(Args)>()
+    );
+    get_log_proxy()->log(level, buff);
+}
+*/
 UTILITY_NAMESPACE_END
