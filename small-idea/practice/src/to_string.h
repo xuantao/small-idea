@@ -180,12 +180,6 @@ namespace detail
         int capacity;
     };
 
-    struct val_name
-    {
-        const char* name;
-        size_t length;
-    };
-
     inline void to_str_array(str_buff& sb, const char* src, size_t n)
     {
         int w = _to_string_array(sb.buff, sb.capacity, src, n);
@@ -377,6 +371,20 @@ template <typename Ty, size_t N>
 inline int to_str_t(char* buff, size_t size, const std::array<Ty, N>& val)
 {
     return to_str_iter(buff, size, val.cbegin(), val.cend());
+}
+
+template <size_t N>
+inline int to_str_t(char* buff, size_t size, const char(&val)[N])
+{
+    static_assert(N > 0, "const char array size must be greater than 0");
+    return _to_string_array(buff, size, val, N);
+}
+
+template <size_t N>
+inline int to_str_t(char* buff, size_t size, char(&val)[N])
+{
+    static_assert(N > 0, "char array size must be greater than 0");
+    return _to_string_array(buff, size, val, N);
 }
 
 template <typename Ty, size_t N>

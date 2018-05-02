@@ -43,4 +43,8 @@ void test_logger()
 
     to_str_format(buff, BUFF_SIZE, "{0}, {1}", &TestToStringObj::print, &TestToStringObj::a);
     printf("test_logger %s\n", buff);
+
+    LOG_INFO(1, 1, "xuantao", true);
+    LOG_VALS(1, 1, "xuantao", true);
+    LOG_FORMAT(1,"1:{0}, 2:{1}, 3:{2} ", 1, "xuantao", true);
 }
