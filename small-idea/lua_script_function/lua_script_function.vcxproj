@@ -116,6 +116,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\lua_script_function.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\ring_buffer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\ring_buffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

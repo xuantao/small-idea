@@ -258,7 +258,7 @@ LUA_SCRIPT_FILE_FUNC(int, CallA, int);
 LUA_SCRIPT_FILE_FUNC(void, CallB, int, int);
 LUA_SCRIPT_FILE_END();
 
-int main(int argc, char* argv[])
+int main2(int argc, char* argv[])
 {
     KScriptCenter mgr;
     auto pair = mgr.StaticScript<XxxScript>().OnNewPlayerInitial(1);
