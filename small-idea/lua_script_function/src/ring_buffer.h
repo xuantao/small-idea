@@ -77,29 +77,17 @@ public:
     bool Init();
     void UnInit();
 
-    inline bool Empty() const { return _pushNum == _popNum; }
+    inline bool Empty() const { return _num == 0; }
     Block Push(size_t size);
     Block Pop();
 
 private:
-    struct Address
-    {
-        int32_t block;
-        int32_t pos;
-    };
-
-    struct Header
-    {
-        int32_t size;
-    };
-
-private:
     size_t _blockSize;
-    Address _writeAddr;
-    Address _readAddr;
-    std::vector<int8_t*> _blocks;
-    std::atomic_long _pushNum = ATOMIC_VAR_INIT(0);
-    std::atomic_long _popNum = ATOMIC_VAR_INIT(0);
+    int8_t* _pool = nullptr;
+    size_t _write = 0;
+    size_t _read = 0;
+    std::atomic_long _num = ATOMIC_VAR_INIT(0);
+    
     SpinLock _popLock;
     SpinLock _pushLock;
 };
