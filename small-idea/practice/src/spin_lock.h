@@ -1,3 +1,6 @@
+/*
+ * 自旋锁
+*/
 #pragma once
 #include "common.h"
 #include <atomic>
@@ -27,6 +30,7 @@ public:
 #ifdef _DEBUG
         _thread_id = std::thread::id();
 #endif // _DEBUG
+
         _locked.clear(std::memory_order_release);
     }
 

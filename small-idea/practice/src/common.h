@@ -44,9 +44,7 @@ struct make_index_sequence<0, Indices...>
 template <size_t N>
 using make_index_sequence_t = typename make_index_sequence<N>::type;
 
-/*
- * 单向链表
-*/
+/* 单向链表 */
 template <typename Ty>
 struct singly_node
 {
@@ -62,5 +60,13 @@ struct singly_node
     self_type* next = nullptr;
     value_type value;
 };
+
+/* 对齐 */
+inline size_t align(size_t sz, size_t bound = sizeof(void*))
+{
+    if ((sz & (bound-1)))
+        return (sz & (~(bound-1))) + bound;
+    return sz;
+}
 
 UTILITY_NAMESPACE_END
