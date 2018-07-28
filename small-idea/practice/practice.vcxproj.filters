@@ -73,6 +73,9 @@
     <ClInclude Include="src\logger.h">
       <Filter>src\utility</Filter>
     </ClInclude>
+    <ClInclude Include="src\spin_lock.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

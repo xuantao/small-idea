@@ -44,4 +44,23 @@ struct make_index_sequence<0, Indices...>
 template <size_t N>
 using make_index_sequence_t = typename make_index_sequence<N>::type;
 
+/*
+ * 单向链表
+*/
+template <typename Ty>
+struct singly_node
+{
+    typedef singly_node self_type;
+    typedef Ty value_type;
+
+    singly_node() { }
+
+    template <typename... Args>
+    singly_node(Args&&... args) : value(std::forward<Args>(args)...)
+    { }
+
+    self_type* next = nullptr;
+    value_type value;
+};
+
 UTILITY_NAMESPACE_END
