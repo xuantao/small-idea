@@ -76,6 +76,12 @@
     <ClInclude Include="src\spin_lock.h">
       <Filter>src\utility</Filter>
     </ClInclude>
+    <ClInclude Include="src\data_pipe.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\locked_buffer.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -112,6 +118,9 @@
       <Filter>src\test</Filter>
     </ClCompile>
     <ClCompile Include="src\logger.cpp">
+      <Filter>src\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\data_pipe.cpp">
       <Filter>src\utility</Filter>
     </ClCompile>
   </ItemGroup>

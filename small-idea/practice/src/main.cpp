@@ -17,6 +17,8 @@ int main(int argc, char* argv[])
     //scoped_map_test();
     //scope_guard_test();
 
+    //std::unique_ptr
+    //std::auto_ptr
     system("pause");
     return 0;
 }

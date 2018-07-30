@@ -1,4 +1,5 @@
-#include "data_pipe.h"
+﻿#include "data_pipe.h"
+#include <mutex>
 
 UTILITY_NAMESPACE_BEGIN
 
@@ -101,7 +102,6 @@ locked_buffer data_pipe::write(size_t sz)
     _w_lock.lock();
 
     void* data = _w_buf->value.write_begin(sz);
-
     if (data == nullptr)
     {
         next_node(true);
@@ -133,7 +133,7 @@ locked_buffer data_pipe::read()
     size_t sz = 0;
     void* data = _r_buf->value.read_begin(sz);
     assert(data);
-    
+
     return locked_buffer(&_r_unlocker, data, sz);
 }
 

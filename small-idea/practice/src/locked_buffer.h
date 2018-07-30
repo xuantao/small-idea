@@ -1,10 +1,11 @@
-#pragma once
+﻿#pragma once
 #include "common.h"
 
 UTILITY_NAMESPACE_BEGIN
 
 struct ibuffer_unlocker
 {
+    virtual ~ibuffer_unlocker() { }
     virtual void unlock(void* buf, size_t sz) = 0;
 };
 
@@ -17,7 +18,7 @@ public:
     locked_buffer() : _unlocker(nullptr), _buff(nullptr) { }
 
     locked_buffer(ibuffer_unlocker* unlocker, void* buf, size_t sz)
-        : _allocator(allocator)
+        : _unlocker(unlocker)
         , _buff(buf)
         , _size(sz)
     { }
@@ -32,8 +33,7 @@ public:
 
     ~locked_buffer()
     {
-        if (_unlocker)
-            _unlocker->unlock(_buff, _size);
+        if (_unlocker) _unlocker->unlock(_buff, _size);
     }
 
 public:

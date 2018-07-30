@@ -1,6 +1,6 @@
-/*
+﻿/*
  * 数据管道
- * 用于线程间的数据传递
+ * 用于线程间的数据传递（最优情况是一个发送线程对应一个接收线程）
 */
 #pragma once
 #include "spin_lock.h"
@@ -73,15 +73,17 @@ private:
 private:
     struct w_unlocker final : ibuffer_unlocker
     {
+        w_unlocker(data_pipe* pipe) : _pipe(pipe) {}
         void unlock(void*, size_t) override { _pipe->write_end(); }
         data_pipe* _pipe;
-    }
+    };
 
     struct r_unlocker final : ibuffer_unlocker
     {
+        r_unlocker(data_pipe* pipe) : _pipe(pipe) {}
         void unlock(void*, size_t) override { _pipe->read_end(); }
         data_pipe* _pipe;
-    }
+    };
 
 private:
     size_t _block;  // each block buffer size
