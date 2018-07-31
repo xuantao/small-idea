@@ -52,7 +52,7 @@ namespace scope_guard_detail
         enum { BlockSize = _Bsize, Align = sizeof(void*) };
 
         typedef fixed_serial_allocator<BlockSize, Align> serial_allocator;
-        typedef singly_node<serial_allocator> node_allocator;
+        typedef singly_node<serial_allocator> allocator_node;
 
     public:
         scope_guard_allocator() : _alloc(&_default)
@@ -86,7 +86,7 @@ namespace scope_guard_detail
             if (p != nullptr)
                 return p;
 
-            auto tmp = new node_allocator();
+            auto tmp = new allocator_node();
             tmp->next = _alloc;
             _alloc = tmp;
 
@@ -111,8 +111,8 @@ namespace scope_guard_detail
         }
 
     private:
-        node_allocator* _alloc = nullptr;
-        node_allocator _default;
+        allocator_node* _alloc = nullptr;
+        allocator_node _default;
     };
 
     template <>

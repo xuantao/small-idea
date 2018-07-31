@@ -15,13 +15,13 @@ class data_pipe
 {
 public:
     typedef fixed_ring_buffer<S, A> ring_buffer;
-    typedef singly_node<ring_buffer> buf_node;
+    typedef singly_node<ring_buffer> buffer_node;
     static constexpr size_t block_size = S;
 
 public:
     data_pipe(int max_empty = 10) : _max_empty(max_empty)
     {
-        _r_buf = _w_buf = new buf_node();
+        _r_buf = _w_buf = new buffer_node();
     }
 
     ~data_pipe()
@@ -101,7 +101,7 @@ private:
         if (w_node)
         {
             if (_w_buf->next = nullptr)
-                _w_buf->next = new buf_node();
+                _w_buf->next = new buffer_node();
 
             assert(_w_buf->next);
             _w_buf = _w_buf->next;
@@ -151,10 +151,10 @@ private:
     int _max_empty;     // max empty node count
     std::atomic<size_t> _count = ATOMIC_VAR_INIT(0);    // data count
 
-    buf_node* _r_buf = nullptr;
+    buffer_node* _r_buf = nullptr;
     spin_lock _r_lock;
 
-    buf_node* _w_buf = nullptr;
+    buffer_node* _w_buf = nullptr;
     spin_lock _w_lock;
 
     spin_lock _rw_lock;     // read and write will modify same member data
