@@ -1,5 +1,5 @@
 ﻿#include <memory>
-#include "../scoped_allocator.h"
+#include "../stack_allocator.h"
 #include "../scoped.h"
 #include "test_util.h"
 #include "test.h"
@@ -8,7 +8,7 @@ UTILITY_USING_NAMESPACE;
 
 namespace
 {
-    typedef scoped_allocator<56, 8> scoped_allocator;
+    typedef fixed_stack_allocator<56, 8> scoped_allocator;
     scoped_allocator _allocator;
 }
 

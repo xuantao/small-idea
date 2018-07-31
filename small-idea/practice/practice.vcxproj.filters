@@ -43,9 +43,6 @@
     <ClInclude Include="src\test\test_util.h">
       <Filter>src\test</Filter>
     </ClInclude>
-    <ClInclude Include="src\fixed_allocator.h">
-      <Filter>src\scoped</Filter>
-    </ClInclude>
     <ClInclude Include="src\ref_count_set.h">
       <Filter>src\utility</Filter>
     </ClInclude>
@@ -61,12 +58,6 @@
     <ClInclude Include="src\common.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\scoped_allocator.h">
-      <Filter>src\scoped</Filter>
-    </ClInclude>
-    <ClInclude Include="src\iscoped_deallocator.h">
-      <Filter>src\scoped</Filter>
-    </ClInclude>
     <ClInclude Include="src\to_string.h">
       <Filter>src\utility</Filter>
     </ClInclude>
@@ -79,8 +70,17 @@
     <ClInclude Include="src\data_pipe.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\locked_buffer.h">
+    <ClInclude Include="src\stack_allocator.h">
+      <Filter>src\scoped</Filter>
+    </ClInclude>
+    <ClInclude Include="src\serial_allocator.h">
+      <Filter>src\scoped</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ring_buffer.h">
       <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\particular_allocator.h">
+      <Filter>src\scoped</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -118,9 +118,6 @@
       <Filter>src\test</Filter>
     </ClCompile>
     <ClCompile Include="src\logger.cpp">
-      <Filter>src\utility</Filter>
-    </ClCompile>
-    <ClCompile Include="src\data_pipe.cpp">
       <Filter>src\utility</Filter>
     </ClCompile>
   </ItemGroup>

@@ -3,10 +3,15 @@
  * xuantao, 2017
 */
 #pragma once
-
-#include "iscoped_deallocator.h"
+#include "common.h"
 
 UTILITY_NAMESPACE_BEGIN
+
+struct iscoped_deallocator
+{
+    virtual ~iscoped_deallocator() { }
+    virtual void deallocate(void* buff, size_t size) = 0;
+};
 
 /*
  * scoped buffer, 作用域范围内有效的Buffer
@@ -35,7 +40,7 @@ public:
 
     ~scoped_buffer()
     {
-        if (_deallocator)
+        if (_deallocator && _buff)
             _deallocator->deallocate(_buff, _size);
     }
 

@@ -4,54 +4,37 @@
 */
 #pragma once
 #include "spin_lock.h"
-#include "locked_buffer.h"
+#include "scoped_buffer.h"
+#include "ring_buffer.h"
+#include <mutex>
 
 UTILITY_NAMESPACE_BEGIN
 
-namespace dp_detail
-{
-    class block_buffer
-    {
-    public:
-        static const size_t align_byte = sizeof(void*);
-        static const size_t size_bytes = sizeof(size_t);
-
-    public:
-        block_buffer(size_t capacity_size);
-        ~block_buffer();
-
-        block_buffer(const block_buffer&) = delete;
-        block_buffer& operator = (const block_buffer&) = delete;
-
-    public:
-        inline bool empty() const { return _count == 0; }
-        inline size_t count() const { return _count; }
-        inline size_t capacity() const { return _capacity; }
-
-        void* read_begin(size_t& sz);
-        void read_end();
-
-        void* write_begin(size_t sz);
-        void write_end();
-
-    private:
-        size_t _capacity;
-        size_t _w_pos = 0;
-        size_t _r_pos = 0;
-        size_t _count = 0;
-        char* _pool = nullptr;
-    };
-} // namespace dp_detail
-
+template <size_t S, size_t A = sizeof(void*)>
 class data_pipe
 {
-    typedef singly_node<dp_detail::block_buffer> buf_node;
-    friend class locked_buffer;
-    static const int max_empty_node = 4;
+public:
+    typedef fixed_ring_buffer<S, A> ring_buffer;
+    typedef singly_node<ring_buffer> buf_node;
+    static constexpr size_t block_size = S;
 
 public:
-    data_pipe(size_t block);
-    ~data_pipe();
+    data_pipe(int max_empty = 10) : _max_empty(max_empty)
+    {
+        _r_buf = _w_buf = new buf_node();
+    }
+
+    ~data_pipe()
+    {
+        auto node = _r_buf;
+        while (node)
+        {
+            auto temp = node;
+            node = temp->next;
+
+            delete temp;
+        }
+    }
 
     data_pipe(const data_pipe&) = delete;
     data_pipe& operator = (const data_pipe&) = delete;
@@ -59,34 +42,113 @@ public:
 public:
     inline bool empty() const { return _count == 0; }
     inline size_t count() const { return _count; }
-    inline size_t block_size() const { return _block; }
 
-    locked_buffer write(size_t sz);
-    locked_buffer read();
+    scoped_buffer write(size_t sz)
+    {
+        if (sz == 0 || sz > block_size)
+            return scoped_buffer();
+
+        _w_lock.lock();
+
+        void* data = _w_buf->value.write_begin(sz);
+        if (data == nullptr)
+        {
+            next_node(true);
+
+            data = _w_buf->value.write_begin(sz);
+            assert(data);
+        }
+
+        return scoped_buffer(&_w_unlocker, data, sz);
+    }
+
+    scoped_buffer read()
+    {
+        if (empty())
+            return scoped_buffer();
+
+        _r_lock.lock();
+
+        if (_r_buf->value.empty())
+            next_node(false);
+
+        size_t sz = 0;
+        void* data = _r_buf->value.read_begin(sz);
+        assert(data);
+
+        return scoped_buffer(&_r_unlocker, data, sz);
+    }
 
 private:
-    void write_end();
-    void read_end();
+    void write_end()
+    {
+        ++_count;
+        _w_buf->value.write_end();
+        _w_lock.unlock();
+    }
 
-    void next_node(bool w_node);
+    void read_end()
+    {
+        --_count;
+        _r_buf->value.read_end();
+        _r_lock.unlock();
+    }
+
+    void next_node(bool w_node)
+    {
+        std::lock_guard<spin_lock> guard(_rw_lock);
+
+        if (w_node)
+        {
+            if (_w_buf->next = nullptr)
+                _w_buf->next = new buf_node();
+
+            assert(_w_buf->next);
+            _w_buf = _w_buf->next;
+        }
+        else
+        {
+            assert(_r_buf != _w_buf);
+
+            int empty_count = 0;
+            auto tail = _w_buf;
+            auto temp = _r_buf;
+
+            _r_buf = _r_buf->next;
+            temp->next = nullptr;
+
+            while (tail->next)
+            {
+                ++ empty_count;
+                tail = tail->next;
+            }
+
+            if (empty_count > max_empty_node)
+                delete temp;
+            else
+                tail->next = temp;
+        }
+    }
 
 private:
-    struct w_unlocker final : ibuffer_unlocker
+    struct w_unlocker final : iscoped_deallocator
     {
         w_unlocker(data_pipe* pipe) : _pipe(pipe) {}
-        void unlock(void*, size_t) override { _pipe->write_end(); }
+        void deallocate(void*, size_t) override { _pipe->write_end(); }
+
         data_pipe* _pipe;
     };
 
-    struct r_unlocker final : ibuffer_unlocker
+    struct r_unlocker final : iscoped_deallocator
     {
         r_unlocker(data_pipe* pipe) : _pipe(pipe) {}
-        void unlock(void*, size_t) override { _pipe->read_end(); }
+        void deallocate(void*, size_t) override { _pipe->read_end(); }
+
         data_pipe* _pipe;
     };
 
 private:
-    size_t _block;  // each block buffer size
+    int _max_empty;     // max empty node count
     std::atomic<size_t> _count = ATOMIC_VAR_INIT(0);    // data count
 
     buf_node* _r_buf = nullptr;

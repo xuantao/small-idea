@@ -61,10 +61,10 @@ struct singly_node
     value_type value;
 };
 
-/* 对齐 */
+/* 对齐（1，2，4，8...） */
 inline size_t align(size_t sz, size_t bound = sizeof(void*))
 {
-    if ((sz & (bound-1)))
+    if (bound && (sz & (bound-1)))
         return (sz & (~(bound-1))) + bound;
     return sz;
 }

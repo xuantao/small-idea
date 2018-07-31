@@ -1,5 +1,5 @@
 ﻿/*
- * fixed buffer allocator
+ * particular allocator
  * xuantao, 2017
 */
 #pragma once
@@ -31,7 +31,7 @@ namespace detail
  * 分配和释放的时间复杂度都是O(1)
 */
 template <class Ty>
-class fixed_allocator
+class particular_allocator
 {
 protected:
     union _node
@@ -52,7 +52,7 @@ public:
     static const size_type element_size = sizeof(_node);
 
 public:
-    fixed_allocator(void* pool, size_type pool_size)
+    particular_allocator(void* pool, size_type pool_size)
         : _root(static_cast<_node_ptr>(pool))
         , _size(pool_size)
     {
@@ -64,7 +64,7 @@ public:
             _root[max_size() - 1].next = nullptr;
     }
 
-    fixed_allocator(fixed_allocator&& other)
+    particular_allocator(particular_allocator&& other)
         : _root(other._root)
         , _size(other._size)
     {
@@ -72,10 +72,10 @@ public:
         other._size = 0;
     }
 
-    ~fixed_allocator() {}
+    ~particular_allocator() {}
 
-    fixed_allocator(const fixed_allocator&) = delete;
-    fixed_allocator& operator = (const fixed_allocator&) = delete;
+    particular_allocator(const particular_allocator&) = delete;
+    particular_allocator& operator = (const particular_allocator&) = delete;
 
 public:
     pointer address(reference ref) const
@@ -126,6 +126,21 @@ public:
 protected:
     _node* _root;
     size_type _size;
-};
+}; // class particular_allocator
+
+template <typename Ty, size_t N>
+class fixed_particular_allocator : public particular_allocator<Ty>
+{
+public:
+    typedef particular_allocator<Ty> base_type;
+
+public:
+    fixed_particular_allocator() : base_type(_pool, N)
+    { }
+
+private:
+    int8_t _pool[N];
+}; // class fixed_particular_allocator
+
 
 UTILITY_NAMESPACE_END

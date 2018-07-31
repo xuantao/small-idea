@@ -4,7 +4,7 @@
 */
 #pragma once
 
-#include "../fixed_allocator.h"
+#include "../particular_allocator.h"
 #include "../scoped_buffer.h"
 #include <utility>
 #include <iterator>
@@ -261,7 +261,7 @@ namespace detail
         typedef typename _val_type::size_type size_type;
         typedef typename _val_type::difference_type difference_type;
 
-        typedef fixed_allocator<_node> allocator;
+        typedef particular_allocator<_node> allocator;
         typedef _tree_iterator<_val_type> iterator;
         typedef _tree_const_iterator<_val_type> const_iterator;
         typedef std::pair<iterator, bool> pairib;

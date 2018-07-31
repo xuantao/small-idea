@@ -6,22 +6,21 @@
 #pragma once
 
 #include "common.h"
+#include "serial_allocator.h"
 
 UTILITY_NAMESPACE_BEGIN
 
 namespace scope_guard_detail
 {
-    template <typename Ty>
-    struct node_base
+    struct caller
     {
-        Ty* next = nullptr;
-    };
+        caller(size_t s) : size(size) {}
 
-    struct caller : node_base<caller>
-    {
         virtual ~caller() {}
         virtual void call() = 0;
-        virtual size_t size() const = 0;
+
+        caller* next = nullptr;
+        size_t size;
     };
 
     template <typename Fy>
@@ -30,39 +29,20 @@ namespace scope_guard_detail
         typedef caller_impl<Fy> _MyType;
         typedef Fy FuncType;
 
-        caller_impl(const FuncType& fn) : _func(fn)
+        caller_impl(const FuncType& fn)
+            : caller(sizeof(caller_impl)), _func(fn)
         { }
 
-        caller_impl(FuncType&& fn) : _func(std::forward<FuncType>(fn))
+        caller_impl(FuncType&& fn)
+            : caller(sizeof(caller_impl)), _func(std::forward<FuncType>(fn))
         { }
 
         virtual ~caller_impl() {}
 
         void call() override { _func(); }
-        size_t size() const override { return sizeof(_MyType); }
 
     private:
         FuncType _func;
-    };
-
-    template <size_t _Capacity, size_t _Align>
-    struct allocator : node_base<allocator<_Capacity, _Align>>
-    {
-        void* allocate(size_t s)
-        {
-            void* p = &_data[_Capacity - _size];
-            if (!std::align(_Align, s, p, _size))
-                return nullptr;
-
-            _size -= s;
-            return p;
-        }
-
-        void deallocate(void* p, size_t s) { }
-
-    protected:
-        size_t _size = _Capacity;
-        char _data[_Capacity];
     };
 
     template <size_t _Bsize>
@@ -70,7 +50,9 @@ namespace scope_guard_detail
     {
     public:
         enum { BlockSize = _Bsize, Align = sizeof(void*) };
-        typedef allocator<BlockSize, Align> allocator;
+
+        typedef fixed_serial_allocator<BlockSize, Align> serial_allocator;
+        typedef singly_node<serial_allocator> node_allocator;
 
     public:
         scope_guard_allocator() : _alloc(&_default)
@@ -78,38 +60,37 @@ namespace scope_guard_detail
 
         ~scope_guard_allocator()
         {
+            size_t inc_size = 0;
             while (_alloc->next)
             {
                 auto tmp = _alloc;
                 _alloc = _alloc->next;
-
+                inc_size += BlockSize;
                 delete tmp;
             }
+
 #ifdef LOG_DEBUG_INFO
-            if (_inc_size)
-                std::cerr << "scope_guard_allocator should inc size to:" << (BlockSize + _inc_size) << std::endl;
+            if (inc_size)
+                std::cerr << "scope_guard_allocator should inc size to:" << (BlockSize + inc_size) << std::endl;
+#else
+            (void)inc_size;
 #endif // LOG_DEBUG_INFO
         }
 
         void* allocate(size_t s)
         {
             if (need_raw_alloc(s))
-            {
-#if LOG_DEBUG_INFO
-                _inc_size += s;
-#endif // LOG_DEBUG_INFO
                 return new char[s];
-            }
 
-            void* p = _alloc->allocate(s);
+            void* p = _alloc->value.allocate(s);
             if (p != nullptr)
                 return p;
 
-            auto tmp = new allocator();
+            auto tmp = new node_allocator();
             tmp->next = _alloc;
             _alloc = tmp;
 
-            p = _alloc->allocate(s);
+            p = _alloc->value.allocate(s);
             assert(p);
             return p;
         }
@@ -130,11 +111,8 @@ namespace scope_guard_detail
         }
 
     private:
-        allocator* _alloc = nullptr;
-        allocator _default;
-#if LOG_DEBUG_INFO
-        size_t _inc_size = 0;
-#endif // LOG_DEBUG_INFO
+        node_allocator* _alloc = nullptr;
+        node_allocator _default;
     };
 
     template <>
@@ -189,13 +167,13 @@ public:
     }
 
     inline bool is_dissmissed() const { return _dismiss; }
-
     inline void dismiss() { _dismiss = true; }
 
     bool done()
     {
         if (!is_dissmissed())
             roll_back();
+
         clear();
         return is_dissmissed();
     }
@@ -219,7 +197,7 @@ private:
         while (node)
         {
             auto tmp = node;
-            auto size = node->size();
+            auto size = node->size;
             node = node->next;
 
             tmp->~caller();
