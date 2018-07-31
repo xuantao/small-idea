@@ -5,52 +5,46 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="src\scoped">
-      <UniqueIdentifier>{e54b6d2d-75f1-479f-974c-150c89c7ec70}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\test">
-      <UniqueIdentifier>{c9ca6323-17a7-4bb4-a3e2-db9679df975f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\scoped\detail">
-      <UniqueIdentifier>{3d480500-ff79-4fb6-b2ed-880f9c5f7ed4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\utility">
       <UniqueIdentifier>{4d6b9021-34d3-47ef-8dda-855e9a96a993}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mem">
+      <UniqueIdentifier>{e54b6d2d-75f1-479f-974c-150c89c7ec70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mem\detail">
+      <UniqueIdentifier>{3d480500-ff79-4fb6-b2ed-880f9c5f7ed4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{3ab418dd-cb1d-41ae-ba2f-1d48a3c0632a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\scoped_buffer.h">
-      <Filter>src\scoped</Filter>
+      <Filter>src\mem</Filter>
     </ClInclude>
     <ClInclude Include="src\scoped_obj_buffer.h">
-      <Filter>src\scoped</Filter>
+      <Filter>src\mem</Filter>
     </ClInclude>
     <ClInclude Include="src\scoped_vector.h">
-      <Filter>src\scoped</Filter>
+      <Filter>src\mem</Filter>
     </ClInclude>
     <ClInclude Include="src\detail\_vector.h">
-      <Filter>src\scoped\detail</Filter>
+      <Filter>src\mem\detail</Filter>
     </ClInclude>
     <ClInclude Include="src\detail\_tree.h">
-      <Filter>src\scoped\detail</Filter>
+      <Filter>src\mem\detail</Filter>
     </ClInclude>
     <ClInclude Include="src\scoped_set.h">
-      <Filter>src\scoped</Filter>
+      <Filter>src\mem</Filter>
     </ClInclude>
     <ClInclude Include="src\scoped_map.h">
-      <Filter>src\scoped</Filter>
-    </ClInclude>
-    <ClInclude Include="src\test\test_util.h">
-      <Filter>src\test</Filter>
+      <Filter>src\mem</Filter>
     </ClInclude>
     <ClInclude Include="src\ref_count_set.h">
       <Filter>src\utility</Filter>
     </ClInclude>
     <ClInclude Include="src\scope_guard.h">
       <Filter>src\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="src\test\test.h">
-      <Filter>src\test</Filter>
     </ClInclude>
     <ClInclude Include="src\scoped.h">
       <Filter>src\utility</Filter>
@@ -71,54 +65,60 @@
       <Filter>src\utility</Filter>
     </ClInclude>
     <ClInclude Include="src\stack_allocator.h">
-      <Filter>src\scoped</Filter>
+      <Filter>src\mem</Filter>
     </ClInclude>
     <ClInclude Include="src\serial_allocator.h">
-      <Filter>src\scoped</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ring_buffer.h">
-      <Filter>src\utility</Filter>
+      <Filter>src\mem</Filter>
     </ClInclude>
     <ClInclude Include="src\particular_allocator.h">
-      <Filter>src\scoped</Filter>
+      <Filter>src\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="src\test\test.h">
+      <Filter>test</Filter>
+    </ClInclude>
+    <ClInclude Include="src\test\test_util.h">
+      <Filter>test</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ring_buffer.h">
+      <Filter>src\mem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\test\ref_count_set_test.cpp">
-      <Filter>src\test</Filter>
-    </ClCompile>
-    <ClCompile Include="src\test\scoped_set_test.cpp">
-      <Filter>src\test</Filter>
-    </ClCompile>
-    <ClCompile Include="src\test\scoped_vector_test.cpp">
-      <Filter>src\test</Filter>
-    </ClCompile>
-    <ClCompile Include="src\test\test_util.cpp">
-      <Filter>src\test</Filter>
-    </ClCompile>
-    <ClCompile Include="src\test\scoped_buffer_test.cpp">
-      <Filter>src\test</Filter>
-    </ClCompile>
-    <ClCompile Include="src\test\scoped_map_test.cpp">
-      <Filter>src\test</Filter>
-    </ClCompile>
-    <ClCompile Include="src\test\scope_guard_test.cpp">
-      <Filter>src\test</Filter>
-    </ClCompile>
     <ClCompile Include="src\scoped.cpp">
       <Filter>src\utility</Filter>
     </ClCompile>
-    <ClCompile Include="src\test\test_to_string.cpp">
-      <Filter>src\test</Filter>
-    </ClCompile>
-    <ClCompile Include="src\test\test_logger.cpp">
-      <Filter>src\test</Filter>
-    </ClCompile>
     <ClCompile Include="src\logger.cpp">
       <Filter>src\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test\ref_count_set_test.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test\scope_guard_test.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test\scoped_buffer_test.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test\scoped_map_test.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test\scoped_set_test.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test\scoped_vector_test.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test\test_logger.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test\test_to_string.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test\test_util.cpp">
+      <Filter>test</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

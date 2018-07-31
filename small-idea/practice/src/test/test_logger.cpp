@@ -38,7 +38,7 @@ void test_logger()
     to_str_mul(buff, BUFF_SIZE, ", ", TestToStringObj());
     printf("test_logger %s\n", buff);
 
-    to_str_mul(buff, BUFF_SIZE, &TestToStringObj::print, &TestToStringObj::a);
+    to_str_sep(buff, BUFF_SIZE, ", ", &TestToStringObj::print, &TestToStringObj::a);
     printf("test_logger %s\n", buff);
 
     to_str_format(buff, BUFF_SIZE, "{0}, {1}", &TestToStringObj::print, &TestToStringObj::a);
