@@ -45,57 +45,42 @@ namespace scope_guard_detail
         FuncType _func;
     };
 
-    template <size_t _Bsize>
-    class scope_guard_allocator
+    template <size_t _Bsize, size_t _Align = sizeof(void*)>
+    class scope_guard_allocator : protected chain_serial_allocator<_Bsize, _Align>
     {
     public:
-        enum { BlockSize = _Bsize, Align = sizeof(void*) };
-
-        typedef fixed_serial_allocator<BlockSize, Align> serial_allocator;
-        typedef singly_node<serial_allocator> allocator_node;
+        static constexpr size_t block_size = _Bsize;
+        static constexpr size_t align_byte = _Align;
+        typedef chain_serial_allocator<_Bsize, _Align> allocator_impl;
 
     public:
-        scope_guard_allocator() : _alloc(&_default)
-        { }
-
         ~scope_guard_allocator()
         {
             size_t inc_size = 0;
-            while (_alloc->next)
+
+            auto node = &_head;
+            while (node->next)
             {
-                auto tmp = _alloc;
-                _alloc = _alloc->next;
-                inc_size += BlockSize;
-                delete tmp;
+                node = node->next;
+                inc_size += block_size;
             }
 
 #ifdef LOG_DEBUG_INFO
             if (inc_size)
-                std::cerr << "scope_guard_allocator should inc size to:" << (BlockSize + inc_size) << std::endl;
+                std::cerr << "scope_guard_allocator should inc size to:" << inc_size << std::endl;
 #else
             (void)inc_size;
 #endif // LOG_DEBUG_INFO
         }
 
-        void* allocate(size_t s)
+        inline void* allocate(size_t s)
         {
             if (need_raw_alloc(s))
                 return new char[s];
-
-            void* p = _alloc->value.allocate(s);
-            if (p != nullptr)
-                return p;
-
-            auto tmp = new allocator_node();
-            tmp->next = _alloc;
-            _alloc = tmp;
-
-            p = _alloc->value.allocate(s);
-            assert(p);
-            return p;
+            return allocator_impl::allocate(s);
         }
 
-        void deallocate(void* p, size_t s)
+        inline void deallocate(void* p, size_t s)
         {
             if (need_raw_alloc(s))
                 delete[] static_cast<char*>(p);
@@ -107,12 +92,8 @@ namespace scope_guard_detail
             // ignore alignment cause alloc error
             // when s is closer BlockSize,
             // align operate may be not alloc successfully
-            return (s + Align > BlockSize);
+            return (s + align_byte > block_size);
         }
-
-    private:
-        allocator_node* _alloc = nullptr;
-        allocator_node _default;
     };
 
     template <>

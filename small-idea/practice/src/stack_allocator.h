@@ -68,4 +68,22 @@ private:
     int8_t _pool[N];
 }; // class fixed_stack_allocator
 
+
+template <size_t B, size_t A = sizeof(void*)>
+class chain_stack_allocator
+{
+public:
+    static constexpr size_t block_size = B;
+    static constexpr size_t align_byte = A;
+    typedef singly_node<fixed_stack_allocator<B, A>> alloc_node;
+    static_assert(align_byte != 0 && (block_size % align_byte) == 0, "block size must be aligned");
+
+protected:
+    struct heap_deallocator : iscoped_deallocator
+    {
+        void deallocate(void* buf, size_t s) override { delete [] (int8_t*)buf; }
+    };
+
+
+};
 UTILITY_NAMESPACE_END

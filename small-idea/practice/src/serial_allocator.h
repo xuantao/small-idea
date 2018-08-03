@@ -45,6 +45,7 @@ protected:
     int8_t* _pool;
 }; // class serial_allocator
 
+/* fixed serial allocator */
 template <size_t N, size_t A = sizeof(void*)>
 class fixed_serial_allocator : public serial_allocator<A>
 {
@@ -58,5 +59,75 @@ public:
 private:
     int8_t _pool[N];
 }; // class fixed_serial_allocator
+
+/* chain serial allocator */
+template <size_t B, size_t A = sizeof(void*)>
+class chain_serial_allocator
+{
+public:
+    static constexpr size_t block_size = B;
+    static constexpr size_t align_byte = A;
+    typedef singly_node<fixed_serial_allocator<B, A>> alloc_node;
+    static_assert(align_byte != 0 && (block_size % align_byte) == 0, "block size must be aligned");
+
+public:
+    chain_serial_allocator() : _cur(&_head) { }
+    ~chain_serial_allocator() { dissolve(); }
+
+    chain_serial_allocator(const chain_serial_allocator&) = delete;
+    chain_serial_allocator& operator = (const chain_serial_allocator&) = delete;
+
+public:
+    inline void* allocate(size_t s)
+    {
+        if (s > block_size)
+            return nullptr;
+
+        void* buf = _cur->value.allocate(s);
+        if (buf == nullptr)
+        {
+            if (_cur->next = nullptr)
+                _cur->next = new alloc_node();
+            _cur = _cur->next;
+
+            buf = _cur->value.allocate(s);
+            assert(buf);
+        }
+
+        return buf;
+    }
+
+    void reset()
+    {
+        _cur = &_head;
+
+        alloc_node* node = _cur;
+        while (node)
+        {
+            node->value.reset();
+            node = node->next;
+        }
+    }
+
+    void dissolve()
+    {
+        _cur = &_head;
+        _cur->value.reset();
+
+        alloc_node* node = _cur;
+        while (node)
+        {
+            alloc_node* tmp = node;
+            node = node->next;
+
+            tmp->next = nullptr;
+            delete tmp;
+        }
+    }
+
+protected:
+    alloc_node* _cur;
+    alloc_node _head;
+}; // chain_serial_allocator
 
 UTILITY_NAMESPACE_END

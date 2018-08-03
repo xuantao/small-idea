@@ -3,6 +3,9 @@
 
 UTILITY_NAMESPACE_BEGIN
 
+/*
+ * Ñ­»·»º³åÇø
+*/
 template <typename A = sizeof(void*)>
 class ring_buffer
 {
