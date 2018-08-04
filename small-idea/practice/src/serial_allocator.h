@@ -65,9 +65,9 @@ template <size_t B, size_t A = sizeof(void*)>
 class chain_serial_allocator
 {
 public:
-    static constexpr size_t block_size = B;
+    static constexpr size_t block_size = align(B, A);
     static constexpr size_t align_byte = A;
-    typedef singly_node<fixed_serial_allocator<B, A>> alloc_node;
+    typedef singly_node<fixed_serial_allocator<block_size, align_byte>> alloc_node;
     static_assert(align_byte != 0 && (block_size % align_byte) == 0, "block size must be aligned");
 
 public:

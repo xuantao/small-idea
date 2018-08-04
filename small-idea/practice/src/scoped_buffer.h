@@ -53,7 +53,8 @@ public:
     inline bool empty() const { return get() == nullptr; }
     inline explicit operator bool() const { return _buff != nullptr; }
 
-    template <typename Ty> inline Ty& as() { *((Ty*)_buff); }
+    template <typename Ty>
+    inline Ty& as() { *((Ty*)_buff); }
 
 protected:
     iscoped_deallocator* _deallocator = nullptr;

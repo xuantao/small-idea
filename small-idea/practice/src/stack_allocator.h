@@ -69,21 +69,84 @@ private:
 }; // class fixed_stack_allocator
 
 
+/* chain stack allocator */
 template <size_t B, size_t A = sizeof(void*)>
 class chain_stack_allocator
 {
 public:
-    static constexpr size_t block_size = B;
+    static constexpr size_t block_size = align(B, A);
     static constexpr size_t align_byte = A;
-    typedef singly_node<fixed_stack_allocator<B, A>> alloc_node;
+    typedef singly_node<fixed_stack_allocator<block_size, align_byte>> alloc_node;
     static_assert(align_byte != 0 && (block_size % align_byte) == 0, "block size must be aligned");
 
-protected:
-    struct heap_deallocator : iscoped_deallocator
+public:
+    chain_stack_allocator() : _top(&_bottom) {}
+    ~chain_stack_allocator() { destory(); }
+
+    chain_stack_allocator(const chain_stack_allocator&) = delete;
+    chain_stack_allocator& operator = (const chain_stack_allocator&) = delete;
+
+public:
+    scoped_buffer allocate(size_t s)
     {
-        void deallocate(void* buf, size_t s) override { delete [] (int8_t*)buf; }
-    };
+        if (s > block_size)
+            return scoped_buffer();
 
+        // pop empty alloc node
+        while (_top->value.empty())
+        {
+            alloc_node* node = _top;
+            _top = _top->next;
 
+            node->next = _empty;
+            _empty = node;
+        }
+
+        auto buf = _top->value.allocate(s);
+        if (!buf)
+        {
+            if (_empty)
+            {
+                alloc_node* node = _empty;
+                _empty = _empty->next;
+
+                node->next = _top;
+                _top = node;
+            }
+            else
+            {
+                alloc_node* node = new alloc_node();
+                node->next = _top;
+                _top = node;
+            }
+
+            return _top->value.allocate(s);
+        }
+
+        return std::move(buf);
+    }
+
+protected:
+    void destory()
+    {
+        while (_empty)
+        {
+            alloc_node* node = _empty;
+            _empty = _empty->next;
+            delete node;
+        }
+
+        while (_top->next)
+        {
+            alloc_node* node = _top;
+            _top = _top->next;
+            delete node;
+        }
+    }
+
+protected:
+    alloc_node* _empty = nullptr;
+    alloc_node* _top;
+    alloc_node _bottom;
 };
 UTILITY_NAMESPACE_END

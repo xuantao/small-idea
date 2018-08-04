@@ -61,12 +61,15 @@ struct singly_node
     value_type value;
 };
 
-/* 对齐（1，2，4，8...） */
-inline size_t align(size_t sz, size_t bound = sizeof(void*))
+inline constexpr size_t align_padding(size_t sz, size_t bound = sizeof(void*))
 {
-    if (bound && (sz & (bound-1)))
-        return (sz & (~(bound-1))) + bound;
-    return sz;
+    return bound == 0 ? 0 : (bound - sz % bound) % bound;
+}
+
+/* 对齐（1，2，4，8...） */
+inline constexpr size_t align(size_t sz, size_t bound = sizeof(void*))
+{
+    return sz + align_padding(sz, bound);
 }
 
 UTILITY_NAMESPACE_END
