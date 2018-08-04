@@ -5,11 +5,11 @@
 #include <iterator>
 #include <allocators>
 #include <memory>
-#include "test/test.h"
+//#include "test/test.h"
 
 int main(int argc, char* argv[])
 {
-    test_logger();
+    //test_logger();
     //ref_count_set_test();
     //scoped_buffer_test();
     //scoped_vector_test();

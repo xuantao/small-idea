@@ -62,6 +62,7 @@ public:
     typedef typename _my_base::const_reference const_reference;
     typedef typename _my_base::iterator iterator;
     typedef typename _my_base::const_iterator const_iterator;
+    typedef typename _my_base::pairib pairib;
 
 public:
     scoped_map(scoped_buffer&& buffer) : _my_base(std::forward<scoped_buffer>(buffer))

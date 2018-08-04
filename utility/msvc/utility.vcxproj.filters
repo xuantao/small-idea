@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{c4d424a5-739c-4d12-afd3-5b22678e3e58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\detail">
+      <UniqueIdentifier>{909ad91e-ebb4-4127-b6e7-5d3f5736979f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\logger.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scoped.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\utility\common.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\data_pipe.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\logger.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\particular_allocator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\ref_count_set.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\ring_buffer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scope_guard.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scoped.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scoped_buffer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scoped_map.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scoped_obj_buffer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scoped_set.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scoped_vector.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\serial_allocator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\spin_lock.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\stack_allocator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\to_string.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\detail\_tree.h">
+      <Filter>include\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\detail\_vector.h">
+      <Filter>include\detail</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

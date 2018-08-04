@@ -31,6 +31,9 @@ public:
     inline size_t capacity() const { return base_type::capacity(); }
 
 protected:
+    using base_type::_pool;
+    using base_type::_alloced;
+
     void deallocate(void* buffer, size_t sz)
     {
         size_t align_size = UTILITY_NAMESPCE align(sz, align_byte);
