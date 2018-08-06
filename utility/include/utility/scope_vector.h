@@ -4,7 +4,7 @@
 */
 #pragma once
 
-#include "scoped_buffer.h"
+#include "scope_buffer.h"
 #include "detail/_vector.h"
 
 UTILITY_NAMESPACE_BEGIN
@@ -15,7 +15,7 @@ UTILITY_NAMESPACE_BEGIN
  * 2. 容器不可以被复制和持有
 */
 template <class Ty>
-class scoped_vector
+class scope_vector
 {
 public:
     typedef Ty value_type;
@@ -35,19 +35,19 @@ public:
     static size_type buffer_size(size_type c) { return element_size * c; }
 
 public:
-    scoped_vector(scoped_buffer&& buffer)
+    scope_vector(scoped_buffer&& buffer)
         : _buff(std::forward<scoped_buffer>(buffer))
         , _val(static_cast<pointer>(_buff.get()))
     {
     }
 
-    scoped_vector(scoped_vector&& other)
+    scope_vector(scope_vector&& other)
         : _buff(std::move(other._buff))
         , _val(std::move(other._val))
     {
     }
 
-    ~scoped_vector()
+    ~scope_vector()
     {
         difference_type idx = Next();
         while (idx-- > 0)
@@ -55,8 +55,8 @@ public:
         Next() = 0;
     }
 
-    scoped_vector(const scoped_vector& other) = delete;
-    scoped_vector& operator = (const scoped_vector& other) = delete;
+    scope_vector(const scope_vector& other) = delete;
+    scope_vector& operator = (const scope_vector& other) = delete;
 
 public:
     reference operator [] (difference_type idx)
@@ -67,7 +67,7 @@ public:
 
     const_reference operator [] (difference_type idx) const
     {
-        return const_cast<scoped_vector*>(this)->operator [](idx);
+        return const_cast<scope_vector*>(this)->operator [](idx);
     }
 
     reference front()
@@ -78,7 +78,7 @@ public:
 
     const_reference front() const
     {
-        return const_cast<scoped_vector*>(this)->front();
+        return const_cast<scope_vector*>(this)->front();
     }
 
     reference back()
@@ -89,7 +89,7 @@ public:
 
     const_reference back() const
     {
-        return const_cast<scoped_vector*>(this)->back();
+        return const_cast<scope_vector*>(this)->back();
     }
 
     iterator begin()

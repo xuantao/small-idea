@@ -1,5 +1,5 @@
 ﻿#include <algorithm>
-#include "utility/scoped.h"
+#include "utility/scope.h"
 #include "test_util.h"
 #include "test.h"
 
@@ -7,7 +7,7 @@ UTILITY_USING_NAMESPACE;
 
 static void test_normal()
 {
-    scoped_vector<int> vec = scoped::vector<int>(5);
+    scope_vector<int> vec = scoped::vector<int>(5);
     vec.push_back(1);
     vec.push_back(2);
     vec.push_back(3);
@@ -48,7 +48,7 @@ static void test_obj_move()
 {
     test::log(test::Tab::tab++, "init startup data");
     test::Obj obj;                  // test::Obj()
-    scoped_vector<test::Obj> vec = scoped::vector<test::Obj>(3);
+    scope_vector<test::Obj> vec = scoped::vector<test::Obj>(3);
 
     vec.push_back(obj);             // test::Obj(const test::Obj&)
     vec.push_back(1);               // test::Obj(int)
@@ -89,12 +89,12 @@ static void test_obj_move()
 
 static void test_iterator()
 {
-    scoped_vector<int> vec = scoped::vector<int>(5);
+    scope_vector<int> vec = scoped::vector<int>(5);
     vec.push_back(1);
     vec.push_back(3);
     vec.push_back(4);
 
-    scoped_vector<int>::iterator it_1;
+    scope_vector<int>::iterator it_1;
 
     //assert(*it_1 == 0);  // assert(false) empty it;
 
@@ -130,14 +130,14 @@ static void test_iterator()
 
 static void test_const_iterator()
 {
-    scoped_vector<int> vec = scoped::vector<int>(5);
+    scope_vector<int> vec = scoped::vector<int>(5);
     vec.push_back(1);
     vec.push_back(3);
     vec.push_back(4);
 
-    scoped_vector<int>::iterator cIt0;
-    scoped_vector<int>::const_iterator cIt1;
-    scoped_vector<int>::const_iterator cIt2;
+    scope_vector<int>::iterator cIt0;
+    scope_vector<int>::const_iterator cIt1;
+    scope_vector<int>::const_iterator cIt2;
 
     cIt0 = vec.begin();
     cIt1 = vec.begin();

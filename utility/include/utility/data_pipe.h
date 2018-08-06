@@ -4,7 +4,7 @@
 */
 #pragma once
 #include "spin_lock.h"
-#include "scoped_buffer.h"
+#include "scope_buffer.h"
 #include "ring_buffer.h"
 #include <mutex>
 
@@ -131,7 +131,7 @@ private:
     }
 
 private:
-    struct w_unlocker final : iscoped_deallocator
+    struct w_unlocker final : iscope_deallocator
     {
         w_unlocker(data_pipe* pipe) : _pipe(pipe) {}
         void deallocate(void*, size_t) override { _pipe->write_end(); }
@@ -139,7 +139,7 @@ private:
         data_pipe* _pipe;
     };
 
-    struct r_unlocker final : iscoped_deallocator
+    struct r_unlocker final : iscope_deallocator
     {
         r_unlocker(data_pipe* pipe) : _pipe(pipe) {}
         void deallocate(void*, size_t) override { _pipe->read_end(); }

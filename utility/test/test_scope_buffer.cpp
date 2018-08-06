@@ -1,6 +1,6 @@
 ﻿#include <memory>
 #include "utility/stack_allocator.h"
-#include "utility/scoped.h"
+#include "utility/scope.h"
 #include "test_util.h"
 #include "test.h"
 

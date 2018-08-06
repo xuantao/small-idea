@@ -1,4 +1,4 @@
-﻿#include "utility/scoped.h"
+﻿#include "utility/scope.h"
 #include "utility/stack_allocator.h"
 #include <vector>
 #include <memory>
@@ -9,7 +9,7 @@ namespace scoped
 {
     namespace
     {
-        struct heap_deallocator final : public iscoped_deallocator
+        struct heap_deallocator final : public iscope_deallocator
         {
             void deallocate(void* buff, size_t size) override { delete[](char*)buff; }
         };

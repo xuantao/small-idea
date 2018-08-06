@@ -30,10 +30,10 @@ namespace detail
  * 2. 容器不可以被复制和持有
 */
 template <class Ty, class Pr = std::less<Ty> >
-class scoped_set : public detail::_tree<detail::_set_traits<Ty, Pr> >
+class scope_set : public detail::_tree<detail::_set_traits<Ty, Pr> >
 {
 public:
-    typedef scoped_set<Ty, Pr> _my_type;
+    typedef scope_set<Ty, Pr> _my_type;
     typedef detail::_tree<detail::_set_traits<Ty, Pr> > _my_base;
     typedef typename _my_base::size_type size_type;
     typedef typename _my_base::difference_type difference_type;
@@ -45,11 +45,11 @@ public:
     typedef typename _my_base::const_iterator const_iterator;
 
 public:
-    scoped_set(scoped_buffer&& buffer) : _my_base(std::forward<scoped_buffer>(buffer))
+    scope_set(scoped_buffer&& buffer) : _my_base(std::forward<scoped_buffer>(buffer))
     {
     }
 
-    scoped_set(_my_type&& other) : _my_base(std::forward<_my_type>(other))
+    scope_set(_my_type&& other) : _my_base(std::forward<_my_type>(other))
     {
     }
 };

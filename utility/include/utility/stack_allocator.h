@@ -4,7 +4,7 @@
 */
 #pragma once
 
-#include "scoped_buffer.h"
+#include "scope_buffer.h"
 #include "serial_allocator.h"
 
 UTILITY_NAMESPACE_BEGIN
@@ -45,7 +45,7 @@ protected:
         _alloced -= align_size;
     }
 
-    struct deallocator : public iscoped_deallocator
+    struct deallocator : public iscope_deallocator
     {
         deallocator(stack_allocator* allocator) : _allocator(allocator) {}
         void deallocate(void* buf, size_t sz) override { _allocator->deallocate(buf, sz); }

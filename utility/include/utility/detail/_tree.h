@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../particular_allocator.h"
-#include "../scoped_buffer.h"
+#include "../scope_buffer.h"
 #include <utility>
 #include <iterator>
 

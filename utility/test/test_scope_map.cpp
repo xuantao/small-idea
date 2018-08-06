@@ -1,5 +1,5 @@
-﻿#include "utility/scoped_map.h"
-#include "utility/scoped.h"
+﻿#include "utility/scope_map.h"
+#include "utility/scope.h"
 #include "test_util.h"
 #include "test.h"
 
@@ -7,7 +7,7 @@ UTILITY_USING_NAMESPACE;
 
 static void test_normal()
 {
-    scoped_map<int, int> map = scoped::map<int, int>(10);
+    scope_map<int, int> map = scoped::map<int, int>(10);
 
     map.insert(std::make_pair(1, 1));
     map.insert(std::make_pair(2, 2));
@@ -25,7 +25,7 @@ static void test_normal()
 static void test_reference()
 {
     int count = 1000;
-    scoped_map<int, int> map = scoped::map<int, int>(count);
+    scope_map<int, int> map = scoped::map<int, int>(count);
     std::map<int, int> stdMap;
     for (int i = 0; i < count; ++i)
     {

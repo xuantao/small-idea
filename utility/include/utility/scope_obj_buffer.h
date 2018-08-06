@@ -4,44 +4,44 @@
 */
 #pragma once
 
-#include "scoped_buffer.h"
+#include "scope_buffer.h"
 
 UTILITY_NAMESPACE_BEGIN
 /*
  * 用scoped_buffer构造的Obj数组
 */
 template <class Ty>
-class scoped_obj_buffer : private scoped_buffer
+class scope_obj_buffer : private scoped_buffer
 {
 public:
     typedef std::ptrdiff_t difference_type;
 
 public:
-    scoped_obj_buffer(scoped_obj_buffer&& other)
+    scope_obj_buffer(scope_obj_buffer&& other)
         : scoped_buffer(std::forward<scoped_buffer>(other))
     {
     }
 
-    scoped_obj_buffer(scoped_buffer&& buffer, size_t count)
+    scope_obj_buffer(scoped_buffer&& buffer, size_t count)
         : scoped_buffer(std::forward<scoped_buffer>(buffer))
     {
         construct();
     }
 
     template <typename ...Args>
-    scoped_obj_buffer(scoped_buffer&& buffer, size_t count, Args&& ...args)
+    scope_obj_buffer(scoped_buffer&& buffer, size_t count, Args&& ...args)
         : scoped_buffer(std::forward<scoped_buffer>(buffer))
     {
         construct(std::forward<Args>(args)...);
     }
 
-    ~scoped_obj_buffer()
+    ~scope_obj_buffer()
     {
         destruct();
     }
 
-    scoped_obj_buffer(const scoped_obj_buffer&) = delete;
-    scoped_obj_buffer& operator = (const scoped_obj_buffer&) = delete;
+    scope_obj_buffer(const scope_obj_buffer&) = delete;
+    scope_obj_buffer& operator = (const scope_obj_buffer&) = delete;
 
 public:
     inline Ty* get() const { return (Ty*)scoped_buffer::get(); }
@@ -50,7 +50,7 @@ public:
 
     const Ty& operator [] (difference_type idx) const
     {
-        return const_cast<scoped_obj_buffer*>(this)->operator[] (idx);
+        return const_cast<scope_obj_buffer*>(this)->operator[] (idx);
     }
 
     Ty& operator [] (difference_type idx)

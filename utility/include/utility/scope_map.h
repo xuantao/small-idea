@@ -46,10 +46,10 @@ namespace detail
  * 2. 容器不可以被复制和持有
 */
 template <class Kty, class Ty, class Pr = std::less<Kty> >
-class scoped_map : public detail::_tree<detail::_map_traits<Kty, Ty, Pr> >
+class scope_map : public detail::_tree<detail::_map_traits<Kty, Ty, Pr> >
 {
 public:
-    typedef scoped_map<Kty, Ty, Pr> _my_type;
+    typedef scope_map<Kty, Ty, Pr> _my_type;
     typedef detail::_tree <detail::_map_traits<Kty, Ty, Pr> > _my_base;
     typedef Ty map_value;
     typedef typename _my_base::key_type key_type;
@@ -65,11 +65,11 @@ public:
     typedef typename _my_base::pairib pairib;
 
 public:
-    scoped_map(scoped_buffer&& buffer) : _my_base(std::forward<scoped_buffer>(buffer))
+    scope_map(scoped_buffer&& buffer) : _my_base(std::forward<scoped_buffer>(buffer))
     {
     }
 
-    scoped_map(_my_type&& other) : _my_base(std::forward<_my_type>(other))
+    scope_map(_my_type&& other) : _my_base(std::forward<_my_type>(other))
     {
     }
 

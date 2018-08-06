@@ -7,9 +7,9 @@
 
 UTILITY_NAMESPACE_BEGIN
 
-struct iscoped_deallocator
+struct iscope_deallocator
 {
-    virtual ~iscoped_deallocator() { }
+    virtual ~iscope_deallocator() { }
     virtual void deallocate(void* buff, size_t size) = 0;
 };
 
@@ -23,7 +23,7 @@ class scoped_buffer
 public:
     scoped_buffer() = default;
 
-    scoped_buffer(iscoped_deallocator* dealloc, void* buffer, size_t sz)
+    scoped_buffer(iscope_deallocator* dealloc, void* buffer, size_t sz)
         : _deallocator(dealloc), _buff(buffer), _size(sz)
     {
     }
@@ -57,7 +57,7 @@ public:
     inline Ty& as() { *((Ty*)_buff); }
 
 protected:
-    iscoped_deallocator* _deallocator = nullptr;
+    iscope_deallocator* _deallocator = nullptr;
     void* _buff = nullptr;
     size_t _size = 0;
 };
