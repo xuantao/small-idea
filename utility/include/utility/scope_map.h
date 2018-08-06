@@ -80,12 +80,15 @@ public:
     }
 
 protected:
+    using _my_base::_val;
+    using _my_base::_camp;
+
     template <class _Kty, class..._Ty>
     pairib Try_emplace(_Kty&& key, _Ty&&... val)
     {
-        iterator it = iterator(&_val, Lbound(key));
-        if (it == end() || _camp(key, Key(it._Node())))
-            return pairib(Emplace_Hint(it, std::piecewise_construct,
+        iterator it = iterator(&_val, _my_base::Lbound(key));
+        if (it == _my_base::end() || _camp(key, _my_base::Key(it._Node())))
+            return pairib(_my_base::Emplace_Hint(it, std::piecewise_construct,
                 std::forward_as_tuple(std::forward<_Kty>(key)),
                 std::forward_as_tuple(std::forward<_Ty>(val)...)),
                 true);

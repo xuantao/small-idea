@@ -1,5 +1,5 @@
-﻿#include "../scoped_map.h"
-#include "../scoped.h"
+﻿#include "utility/scoped_map.h"
+#include "utility/scoped.h"
 #include "test_util.h"
 #include "test.h"
 

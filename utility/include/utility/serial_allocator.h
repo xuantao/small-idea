@@ -109,8 +109,9 @@ public:
         }
     }
 
-    void dissolve()
+    size_t dissolve()
     {
+        size_t dis_count = 0;
         _cur = &_head;
         _cur->value.reset();
 
@@ -122,7 +123,9 @@ public:
 
             tmp->next = nullptr;
             delete tmp;
+            ++dis_count;
         }
+        return dis_count;
     }
 
 protected:

@@ -4,7 +4,7 @@
 */
 #pragma once
 
-#include "../common.h"
+#include "utility/common.h"
 #include <stdio.h>
 
 UTILITY_NAMESPACE_BEGIN

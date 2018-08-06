@@ -49,27 +49,17 @@ namespace scope_guard_detail
     class scope_guard_allocator : protected chain_serial_allocator<_Bsize, _Align>
     {
     public:
-        static constexpr size_t block_size = _Bsize;
-        static constexpr size_t align_byte = _Align;
-        typedef chain_serial_allocator<_Bsize, _Align> allocator_impl;
+        typedef chain_serial_allocator<_Bsize, _Align> base_type;
+        static constexpr size_t block_size = base_type::block_size;
+        static constexpr size_t align_byte = base_type::align_byte;
 
     public:
         ~scope_guard_allocator()
         {
-            size_t inc_size = 0;
-
-            auto node = &_head;
-            while (node->next)
-            {
-                node = node->next;
-                inc_size += block_size;
-            }
-
 #ifdef LOG_DEBUG_INFO
+            size_t inc_size = base_type::dissolve() * block_size;
             if (inc_size)
-                std::cerr << "scope_guard_allocator should inc size to:" << inc_size << std::endl;
-#else
-            (void)inc_size;
+                std::cerr << "scope_guard_allocator should inc size to:" << inc_size + block_size << std::endl;
 #endif // LOG_DEBUG_INFO
         }
 
@@ -77,7 +67,7 @@ namespace scope_guard_detail
         {
             if (need_raw_alloc(s))
                 return new char[s];
-            return allocator_impl::allocate(s);
+            return base_type::allocate(s);
         }
 
         inline void deallocate(void* p, size_t s)

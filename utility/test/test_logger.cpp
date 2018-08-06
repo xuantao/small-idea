@@ -1,7 +1,7 @@
 #include "test.h"
 #include "test_util.h"
-#include "../to_string.h"
-#include "../logger.h"
+#include "utility/to_string.h"
+#include "utility/logger.h"
 
 UTILITY_USING_NAMESPACE
 

@@ -16,10 +16,7 @@
     <ClCompile Include="..\src\logger.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\main.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\scoped.cpp">
+    <ClCompile Include="..\src\scope.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -45,24 +42,6 @@
     <ClInclude Include="..\include\utility\scope_guard.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\utility\scoped.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scoped_buffer.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scoped_map.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scoped_obj_buffer.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scoped_set.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scoped_vector.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\utility\serial_allocator.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -80,6 +59,24 @@
     </ClInclude>
     <ClInclude Include="..\include\utility\detail\_vector.h">
       <Filter>include\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scope.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scope_buffer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scope_map.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scope_obj_buffer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scope_set.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scope_vector.h">
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
