@@ -27,15 +27,14 @@ public:
     inline size_t capacity() const { return _capacity; }
     inline void reset() { _alloced = 0; }
 
-    void* allocate(size_t sz)
+    inline void* allocate(size_t sz)
     {
-        size_t align_size = UTILITY_NAMESPCE align(sz, align_byte);
-        if (align_size > _capacity - _alloced)
+        size_t al_sz = UTILITY_NAMESPCE align_size(sz, align_byte);
+        if (al_sz > _capacity - _alloced)
             return nullptr;
 
         int8_t* buf = _pool + _alloced;
-        _alloced += align_size;
-
+        _alloced += al_sz;
         return buf;
     }
 
@@ -65,7 +64,7 @@ template <size_t B, size_t A = sizeof(void*)>
 class chain_serial_allocator
 {
 public:
-    static constexpr size_t block_size = align(B, A);
+    static constexpr size_t block_size = align_size(B, A);
     static constexpr size_t align_byte = A;
     typedef singly_node<fixed_serial_allocator<block_size, align_byte>> alloc_node;
     static_assert(align_byte != 0 && (block_size % align_byte) == 0, "block size must be aligned");
@@ -78,7 +77,7 @@ public:
     chain_serial_allocator& operator = (const chain_serial_allocator&) = delete;
 
 public:
-    inline void* allocate(size_t s)
+    void* allocate(size_t s)
     {
         if (s > block_size)
             return nullptr;
@@ -109,9 +108,8 @@ public:
         }
     }
 
-    size_t dissolve()
+    void dissolve()
     {
-        size_t dis_count = 0;
         _cur = &_head;
         _cur->value.reset();
 
@@ -123,9 +121,20 @@ public:
 
             tmp->next = nullptr;
             delete tmp;
-            ++dis_count;
         }
-        return dis_count;
+    }
+
+    size_t node_size() const
+    {
+        size_t ns = 0;
+        const alloc_node* node = &_head;
+
+        while (node)
+        {
+            node = node->next;
+            ++ns;
+        }
+        return ns;
     }
 
 protected:

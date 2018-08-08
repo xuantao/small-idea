@@ -57,7 +57,7 @@ namespace scope_guard_detail
         ~scope_guard_allocator()
         {
 #ifdef LOG_DEBUG_INFO
-            size_t inc_size = base_type::dissolve() * block_size;
+            size_t inc_size = base_type::node_size() * block_size;
             if (inc_size)
                 std::cerr << "scope_guard_allocator should inc size to:" << inc_size + block_size << std::endl;
 #endif // LOG_DEBUG_INFO

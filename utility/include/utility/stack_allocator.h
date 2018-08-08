@@ -36,13 +36,13 @@ protected:
 
     void deallocate(void* buffer, size_t sz)
     {
-        size_t align_size = UTILITY_NAMESPCE align(sz, align_byte);
+        size_t al_sz = UTILITY_NAMESPCE align_size(sz, align_byte);
         int8_t* addres = (int8_t*)buffer;
 
         assert((addres >= _pool && (addres - _pool) <= align_byte) && "not allocate from this object");
-        assert((addres - _pool == _alloced - align_size) && "deallocate order not as allocated");
+        assert((addres - _pool == _alloced - al_sz) && "deallocate order not as allocated");
 
-        _alloced -= align_size;
+        _alloced -= al_sz;
     }
 
     struct deallocator : public iscope_deallocator
@@ -77,7 +77,7 @@ template <size_t B, size_t A = sizeof(void*)>
 class chain_stack_allocator
 {
 public:
-    static constexpr size_t block_size = align(B, A);
+    static constexpr size_t block_size = align_size(B, A);
     static constexpr size_t align_byte = A;
     typedef singly_node<fixed_stack_allocator<block_size, align_byte>> alloc_node;
     static_assert(align_byte != 0 && (block_size % align_byte) == 0, "block size must be aligned");

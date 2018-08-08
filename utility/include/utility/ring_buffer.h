@@ -43,7 +43,7 @@ public:
     void read_end()
     {
         size_t sz = *((size_t*)(_pool + _r_pos));
-        _r_pos += align(sz + size_bytes, align_byte);
+        _r_pos += align_size(sz + size_bytes, align_byte);
         -- _count;
     }
 
@@ -53,7 +53,7 @@ public:
         if (_w_pos == rp && !empty())
             return nullptr;  // full
 
-        size_t cap = align(sz + size_bytes);
+        size_t cap = align_size(sz + size_bytes);
         if (_w_pos < rp)
         {
             if ((rp - _w_pos) > cap) return nullptr;
@@ -76,7 +76,7 @@ public:
     void ring_buffer::write_end()
     {
         size_t sz = *((size_t*)(_pool + _w_pos));
-        _w_pos += align(sz + size_bytes, align_byte);
+        _w_pos += align_size(sz + size_bytes, align_byte);
         ++ _count;
     }
 

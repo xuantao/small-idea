@@ -67,7 +67,7 @@ inline constexpr size_t align_padding(size_t sz, size_t bound = sizeof(void*))
 }
 
 /* 对齐（1，2，4，8...） */
-inline constexpr size_t align(size_t sz, size_t bound = sizeof(void*))
+inline constexpr size_t align_size(size_t sz, size_t bound = sizeof(void*))
 {
     return sz + align_padding(sz, bound);
 }
