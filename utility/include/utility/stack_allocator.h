@@ -1,5 +1,5 @@
 ﻿/*
- * scoped buffer allocator
+ * stack allocator
  * xuantao, 2017
 */
 #pragma once
@@ -9,6 +9,7 @@
 
 UTILITY_NAMESPACE_BEGIN
 
+/* stack allocator (first allocate buffer last deallocate, like a stack structure) */
 template <size_t A = sizeof(void*)>
 class stack_allocator : private serial_allocator<A>
 {
@@ -36,11 +37,11 @@ protected:
 
     void deallocate(void* buffer, size_t sz)
     {
+        int8_t* addr = (int8_t*)buffer;
         size_t al_sz = UTILITY_NAMESPCE align_size(sz, align_byte);
-        int8_t* addres = (int8_t*)buffer;
 
-        assert((addres >= _pool && (addres - _pool) <= align_byte) && "not allocate from this object");
-        assert((addres - _pool == _alloced - al_sz) && "deallocate order not as allocated");
+        assert(addr >= _pool && "not allocate from this object");
+        assert((addr - _pool == _alloced - al_sz) && "deallocate order not as allocated");
 
         _alloced -= al_sz;
     }
@@ -57,6 +58,8 @@ protected:
     deallocator _dealloc = { this };
 }; // class stack_allocator
 
+
+/* fixed stack allocator */
 template <size_t N, size_t A = sizeof(void*)>
 class fixed_stack_allocator : public stack_allocator<A>
 {
@@ -80,10 +83,9 @@ public:
     static constexpr size_t block_size = align_size(B, A);
     static constexpr size_t align_byte = A;
     typedef singly_node<fixed_stack_allocator<block_size, align_byte>> alloc_node;
-    static_assert(align_byte != 0 && (block_size % align_byte) == 0, "block size must be aligned");
 
 public:
-    chain_stack_allocator() : _top(&_bottom) {}
+    chain_stack_allocator() : _top(&_bottom) { }
     ~chain_stack_allocator() { destory(); }
 
     chain_stack_allocator(const chain_stack_allocator&) = delete;
@@ -96,7 +98,7 @@ public:
             return scoped_buffer();
 
         // pop empty alloc node
-        while (_top->value.empty())
+        while (_top != &_bottom && _top->value.empty())
         {
             alloc_node* node = _top;
             _top = _top->next;
@@ -126,10 +128,10 @@ public:
             return _top->value.allocate(s);
         }
 
-        return std::move(buf);
+        return buf;
     }
 
-protected:
+private:
     void destory()
     {
         while (_empty)
@@ -147,9 +149,10 @@ protected:
         }
     }
 
-protected:
+private:
     alloc_node* _empty = nullptr;
     alloc_node* _top;
     alloc_node _bottom;
 };
+
 UTILITY_NAMESPACE_END

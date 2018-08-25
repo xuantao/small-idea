@@ -10,9 +10,7 @@ UTILITY_NAMESPACE_BEGIN
 
 namespace detail
 {
-    /*
-     * 指定内存大小的对象
-    */
+    /* 指定内存大小的对象 */
     template <class Ty>
     struct block_size_type
     {
@@ -128,6 +126,7 @@ protected:
     size_type _size;
 }; // class particular_allocator
 
+/* fixed particular allocator */
 template <typename Ty, size_t N>
 class fixed_particular_allocator : public particular_allocator<Ty>
 {

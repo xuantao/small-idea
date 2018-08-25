@@ -31,7 +31,7 @@ namespace scoped
 
         if (size > SCOPED_ALLOCATOR_BLOCK_SIZE)
             return scoped_buffer(&s_deallocator, new char[size], size);
-        return  s_alloc->allocate(size);
+        return s_alloc->allocate(size);
     }
 } // namespace scoped
 

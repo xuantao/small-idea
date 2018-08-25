@@ -3,9 +3,7 @@
 
 UTILITY_NAMESPACE_BEGIN
 
-/*
- * 循环缓冲区
-*/
+/* 循环缓冲区 */
 template <typename A = sizeof(void*)>
 class ring_buffer
 {
@@ -88,6 +86,7 @@ private:
     int8_t* _pool;
 }; // class ring_buffer
 
+/* fixed ring buffer */
 template <size_t N, size_t A = sizeof(void*)>
 class fixed_ring_buffer : public ring_buffer<A>
 {

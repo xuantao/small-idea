@@ -123,7 +123,7 @@ private:
                 tail = tail->next;
             }
 
-            if (empty_count > max_empty_node)
+            if (empty_count > _max_empty)
                 delete temp;
             else
                 tail->next = temp;

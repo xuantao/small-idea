@@ -7,3 +7,5 @@ void scoped_map_test();
 void ref_count_set_test();
 void scope_guard_test();
 void test_logger();
+void test_serial_allocator();
+void test_stack_allocator();

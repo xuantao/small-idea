@@ -9,6 +9,8 @@
 
 UTILITY_NAMESPACE_BEGIN
 
+#define LOG_MAX_STACK_BUFF_SIZE 4096
+
 namespace detail
 {
     struct val_name
@@ -111,24 +113,24 @@ ilog_proxy* get_log_proxy();
 template <typename... Args>
 inline void log_info(int level, Args&&... args)
 {
-    char buff[4096];
-    to_str_sep(buff, 4096, ", ", std::forward<Args>(args)...);
+    char buff[LOG_MAX_STACK_BUFF_SIZE];
+    to_str_sep(buff, LOG_MAX_STACK_BUFF_SIZE, ", ", std::forward<Args>(args)...);
     get_log_proxy()->log(level, buff);
 }
 
 template <typename... Args>
 inline void log_format(int level, const char* fmt, Args&&... args)
 {
-    char buff[4096];
-    to_str_format(buff, 4096, fmt, std::forward<Args>(args)...);
+    char buff[LOG_MAX_STACK_BUFF_SIZE];
+    to_str_format(buff, LOG_MAX_STACK_BUFF_SIZE, fmt, std::forward<Args>(args)...);
     get_log_proxy()->log(level, buff);
 }
 
 template <typename... Args>
 inline void log_with_name(int level, const char* names, Args&&... args)
 {
-    char buff[4096];
-    detail::log_with_name(buff, 4096, names,
+    char buff[LOG_MAX_STACK_BUFF_SIZE];
+    detail::log_with_name(buff, LOG_MAX_STACK_BUFF_SIZE, names,
         std::make_tuple(std::forward<Args>(args)...),
         make_index_sequence_t<sizeof...(Args)>()
     );

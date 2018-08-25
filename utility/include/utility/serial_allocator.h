@@ -67,11 +67,10 @@ public:
     static constexpr size_t block_size = align_size(B, A);
     static constexpr size_t align_byte = A;
     typedef singly_node<fixed_serial_allocator<block_size, align_byte>> alloc_node;
-    static_assert(align_byte != 0 && (block_size % align_byte) == 0, "block size must be aligned");
 
 public:
     chain_serial_allocator() : _cur(&_head) { }
-    ~chain_serial_allocator() { dissolve(); }
+    ~chain_serial_allocator() { reset(true); }
 
     chain_serial_allocator(const chain_serial_allocator&) = delete;
     chain_serial_allocator& operator = (const chain_serial_allocator&) = delete;
@@ -85,7 +84,7 @@ public:
         void* buf = _cur->value.allocate(s);
         if (buf == nullptr)
         {
-            if (_cur->next = nullptr)
+            if (_cur->next == nullptr)
                 _cur->next = new alloc_node();
             _cur = _cur->next;
 
@@ -96,31 +95,33 @@ public:
         return buf;
     }
 
-    void reset()
+    inline void reset() { reset(false); }
+
+    void reset(bool dissolve)
     {
         _cur = &_head;
 
-        alloc_node* node = _cur;
-        while (node)
+        if (dissolve)
         {
-            node->value.reset();
-            node = node->next;
+            alloc_node* node = _cur->next;
+            _cur->value.reset();
+            _cur->next = nullptr;
+
+            while (node)
+            {
+                alloc_node* tmp = node;
+                node = node->next;
+                delete tmp; // remove all extra node
+            }
         }
-    }
-
-    void dissolve()
-    {
-        _cur = &_head;
-        _cur->value.reset();
-
-        alloc_node* node = _cur;
-        while (node)
+        else
         {
-            alloc_node* tmp = node;
-            node = node->next;
-
-            tmp->next = nullptr;
-            delete tmp;
+            alloc_node* node = _cur;
+            while (node)
+            {
+                node->value.reset();
+                node = node->next;
+            }
         }
     }
 

@@ -157,11 +157,11 @@
     <ClCompile Include="..\test\test_scope_set.cpp" />
     <ClCompile Include="..\test\test_scope_vector.cpp" />
     <ClCompile Include="..\test\test_serial_allocator.cpp" />
+    <ClCompile Include="..\test\test_stack_allocator.cpp" />
     <ClCompile Include="..\test\test_to_string.cpp" />
     <ClCompile Include="..\test\test_util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\test\KGExtractor.h" />
     <ClInclude Include="..\test\test.h" />
     <ClInclude Include="..\test\test_util.h" />
   </ItemGroup>
