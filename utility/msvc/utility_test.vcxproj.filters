@@ -47,6 +47,9 @@
     <ClCompile Include="..\test\test_stack_allocator.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\test\test_ring_buffer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\test\test.h">

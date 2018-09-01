@@ -151,6 +151,7 @@
     <ClCompile Include="..\test\main.cpp" />
     <ClCompile Include="..\test\test_logger.cpp" />
     <ClCompile Include="..\test\test_ref_count_set.cpp" />
+    <ClCompile Include="..\test\test_ring_buffer.cpp" />
     <ClCompile Include="..\test\test_scope_buffer.cpp" />
     <ClCompile Include="..\test\test_scope_guard.cpp" />
     <ClCompile Include="..\test\test_scope_map.cpp" />

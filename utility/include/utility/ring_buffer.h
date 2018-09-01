@@ -23,18 +23,20 @@ public:
     inline size_t count() const { return _count; }
     inline size_t capacity() const { return _capacity; }
 
-    void* read_begin(size_t& sz)
+    void* read_begin(size_t* buff_size)
     {
         if (empty())
             return nullptr;
 
-        sz = *((size_t*)(_pool + _r_pos));
+        size_t sz = *((size_t*)(_pool + _r_pos));
         if (_capacity - _r_pos < size_bytes || sz == 0)
         {
             _r_pos = 0; // jump to front
             sz = *((size_t*)_pool);
         }
 
+        if (buff_size)
+            *buff_size = sz;
         return _pool + _r_pos + size_bytes;
     }
 
@@ -71,11 +73,18 @@ public:
         return data;
     }
 
-    void ring_buffer::write_end()
+    void write_end()
     {
         size_t sz = *((size_t*)(_pool + _w_pos));
         _w_pos += align_size(sz + size_bytes, align_byte);
         ++ _count;
+    }
+
+    void reset()
+    {
+        _w_pos = 0;
+        _r_pos = 0;
+        _count = 0;
     }
 
 private:
