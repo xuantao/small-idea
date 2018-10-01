@@ -1,5 +1,5 @@
 ﻿/*
- * test utilite
+ * test utility
  * xuantao, 2017
 */
 #pragma once

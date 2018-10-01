@@ -4,7 +4,7 @@
 UTILITY_NAMESPACE_BEGIN
 
 /* Ñ­»·»º³åÇø */
-template <typename A = sizeof(void*)>
+template <size_t A = sizeof(void*)>
 class ring_buffer
 {
 public:
@@ -100,7 +100,7 @@ template <size_t N, size_t A = sizeof(void*)>
 class fixed_ring_buffer : public ring_buffer<A>
 {
 public:
-    fixed_ring_buffer() : ring_buffer(_mem, N)
+    fixed_ring_buffer() : ring_buffer<A>(_mem, N)
     { }
 
 private:

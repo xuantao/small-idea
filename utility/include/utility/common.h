@@ -9,10 +9,10 @@
 #include <cassert>
 #include <memory>
 
-#define UTILITY_NAMESPACE_BEGIN namespace utilty {
+#define UTILITY_NAMESPACE_BEGIN namespace utility {
 #define UTILITY_NAMESPACE_END }
-#define UTILITY_USING_NAMESPACE using namespace utilty;
-#define UTILITY_NAMESPCE utilty::
+#define UTILITY_USING_NAMESPACE using namespace utility;
+#define UTILITY_NAMESPCE utility::
 
 #define SCOPED_ALLOCATOR_BLOCK_SIZE 1024 * 1024
 #define SCOPED_ALLOCATOR_ALIGN_SIZE sizeof(void*)

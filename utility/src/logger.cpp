@@ -17,10 +17,7 @@ namespace {
 
 void set_log_proxy(ilog_proxy* proxy)
 {
-    if (proxy == nullptr)
-        s_proxy = &s_default;
-    else
-        s_proxy = proxy;
+    s_proxy = proxy ? proxy : &s_default;
 }
 
 ilog_proxy* get_log_proxy()

@@ -20,7 +20,7 @@
 
 inline int to_string(char* buff, size_t size, const char* val)
 {
-    return snprintf(buff, size, (const char*)(val ? val : "nullptr"));
+    return snprintf(buff, size, val ? val : "nullptr");
 }
 
 inline int to_string(char* buff, size_t size, const std::string& val)
@@ -103,39 +103,7 @@ inline int to_string(char* buff, size_t size, std::nullptr_t)
     return snprintf(buff, size, "nullptr");
 }
 
-inline int _to_string_array(char* buff, size_t size, const char* src, size_t len)
-{
-    if (size == 0) return 0;
-
-    size_t index = 0;
-    size_t capacity = std::min(len, size - 1);
-    while (src[index] && index < capacity)
-    {
-        buff[index] = src[index];
-        ++index;
-    }
-
-    buff[index] = 0;
-    return (int)index;
-}
-
-template <size_t N>
-inline int to_string(char* buff, size_t size, const char(&val)[N])
-{
-    static_assert(N > 0, "const char array size must be greater than 0");
-    return _to_string_array(buff, size, val, N);
-}
-
-template <size_t N>
-inline int to_string(char* buff, size_t size, char(&val)[N])
-{
-    static_assert(N > 0, "char array size must be greater than 0");
-    return _to_string_array(buff, size, val, N);
-}
-
 UTILITY_NAMESPACE_BEGIN
-
-template <typename Ty> int to_str_t(char* buff, size_t size, Ty&& val);
 
 namespace detail
 {
@@ -157,18 +125,17 @@ namespace detail
     template <typename Ty>
     struct type_detect {
         typedef typename std::remove_reference<Ty>::type src_type;
-
         typedef typename std::conditional<
+            std::is_pointer<src_type>::value,
+            pointer_type,   // 指针类型
+            typename std::conditional<
+            std::is_enum<src_type>::value,
+            enum_type,  // 枚举
+            typename std::conditional<
             has_to_string<src_type>::value,
             tostring_type,  // 重载了to_string
-            typename std::conditional<
-                std::is_enum<src_type>::value,
-                enum_type,  // 枚举
-                typename std::conditional<
-                    std::is_pointer<src_type>::value,
-                    pointer_type,   // 指针类型
-                    normal_type     // 普通类型
-                >::type
+            normal_type     // 普通类型
+            >::type
             >::type
         >::type type;
     };
@@ -179,6 +146,25 @@ namespace detail
         char* buff;
         int capacity;
     };
+
+    /* 必须放到最后实现 */
+    template <typename Ty> inline void to_str_impl(str_buff& sb, const Ty& val);
+
+    inline int _to_string_array(char* buff, size_t size, const char* src, size_t len)
+    {
+        if (size == 0) return 0;
+
+        size_t index = 0;
+        size_t capacity = std::min(len, size - 1);
+        while (src[index] && index < capacity)
+        {
+            buff[index] = src[index];
+            ++index;
+        }
+
+        buff[index] = 0;
+        return (int)index;
+    }
 
     inline void to_str_array(str_buff& sb, const char* src, size_t n)
     {
@@ -201,9 +187,24 @@ namespace detail
     }
 
     template <typename Ty>
+    inline int to_str_pointer_2(char* buff, size_t size, Ty* val, std::true_type)
+    {
+        return to_string(buff, size, val);
+    }
+
+    template <typename Ty>
+    inline int to_str_pointer_2(char* buff, size_t size, Ty* val, std::false_type)
+    {
+        //return to_str_t(buff, size, *val);    // 没有必要递归下去
+        return to_string(buff, size, static_cast<const void*>(val));
+    }
+
+    template <typename Ty>
     inline int to_str_pointer(char* buff, size_t size, Ty* val, std::false_type)
     {
-        return to_str_t(buff, size, *val);  // 这里要慎重, 避免陷入死循环
+        return to_str_pointer_2(buff, size, val,
+            typename std::conditional<has_to_string<Ty*>::value, std::true_type, std::false_type>::type()
+        );
     }
 
     template <typename Ty>
@@ -235,25 +236,15 @@ namespace detail
         return to_string(buff, size, static_cast<const void*>(&val));
     }
 
-    template <typename Ty>
-    inline int to_str_dispatch(char* buff, size_t size, Ty&& val)
+    inline int to_str_dispatch(char* buff, size_t size, const char* val)
     {
-        return to_str_dispatch(buff, size, std::forward<Ty>(val), typename type_detect<Ty>::type());
+        return to_string(buff, size, val);
     }
 
     template <typename Ty>
-    inline void to_str_impl(str_buff& sb, Ty&& val)
+    inline int to_str_dispatch(char* buff, size_t size, Ty val)
     {
-        if (sb.failed || sb.capacity <= 0)
-            return;
-
-        int w = to_str_t(sb.buff, sb.capacity, std::forward<Ty>(val));
-        sb.failed = w < 0;
-        if (sb.failed)
-            return;
-
-        sb.buff += w;
-        sb.capacity -= w;
+        return to_str_dispatch(buff, size, std::forward<Ty>(val), typename type_detect<Ty>::type());
     }
 
     template <typename Ty>
@@ -342,10 +333,13 @@ int to_str_iter(char* buff, size_t size, Iter beg, Iter end)
     detail::str_buff sb{false, buff, (int)size};
 
     detail::to_str_impl(sb, '{');
-    for (; beg != end; ++beg)
+    while (true)
     {
         detail::to_str_impl(sb, *beg);
-        if (beg + 1 != end)
+        ++beg;
+        if (beg == end)
+            break;
+        else
             detail::to_str_impl(sb, ", ");
     }
     detail::to_str_impl(sb, '}');
@@ -355,16 +349,10 @@ int to_str_iter(char* buff, size_t size, Iter beg, Iter end)
     else return (int)size - sb.capacity;
 }
 
-template <typename Ty>
-inline int to_str_t(char* buff, size_t size, Ty&& val)
-{
-    return detail::to_str_dispatch(buff, size, std::forward<Ty>(val));
-}
-
 template <typename Ky, typename Vy>
 inline int to_str_t(char* buff, size_t size, const std::pair<Ky, Vy>& pair)
 {
-    return to_str_sep(buff, size, ":", '{', pair.first, pair.second, '}');
+    return to_str_mul(buff, size, '{', pair.first, ": ", pair.second, '}');
 }
 
 template <typename Ty, size_t N>
@@ -376,15 +364,13 @@ inline int to_str_t(char* buff, size_t size, const std::array<Ty, N>& val)
 template <size_t N>
 inline int to_str_t(char* buff, size_t size, const char(&val)[N])
 {
-    static_assert(N > 0, "const char array size must be greater than 0");
-    return _to_string_array(buff, size, val, N);
+    return detail::_to_string_array(buff, size, val, N);
 }
 
 template <size_t N>
 inline int to_str_t(char* buff, size_t size, char(&val)[N])
 {
-    static_assert(N > 0, "char array size must be greater than 0");
-    return _to_string_array(buff, size, val, N);
+    return detail::_to_string_array(buff, size, val, N);
 }
 
 template <typename Ty, size_t N>
@@ -433,6 +419,12 @@ template <typename R, typename C>
 inline int to_str_t(char* buff, size_t size, R C::*mem)
 {
     return snprintf(buff, size, "member_data_offset:0x%p", mem);
+}
+
+template <typename Ty>
+inline int to_str_t(char* buff, size_t size, const Ty& val)
+{
+    return detail::to_str_dispatch(buff, size, val);
 }
 
 template <typename... Args>
@@ -487,5 +479,23 @@ inline int to_str_format(char* buff, size_t size, const char* fmt, Args&&... arg
     else
         return (int)size - sb.capacity;
 }
+
+namespace detail
+{
+    template <typename Ty>
+    inline void to_str_impl(str_buff& sb, const Ty& val)
+    {
+        if (sb.failed || sb.capacity <= 0)
+            return;
+
+        int w = to_str_t(sb.buff, sb.capacity, val);
+        sb.failed = w < 0;
+        if (sb.failed)
+            return;
+
+        sb.buff += w;
+        sb.capacity -= w;
+    }
+} // namespace detail
 
 UTILITY_NAMESPACE_END
