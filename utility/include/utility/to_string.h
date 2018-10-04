@@ -128,14 +128,14 @@ namespace detail
         typedef typename std::conditional<
             std::is_pointer<src_type>::value,
             pointer_type,   // 指针类型
-            typename std::conditional<
-            std::is_enum<src_type>::value,
-            enum_type,  // 枚举
-            typename std::conditional<
-            has_to_string<src_type>::value,
-            tostring_type,  // 重载了to_string
-            normal_type     // 普通类型
-            >::type
+                typename std::conditional<
+                    std::is_enum<src_type>::value,
+                    enum_type,  // 枚举
+                    typename std::conditional<
+                        has_to_string<src_type>::value,
+                        tostring_type,  // 重载了to_string
+                    normal_type     // 普通类型
+                >::type
             >::type
         >::type type;
     };
@@ -195,7 +195,6 @@ namespace detail
     template <typename Ty>
     inline int to_str_pointer_2(char* buff, size_t size, Ty* val, std::false_type)
     {
-        //return to_str_t(buff, size, *val);    // 没有必要递归下去
         return to_string(buff, size, static_cast<const void*>(val));
     }
 
@@ -242,7 +241,7 @@ namespace detail
     }
 
     template <typename Ty>
-    inline int to_str_dispatch(char* buff, size_t size, Ty val)
+    inline int to_str_dispatch(char* buff, size_t size, Ty&& val)
     {
         return to_str_dispatch(buff, size, std::forward<Ty>(val), typename type_detect<Ty>::type());
     }

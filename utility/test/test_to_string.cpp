@@ -78,7 +78,7 @@ static void test_to_string_normal()
 
     test_obj obj;
     TEST_TO_STR(obj.data);  // const char*
-    TEST_TO_STR(obj.data1); // const char*
+    TEST_TO_STR(obj.data1); // unknown type auto cast to void*
 
     char str[] = "hello world";
     TEST_TO_STR(str);       // const char*
@@ -167,7 +167,7 @@ static void test_to_str_t_2()
     list.push_back(2);
     TEST_TO_STR_T(list);
 
-    TEST_TO_STR_T(std::make_pair(1, "utlity"));
+    TEST_TO_STR_T(std::make_pair(1, "utility"));
 
     std::array<int, 3> ary;
     ary[0] = 1;
@@ -184,6 +184,10 @@ static void test_to_str_t_2()
 
     utility::to_str_sep(buff, BUFF_LEN, ", ", vec, 1, 2.0, true, "hello", ary, obj);
     printf("utility::to_str_sep: %s\n", buff);
+
+    char buff2[1024];
+    utility::to_str_format(buff2, 1024, "true:{0} hello:{1} ary:{2} obj:{3}", true, "hello", ary, obj);
+    printf("utility::to_str_format: %s\n", buff2);
 }
 
 void test_to_string()
