@@ -27,12 +27,22 @@ namespace {
     }
 }
 
+static void test_scope_guard_singly()
+{
+    auto sp1 = make_scope_guard([] { printf("scope guard 1\n"); });
+    auto sp2 = make_scope_guard([] { printf("scope guard 2\n"); });
+    auto sp3 = make_scope_guard([] { printf("scope guard 3\n"); });
+    auto sp4 = make_scope_guard(MyOp());
+
+    sp2.dismiss();
+}
+
 static void test_scope_guard_normal()
 {
     int a = 0;
     bool b = 1;
     MyOp op;
-    scope_guard<> guard;
+    scope_guard_stack<> guard;
 
     //MyOp op1;                         // not allow, the op1 lifetime is not allow
     //guard.push(std::ref(op1));
@@ -50,22 +60,23 @@ static void test_scope_guard_normal()
     guard.push(std::bind(test_scope_func_2, 1));
 }
 
-
 static void test_scope_guard_raw_alloc()
 {
-    typedef scope_guard<0> scope_guard;
+    typedef scope_guard_stack<0> scope_guard;
     int a = 0;
     bool b = true;
     scope_guard guarder;
 
-    guarder.push([&] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
-    guarder.push([=] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
-    guarder.push([&a, b] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
-    guarder.push([a, &b] {printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+    guarder.push([&] { printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+    guarder.push([=] { printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+    guarder.push([&a, b] { printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
+    guarder.push([a, &b] { printf("a=%2d b=%s\n", a, b ? "true" : "false"); });
 }
 
-void scope_guard_test()
+void test_scope_guard()
 {
+    printf("test scope guard ...\n");
+    test_scope_guard_singly();
     test_scope_guard_raw_alloc();
     test_scope_guard_normal();
 }

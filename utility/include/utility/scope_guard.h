@@ -107,19 +107,51 @@ namespace scope_guard_detail
     };
 } // namespace detail
 
-template <size_t _BlockSize = 512>
+template <typename Ty>
 class scope_guard
+{
+public:
+    scope_guard(Ty&& func) : _rollback(std::forward<Ty>(func))
+    { }
+
+    scope_guard(scope_guard&&) = default;
+    scope_guard(const scope_guard&) = delete;
+    scope_guard& operator = (const scope_guard&) = delete;
+
+    ~scope_guard()
+    {
+        if (!_dismiss)
+            _rollback();
+    }
+
+public:
+    inline bool is_dissmissed() const { return _dismiss; }
+    inline void dismiss() { _dismiss = true; }
+
+private:
+    bool _dismiss = false;
+    Ty _rollback;
+};
+
+template <typename Ty>
+inline scope_guard<Ty> make_scope_guard(Ty&& func)
+{
+    return scope_guard<Ty>(std::forward<Ty>(func));
+}
+
+template <size_t _BlockSize = 512>
+class scope_guard_stack
 {
 public:
     enum { BlockSize = _BlockSize };
     typedef scope_guard_detail::scope_guard_allocator<_BlockSize> allocator;
 
 public:
-    scope_guard() {}
-    ~scope_guard() { done(); }
+    scope_guard_stack() {}
+    ~scope_guard_stack() { done(); }
 
-    scope_guard(const scope_guard&) = delete;
-    scope_guard& operator = (const scope_guard&) = delete;
+    scope_guard_stack(const scope_guard_stack&) = delete;
+    scope_guard_stack& operator = (const scope_guard_stack&) = delete;
 
 public:
     template <typename Fy>
