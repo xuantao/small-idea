@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <type_traits>
 #include "test.h"
+#include <map>
 
 int main(int argc, char* argv[])
 {

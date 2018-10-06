@@ -7,6 +7,7 @@
 
 #include "common.h"
 #include "serial_allocator.h"
+#include <utility>
 
 UTILITY_NAMESPACE_BEGIN
 
