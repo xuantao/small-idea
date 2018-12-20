@@ -58,21 +58,16 @@ void KGAsyncTaskPool::DoThreadWork()
         IKGAsyncTask* pTask = nullptr;
         {
             std::unique_lock<std::mutex> cLock(m_Mutex);
-            m_Condition.wait_for(cLock, std::chrono::milliseconds(5));
-
+            std::cv_status status = m_Condition.wait_for(cLock, std::chrono::milliseconds(5));
             if (m_bRunning == false)
-            {
                 break;
-            }
-            else if (m_Tasks.empty())
-            {
+            if (status != std::cv_status::no_timeout)
                 continue;
-            }
-            else
-            {
-                pTask = m_Tasks.front();
-                m_Tasks.pop();
-            }
+            if (m_Tasks.empty())
+                continue;
+
+            pTask = m_Tasks.front();
+            m_Tasks.pop();
         }
 
         assert(pTask);

@@ -115,18 +115,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Async.cpp" />
-    <ClCompile Include="KGAsyncTaskPool.cpp" />
+    <ClCompile Include="KGAsyncTask.cpp" />
     <ClCompile Include="KGStepExcutor.cpp" />
-    <ClCompile Include="KGStepInitializer.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Async.h" />
     <ClInclude Include="KGAsyncTask.h" />
-    <ClInclude Include="KGAsyncTaskPool.h" />
     <ClInclude Include="KGStepExcutor.h" />
-    <ClInclude Include="KGStepInitializer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

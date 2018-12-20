@@ -17,7 +17,7 @@ public:
 class KGFutureStateBase
 {
 public:
-    bool IsComplete() const { return m_bComplete; }
+    inline bool IsComplete() const { return m_bComplete; }
 
 protected:
     void MarkComplete()
@@ -37,8 +37,8 @@ public:
     KGFutureState() = default;
 
 public:
-    Rty& GetResult() { return m_Ret; }
-    const Rty& GetResult() const { return m_Ret; }
+    inline Rty& GetResult() { return m_Ret; }
+    inline const Rty& GetResult() const { return m_Ret; }
 
     void SetResult(const Rty& ret)
     {
@@ -48,7 +48,7 @@ public:
 
     void SetResult(Rty&& ret)
     {
-        m_Ret = ret;
+        m_Ret = std::forward<Rty>(ret);
         MarkComplete();
     }
 
@@ -57,65 +57,70 @@ private:
 };
 
 template <typename Rty>
-class KGFuture
+class KGFutureBase
 {
+public:
     typedef std::shared_ptr<KGFutureState<Rty>> StatePtr;
-public:
-    KGFuture(StatePtr ptr) : m_pState(ptr) { }
 
-    KGFuture() = default;
-    KGFuture(const KGFuture&) = default;
-    KGFuture& operator = (const KGFuture&) = default;
-
-public:
-    bool IsValid() const { return (bool)m_pState; }
-    bool IsReady() const { return IsValid() ? m_pState->IsComplete() : false; }
-    Rty& GetResult() const { return m_pState->GetResult(); }
+    KGFutureBase(StatePtr ptr) : m_pState(ptr) { }
+    KGFutureBase() = default;
+    KGFutureBase(const KGFutureBase&) = default;
+    KGFutureBase& operator = (const KGFutureBase&) = default;
 
 public:
+    inline bool IsValid() const { return (bool)m_pState; }
+    inline bool IsReady() const { return IsValid() && m_pState->IsComplete(); }
+
+protected:
+    const StatePtr& GetState() const { assert(IsValid()); return m_pState; }
+
+private:
     StatePtr m_pState;
 };
 
 template <typename Rty>
-class KGFuture<Rty&>
+class KGFuture : public KGFutureBase<Rty>
 {
 public:
-    typedef std::shared_ptr<KGFutureState<Rty*>> StatePtr;
+    typedef KGFutureBase<Rty> BaseType;
 
-    KGFuture(StatePtr ptr) : m_pState(ptr) { }
-
+    KGFuture(typename BaseType::StatePtr ptr) : BaseType(ptr) { }
     KGFuture() = default;
     KGFuture(const KGFuture&) = default;
     KGFuture& operator = (const KGFuture&) = default;
 
 public:
-    bool IsValid() const { return (bool)m_pState; }
-    bool IsReady() const { return IsValid() ? m_pState->IsComplete() : false; }
-    Rty& GetResult() const { return *m_pState->GetResult(); }
+    inline Rty& GetResult() const { return this->GetState()->GetResult(); }
+};
+
+template <typename Rty>
+class KGFuture<Rty&> : public KGFutureBase<Rty*>
+{
+public:
+    typedef KGFutureBase<Rty*> BaseType;
+
+    KGFuture(typename BaseType::StatePtr ptr) : BaseType(ptr) { }
+    KGFuture() = default;
+    KGFuture(const KGFuture&) = default;
+    KGFuture& operator = (const KGFuture&) = default;
 
 public:
-    StatePtr m_pState;
+    inline Rty& GetResult() const { return *this->GetState()->GetResult(); }
 };
 
 template <>
-class KGFuture<void>
+class KGFuture<void> : public KGFutureBase<int>
 {
 public:
-    typedef std::shared_ptr<KGFutureState<int>> StatePtr;
+    typedef KGFutureBase<int> BaseType;
 
-    KGFuture(StatePtr ptr) : m_pState(ptr) { }
-
+    KGFuture(typename BaseType::StatePtr ptr) : BaseType(ptr) { }
     KGFuture() = default;
     KGFuture(const KGFuture&) = default;
     KGFuture& operator = (const KGFuture&) = default;
 
 public:
-    bool IsValid() const { return (bool)m_pState; }
-    bool IsReady() const { return IsValid() ? m_pState->IsComplete() : false; }
-    void GetResult() const { m_pState->GetResult(); }
-
-public:
-    StatePtr m_pState;
+    inline void GetResult() const { this->GetState()->GetResult(); }
 };
 
 template <typename Rty, typename Fty>
@@ -132,15 +137,9 @@ public:
 
     virtual ~KGAsyncTask() { }
 
-    KGFuture<Rty> GetFuture() const
-    {
-        return KGFuture<Rty>(m_pState);
-    }
+    KGFuture<Rty> GetFuture() const { return KGFuture<Rty>(m_pState); }
 
-    void Work() override
-    {
-        m_pState->SetResult(m_Func());
-    }
+    void Work() override { m_pState->SetResult(m_Func()); }
 
 private:
     StatePtr m_pState;
@@ -161,15 +160,9 @@ public:
 
     virtual ~KGAsyncTask() { }
 
-    KGFuture<Rty> GetFuture() const
-    {
-        return KGFuture<Rty>(m_pState);
-    }
+    KGFuture<Rty> GetFuture() const { return KGFuture<Rty>(m_pState); }
 
-    void Work() override
-    {
-        m_pState->SetResult(&m_Func());
-    }
+    void Work() override { m_pState->SetResult(&m_Func()); }
 
 private:
     StatePtr m_pState;
@@ -190,10 +183,7 @@ public:
 
     virtual ~KGAsyncTask() { }
 
-    KGFuture<void> GetFuture() const
-    {
-        return KGFuture<void>(m_pState);
-    }
+    KGFuture<void> GetFuture() const { return KGFuture<void>(m_pState); }
 
     void Work() override
     {
@@ -205,3 +195,19 @@ private:
     StatePtr m_pState;
     Fty m_Func;
 };
+
+namespace KGAsync
+{
+    bool Startup(size_t threadNum);
+    void Shutdown();
+    void Run(IKGAsyncTask* pTask);
+
+    template <typename Fty>
+    auto Run(Fty&& call) -> KGFuture<typename std::result_of<Fty()>::type>
+    {
+        auto pTask = new KGAsyncTask<typename std::result_of<Fty()>::type, Fty>(std::forward<Fty>(call));
+        auto future = pTask->GetFuture();
+        Run(pTask);
+        return future;
+    }
+}

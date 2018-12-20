@@ -9,21 +9,37 @@
 
 enum class KGSTEP_RET
 {
+    Continue,
     Failed,
     Completed,
-    Conintue,
 };
 
-struct KGScopeGuard {
-    void Dismiss() {}
+namespace StepExcutor_Internal { struct _Guarder; }
+
+struct KGScopeGuard
+{
+    void Dismiss() { }
+
     bool Done() { return true; }
 
     template <typename Fty>
-    void Push(Fty&&) { }
+    void Push(Fty&& func)    { }
 };
 
-class KGStepGuard : public KGScopeGuard
-{};
+/* 步进器守卫 */
+class KGStepGuard : private KGScopeGuard
+{
+    friend StepExcutor_Internal::_Guarder;
+public:
+    KGStepGuard() = default;
+    ~KGStepGuard() = default;
+
+    template <typename Fty>
+    void Push(Fty&& func)
+    {
+        KGScopeGuard::Push(std::forward<Fty>(func));
+    }
+};
 
 /* 分布执行接口 */
 struct IKGStepExcutor
@@ -157,15 +173,15 @@ inline KGStepExcutorPtr MakeStepExcutor(Fty&& fn)
     return std::make_shared<KGStepExcutor<Fty>>(std::forward<Fty>(fn));
 }
 
-/* 分布执行列表 */
-class KGStepExcutorList : public IKGStepExcutor
+/* 分布执行列表, 顺序执行 */
+class KGQueueStepExcutor final : public IKGStepExcutor
 {
 public:
-    KGStepExcutorList() = default;
-    virtual ~KGStepExcutorList() = default;
+    KGQueueStepExcutor() = default;
+    virtual ~KGQueueStepExcutor();
 
-    KGStepExcutorList(const KGStepExcutorList&) = delete;
-    KGStepExcutorList& operator = (const KGStepExcutorList&) = delete;
+    KGQueueStepExcutor(const KGQueueStepExcutor&) = delete;
+    KGQueueStepExcutor& operator = (const KGQueueStepExcutor&) = delete;
 
 public:
     inline bool Empty() const { return m_Steps.empty(); }
@@ -177,12 +193,43 @@ public:
         Add(MakeStepExcutor(std::forward<Fty>(fn)));
     }
 
-    void Clear();
-
     KGSTEP_RET Step() override;
-    void Rollback() override;
+    void Rollback() override { DoRollback(); }
 
-protected:
+private:
+    void DoRollback();
+
+private:
     size_t m_StepIndex = 0;
+    KGSTEP_RET m_eRet = KGSTEP_RET::Continue;
     std::vector<KGStepExcutorPtr> m_Steps;
 };
+
+///* 并行分布执行 */
+//class KGParallelStepExcutor : public IKGStepExcutor
+//{
+//public:
+//    KGParallelStepExcutor() = default;
+//    virtual ~KGParallelStepExcutor() = default;
+//
+//    KGParallelStepExcutor(const KGParallelStepExcutor&) = delete;
+//    KGParallelStepExcutor& operator = (const KGParallelStepExcutor&) = delete;
+//
+//public:
+//    inline bool Empty() const { return m_Steps.empty(); }
+//    inline void Add(KGStepExcutorPtr ptr) { m_Steps.push_back(ptr); }
+//
+//    template <typename Fty>
+//    inline void Add(Fty&& fn)
+//    {
+//        Add(MakeStepExcutor(std::forward<Fty>(fn)));
+//    }
+//
+//    void Clear();
+//
+//    KGSTEP_RET Step() override;
+//    void Rollback() override;
+//
+//protected:
+//    std::vector<KGStepExcutorPtr> m_Steps;
+//};

@@ -1,28 +1,31 @@
 ﻿#include "KGStepExcutor.h"
 
-void KGStepExcutorList::Clear()
+KGQueueStepExcutor::~KGQueueStepExcutor()
 {
-    m_StepIndex = 0;
-    m_Steps.clear();
+    if (m_eRet != KGSTEP_RET::Completed)
+        DoRollback();
 }
 
-KGSTEP_RET KGStepExcutorList::Step()
+KGSTEP_RET KGQueueStepExcutor::Step()
 {
     if (m_StepIndex >= m_Steps.size())
         return KGSTEP_RET::Completed;
 
-    auto ret = m_Steps[m_StepIndex]->Step();
-    if (ret == KGSTEP_RET::Completed)
+    if (m_eRet != KGSTEP_RET::Continue)
+        return m_eRet;
+
+    m_eRet = m_Steps[m_StepIndex]->Step();
+    if (m_eRet == KGSTEP_RET::Completed)
     {
         ++ m_StepIndex;
         if (m_StepIndex < m_Steps.size())
-            ret = KGSTEP_RET::Conintue;
+            m_eRet = KGSTEP_RET::Continue;
     }
 
-    return ret;
+    return m_eRet;
 }
 
-void KGStepExcutorList::Rollback()
+void KGQueueStepExcutor::DoRollback()
 {
     for (int i = (int)m_StepIndex; i >= 0; --i)
         m_Steps[i]->Rollback();

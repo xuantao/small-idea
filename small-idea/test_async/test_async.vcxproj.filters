@@ -13,13 +13,7 @@
     <ClCompile Include="KGStepExcutor.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="Async.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="KGStepInitializer.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="KGAsyncTaskPool.cpp">
+    <ClCompile Include="KGAsyncTask.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -27,16 +21,7 @@
     <ClInclude Include="KGStepExcutor.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="Async.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="KGAsyncTask.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="KGStepInitializer.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="KGAsyncTaskPool.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

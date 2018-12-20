@@ -5,11 +5,11 @@
 #include <type_traits>
 #include <iostream>
 #include "KGStepExcutor.h"
-#include "KGAsyncTaskPool.h"
+#include "KGAsyncTask.h"
 
 void TestStep()
 {
-    KGStepExcutorList list;
+    KGQueueStepExcutor list;
 
     list.Add(MakeStepExcutor([] {
         printf("return void\n");
@@ -29,7 +29,7 @@ void TestStep()
     list.Add(MakeStepExcutor([=]() mutable {
         ++idx;
         printf("return idx=%d\n", idx);
-        return idx < 10 ? KGSTEP_RET::Conintue : KGSTEP_RET::Completed;
+        return idx < 10 ? KGSTEP_RET::Continue : KGSTEP_RET::Completed;
     }));
 
     list.Add([](auto& rGuarder) {
@@ -37,47 +37,47 @@ void TestStep()
         //rGuarder.Push([] { printf("22222222222\n"); });
     });
 
-    while (list.Step() == KGSTEP_RET::Conintue)
+    while (list.Step() == KGSTEP_RET::Continue)
     {
     }
 }
 
-template <typename Fty>
-auto TestAsync(KGAsyncTaskPool& pool, Fty&& call) -> KGFuture<typename std::result_of<Fty()>::type>
-{
-    auto pTask = new KGAsyncTask<typename std::result_of<Fty()>::type, Fty>(std::forward<Fty>(call));
-    auto future = pTask->GetFuture();
-    pool.AddTask(pTask);
-    return future;
-}
+//template <typename Fty>
+//auto TestAsync(KGAsyncTaskPool& pool, Fty&& call) -> KGFuture<typename std::result_of<Fty()>::type>
+//{
+//    auto pTask = new KGAsyncTask<typename std::result_of<Fty()>::type, Fty>(std::forward<Fty>(call));
+//    auto future = pTask->GetFuture();
+//    pool.AddTask(pTask);
+//    return future;
+//}
 
-int TestAsyncFunc()
-{
-    std::this_thread::sleep_for(std::chrono::milliseconds(4));
-
-    std::cout << "11111111111   " << std::this_thread::get_id() << "\n";
-    return 1;
-}
+//int TestAsyncFunc()
+//{
+//    std::this_thread::sleep_for(std::chrono::milliseconds(4));
+//
+//    std::cout << "11111111111   " << std::this_thread::get_id() << "\n";
+//    return 1;
+//}
 
 void TestAsyncPool()
 {
-    KGAsyncTaskPool pool;
-    pool.Create(4);
+    //KGAsyncTaskPool pool;
+    //pool.Create(4);
 
-    //for (int i = 0; i < 100; ++i)
-    auto cFuture = TestAsync(pool, TestAsyncFunc);
+    ////for (int i = 0; i < 100; ++i)
+    //auto cFuture = TestAsync(pool, TestAsyncFunc);
 
-    //auto cFuture2 = TestAsync(pool, [](auto& rGuarder) {
+    ////auto cFuture2 = TestAsync(pool, [](auto& rGuarder) {
 
-    //});
+    ////});
 
-    //pool.Destory();
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    ////pool.Destory();
+    //std::this_thread::sleep_for(std::chrono::seconds(5));
 
-    [cFuture] {
-        if (cFuture.IsReady())
-            printf("%d\n", cFuture.GetResult());
-    }();
+    //[cFuture] {
+    //    if (cFuture.IsReady())
+    //        printf("%d\n", cFuture.GetResult());
+    //}();
 }
 
 //#include <type_traits>
