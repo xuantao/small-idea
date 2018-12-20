@@ -1,4 +1,4 @@
-#include "KGStepInitializer.h"
+﻿#include "KGStepInitializer.h"
 
 bool KGStepInitializer::Create(int threadNum)
 {

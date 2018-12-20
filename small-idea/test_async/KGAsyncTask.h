@@ -1,11 +1,11 @@
-/*
- * Òì²½ÈÎÎñ
+ï»¿/*
+ * å¼‚æ­¥ä»»åŠ¡
 */
 #pragma once
 #include <memory>
 #include <cassert>
 
-/* Òì²½ÈÎÎñ½Ó¿Ú */
+/* å¼‚æ­¥ä»»åŠ¡æ¥å£ */
 class IKGAsyncTask
 {
 public:
@@ -13,7 +13,7 @@ public:
     virtual void Work() = 0;
 };
 
-/* Òì²½×´Ì¬ */
+/* å¼‚æ­¥çŠ¶æ€ */
 class KGFutureStateBase
 {
 public:

@@ -1,4 +1,4 @@
-#include "KGAsyncTaskPool.h"
+﻿#include "KGAsyncTaskPool.h"
 #include <cassert>
 
 KGAsyncTaskPool::~KGAsyncTaskPool()

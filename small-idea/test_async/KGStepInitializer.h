@@ -1,5 +1,5 @@
-/*
- * ·Ö²¼³õÊ¼»¯Æ÷
+ï»¿/*
+ * åˆ†å¸ƒåˆå§‹åŒ–å™¨
 */
 #pragma once
 
@@ -8,7 +8,7 @@
 #include "KGStepExcutor.h"
 #include "KGAsyncTaskPool.h"
 
-/* ·Ö²¼³õÊ¼»¯Æ÷ */
+/* åˆ†å¸ƒåˆå§‹åŒ–å™¨ */
 class KGStepInitializer
 {
     typedef std::pair<KGStepExcutorPtr, std::function<void()>> Initializer;
