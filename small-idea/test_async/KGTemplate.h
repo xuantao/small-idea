@@ -126,11 +126,32 @@ namespace utility
         typedef typename std::result_of<Fty(Args...)>::type type;
     };
 
+    //template <typename Fty>
+    //struct invoke_result<Fty>
+    //{
+    //    typedef typename std::result_of<Fty()>::type type;
+    //};
+
+    //template <typename Fty>
+    //struct invoke_result<Fty, void>
+    //{
+    //    typedef typename std::result_of<Fty()>::type type;
+    //};
+
     /* check Fty is callable by specified parementers */
     template <typename Fty, typename... Args>
     struct is_callable
     {
         template<typename U> static auto Check(int) -> decltype(std::declval<U>()(std::declval<Args>()...), std::true_type());
+        template<typename U> static std::false_type Check(...);
+
+        static constexpr bool value = std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;
+    };
+
+    template <typename Fty>
+    struct is_callable<Fty, void>
+    {
+        template<typename U> static auto Check(int) -> decltype(std::declval<U>()(), std::true_type());
         template<typename U> static std::false_type Check(...);
 
         static constexpr bool value = std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;

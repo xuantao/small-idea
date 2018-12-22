@@ -83,8 +83,29 @@ private:
     alignas (A) int8_t _pool[DefSize];
 };
 
+//void test_ref(int)
+//{
+//    printf("22222222");
+//}
+
+template <typename Ty>
+void test_callable(Ty&& fn)
+{
+    static_assert(utility::is_callable<Ty, int>::value, "222");
+}
+
+void test_ref(int&)
+{
+    printf("22222222");
+}
+
 void test_spe_allocator()
 {
+    int i = 0;
+    test_ref(i);
+    //test_callable(&test_ref);
+    //test_ref(1);
+
     special_allocator<16> alloc(64);
 
     alloc.allocate(6);
@@ -110,14 +131,19 @@ void TestStep()
         return KGSTEP_RET::Completed;
     });
 
-    MakeStepExcutor([](KGStepGuard&) {
-        printf("111111111\n");
-    });
+    //MakeStepExcutor([](KGStepGuard) {
+    //    printf("111111111\n");
+    //});
 
-    MakeStepExcutor([](KGStepGuard&) {
-        printf("111111111\n");
-        return true;
-    });
+    //MakeStepExcutor([](KGStepGuard&&) {
+    //    printf("111111111\n");
+    //    return true;
+    //});
+
+    //MakeStepExcutor([](const KGStepGuard&) {
+    //    printf("111111111\n");
+    //    return true;
+    //});
 
     MakeStepExcutor([](KGStepGuard&) {
         printf("111111111\n");
