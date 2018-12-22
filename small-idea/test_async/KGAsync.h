@@ -26,8 +26,8 @@ namespace Async_Internal
         typedef typename utility::invoke_result<Fty, Args...>::type type;
     };
 
-    template <typename... Tys>
-    struct AsyncRetType<false, Tys...>
+    template <typename Fty, typename... Args>
+    struct AsyncRetType<false, Fty, Args...>
     {
         typedef void type;
     };
