@@ -115,13 +115,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="KGAsyncTask.cpp" />
+    <ClCompile Include="KGAsync.cpp" />
     <ClCompile Include="KGStepExcutor.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="TestAsync.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="KGAsyncTask.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="KGAsync.h" />
+    <ClInclude Include="KGFuture.h" />
+    <ClInclude Include="KGScopeGuard.h" />
     <ClInclude Include="KGStepExcutor.h" />
+    <ClInclude Include="KGTemplate.h" />
+    <ClInclude Include="serial_allocator.h" />
+    <ClInclude Include="Tesh.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

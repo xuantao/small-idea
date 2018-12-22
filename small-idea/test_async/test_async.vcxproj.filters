@@ -5,6 +5,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{a6896b93-d98e-4e66-b13c-a6fdd53f8fc8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -13,7 +16,10 @@
     <ClCompile Include="KGStepExcutor.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="KGAsyncTask.cpp">
+    <ClCompile Include="TestAsync.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="KGAsync.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -21,7 +27,25 @@
     <ClInclude Include="KGStepExcutor.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="KGAsyncTask.h">
+    <ClInclude Include="KGScopeGuard.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="KGTemplate.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="KGAsync.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Tesh.h">
+      <Filter>test</Filter>
+    </ClInclude>
+    <ClInclude Include="KGFuture.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="serial_allocator.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

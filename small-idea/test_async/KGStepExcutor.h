@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <memory>
 #include <vector>
+#include "KGAsync.h"
 
 enum class KGSTEP_RET
 {
@@ -15,6 +16,13 @@ enum class KGSTEP_RET
 };
 
 namespace StepExcutor_Internal { struct _Guarder; }
+
+template <size_t N>
+struct StepAllocator
+{
+
+};
+
 
 struct KGScopeGuard
 {
@@ -233,3 +241,15 @@ private:
 //protected:
 //    std::vector<KGStepExcutorPtr> m_Steps;
 //};
+//
+//template <typename Rty, typename Fty>
+//void MakeExcutor(std::future<Rty>&& future,  Fty&& fn)
+//{
+//
+//}
+//
+//template <typename Rty, typename Fty>
+//void MakeExcutor(const std::shared_future<Rty>& future, Fty&& fn)
+//{
+//
+//}

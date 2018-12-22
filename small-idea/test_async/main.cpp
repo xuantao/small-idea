@@ -4,121 +4,119 @@
 #include <memory>
 #include <type_traits>
 #include <iostream>
+#include <future>
+//#include <experimental/future>
 #include "KGStepExcutor.h"
-#include "KGAsyncTask.h"
+#include "Tesh.h"
+#include "serial_allocator.h"
 
-void TestStep()
+using namespace utility;
+
+template <size_t A = sizeof(void*)>
+struct xxx_allocator
 {
-    KGQueueStepExcutor list;
+    typedef singly_node<serial_allocator<A>> node_type;
 
-    list.Add(MakeStepExcutor([] {
-        printf("return void\n");
-    }));
-
-    list.Add(MakeStepExcutor([] {
-        printf("return true\n");
-        return true;
-    }));
-
-    list.Add(MakeStepExcutor([] {
-        printf("return false\n");
-        return false;
-    }));
-
-    int idx = 0;
-    list.Add(MakeStepExcutor([=]() mutable {
-        ++idx;
-        printf("return idx=%d\n", idx);
-        return idx < 10 ? KGSTEP_RET::Continue : KGSTEP_RET::Completed;
-    }));
-
-    list.Add([](auto& rGuarder) {
-        printf("11111111111111\n");
-        //rGuarder.Push([] { printf("22222222222\n"); });
-    });
-
-    while (list.Step() == KGSTEP_RET::Continue)
+    xxx_allocator(size_t inc)
+        : _increment(inc)
+        ,_alloc_node(0, 0)
     {
     }
-}
 
-//template <typename Fty>
-//auto TestAsync(KGAsyncTaskPool& pool, Fty&& call) -> KGFuture<typename std::result_of<Fty()>::type>
-//{
-//    auto pTask = new KGAsyncTask<typename std::result_of<Fty()>::type, Fty>(std::forward<Fty>(call));
-//    auto future = pTask->GetFuture();
-//    pool.AddTask(pTask);
-//    return future;
-//}
+    xxx_allocator(size_t inc, void* defPool, size_t defSize)
+        : _increment(inc)
+        , _alloc_node(defPool, defSize)
+    {
+    }
 
-//int TestAsyncFunc()
-//{
-//    std::this_thread::sleep_for(std::chrono::milliseconds(4));
-//
-//    std::cout << "11111111111   " << std::this_thread::get_id() << "\n";
-//    return 1;
-//}
+    ~xxx_allocator()
+    {
+        node_type* pRoot = _alloc_node.next;
+        while (pRoot)
+        {
+            node_type* pCur = pRoot;
+            pRoot = pCur->next;
 
-void TestAsyncPool()
-{
-    //KGAsyncTaskPool pool;
-    //pool.Create(4);
+            pCur->~node_type();
+            delete reinterpret_cast<int8_t*>(pCur);
+        }
+    }
 
-    ////for (int i = 0; i < 100; ++i)
-    //auto cFuture = TestAsync(pool, TestAsyncFunc);
+public:
+    void* allocate(size_t sz)
+    {
+        void* pBuff = _alloc_node.value.allocate(sz);
+        if (pBuff)
+            return pBuff;
 
-    ////auto cFuture2 = TestAsync(pool, [](auto& rGuarder) {
+        create_node(std::max(align_size(sz), _increment));
+        pBuff = _alloc_node.value.allocate(sz);
+        assert(pBuff);
+        return pBuff;
+    }
 
-    ////});
+    void deallocate(void* p, size_t) { }
 
-    ////pool.Destory();
-    //std::this_thread::sleep_for(std::chrono::seconds(5));
+private:
+    void create_node(size_t s)
+    {
+        int8_t* p = new int8_t[align_size(sizeof(node_type)) + s];
+        assert(p);
+        node_type* pNode = new (p) node_type(p + align_size(sizeof(node_type)), s);
+        _alloc_node.value.swap(pNode->value);
+        pNode->next = _alloc_node.next;
+        _alloc_node.next = pNode;
+    }
 
-    //[cFuture] {
-    //    if (cFuture.IsReady())
-    //        printf("%d\n", cFuture.GetResult());
-    //}();
-}
-
-//#include <type_traits>
-//#include <stdio.h>
-//
-//struct KGScopeGuard
-//{};
-
-template <typename Ty>
-struct HasDeclare
-{
-    static Ty GetFn();
-    static KGScopeGuard& GetGuard();
-    template<typename U> static auto Check(int) -> decltype(GetFn()(GetGuard()), std::true_type());
-    template<typename U> static std::false_type Check(...);
-
-    static constexpr bool value =
-        std::is_same<decltype(Check<Ty>(0)), std::true_type>::value;
+    size_t _increment;
+    node_type _alloc_node;
 };
 
-struct testObj
+template <size_t DefSize, size_t A = sizeof(void*)>
+struct special_allocator : xxx_allocator<A>
 {
-    void operator() (KGScopeGuard&) {}
+    special_allocator(size_t extra_size) : xxx_allocator<A>(extra_size, _pool, DefSize)
+    {
+    }
+
+private:
+    alignas (A) int8_t _pool[DefSize];
 };
 
-void testGuard(KGScopeGuard& guard) {
+void test_spe_allocator()
+{
+    special_allocator<16> alloc(64);
+
+    alloc.allocate(6);
+    alloc.allocate(10);
+    alloc.allocate(1024);
+    alloc.allocate(10);
+
+    //std::alignment_of
 }
 
-template <typename Fty>
-void checkType(Fty&& fty)
+
+struct Allocator;
+extern void TestAsync();
+
+struct CallObj : std::enable_shared_from_this<CallObj>
 {
-    bool value = HasDeclare<testObj>::value;
-    printf("value:%s\n", value ? "true" : "false");
-}
+    void operator () () {
+        printf("CallObj()\n");
+    }
+};
 
 int main(int argc, char* argv[])
 {
-    //checkType(testObj());
-    //checkType(testGuard);
-    //checkType([](KGScopeGuard&) {});
-    TestAsyncPool();
+    std::function<void()> fn;
+    CallObj obj;
+
+    //KGAsync::Run(obj);
+    //TestAsync();
+
+    //std::allocate_shared()
+
+    test_spe_allocator();
 
     system("pause");
     return 0;

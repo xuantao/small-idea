@@ -3,7 +3,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
-#include "KGAsyncTask.h"
+#include "KGAsync.h"
 
 /* 线程池 */
 static class KGAsyncTaskPool
@@ -59,8 +59,11 @@ public:
 
     bool AddTask(IKGAsyncTask* pTask)
     {
-        std::lock_guard<std::mutex> cLock(m_Mutex);
-        m_Tasks.push(pTask);
+        {
+            std::lock_guard<std::mutex> cLock(m_Mutex);
+            m_Tasks.push(pTask);
+        }
+        m_Condition.notify_one();
         return true;
     }
 
@@ -69,16 +72,25 @@ public:
 private:
     void DoThreadWork()
     {
-        while (true)
+        while (m_bRunning)
         {
             IKGAsyncTask* pTask = nullptr;
+            if (m_Tasks.empty())
             {
                 std::unique_lock<std::mutex> cLock(m_Mutex);
-                std::cv_status status = m_Condition.wait_for(cLock, std::chrono::milliseconds(5));
+                m_Condition.wait(cLock);
+
                 if (m_bRunning == false)
                     break;
-                if (status != std::cv_status::no_timeout)
+                if (m_Tasks.empty())
                     continue;
+
+                pTask = m_Tasks.front();
+                m_Tasks.pop();
+            }
+            else
+            {
+                std::lock_guard<std::mutex> cLock(m_Mutex);
                 if (m_Tasks.empty())
                     continue;
 
@@ -86,7 +98,6 @@ private:
                 m_Tasks.pop();
             }
 
-            assert(pTask);
             pTask->Work();
             delete pTask;
         }
@@ -113,7 +124,7 @@ namespace KGAsync
         s_TaskPool.Destory();
     }
 
-    void Run(IKGAsyncTask* pTask)
+    void PushTask(IKGAsyncTask* pTask)
     {
         assert(pTask);
         assert(s_TaskPool.GetThreadNum());
