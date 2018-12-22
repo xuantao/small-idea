@@ -71,8 +71,8 @@ namespace Future_Internal
         {
         }
 
-        FutureState(AssociatedStatePtr _New_state)
-            : m_pState(_New_state)
+        FutureState(AssociatedStatePtr pState)
+            : m_pState(pState)
         {
         }
 
@@ -124,7 +124,7 @@ namespace Future_Internal
         {
         }
 
-        PromiseState& operator = (PromiseState&& v)
+        PromiseState& operator = (PromiseState&& other)
         {
             m_pState = std::move(other.m_pState);
             return *this;
@@ -173,8 +173,8 @@ public:
     {
     }
 
-    KGFuture(typename FutureState::AssociatedStatePtr _State)
-        : FutureState(_State)
+    KGFuture(typename FutureState::AssociatedStatePtr pState)
+        : FutureState(pState)
     {
     }
 
@@ -211,8 +211,8 @@ public:
     {
     }
 
-    KGFuture(typename FutureState::AssociatedStatePtr _State)
-        : FutureState(_State)
+    KGFuture(typename FutureState::AssociatedStatePtr pState)
+        : FutureState(pState)
     {
     }
 
@@ -249,8 +249,8 @@ public:
     {
     }
 
-    KGFuture(typename FutureState::AssociatedStatePtr _State)
-        : FutureState(_State)
+    KGFuture(typename FutureState::AssociatedStatePtr pState)
+        : FutureState(pState)
     {
     }
 
@@ -284,30 +284,30 @@ public:
     {
     }
 
-    KGSharedFuture(const KGSharedFuture& _Other)
-        : FutureState(_Other)
+    KGSharedFuture(const KGSharedFuture& other)
+        : FutureState(other)
     {
     }
 
-    KGSharedFuture& operator = (const KGSharedFuture& _Right)
+    KGSharedFuture& operator = (const KGSharedFuture& other)
     {
-        FutureState::operator = (_Right);
+        FutureState::operator = (other);
         return (*this);
     }
 
-    KGSharedFuture(KGFuture<Ty>&& _Other)
-        : FutureState(std::forward<FutureState>(_Other))
+    KGSharedFuture(KGFuture<Ty>&& other)
+        : FutureState(std::forward<FutureState>(other))
     {
     }
 
-    KGSharedFuture(KGSharedFuture&& _Other)
-        : FutureState(std::move(_Other))
+    KGSharedFuture(KGSharedFuture&& other)
+        : FutureState(std::move(other))
     {
     }
 
-    KGSharedFuture& operator = (KGSharedFuture&& _Right)
+    KGSharedFuture& operator = (KGSharedFuture&& other)
     {
-        FutureState::operator = (std::move(_Right));
+        FutureState::operator = (std::move(other));
         return (*this);
     }
 
@@ -332,30 +332,30 @@ public:
     {
     }
 
-    KGSharedFuture(const KGSharedFuture& _Other)
-        : FutureState(_Other)
+    KGSharedFuture(const KGSharedFuture& other)
+        : FutureState(other)
     {
     }
 
-    KGSharedFuture& operator = (const KGSharedFuture& _Right)
+    KGSharedFuture& operator = (const KGSharedFuture& other)
     {
-        FutureState::operator = (_Right);
+        FutureState::operator = (other);
         return (*this);
     }
 
-    KGSharedFuture(KGFuture<Ty&>&& _Other)
-        : FutureState(std::forward<FutureState>(_Other))
+    KGSharedFuture(KGFuture<Ty&>&& other)
+        : FutureState(std::forward<FutureState>(other))
     {
     }
 
-    KGSharedFuture(KGSharedFuture&& _Other)
-        : FutureState(std::move(_Other))
+    KGSharedFuture(KGSharedFuture&& other)
+        : FutureState(std::move(other))
     {
     }
 
-    KGSharedFuture& operator = (KGSharedFuture&& _Right)
+    KGSharedFuture& operator = (KGSharedFuture&& other)
     {
-        FutureState::operator = (std::move(_Right));
+        FutureState::operator = (std::move(other));
         return (*this);
     }
 
@@ -380,30 +380,30 @@ public:
     {
     }
 
-    KGSharedFuture(const KGSharedFuture& _Other)
-        : FutureState(_Other)
+    KGSharedFuture(const KGSharedFuture& other)
+        : FutureState(other)
     {
     }
 
-    KGSharedFuture& operator = (const KGSharedFuture& _Right)
+    KGSharedFuture& operator = (const KGSharedFuture& other)
     {
-        FutureState::operator = (_Right);
+        FutureState::operator = (other);
         return (*this);
     }
 
-    KGSharedFuture(KGSharedFuture&& _Other)
-        : FutureState(std::move(_Other))
+    KGSharedFuture(KGSharedFuture&& other)
+        : FutureState(std::move(other))
     {
     }
 
-    KGSharedFuture(KGFuture<void>&& _Other)
-        : FutureState(std::forward<FutureState>(_Other))
+    KGSharedFuture(KGFuture<void>&& other)
+        : FutureState(std::forward<FutureState>(other))
     {
     }
 
-    KGSharedFuture& operator = (KGSharedFuture&& _Right)
+    KGSharedFuture& operator = (KGSharedFuture&& other)
     {
-        FutureState::operator = (std::move(_Right));
+        FutureState::operator = (std::move(other));
         return (*this);
     }
 
@@ -462,14 +462,14 @@ public:
         return KGFuture<Ty>(m_Promise.GetState());
     }
 
-    void SetValue(const Ty& _Val)
+    void SetValue(const Ty& val)
     {
-        m_Promise.GetState()->SetValue(_Val);
+        m_Promise.GetState()->SetValue(val);
     }
 
-    void SetValue(Ty&& _Val)
+    void SetValue(Ty&& val)
     {
-        m_Promise.GetState()->SetValue(std::forward<Ty>(_Val));
+        m_Promise.GetState()->SetValue(std::forward<Ty>(val));
     }
 
 private:
@@ -514,9 +514,9 @@ public:
         return KGFuture<Ty&>(m_Promise.GetState());
     }
 
-    void SetValue(Ty& _Val)
+    void SetValue(Ty& val)
     {
-        m_Promise._Get_state()->SetValue(&_Val);
+        m_Promise._Get_state()->SetValue(&val);
     }
 
 private:
