@@ -80,14 +80,26 @@ class KGScopeGuardImpl
 {
 public:
     typedef Alloc Allocator;
-    typedef KGRollbackNode Node;
+    typedef ScopeGuard_Internal::KGRollbackNode Node;
 
 public:
-    KGScopeGuard() {}
-    ~KGScopeGuard() { Done(); }
+    KGScopeGuardImpl()
+    {
+    }
 
-    KGScopeGuard(const KGScopeGuard&) = delete;
-    KGScopeGuard& operator = (const KGScopeGuard&) = delete;
+    template <typename _Alloc>
+    KGScopeGuardImpl(std::allocator_arg_t, _Alloc&& alloc)
+        : m_Alloc(std::forward<_Alloc>(alloc))
+    {
+    }
+
+    ~KGScopeGuardImpl()
+    {
+        Done();
+    }
+
+    KGScopeGuardImpl(const KGScopeGuardImpl&) = delete;
+    KGScopeGuardImpl& operator = (const KGScopeGuardImpl&) = delete;
 
 public:
     /*

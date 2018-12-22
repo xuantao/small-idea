@@ -41,7 +41,7 @@ public:
 
     inline void* Alloc(size_t sz)
     {
-        size_t al_sz = KGALIGN_CEIL(sz, AlignByte);
+        size_t al_sz = KGAlignSize(sz, AlignByte);
         if (al_sz > m_nCapacity - m_nAlloced)
             return nullptr;
 
@@ -85,7 +85,7 @@ class KGSerialAllocator
 public:
     typedef KGSerialAllocatorImpl<A> AllocImpl;
     typedef KGSinglyNode<AllocImpl> AllocNode;
-    using AllocImpl::AlignByte;
+    //using AllocImpl::AlignByte;
     static constexpr size_t DefaultBlock = 4096;
 
 public:
@@ -122,7 +122,7 @@ protected:
 public:
     inline bool IsMoveable() const
     {
-        return m_bMoveable
+        return m_bMoveable;
     }
 
     void* Alloc(size_t nSize)
@@ -131,7 +131,7 @@ public:
         if (pBuff)
             return pBuff;
 
-        CreateNode(std::max(KGALIGN_CEIL(nSize, AlignByte), m_nBlock));
+        CreateNode(std::max(KGAlignSize(nSize, AllocImpl::AlignByte), m_nBlock));
 
         pBuff = m_AllocNode.Value.Alloc(nSize);
         assert(pBuff);
@@ -175,7 +175,7 @@ public:
             if (pNode == nullptr)
                 m_AllocNode.Value.Swap(pCur->Value);
 
-            pCur->~node_type();
+            pCur->~AllocNode();
             delete reinterpret_cast<int8_t*>(pCur);
         }
 
@@ -184,7 +184,7 @@ public:
             AllocNode* pCur = m_pEmptyNode;
             m_pEmptyNode = m_pEmptyNode->pNext;
 
-            pCur->~node_type();
+            pCur->~AllocNode();
             delete reinterpret_cast<int8_t*>(pCur);
         }
     }
@@ -195,14 +195,14 @@ private:
         AllocNode* pNode = FindSuitableNode(nSize);
         if (pNode == nullptr)
         {
-            constexpr size_t NodeObjSize = KGALIGN_CEIL(sizeof(node_type), AlignByte);
+            constexpr size_t NodeObjSize = KGAlignSize(sizeof(AllocNode), AllocImpl::AlignByte);
             int8_t* pMem = new int8_t[NodeObjSize + nSize];
             assert(pMem);
 
             pNode = new (pMem) AllocNode(pMem + NodeObjSize, nSize);
         }
 
-        m_AllocNode.value.Swap(pNode->value);
+        m_AllocNode.Value.Swap(pNode->Value);
         pNode->pNext = m_AllocNode.pNext;
         m_AllocNode.pNext = pNode;
     }
@@ -225,7 +225,7 @@ private:
                     pPrev->pNext = pNode->pNext;
                 else
                     m_pEmptyNode = pNode->pNext;
-                break
+                break;
             }
         }
 

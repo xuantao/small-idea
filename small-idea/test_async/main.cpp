@@ -94,6 +94,37 @@ void test_spe_allocator()
 
 }
 
+void TestStep()
+{
+    MakeStepExcutor([] {
+        printf("111111111\n");
+    });
+
+    MakeStepExcutor([] {
+        printf("111111111\n");
+        return true;
+    });
+
+    MakeStepExcutor([] {
+        printf("111111111\n");
+        return KGSTEP_RET::Completed;
+    });
+
+    MakeStepExcutor([](KGStepGuard&) {
+        printf("111111111\n");
+    });
+
+    MakeStepExcutor([](KGStepGuard&) {
+        printf("111111111\n");
+        return true;
+    });
+
+    MakeStepExcutor([](KGStepGuard&) {
+        printf("111111111\n");
+        return KGSTEP_RET::Completed;
+    });
+}
+
 
 struct Allocator;
 extern void TestAsync();
@@ -113,6 +144,8 @@ int main(int argc, char* argv[])
 {
     std::function<void()> fn;
     CallObj obj;
+
+    TestStep();
 
     //TestCallable(&obj);
 
