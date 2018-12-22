@@ -41,6 +41,8 @@ void TestAsync()
     //auto cFuture3_1 = KGAsync::Run(&TestCall, 1);
     auto cFuture4 = KGAsync::Run(&TestCall_Int, 1);
 
+    //KGAsync::Run(&callObj);
+
     while (!cFuture1.IsReady())
     {
     }

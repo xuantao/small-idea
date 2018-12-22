@@ -95,6 +95,21 @@ void test_spe_allocator()
     //std::alignment_of
 }
 
+template <typename Fty, typename... Args>
+struct IsCallable
+{
+    template<typename U> static auto Check(int) -> decltype(std::declval<U>()(std::declval<Args>()...), std::true_type());
+    template<typename U> static std::false_type Check(...);
+
+    static constexpr bool value =
+        std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;
+};
+
+template <typename Fty, typename... Args>
+void TestCallable(Fty&& fn, Args&&... args)
+{
+    static_assert(IsCallable<Fty, Args...>::value, "not allowed");
+}
 
 struct Allocator;
 extern void TestAsync();
@@ -104,6 +119,10 @@ struct CallObj : std::enable_shared_from_this<CallObj>
     void operator () () {
         printf("CallObj()\n");
     }
+
+    void operator () (int) {
+        printf("CallObj()\n");
+    }
 };
 
 int main(int argc, char* argv[])
@@ -111,12 +130,17 @@ int main(int argc, char* argv[])
     std::function<void()> fn;
     CallObj obj;
 
+    TestCallable(obj);
+    TestCallable(obj, 1);
+    TestCallable(fn);
+    //TestCallable(&obj);
+
     //KGAsync::Run(obj);
     //TestAsync();
 
     //std::allocate_shared()
 
-    test_spe_allocator();
+    //test_spe_allocator();
 
     system("pause");
     return 0;

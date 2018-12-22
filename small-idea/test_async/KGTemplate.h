@@ -98,4 +98,14 @@ namespace utility
     {
         typedef typename std::result_of<Fty(Args...)>::type type;
     };
+
+    template <typename Fty, typename... Args>
+    struct is_callable
+    {
+        template<typename U> static auto Check(int) -> decltype(std::declval<U>()(std::declval<Args>()...), std::true_type());
+        template<typename U> static std::false_type Check(...);
+
+        static constexpr bool value =
+            std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;
+    };
 }

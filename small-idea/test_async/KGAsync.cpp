@@ -124,7 +124,7 @@ namespace KGAsync
         s_TaskPool.Destory();
     }
 
-    void PushTask(IKGAsyncTask* pTask)
+    void Run(IKGAsyncTask* pTask)
     {
         assert(pTask);
         assert(s_TaskPool.GetThreadNum());

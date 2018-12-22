@@ -20,6 +20,24 @@ public:
 /* internal implamentation */
 namespace Async_Internal
 {
+    template <bool, typename Fty, typename... Args>
+    struct AsyncRetType
+    {
+        typedef typename utility::invoke_result<Fty, Args...>::type type;
+    };
+
+    template <typename... Tys>
+    struct AsyncRetType<false, Tys...>
+    {
+        typedef void type;
+    };
+
+    template <typename Fty, typename... Args>
+    using EnableIf = typename std::enable_if<
+        utility::is_callable<Fty, Args...>::value,
+        KGFuture<typename AsyncRetType<utility::is_callable<Fty, Args...>::value, Fty, Args...>::type>
+    >::type;
+
     template <typename Rty>
     struct AsyncExcutor
     {
@@ -76,16 +94,16 @@ namespace KGAsync
     bool Startup(size_t threadNum);
     void Shutdown();
 
-    void PushTask(IKGAsyncTask* pTask);
+    void Run(IKGAsyncTask* pTask);
 
     template <typename Fty, typename... Args>
-    auto Run(Fty&& fn, Args&&... args) -> KGFuture<typename utility::invoke_result<Fty, Args...>::type>
+    auto Run(Fty&& fn, Args&&... args) -> typename Async_Internal::EnableIf<Fty, Args...>
     {
         using Rty = typename utility::invoke_result<Fty, Args...>::type;
         auto pTask = new Async_Internal::Task<Rty, Fty, Args...>(std::forward<Fty>(fn), std::forward<Args>(args)...);
         auto cFuture = pTask->GetFuture();
 
-        PushTask(pTask);
+        Run(pTask);
         return cFuture;
     }
 }
