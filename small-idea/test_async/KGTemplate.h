@@ -53,6 +53,22 @@ struct KGIdentity
     typedef T Type;
 };
 
+/* 单向链表 */
+template <typename Ty>
+struct KGSinglyNode
+{
+    typedef KGSinglyNode SinglyNode;
+
+    KGSinglyNode() { }
+
+    template <typename... Args>
+    KGSinglyNode(Args&&... args) : Value(std::forward<Args>(args)...)
+    { }
+
+    SinglyNode* pNext = nullptr;
+    Ty Value;
+};
+
 namespace utility
 {
     template <typename... Rtys, size_t... Idxs>
@@ -99,13 +115,37 @@ namespace utility
         typedef typename std::result_of<Fty(Args...)>::type type;
     };
 
+    /* check Fty is callable by specified parementers */
     template <typename Fty, typename... Args>
     struct is_callable
     {
         template<typename U> static auto Check(int) -> decltype(std::declval<U>()(std::declval<Args>()...), std::true_type());
         template<typename U> static std::false_type Check(...);
 
-        static constexpr bool value =
-            std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;
+        static constexpr bool value = std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;
     };
 }
+
+// copy from aes
+/*	These defines are used to detect and set the memory alignment of pointers.
+    Note that offsets are in bytes.
+
+    ALIGN_OFFSET(x,n)			return the positive or zero offset of
+    the memory addressed by the pointer 'x'
+    from an address that is aligned on an
+    'n' byte boundary ('n' is a power of 2)
+
+    ALIGN_FLOOR(x,n)			return a pointer that points to memory
+    that is aligned on an 'n' byte boundary
+    and is not higher than the memory address
+    pointed to by 'x' ('n' is a power of 2)
+
+    ALIGN_CEIL(x,n)				return a pointer that points to memory
+    that is aligned on an 'n' byte boundary
+    and is not lower than the memory address
+    pointed to by 'x' ('n' is a power of 2)
+*/
+
+#define KGALIGN_OFFSET(x,n) (((ptrdiff_t)(x)) & ((n) - 1))
+#define KGALIGN_FLOOR(x,n)  ((uint8_t*)(x) - ( ((ptrdiff_t)(x)) & ((n) - 1)))
+#define KGALIGN_CEIL(x,n)   ((uint8_t*)(x) + (-((ptrdiff_t)(x)) & ((n) - 1)))

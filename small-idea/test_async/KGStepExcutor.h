@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include "KGAsync.h"
+#include "KGScopeGuard.h"
 
 enum class KGSTEP_RET
 {
@@ -21,17 +22,6 @@ template <size_t N>
 struct StepAllocator
 {
 
-};
-
-
-struct KGScopeGuard
-{
-    void Dismiss() { }
-
-    bool Done() { return true; }
-
-    template <typename Fty>
-    void Push(Fty&& func)    { }
 };
 
 /* 步进器守卫 */
@@ -63,23 +53,19 @@ namespace StepExcutor_Internal
     template <typename Ty>
     struct _HasGuarder
     {
-        template<typename U> static auto Check(int) -> decltype(std::declval<U>()(std::declval<KGStepGuard&>()), std::true_type());
-        template<typename U> static std::false_type Check(...);
-
-        static constexpr bool value =
-            std::is_same<decltype(Check<Ty>(0)), std::true_type>::value;
+        static constexpr bool value = utility::is_callable<Ty, KGStepGuard&>::value;
     };
 
     template <typename Ty, bool>
     struct _ExcutorRet
     {
-        typedef typename std::result_of<Ty(KGStepGuard&)>::type type;
+        typedef typename utility::invoke_result<Ty, KGStepGuard&>::type type;
     };
 
     template <typename Ty>
     struct _ExcutorRet<Ty, false>
     {
-        typedef typename std::result_of<Ty()>::type type;
+        typedef typename utility::invoke_result<Ty>::type type;
     };
 
     struct _Guarder

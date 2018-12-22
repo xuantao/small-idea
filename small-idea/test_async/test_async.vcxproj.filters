@@ -48,5 +48,8 @@
     <ClInclude Include="serial_allocator.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="KGSerialAllocator.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

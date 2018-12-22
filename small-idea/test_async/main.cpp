@@ -92,24 +92,8 @@ void test_spe_allocator()
     alloc.allocate(1024);
     alloc.allocate(10);
 
-    //std::alignment_of
 }
 
-template <typename Fty, typename... Args>
-struct IsCallable
-{
-    template<typename U> static auto Check(int) -> decltype(std::declval<U>()(std::declval<Args>()...), std::true_type());
-    template<typename U> static std::false_type Check(...);
-
-    static constexpr bool value =
-        std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;
-};
-
-template <typename Fty, typename... Args>
-void TestCallable(Fty&& fn, Args&&... args)
-{
-    static_assert(IsCallable<Fty, Args...>::value, "not allowed");
-}
 
 struct Allocator;
 extern void TestAsync();
@@ -130,9 +114,6 @@ int main(int argc, char* argv[])
     std::function<void()> fn;
     CallObj obj;
 
-    TestCallable(obj);
-    TestCallable(obj, 1);
-    TestCallable(fn);
     //TestCallable(&obj);
 
     //KGAsync::Run(obj);

@@ -125,6 +125,7 @@
     <ClInclude Include="KGAsync.h" />
     <ClInclude Include="KGFuture.h" />
     <ClInclude Include="KGScopeGuard.h" />
+    <ClInclude Include="KGSerialAllocator.h" />
     <ClInclude Include="KGStepExcutor.h" />
     <ClInclude Include="KGTemplate.h" />
     <ClInclude Include="serial_allocator.h" />
