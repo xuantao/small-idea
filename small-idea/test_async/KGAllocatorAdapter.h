@@ -63,7 +63,7 @@ public:
 
     KGAllocatorAdapter& operator = (const KGAllocatorAdapter& o)
     {
-        m_pAlloc = o.m_pAlloc;
+        *(BaseType*)this = *(BaseType*)&o;
         return *this;
     }
 
