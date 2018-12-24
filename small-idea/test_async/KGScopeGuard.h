@@ -41,6 +41,20 @@ namespace ScopeGuard_Internal
     class Allocator
     {
     public:
+        typedef Ty                  value_type;
+        typedef value_type*         pointer;
+        typedef const value_type*   const_pointer;
+        typedef value_type&         reference;
+        typedef const value_type&   const_reference;
+        typedef std::size_t         size_type;
+        typedef std::ptrdiff_t      difference_type;
+
+        template <typename U>
+        struct rebind {
+            typedef Allocator<U, N, A> other;
+        };
+
+    public:
         Allocator() : m_Alloc(N)
         {
         }
@@ -52,37 +66,19 @@ namespace ScopeGuard_Internal
         Allocator(const Allocator&) = delete;
         Allocator& operator = (const Allocator&) = delete;
 
-        typedef Ty                  value_type;
-        //typedef value_type*         pointer;
-        //typedef const value_type*   const_pointer;
-        //typedef value_type&         reference;
-        //typedef const value_type&   const_reference;
-        //typedef std::size_t         size_type;
-        //typedef std::ptrdiff_t      difference_type;
-
-        template <typename U>
-        struct rebind {
-            typedef Allocator<U, N, A> other;
-        };
-
     public:
-        void* Alloc(size_t size)
+        pointer allocate(size_t size)
         {
-            return m_Alloc.Alloc(size);
+            return reinterpret_cast<pointer>(m_Alloc.Alloc(sizeof(value_type) * size));
         }
 
-        void* allocate(size_t size)
+        void deallocate(pointer p, size_t size)
         {
-            return m_Alloc.Alloc(size);
         }
 
-        void deallocate(void* p, size_t size)
-        {
-        }
     private:
         KGPoolSerialAlloc<N, A> m_Alloc;
     };
-
 } // namespace ScopeGuard_Internal
 
 /*
@@ -96,7 +92,6 @@ template <typename Alloc = ScopeGuard_Internal::Allocator<int8_t, 512>>
 class KGScopeGuardImpl
 {
 public:
-    //typedef  _AllotTraits;
     typedef typename std::allocator_traits<Alloc>::template rebind_alloc<int8_t> Allocator;
     typedef ScopeGuard_Internal::KGRollbackNode Node;
 
@@ -106,7 +101,7 @@ public:
     }
 
     template <typename _Alloc>
-    KGScopeGuardImpl(std::allocator_arg_t, _Alloc&& alloc)
+    KGScopeGuardImpl(_Alloc&& alloc)
         : m_Alloc(std::forward<_Alloc>(alloc))
     {
     }
@@ -179,7 +174,7 @@ private:
             pNode = pNode->m_pNext;
 
             pTmp->~Node();
-            m_Alloc.deallocate(pTmp, nSize);
+            m_Alloc.deallocate(reinterpret_cast<int8_t*>(pTmp), nSize);
         }
     }
 

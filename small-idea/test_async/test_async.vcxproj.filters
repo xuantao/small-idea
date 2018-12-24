@@ -45,7 +45,7 @@
     <ClInclude Include="KGSerialAllocator.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="KGAlloctorAdapter.h">
+    <ClInclude Include="KGAllocatorAdapter.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

@@ -121,7 +121,7 @@
     <ClCompile Include="TestAsync.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="KGAlloctorAdapter.h" />
+    <ClInclude Include="KGAllocatorAdapter.h" />
     <ClInclude Include="KGAsync.h" />
     <ClInclude Include="KGFuture.h" />
     <ClInclude Include="KGScopeGuard.h" />

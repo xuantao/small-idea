@@ -112,6 +112,8 @@ void test_spe_allocator()
     //test_callable(&test_ref);
     //test_ref(1);
 
+    //std::map
+
     special_allocator<16> alloc(64);
 
     alloc.allocate(6);
@@ -124,19 +126,19 @@ void test_spe_allocator()
 void TestStep()
 {
     //rebind_alloc
-    MakeStepExcutor([] {
-        printf("111111111\n");
-    });
+    //MakeStepExcutor([] {
+    //    printf("111111111\n");
+    //});
 
-    MakeStepExcutor([] {
-        printf("111111111\n");
-        return true;
-    });
+    //MakeStepExcutor([] {
+    //    printf("111111111\n");
+    //    return true;
+    //});
 
-    MakeStepExcutor([] {
-        printf("111111111\n");
-        return KGSTEP_RET::Completed;
-    });
+    //MakeStepExcutor([] {
+    //    printf("111111111\n");
+    //    return KGSTEP_RET::Completed;
+    //});
 
     //MakeStepExcutor([](KGStepGuard) {
     //    printf("111111111\n");
@@ -152,8 +154,60 @@ void TestStep()
     //    return true;
     //});
 
-    MakeStepExcutor([](KGStepGuard&) {
-        printf("111111111\n");
+    //MakeStepExcutor([](KGStepGuard&) {
+    //    printf("111111111\n");
+    //    return KGSTEP_RET::Completed;
+    //});
+
+    KGQueueStepExcutor steper;
+    steper.Add([](KGStepGuard& guard) {
+        printf("222222222222\n");
+        guard.Push([] {
+            printf("33333333333\n");
+        });
+    });
+
+    steper.Add([](KGStepGuard& guard) {
+        printf("444444444444\n");
+        guard.Push([] {
+            printf("5555555555\n");
+        });
+    });
+
+    steper.Step();
+    steper.Add([] {
+        printf("11111111111");
+        return true;
+    });
+
+    steper.Add([] {
+        printf("11111111111");
+        return KGSTEP_RET::Completed;
+    });
+
+    steper.Add([] (KGStepGuard&) {
+        printf("11111111111");
+        return KGSTEP_RET::Completed;
+    });
+
+    KGFuture<int> future;
+    steper.Add(std::move(future), [] {
+        printf("11111111111");
+        return KGSTEP_RET::Completed;
+    });
+
+    steper.Add(std::move(future), [] (KGStepGuard& guard) {
+        printf("11111111111");
+        return KGSTEP_RET::Completed;
+    });
+
+    steper.Add(future.Share(), [] {
+        printf("11111111111");
+        return KGSTEP_RET::Completed;
+    });
+
+    steper.Add(future.Share(), [](KGStepGuard& guard) {
+        printf("11111111111");
         return KGSTEP_RET::Completed;
     });
 }
@@ -178,16 +232,33 @@ struct Alloc : std::allocator<int>
 
 };
 
+template <typename Ty>
+auto test_enable_if(bool) -> typename std::enable_if<std::is_same<Ty, int>::value>::type
+{
+    printf("auto test_enable_if(bool) -> typename std::enable_if<std::is_same<Ty, int>::value>::type\n");
+}
+
+template <typename Ty>
+auto test_enable_if(bool) -> typename std::enable_if<!std::is_same<Ty, int>::value>::type
+{
+    printf("auto test_enable_if(bool) -> typename std::enable_if<!std::is_same<Ty, int>::value>::type\n");
+}
+
 int main(int argc, char* argv[])
 {
-    std::function<void()> fn;
-    CallObj obj;
+    //KGPoolSerialAlloc<128> alloc;
+    ////KGSerialAllocator<>* pAlloc = &alloc;
 
-    //std::allocate_shared()
-    std::allocator<void> a1;
-    std::allocator<int> a2(a1);
 
-    std::allocator<void> a3 = a1;
+    //test_enable_if<void>(true);
+    //test_enable_if<int>(false);
+    //std::function<void()> fn;
+    //CallObj obj;
+
+    ////std::allocate_shared()
+    //std::allocator<void> a1;
+    //std::allocator<int> a2(a1);
+    //std::allocator<void> a3 = a1;
 
     TestStep();
 

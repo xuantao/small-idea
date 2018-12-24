@@ -4,6 +4,7 @@ KGQueueStepExcutor::~KGQueueStepExcutor()
 {
     if (m_eRet != KGSTEP_RET::Completed)
         DoRollback();
+    m_Steps.clear();
 }
 
 KGSTEP_RET KGQueueStepExcutor::Step()
