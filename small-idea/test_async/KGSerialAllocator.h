@@ -300,7 +300,7 @@ public:
     template <typename Ty>
     inline KGAllocatorAdapter<Ty, BaseType> GetAdapter()
     {
-        return BaseType::GetAdapter<Ty>();
+        return BaseType::template GetAdapter<Ty>();
     }
 
 private:
