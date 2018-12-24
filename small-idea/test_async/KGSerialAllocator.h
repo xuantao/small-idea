@@ -89,6 +89,7 @@ template <size_t A = sizeof(void*)>
 class KGSerialAllocator
 {
 public:
+    typedef KGSerialAllocator<A> MyType;
     typedef KGSerialAllocatorImpl<A> AllocImpl;
     typedef KGSinglyNode<AllocImpl> AllocNode;
 
@@ -202,9 +203,9 @@ public:
     }
 
     template <typename Ty>
-    inline KGAllocatorAdapter<Ty, KGSerialAllocator<A>> GetAdapter()
+    inline KGAllocatorAdapter<Ty, MyType> GetAdapter()
     {
-        return KGAllocatorAdapter<Ty, KGSerialAllocator<A>>(this);
+        return KGAllocatorAdapter<Ty, MyType>(this);
     }
 
 private:
@@ -307,11 +308,6 @@ public:
     inline KGAllocatorAdapter<Ty, KGSerialAllocator<A>> GetAdapter()
     {
         return BaseType::GetAdapter<Ty>();
-    }
-
-    KGSerialAllocator<A>* GetBase()
-    {
-        return this;
     }
 
 private:
