@@ -305,7 +305,7 @@ public:
     }
 
     template <typename Ty>
-    inline KGAllocatorAdapter<Ty, KGSerialAllocator<A>> GetAdapter()
+    inline KGAllocatorAdapter<Ty, BaseType> GetAdapter()
     {
         return BaseType::GetAdapter<Ty>();
     }
