@@ -16,76 +16,7 @@ enum class KGSTEP_RET
     Completed,
 };
 
-namespace StepExcutor_Internal
-{
-    struct _Guarder;
-    class Allocator
-    {
-    public:
-        Allocator() : m_pAlloc(nullptr)
-        {
-            assert(false);
-        }
-
-        Allocator(KGSerialAllocator<>* pAlloc) : m_pAlloc(pAlloc)
-        {
-        }
-
-        Allocator(const Allocator& other) : m_pAlloc(other.m_pAlloc)
-        {
-        }
-
-        Allocator& operator = (const Allocator& other)
-        {
-            m_pAlloc = other.m_pAlloc;
-            return *this;
-        }
-
-        ~Allocator()
-        {
-        }
-
-    public:
-        void* Alloc(size_t sz)
-        {
-            return m_pAlloc->Alloc(sz);
-        }
-
-        void Dealloc(void*, size_t)
-        {
-        }
-
-    private:
-        KGSerialAllocator<>* m_pAlloc;
-    };
-}
-
-/* 步进器守卫 */
-class KGStepGuard : private KGScopeGuardImpl<StepExcutor_Internal::Allocator>
-{
-private:
-    friend StepExcutor_Internal::_Guarder;
-
-    KGStepGuard(const StepExcutor_Internal::Allocator& alloc)
-        : KGScopeGuardImpl<StepExcutor_Internal::Allocator>(std::allocator_arg_t(), alloc)
-    {
-    }
-
-public:
-    ~KGStepGuard() = default;
-
-    KGStepGuard(const KGStepGuard&) = delete;
-    KGStepGuard& operator = (const KGStepGuard&) = delete;
-
-public:
-    template <typename Fty>
-    void Push(Fty&& func)
-    {
-        KGScopeGuardImpl<StepExcutor_Internal::Allocator>::Push(std::forward<Fty>(func));
-    }
-};
-
-/* 分布执行接口 */
+/* 分布执行器接口 */
 struct IKGStepExcutor
 {
     virtual ~IKGStepExcutor() { }
@@ -96,9 +27,63 @@ typedef std::shared_ptr<IKGStepExcutor> KGStepExcutorPtr;
 
 namespace StepExcutor_Internal
 {
-    static constexpr char* ERROR_MESSAGE = "Functor signature is not allowed.\
-        Support";
+    struct guard_allocator
+    {
+        guard_allocator() : m_pAlloc(nullptr) { assert(false); }
+        guard_allocator(KGSerialAllocator<>* pAlloc) : m_pAlloc(pAlloc) { }
 
+        void* Alloc(size_t sz) { return m_pAlloc->Alloc(sz); }
+        void Dealloc(void*, size_t) { }
+
+        KGSerialAllocator<>* m_pAlloc;
+    };
+
+    struct guarder_impl;
+
+    template <typename Fty>
+    KGStepExcutorPtr make_excutor(Fty&& fn);
+
+    template <typename Fty>
+    KGStepExcutorPtr make_excutor(Fty&& fn, KGSerialAllocator<>* alloc);
+}
+
+/* 步进器守卫 */
+class KGStepGuard
+{
+private:
+    friend StepExcutor_Internal::guarder_impl;
+    typedef StepExcutor_Internal::guard_allocator Allocator;
+
+    KGStepGuard(const Allocator& alloc) : m_Guarder(std::allocator_arg_t(), alloc)
+    {
+    }
+
+    ~KGStepGuard()
+    {
+        m_Guarder.Dismiss();
+    }
+
+    KGStepGuard(const KGStepGuard&) = delete;
+    KGStepGuard& operator = (const KGStepGuard&) = delete;
+
+    void Rollback()
+    {
+        m_Guarder.Done;
+    }
+
+public:
+    template <typename Fty>
+    void Push(Fty&& func)
+    {
+        m_Guarder.Push(std::forward<Fty>(func));
+    }
+
+private:
+    KGScopeGuardImpl<Allocator> m_Guarder;
+};
+
+namespace StepExcutor_Internal
+{
     template <typename Ty>
     struct functor_traits;
 
@@ -155,15 +140,45 @@ namespace StepExcutor_Internal
     using excutor_enable_if_t = typename std::enable_if<
         utility::is_callable<Fty, functor_arg_type_t<Call>>::value && std::is_same<excutor_ret_type_t<Fty>, functor_ret_type_t<Call>>::value, KGSTEP_RET>::type;
 
-    struct _Guarder
+    template <typename Fty>
+    struct excutor_signature_checker
     {
-        _Guarder(const Allocator& alloc) : m_Guarder(alloc)
+        static constexpr bool value = utility::is_callable<Fty>::value ||
+            (!utility::is_callable<Fty, KGStepGuard&&>::value && utility::is_callable<Fty, KGStepGuard&>::value);
+    };
+
+    template <bool, typename Fty>
+    struct excutor_checker_impl
+    {
+        static constexpr bool value = std::is_void<excutor_ret_type_t<Fty>>::value ||
+            std::is_same<bool, excutor_ret_type_t<Fty>>::value ||
+            std::is_same<KGSTEP_RET, excutor_ret_type_t<Fty>>::value;
+    };
+
+    template <typename Fty>
+    struct excutor_checker_impl<false, Fty>
+    {
+        static constexpr bool value = false;
+    };
+
+    template <typename Fty>
+    struct excutor_checker
+    {
+        static constexpr bool value = excutor_checker_impl<excutor_signature_checker<Fty>::value, Fty>::value;
+    };
+
+#define _STEP_EXCUTOR_ERROR_MESSAGE "Functor signature is not allowed! Only support functor with "  \
+            "void(), void(KGStepGuard&), bool(), bool(KGStepGuard&), KGSTEP_RET() and KGSTEP_RET(KGStepGuard&)"
+#define _STEP_EXCUTOR_CHECK(Fty)    static_assert(StepExcutor_Internal::excutor_checker<Fty>::value, _STEP_EXCUTOR_ERROR_MESSAGE)
+
+    struct guarder_impl
+    {
+        guarder_impl(const guard_allocator& alloc) : m_Guarder(alloc)
         {
         }
 
-        ~_Guarder()
+        ~guarder_impl()
         {
-            m_Guarder.Dismiss();
         }
 
         inline KGStepGuard& GetGuarder()
@@ -173,23 +188,23 @@ namespace StepExcutor_Internal
 
         inline void Rollback()
         {
-            m_Guarder.Done();
+            m_Guarder.Rollback();
         }
 
     private:
         KGStepGuard m_Guarder;
     };
 
-    struct GuarderWithAlloc : _Guarder
+    struct guarder_with_alloc : guarder_impl
     {
-        GuarderWithAlloc() : _Guarder(Allocator(&m_Alloc))
+        guarder_with_alloc() : guarder_impl(guard_allocator(&m_Alloc))
         {
         }
 
         KGPoolSerialAlloc<128> m_Alloc;
     };
 
-    struct _NoneGuarder
+    struct none_guarder
     {
         void Rollback()
         {
@@ -198,7 +213,7 @@ namespace StepExcutor_Internal
 
     /* functor: bool(KGStepGuard&) */
     template <typename Fty>
-    inline auto StepForward(_Guarder& guader, const Fty& fn) -> excutor_enable_if_t<Fty, void(KGStepGuard&)>
+    inline auto StepForward(guarder_impl& guader, const Fty& fn) -> excutor_enable_if_t<Fty, void(KGStepGuard&)>
     {
         fn(guader.GetGuarder());
         return KGSTEP_RET::Completed;
@@ -206,21 +221,21 @@ namespace StepExcutor_Internal
 
     /* functor: bool(KGStepGuard&) */
     template <typename Fty>
-    inline auto StepForward(_Guarder& guader, const Fty& fn) -> excutor_enable_if_t<Fty, bool(KGStepGuard&)>
+    inline auto StepForward(guarder_impl& guader, const Fty& fn) -> excutor_enable_if_t<Fty, bool(KGStepGuard&)>
     {
         return fn(guader.GetGuarder()) ? KGSTEP_RET::Completed : KGSTEP_RET::Failed;
     }
 
     /* functor: KGSTEP_RET(KGStepGuard&) */
     template <typename Fty>
-    inline auto StepForward(_Guarder& guader, const Fty& fn) -> excutor_enable_if_t<Fty, KGSTEP_RET(KGStepGuard&)>
+    inline auto StepForward(guarder_impl& guader, const Fty& fn) -> excutor_enable_if_t<Fty, KGSTEP_RET(KGStepGuard&)>
     {
         return fn(guader.GetGuarder());
     }
 
     /* functor: void() */
     template <typename Fty>
-    inline auto StepForward(const _NoneGuarder&, const Fty& fn) -> excutor_enable_if_t<Fty, void()>
+    inline auto StepForward(const none_guarder&, const Fty& fn) -> excutor_enable_if_t<Fty, void()>
     {
         fn();
         return KGSTEP_RET::Completed;
@@ -228,38 +243,31 @@ namespace StepExcutor_Internal
 
     /* functor: bool() */
     template <typename Fty>
-    inline auto StepForward(const _NoneGuarder&, const Fty& fn) -> excutor_enable_if_t<Fty, bool()>
+    inline auto StepForward(const none_guarder&, const Fty& fn) -> excutor_enable_if_t<Fty, bool()>
     {
         return fn() ? KGSTEP_RET::Completed : KGSTEP_RET::Failed;
     }
 
     /* functor: KGSTEP_RET() */
     template <typename Fty>
-    inline auto StepForward(const _NoneGuarder&, const Fty& fn) -> excutor_enable_if_t<Fty, KGSTEP_RET()>
+    inline auto StepForward(const none_guarder&, const Fty& fn) -> excutor_enable_if_t<Fty, KGSTEP_RET()>
     {
         return fn();
     }
 
-    template <typename Ty>
-    struct Traits
-    {
-        typedef typename std::conditional<utility::is_callable<Ty, KGStepGuard&>::value,
-            GuarderWithAlloc, _NoneGuarder>::type type;
-    };
-
     template <typename Fty, typename GuardType>
-    struct ExcutorImpl : public IKGStepExcutor
+    struct excutor_impl : public IKGStepExcutor
     {
-        template <class = typename std::enable_if<!std::is_same<GuardType, _Guarder>::value, void>::type>
-        ExcutorImpl(Fty&& fn)
+        template <class = typename std::enable_if<!std::is_same<GuardType, guarder_impl>::value, void>::type>
+        excutor_impl(Fty&& fn)
             : m_Func(std::forward<Fty>(fn))
         {
         }
 
-        template <class = typename std::enable_if<std::is_same<GuardType, _Guarder>::value, void>::type>
-        ExcutorImpl(Fty&& fn, const Allocator&)
+        template <class = typename std::enable_if<std::is_same<GuardType, guarder_impl>::value, void>::type>
+        excutor_impl(Fty&& fn, const guard_allocator& alloc)
             : m_Func(std::forward<Fty>(fn))
-            , m_Guarder(std::forward<GuardType>(fn))
+            , m_Guarder(std::forward<GuardType>(alloc))
         {
         }
 
@@ -280,44 +288,36 @@ namespace StepExcutor_Internal
         Fty m_Func;
         GuardType m_Guarder;
     };
+
+    template <typename Fty>
+    inline KGStepExcutorPtr MakeStepExcutor(Fty&& fn)
+    {
+        _STEP_EXCUTOR_CHECK(Fty);
+
+        using guard_type = typename std::conditional<StepExcutor_Internal::excutor_has_guarder<Fty>::value,
+            StepExcutor_Internal::guarder_with_alloc, StepExcutor_Internal::none_guarder>::type;
+        return std::make_shared<StepExcutor_Internal::excutor_impl<Fty, guard_type>>(std::forward<Fty>(fn));
+    }
+
+    template <typename Fty>
+    inline KGStepExcutorPtr MakeStepExcutor(Fty&& fn, KGSerialAllocator<>* alloc)
+    {
+        _STEP_EXCUTOR_CHECK(Fty);
+
+        using guard_type = typename std::conditional<StepExcutor_Internal::excutor_has_guarder<Fty>::value,
+            StepExcutor_Internal::guarder_with_alloc, StepExcutor_Internal::none_guarder>::type;
+        return std::make_shared<StepExcutor_Internal::excutor_impl<Fty, guard_type>>(std::forward<Fty>(fn));
+    }
 }
-//
-//template <typename Fty>
-//class KGStepExcutor : public IKGStepExcutor
-//{
-//    typedef typename StepExcutor_Internal::_Traits<Fty>::type Excutor;
-//public:
-//    KGStepExcutor(Fty&& fn) : m_Func(std::forward<Fty>(fn)) { }
-//    virtual ~KGStepExcutor() = default;
-//
-//    KGStepExcutor(const KGStepExcutor&) = delete;
-//    KGStepExcutor& operator = (const KGStepExcutor&) = delete;
-//
-//public:
-//    KGSTEP_RET Step() override
-//    {
-//        return m_Excutor.Step(m_Func);
-//    }
-//
-//    void Rollback() override
-//    {
-//        m_Excutor.Rollback();
-//    }
-//
-//private:
-//    Fty m_Func;
-//    Excutor m_Excutor;
-//};
 
 /* 构建一个分布执行器 */
 template <typename Fty>
 inline KGStepExcutorPtr MakeStepExcutor(Fty&& fn)
 {
-    static_assert(utility::is_callable<Fty>::value || (!utility::is_callable<Fty, KGStepGuard&&>::value
-        && utility::is_callable<Fty, KGStepGuard&>::value), "1111");
+    _STEP_EXCUTOR_CHECK(Fty);
 
     using guard_type = typename std::conditional<StepExcutor_Internal::excutor_has_guarder<Fty>::value,
-        StepExcutor_Internal::GuarderWithAlloc, StepExcutor_Internal::_NoneGuarder>::type;
+        StepExcutor_Internal::guarder_with_alloc, StepExcutor_Internal::none_guarder>::type;
     return std::make_shared<StepExcutor_Internal::ExcutorImpl<Fty, guard_type>>(std::forward<Fty>(fn));
 }
 
