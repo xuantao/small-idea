@@ -182,33 +182,33 @@ void TestStep()
 
     steper.Add([] {
         printf("11111111111");
-        return KGSTEP_RET::Completed;
+        return KGSTEP_STATUS::Completed;
     });
 
     steper.Add([] (KGStepGuard&) {
         printf("11111111111");
-        return KGSTEP_RET::Completed;
+        return KGSTEP_STATUS::Completed;
     });
 
     KGFuture<int> future;
     steper.Add(std::move(future), [] {
         printf("11111111111");
-        return KGSTEP_RET::Completed;
+        return KGSTEP_STATUS::Completed;
     });
 
     steper.Add(std::move(future), [] (KGStepGuard& guard) {
         printf("11111111111");
-        return KGSTEP_RET::Completed;
+        return KGSTEP_STATUS::Completed;
     });
 
     steper.Add(future.Share(), [] {
         printf("11111111111");
-        return KGSTEP_RET::Completed;
+        return KGSTEP_STATUS::Completed;
     });
 
     steper.Add(future.Share(), [](KGStepGuard& guard) {
         printf("11111111111");
-        return KGSTEP_RET::Completed;
+        return KGSTEP_STATUS::Completed;
     });
 }
 

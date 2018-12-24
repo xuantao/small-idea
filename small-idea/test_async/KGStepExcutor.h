@@ -9,23 +9,6 @@
 #include "KGFuture.h"
 #include "KGScopeGuard.h"
 
-enum class KGSTEP_RET
-{
-    Continue,
-    Idle,
-    Failed,
-    Completed,
-};
-
-/* 分布执行器接口 */
-struct IKGStepExcutor
-{
-    virtual ~IKGStepExcutor() { }
-    virtual KGSTEP_RET Step() = 0;
-    virtual void Rollback() = 0;
-};
-typedef std::shared_ptr<IKGStepExcutor> KGStepExcutorPtr;
-
 namespace StepExcutor_Internal
 {
     struct GuardImpl;
@@ -50,6 +33,25 @@ namespace StepExcutor_Internal
     template <typename Rty, typename Fty>
     KGStepExcutorPtr MakeExcutor(const KGSharedFuture<Rty>& future, Fty&& fn, KGSerialAllocator<>* alloc);
 }
+
+enum class KGSTEP_STATUS
+{
+    Busy,       // 繁忙
+    Idle,       // 空闲
+    Failed,     // 失败
+    Completed,  // 结束
+};
+
+#define IS_STEP_FINISHED(eStatus) (eStatus == KGSTEP_STATUS::Failed || eStatus == KGSTEP_STATUS::Completed)
+
+/* 分布执行器接口 */
+struct IKGStepExcutor
+{
+    virtual ~IKGStepExcutor() { }
+    virtual KGSTEP_STATUS Step() = 0;
+    virtual void Rollback() = 0;
+};
+typedef std::shared_ptr<IKGStepExcutor> KGStepExcutorPtr;
 
 /* 步进器守卫 */
 class KGStepGuard
@@ -87,25 +89,6 @@ private:
     KGScopeGuardImpl<Allocator> m_Guarder;
 }; // class KGStepGuard
 
-/* 构建一个分布执行器 */
-template <typename Fty>
-inline KGStepExcutorPtr MakeStepExcutor(Fty&& fn)
-{
-    return StepExcutor_Internal::MakeExcutor(std::forward<Fty>(fn));
-}
-
-template <typename Rty, typename Fty>
-inline KGStepExcutorPtr MakeStepExcutor(KGFuture<Rty>&& future, Fty&& fn)
-{
-    return StepExcutor_Internal::MakeExcutor(std::move(future), std::forward<Fty>(fn));
-}
-
-template <typename Rty, typename Fty>
-inline KGStepExcutorPtr MakeStepExcutor(const KGSharedFuture<Rty>& future, Fty&& fn)
-{
-    return StepExcutor_Internal::MakeExcutor(future, std::forward<Fty>(fn));
-}
-
 /* 分布执行列表, 顺序执行 */
 class KGQueueStepExcutor final : public IKGStepExcutor
 {
@@ -120,7 +103,7 @@ public:
     KGQueueStepExcutor& operator = (const KGQueueStepExcutor&) = delete;
 
 public:
-    KGSTEP_RET Step() override;
+    KGSTEP_STATUS Step() override;
     void Rollback() override { DoRollback(); }
 
 public:
@@ -153,7 +136,7 @@ private:
 
 private:
     size_t m_StepIndex = 0;
-    KGSTEP_RET m_eRet = KGSTEP_RET::Continue;
+    KGSTEP_STATUS m_eRet = KGSTEP_STATUS::Busy;
     std::vector<KGStepExcutorPtr> m_Steps;
     KGPoolSerialAlloc<512> m_Alloc;
 };
@@ -169,22 +152,35 @@ public:
     KGParallelStepExcutor& operator = (const KGParallelStepExcutor&) = delete;
 
 public:
-    KGSTEP_RET Step() override;
-    void Rollback() override;
+    KGSTEP_STATUS Step() override;
+    void Rollback() override { /* can do nothing */}
 
 public:
     inline bool Empty() const { return m_Steps.empty(); }
     inline void Add(KGStepExcutorPtr ptr) { m_Steps.push_back(ptr); }
 
-    template <typename Fty>
-    inline void Add(Fty&& fn)
-    {
-        Add(MakeStepExcutor(std::forward<Fty>(fn)));
-    }
-
 protected:
     std::vector<KGStepExcutorPtr> m_Steps;
 };
+
+/* 构建一个分布执行器 */
+template <typename Fty>
+inline KGStepExcutorPtr MakeStepExcutor(Fty&& fn)
+{
+    return StepExcutor_Internal::MakeExcutor(std::forward<Fty>(fn));
+}
+
+template <typename Rty, typename Fty>
+inline KGStepExcutorPtr MakeStepExcutor(KGFuture<Rty>&& future, Fty&& fn)
+{
+    return StepExcutor_Internal::MakeExcutor(std::move(future), std::forward<Fty>(fn));
+}
+
+template <typename Rty, typename Fty>
+inline KGStepExcutorPtr MakeStepExcutor(const KGSharedFuture<Rty>& future, Fty&& fn)
+{
+    return StepExcutor_Internal::MakeExcutor(future, std::forward<Fty>(fn));
+}
 
 namespace StepExcutor_Internal
 {
@@ -243,7 +239,7 @@ namespace StepExcutor_Internal
     template <typename Fty, typename Call>
     using ExcutorEnableIf_t = typename std::enable_if<
         utility::is_callable<Fty, FunctorArgType_t<Call>>::value && std::is_same<ExcutorRetType_t<Fty>, FunctorRetType_t<Call>>::value,
-        KGSTEP_RET
+        KGSTEP_STATUS
     >::type;
 
     template <typename Fty>
@@ -258,7 +254,7 @@ namespace StepExcutor_Internal
     {
         static constexpr bool value = std::is_void<ExcutorRetType_t<Fty>>::value ||
             std::is_same<bool, ExcutorRetType_t<Fty>>::value ||
-            std::is_same<KGSTEP_RET, ExcutorRetType_t<Fty>>::value;
+            std::is_same<KGSTEP_STATUS, ExcutorRetType_t<Fty>>::value;
     };
 
     template <typename Fty>
@@ -334,19 +330,19 @@ namespace StepExcutor_Internal
     inline auto StepForward(GuardImpl& guader, const Fty& fn) -> ExcutorEnableIf_t<Fty, void(KGStepGuard&)>
     {
         fn(guader.GetGuarder());
-        return KGSTEP_RET::Completed;
+        return KGSTEP_STATUS::Completed;
     }
 
     /* functor: bool(KGStepGuard&) */
     template <typename Fty>
     inline auto StepForward(GuardImpl& guader, const Fty& fn) -> ExcutorEnableIf_t<Fty, bool(KGStepGuard&)>
     {
-        return fn(guader.GetGuarder()) ? KGSTEP_RET::Completed : KGSTEP_RET::Failed;
+        return fn(guader.GetGuarder()) ? KGSTEP_STATUS::Completed : KGSTEP_STATUS::Failed;
     }
 
     /* functor: KGSTEP_RET(KGStepGuard&) */
     template <typename Fty>
-    inline auto StepForward(GuardImpl& guader, const Fty& fn) -> ExcutorEnableIf_t<Fty, KGSTEP_RET(KGStepGuard&)>
+    inline auto StepForward(GuardImpl& guader, const Fty& fn) -> ExcutorEnableIf_t<Fty, KGSTEP_STATUS(KGStepGuard&)>
     {
         return fn(guader.GetGuarder());
     }
@@ -356,19 +352,19 @@ namespace StepExcutor_Internal
     inline auto StepForward(const NoneGuardImpl&, const Fty& fn) -> ExcutorEnableIf_t<Fty, void()>
     {
         fn();
-        return KGSTEP_RET::Completed;
+        return KGSTEP_STATUS::Completed;
     }
 
     /* functor: bool() */
     template <typename Fty>
     inline auto StepForward(const NoneGuardImpl&, const Fty& fn) -> ExcutorEnableIf_t<Fty, bool()>
     {
-        return fn() ? KGSTEP_RET::Completed : KGSTEP_RET::Failed;
+        return fn() ? KGSTEP_STATUS::Completed : KGSTEP_STATUS::Failed;
     }
 
     /* functor: KGSTEP_RET() */
     template <typename Fty>
-    inline auto StepForward(const NoneGuardImpl&, const Fty& fn) -> ExcutorEnableIf_t<Fty, KGSTEP_RET()>
+    inline auto StepForward(const NoneGuardImpl&, const Fty& fn) -> ExcutorEnableIf_t<Fty, KGSTEP_STATUS()>
     {
         return fn();
     }
@@ -386,7 +382,7 @@ namespace StepExcutor_Internal
         {
         }
 
-        KGSTEP_RET Step() override
+        KGSTEP_STATUS Step() override
         {
             return StepForward(m_Guarder, m_Func);
         }
@@ -410,10 +406,10 @@ namespace StepExcutor_Internal
             assert(m_Future.IsValid());
         }
 
-        KGSTEP_RET Step() override
+        KGSTEP_STATUS Step() override
         {
             if (!m_Future.IsReady())
-                return KGSTEP_RET::Idle;
+                return KGSTEP_STATUS::Idle;
             return ExcutorImpl<Fty, GuardType>::Step();
         }
 
@@ -430,10 +426,10 @@ namespace StepExcutor_Internal
             assert(m_Future.IsValid());
         }
 
-        KGSTEP_RET Step() override
+        KGSTEP_STATUS Step() override
         {
             if (!m_Future.IsReady())
-                return KGSTEP_RET::Idle;
+                return KGSTEP_STATUS::Idle;
             return ExcutorImpl<Fty, GuardType>::Step();
         }
 
