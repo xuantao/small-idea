@@ -3,6 +3,34 @@
 #include <algorithm>
 #include <cassert>
 #include "KGTemplate.h"
+#include "KGAlloctorAdapter.h"
+
+template <size_t A>
+class KGSerialAllocator;
+
+template <typename Ty, size_t A = sizeof(void*)>
+class KGSerialAllocatorAdapter : public KGAlloctorAdapter<Ty, KGSerialAllocator<A>>
+{
+    friend class KGSerialAllocator<A>;
+    typedef KGAlloctorAdapter<Ty, KGSerialAllocator<A>> BaseType;
+
+public:
+    KGSerialAllocatorAdapter(const KGSerialAllocatorAdapter& o) : BaseType(o.m_pAlloc)
+    {
+    }
+
+    template <typename U>
+    KGSerialAllocatorAdapter(const KGSerialAllocatorAdapter<U, A>& o) : BaseType(o.m_pAlloc)
+    {
+    }
+
+private:
+    KGSerialAllocatorAdapter() = default;
+
+    KGSerialAllocatorAdapter(KGSerialAllocator<A>* pAlloc) : BaseType(pAlloc)
+    {
+    }
+};
 
 /*
  * 序列式分配器, 顺序从一块缓存中分配一段内存
@@ -48,6 +76,11 @@ public:
         int8_t* buf = m_pPool + m_nAlloced;
         m_nAlloced += al_sz;
         return buf;
+    }
+
+    void Dealloc(void*, size_t)
+    {
+        //
     }
 
     void Swap(KGSerialAllocatorImpl& other)
@@ -138,6 +171,11 @@ public:
         return pBuff;
     }
 
+    void Dealloc(void*, size_t)
+    {
+        //
+    }
+
     /* Reset the allocator without free alloc node */
     void Reset()
     {
@@ -187,6 +225,12 @@ public:
             pCur->~AllocNode();
             delete reinterpret_cast<int8_t*>(pCur);
         }
+    }
+
+    template <typename Ty>
+    KGSerialAllocatorAdapter<Ty, A> GetAdapter()
+    {
+        return KGSerialAllocatorAdapter<Ty, A>(this);
     }
 
 private:

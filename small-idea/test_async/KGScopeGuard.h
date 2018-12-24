@@ -37,7 +37,7 @@ namespace ScopeGuard_Internal
         FuncType m_Func;
     };
 
-    template <size_t N, size_t A = sizeof(void*)>
+    template <typename Ty, size_t N, size_t A = sizeof(void*)>
     class Allocator
     {
     public:
@@ -52,16 +52,33 @@ namespace ScopeGuard_Internal
         Allocator(const Allocator&) = delete;
         Allocator& operator = (const Allocator&) = delete;
 
+        typedef Ty                  value_type;
+        //typedef value_type*         pointer;
+        //typedef const value_type*   const_pointer;
+        //typedef value_type&         reference;
+        //typedef const value_type&   const_reference;
+        //typedef std::size_t         size_type;
+        //typedef std::ptrdiff_t      difference_type;
+
+        template <typename U>
+        struct rebind {
+            typedef Allocator<U, N, A> other;
+        };
+
     public:
         void* Alloc(size_t size)
         {
             return m_Alloc.Alloc(size);
         }
 
-        void Dealloc(void* p, size_t size)
+        void* allocate(size_t size)
         {
+            return m_Alloc.Alloc(size);
         }
 
+        void deallocate(void* p, size_t size)
+        {
+        }
     private:
         KGPoolSerialAlloc<N, A> m_Alloc;
     };
@@ -75,11 +92,12 @@ namespace ScopeGuard_Internal
  * WARN: 回滚函数使用lambda时要注意引用对象的生命期
  * Alloc: 内存分配器
 */
-template <typename Alloc = ScopeGuard_Internal::Allocator<512>>
+template <typename Alloc = ScopeGuard_Internal::Allocator<int8_t, 512>>
 class KGScopeGuardImpl
 {
 public:
-    typedef Alloc Allocator;
+    //typedef  _AllotTraits;
+    typedef typename std::allocator_traits<Alloc>::template rebind_alloc<int8_t> Allocator;
     typedef ScopeGuard_Internal::KGRollbackNode Node;
 
 public:
@@ -110,9 +128,9 @@ public:
     void Push(Fty&& func)
     {
         typedef typename std::decay<Fty>::type decay;
-        typedef KGRollbackNodeImpl<decay> NodeImpl;
+        typedef ScopeGuard_Internal::KGRollbackNodeImpl<decay> NodeImpl;
 
-        auto pBuff = m_Alloc.Alloc(sizeof(NodeImpl));
+        auto pBuff = m_Alloc.allocate(sizeof(NodeImpl));
         assert(pBuff);
 
         auto pNode = new (pBuff) NodeImpl(std::forward<Fty>(func));
@@ -161,7 +179,7 @@ private:
             pNode = pNode->m_pNext;
 
             pTmp->~Node();
-            m_Alloc.Dealloc(pTmp, nSize);
+            m_Alloc.deallocate(pTmp, nSize);
         }
     }
 

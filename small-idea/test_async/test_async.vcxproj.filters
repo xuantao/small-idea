@@ -42,13 +42,10 @@
     <ClInclude Include="KGFuture.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="common.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="serial_allocator.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="KGSerialAllocator.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="KGAlloctorAdapter.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

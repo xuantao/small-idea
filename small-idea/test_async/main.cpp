@@ -88,6 +88,12 @@ private:
 //    printf("22222222");
 //}
 
+void TestScopeGuard()
+{
+    KGScopeGuard guard;
+    guard.Push([] { printf("11111111\n"); });
+}
+
 template <typename Ty>
 void test_callable(Ty&& fn)
 {
@@ -117,6 +123,7 @@ void test_spe_allocator()
 
 void TestStep()
 {
+    //rebind_alloc
     MakeStepExcutor([] {
         printf("111111111\n");
     });
@@ -166,10 +173,21 @@ struct CallObj : std::enable_shared_from_this<CallObj>
     }
 };
 
+struct Alloc : std::allocator<int>
+{
+
+};
+
 int main(int argc, char* argv[])
 {
     std::function<void()> fn;
     CallObj obj;
+
+    //std::allocate_shared()
+    std::allocator<void> a1;
+    std::allocator<int> a2(a1);
+
+    std::allocator<void> a3 = a1;
 
     TestStep();
 
