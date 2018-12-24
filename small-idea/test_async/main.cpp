@@ -244,8 +244,64 @@ auto test_enable_if(bool) -> typename std::enable_if<!std::is_same<Ty, int>::val
     printf("auto test_enable_if(bool) -> typename std::enable_if<!std::is_same<Ty, int>::value>::type\n");
 }
 
+struct A
+{
+    A() { printf("A()\n"); }
+    ~A() { printf("~A()\n"); }
+};
+
+struct B
+{
+    B() { printf("B()\n"); }
+    ~B() { printf("~B()\n"); }
+};
+
+struct C
+{
+    C() { printf("C()\n"); }
+    ~C() { printf("~C()\n"); }
+};
+
+struct D
+{
+    A a;
+    B b;
+    C c;
+};
+
+struct E
+{
+    E() : c(), b(), a() {}
+
+    //E(int) : b(), c(), a() {}
+
+    //E(bool) : b(), a(), c() {}
+
+    A a;
+    B b;
+    C c;
+};
+
+void test_order()
+{
+    {
+        D d;
+    }
+    {
+        E e;
+    }
+    //{
+    //    E e(1);
+    //}
+    //{
+    //    E e(true);
+    //}
+}
+
 int main(int argc, char* argv[])
 {
+
+    test_order();
     //KGPoolSerialAlloc<128> alloc;
     ////KGSerialAllocator<>* pAlloc = &alloc;
 

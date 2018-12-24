@@ -121,18 +121,12 @@ public:
 protected:
     /* build allocator with default pool, the default pool will node free */
     KGSerialAllocator(void* pDefautPool, size_t nDefaultSize, size_t block = DefaultBlock)
-        : m_bMoveable(false)
-        , m_nBlock(block)
+        : m_nBlock(block)
         , m_AllocNode(pDefautPool, nDefaultSize)
     {
     }
 
 public:
-    inline bool IsMoveable() const
-    {
-        return m_bMoveable;
-    }
-
     void* Alloc(size_t nSize)
     {
         void* pBuff = m_AllocNode.Value.Alloc(nSize);
@@ -252,7 +246,6 @@ private:
     }
 
 private:
-    bool        m_bMoveable = true;
     size_t      m_nBlock;
     AllocNode*  m_pEmptyNode = nullptr;
     AllocNode   m_AllocNode;

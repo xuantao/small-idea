@@ -29,6 +29,7 @@ typedef std::shared_ptr<IKGStepExcutor> KGStepExcutorPtr;
 namespace StepExcutor_Internal
 {
     struct GuardImpl;
+    struct GuardWithCache;
     typedef KGAllocatorAdapter<int8_t, KGSerialAllocator<>> GuardAllocator;
 
     template <typename Fty>
@@ -55,6 +56,7 @@ class KGStepGuard
 {
 private:
     friend StepExcutor_Internal::GuardImpl;
+    friend StepExcutor_Internal::GuardWithCache;
     typedef StepExcutor_Internal::GuardAllocator Allocator;
 
     KGStepGuard(const Allocator& alloc) : m_Guarder(alloc)
@@ -299,13 +301,25 @@ namespace StepExcutor_Internal
         KGStepGuard m_Guarder;
     };
 
-    struct GuardWithCache : GuardImpl
+    struct GuardWithCache
     {
-        GuardWithCache(KGSerialAllocator<>*) : GuardImpl(GuardAllocator(m_Alloc.GetAdapter<int8_t>()))
+        GuardWithCache(KGSerialAllocator<>*) : m_Guarder(m_Alloc.GetAdapter<int8_t>())
         {
         }
 
+        inline KGStepGuard& GetGuarder()
+        {
+            return m_Guarder;
+        }
+
+        inline void Rollback()
+        {
+            m_Guarder.Rollback();
+        }
+
+    private:
         KGPoolSerialAlloc<128> m_Alloc;
+        KGStepGuard m_Guarder;
     };
 
     struct NoneGuardImpl
