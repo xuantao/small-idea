@@ -1,4 +1,4 @@
-#include "KGAsync.h"
+﻿#include "KGAsync.h"
 #include "Tesh.h"
 
 namespace

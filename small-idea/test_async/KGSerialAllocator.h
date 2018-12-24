@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <type_traits>
 #include <algorithm>
 #include <cassert>
@@ -6,8 +6,8 @@
 #include "KGAllocatorAdapter.h"
 
 /*
- * ����ʽ������, ˳���һ�黺���з���һ���ڴ�
- * ֻ���䲻�����ͷš��������ռ����ʱ����nullptr
+ * 序列式分配器, 顺序从一块缓存中分配一段内存
+ * 只分配不负责释放。当不够空间分配时返回nullptr
 */
 template <size_t A = sizeof(void*)>
 class KGSerialAllocatorImpl

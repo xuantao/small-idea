@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 template <typename Alloc>
 struct KGAllocatorAdapterBase
@@ -26,7 +26,7 @@ private:
     Alloc* m_pAlloc;
 };
 
-/* ÊÊÅä±ê×¼¿âµÄ·ÖÅäÆ÷ */
+/* é€‚é…æ ‡å‡†åº“çš„åˆ†é…å™¨ */
 template <typename Ty, class AllocImpl>
 class KGAllocatorAdapter : protected KGAllocatorAdapterBase<AllocImpl>
 {

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Future & Promise
  * like std::future and std::promise but not the same
  * offer "IsReady()" interface, and change the "get()" return value as reference type
