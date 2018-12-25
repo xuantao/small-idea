@@ -17,7 +17,11 @@ enum class KGSTEP_STATUS
     Completed,  // 结束
 };
 
+/* 判断分布执行器是否结束 */
 #define IS_STEP_STOPPED(eStatus)    (eStatus == KGSTEP_STATUS::Failed || eStatus == KGSTEP_STATUS::Completed)
+
+/* 步进器守卫 */
+class KGStepGuard;
 
 /* 分布执行器接口 */
 struct IKGStepExcutor
@@ -27,52 +31,32 @@ struct IKGStepExcutor
     /* 向前走一步 */
     virtual KGSTEP_STATUS Step() = 0;
 
-    /* 错误异常回滚 */
+    /* 错误回滚 */
     virtual void Rollback() = 0;
 };
 typedef std::shared_ptr<IKGStepExcutor> KGStepExcutorPtr;
 
-namespace StepExcutor_Internal
-{
-    struct GuardImpl;
-    struct GuardWithCache;
-    typedef KGAllocatorAdapter<int8_t, KGSerialAllocator<>> GuardAllocator;
-}
-/* 步进器守卫 */
-class KGStepGuard
-{
-private:
-    friend StepExcutor_Internal::GuardImpl;
-    friend StepExcutor_Internal::GuardWithCache;
-    typedef StepExcutor_Internal::GuardAllocator Allocator;
 
-    KGStepGuard(const Allocator& alloc) : m_Guarder(alloc)
-    {
-    }
+/* 构建一个分布执行器
+ * Fty支持的函数签名为:
+ * 1. void(), void(KStepGuard&)
+ * 2. bool(), bool(KGStepGuard&),
+ * 3. KGSTEP_STATUS(), KGSTEP_STATUS(KGStepGuard&)
+*/
+template <typename Fty>
+KGStepExcutorPtr MakeStepExcutor(Fty&& fn);
 
-    ~KGStepGuard()
-    {
-        m_Guarder.Dismiss();
-    }
+template <typename Rty, typename Fty>
+KGStepExcutorPtr MakeStepExcutor(KGFuture<Rty>&& future, Fty&& fn);
 
-    KGStepGuard(const KGStepGuard&) = delete;
-    KGStepGuard& operator = (const KGStepGuard&) = delete;
+template <typename Rty, typename Fty>
+KGStepExcutorPtr MakeStepExcutor(const KGSharedFuture<Rty>& future, Fty&& fn);
 
-    void Rollback()
-    {
-        m_Guarder.Done();
-    }
-
-public:
-    template <typename Fty>
-    void Push(Fty&& func)
-    {
-        m_Guarder.Push(std::forward<Fty>(func));
-    }
-
-private:
-    KGScopeGuardImpl<Allocator> m_Guarder;
-}; // class KGStepGuard
+/* 执行一段固定时间(单位毫秒)
+ * 当步进器遇到Idle, Failed, Completed结束
+*/
+KGSTEP_STATUS StepFor(IKGStepExcutor* pSteper, size_t nDuration);
+inline KGSTEP_STATUS StepFor(KGStepExcutorPtr pSteper, size_t nDuration) { return StepFor(pSteper.get(), nDuration); }
 
 namespace StepExcutor_Internal
 {
@@ -154,36 +138,48 @@ protected:
     std::vector<KGStepExcutorPtr> m_Steps;
 }; // KGParallelStepExcutor
 
-
 namespace StepExcutor_Internal
 {
-    template <typename Fty> KGStepExcutorPtr MakeExcutor(Fty&& fn);
-    template <typename Rty, typename Fty> KGStepExcutorPtr MakeExcutor(KGFuture<Rty>&& future, Fty&& fn);
-    template <typename Rty, typename Fty> KGStepExcutorPtr MakeExcutor(const KGSharedFuture<Rty>& future, Fty&& fn);
-}
-/* 构建一个分布执行器
- * Fty支持的函数签名为:
- * 1. void(), void(KStepGuard&)
- * 2. bool(), bool(KGStepGuard&),
- * 3. KGSTEP_STATUS(), KGSTEP_STATUS(KGStepGuard&)
-*/
-template <typename Fty>
-inline KGStepExcutorPtr MakeStepExcutor(Fty&& fn)
-{
-    return StepExcutor_Internal::MakeExcutor(std::forward<Fty>(fn));
+    struct GuardImpl;
+    struct GuardWithCache;
+    typedef KGAllocatorAdapter<int8_t, KGSerialAllocator<>> GuardAllocator;
 }
 
-template <typename Rty, typename Fty>
-inline KGStepExcutorPtr MakeStepExcutor(KGFuture<Rty>&& future, Fty&& fn)
+/* 步进器守卫 */
+class KGStepGuard
 {
-    return StepExcutor_Internal::MakeExcutor(std::move(future), std::forward<Fty>(fn));
-}
+private:
+    friend StepExcutor_Internal::GuardImpl;
+    friend StepExcutor_Internal::GuardWithCache;
+    typedef StepExcutor_Internal::GuardAllocator Allocator;
 
-template <typename Rty, typename Fty>
-inline KGStepExcutorPtr MakeStepExcutor(const KGSharedFuture<Rty>& future, Fty&& fn)
-{
-    return StepExcutor_Internal::MakeExcutor(future, std::forward<Fty>(fn));
-}
+    KGStepGuard(const Allocator& alloc) : m_Guarder(alloc)
+    {
+    }
+
+    ~KGStepGuard()
+    {
+        m_Guarder.Dismiss();
+    }
+
+    KGStepGuard(const KGStepGuard&) = delete;
+    KGStepGuard& operator = (const KGStepGuard&) = delete;
+
+    void Rollback()
+    {
+        m_Guarder.Done();
+    }
+
+public:
+    template <typename Fty>
+    void Push(Fty&& func)
+    {
+        m_Guarder.Push(std::forward<Fty>(func));
+    }
+
+private:
+    KGScopeGuardImpl<Allocator> m_Guarder;
+}; // class KGStepGuard
 
 namespace StepExcutor_Internal
 {
@@ -506,3 +502,27 @@ namespace StepExcutor_Internal
             future, std::forward<Fty>(fn), alloc);
     }
 } // namesapce StepExcutor_Internal
+
+/* 构建一个分布执行器
+ * Fty支持的函数签名为:
+ * 1. void(), void(KStepGuard&)
+ * 2. bool(), bool(KGStepGuard&),
+ * 3. KGSTEP_STATUS(), KGSTEP_STATUS(KGStepGuard&)
+*/
+template <typename Fty>
+inline KGStepExcutorPtr MakeStepExcutor(Fty&& fn)
+{
+    return StepExcutor_Internal::MakeExcutor(std::forward<Fty>(fn));
+}
+
+template <typename Rty, typename Fty>
+inline KGStepExcutorPtr MakeStepExcutor(KGFuture<Rty>&& future, Fty&& fn)
+{
+    return StepExcutor_Internal::MakeExcutor(std::move(future), std::forward<Fty>(fn));
+}
+
+template <typename Rty, typename Fty>
+inline KGStepExcutorPtr MakeStepExcutor(const KGSharedFuture<Rty>& future, Fty&& fn)
+{
+    return StepExcutor_Internal::MakeExcutor(future, std::forward<Fty>(fn));
+}

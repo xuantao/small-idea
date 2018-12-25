@@ -1,4 +1,20 @@
 ﻿#include "KGStepExcutor.h"
+#include <chrono>
+
+KGSTEP_STATUS StepFor(IKGStepExcutor* pSteper, size_t nDuration)
+{
+    if (pSteper == nullptr)
+        return KGSTEP_STATUS::Completed;
+
+    KGSTEP_STATUS eStatus;
+    auto endTime = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(nDuration);
+    do
+    {
+        eStatus = pSteper->Step();
+    } while (eStatus == KGSTEP_STATUS::Busy && endTime > std::chrono::high_resolution_clock::now());
+
+    return eStatus;
+}
 
 KGQueueStepExcutor::~KGQueueStepExcutor()
 {
