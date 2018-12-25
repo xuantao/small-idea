@@ -126,38 +126,38 @@ void test_spe_allocator()
 void TestStep()
 {
     //rebind_alloc
-    //MakeStepExcutor([] {
-    //    printf("111111111\n");
-    //});
+    MakeStepExcutor([] {
+        printf("111111111\n");
+    });
 
-    //MakeStepExcutor([] {
-    //    printf("111111111\n");
-    //    return true;
-    //});
+    MakeStepExcutor([] {
+        printf("111111111\n");
+        return true;
+    });
 
-    //MakeStepExcutor([] {
-    //    printf("111111111\n");
-    //    return KGSTEP_RET::Completed;
-    //});
+    MakeStepExcutor([] {
+        printf("111111111\n");
+        return KGSTEP_STATUS::Completed;
+    });
 
-    //MakeStepExcutor([](KGStepGuard) {
-    //    printf("111111111\n");
-    //});
+    MakeStepExcutor([](KGStepGuard&) {
+        printf("111111111\n");
+    });
 
-    //MakeStepExcutor([](KGStepGuard&&) {
-    //    printf("111111111\n");
-    //    return true;
-    //});
+    MakeStepExcutor([](KGStepGuard&) {
+        printf("111111111\n");
+        return true;
+    });
 
-    //MakeStepExcutor([](const KGStepGuard&) {
-    //    printf("111111111\n");
-    //    return true;
-    //});
+    MakeStepExcutor([](KGStepGuard&) {
+        printf("111111111\n");
+        return true;
+    });
 
-    //MakeStepExcutor([](KGStepGuard&) {
-    //    printf("111111111\n");
-    //    return KGSTEP_RET::Completed;
-    //});
+    MakeStepExcutor([](KGStepGuard&) {
+        printf("111111111\n");
+        return KGSTEP_STATUS::Completed;
+    });
 
     KGQueueStepExcutor steper;
     steper.Add([](KGStepGuard& guard) {

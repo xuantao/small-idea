@@ -84,9 +84,8 @@ namespace StepExcutor_Internal
 class KGQueueStepExcutor final : public IKGStepExcutor
 {
 public:
-    KGQueueStepExcutor() : m_Alloc(1024)
-    {
-    }
+    KGQueueStepExcutor() : m_Alloc(1024) { }
+    KGQueueStepExcutor(size_t cache_block_size) : m_Alloc(cache_block_size) {}
 
     virtual ~KGQueueStepExcutor();
 
@@ -127,7 +126,7 @@ private:
 
 private:
     size_t m_StepIndex = 0;
-    KGSTEP_STATUS m_eRet = KGSTEP_STATUS::Busy;
+    KGSTEP_STATUS m_eRet = KGSTEP_STATUS::Idle;
     std::vector<KGStepExcutorPtr> m_Steps;
     KGPoolSerialAlloc<512> m_Alloc;
 }; // KGQueueStepExcutor
@@ -250,7 +249,7 @@ namespace StepExcutor_Internal
     struct ExcutorSignatureCheck
     {
         static constexpr bool value = utility::is_callable<Fty>::value ||
-            (!utility::is_callable<Fty, KGStepGuard&&>::value && utility::is_callable<Fty, KGStepGuard&>::value);
+            (!utility::is_callable<Fty, const KGStepGuard&>::value && utility::is_callable<Fty, KGStepGuard&>::value);
     };
 
     template <bool, typename Fty>
@@ -326,34 +325,35 @@ namespace StepExcutor_Internal
     {
         NoneGuardImpl(KGSerialAllocator<>*) { }
 
+        inline int GetGuarder() { return 0; }
         void Rollback() { }
     };
 
     /* functor: bool(KGStepGuard&) */
     template <typename Fty>
-    inline auto StepForward(GuardImpl& guader, const Fty& fn) -> ExcutorEnableIf_t<Fty, void(KGStepGuard&)>
+    inline auto StepForward(KGStepGuard& guader, Fty& fn) -> ExcutorEnableIf_t<Fty, void(KGStepGuard&)>
     {
-        fn(guader.GetGuarder());
+        fn(guader);
         return KGSTEP_STATUS::Completed;
     }
 
     /* functor: bool(KGStepGuard&) */
     template <typename Fty>
-    inline auto StepForward(GuardImpl& guader, const Fty& fn) -> ExcutorEnableIf_t<Fty, bool(KGStepGuard&)>
+    inline auto StepForward(KGStepGuard& guader, Fty& fn) -> ExcutorEnableIf_t<Fty, bool(KGStepGuard&)>
     {
-        return fn(guader.GetGuarder()) ? KGSTEP_STATUS::Completed : KGSTEP_STATUS::Failed;
+        return fn(guader) ? KGSTEP_STATUS::Completed : KGSTEP_STATUS::Failed;
     }
 
     /* functor: KGSTEP_STATUS(KGStepGuard&) */
     template <typename Fty>
-    inline auto StepForward(GuardImpl& guader, const Fty& fn) -> ExcutorEnableIf_t<Fty, KGSTEP_STATUS(KGStepGuard&)>
+    inline auto StepForward(KGStepGuard& guader, Fty& fn) -> ExcutorEnableIf_t<Fty, KGSTEP_STATUS(KGStepGuard&)>
     {
-        return fn(guader.GetGuarder());
+        return fn(guader);
     }
 
     /* functor: void() */
     template <typename Fty>
-    inline auto StepForward(const NoneGuardImpl&, const Fty& fn) -> ExcutorEnableIf_t<Fty, void()>
+    inline auto StepForward(int, Fty& fn) -> ExcutorEnableIf_t<Fty, void()>
     {
         fn();
         return KGSTEP_STATUS::Completed;
@@ -361,14 +361,14 @@ namespace StepExcutor_Internal
 
     /* functor: bool() */
     template <typename Fty>
-    inline auto StepForward(const NoneGuardImpl&, const Fty& fn) -> ExcutorEnableIf_t<Fty, bool()>
+    inline auto StepForward(int, Fty& fn) -> ExcutorEnableIf_t<Fty, bool()>
     {
         return fn() ? KGSTEP_STATUS::Completed : KGSTEP_STATUS::Failed;
     }
 
     /* functor: KGSTEP_STATUS() */
     template <typename Fty>
-    inline auto StepForward(const NoneGuardImpl&, const Fty& fn) -> ExcutorEnableIf_t<Fty, KGSTEP_STATUS()>
+    inline auto StepForward(int, Fty& fn) -> ExcutorEnableIf_t<Fty, KGSTEP_STATUS()>
     {
         return fn();
     }
@@ -388,7 +388,7 @@ namespace StepExcutor_Internal
 
         KGSTEP_STATUS Step() override
         {
-            return StepForward(m_Guarder, m_Func);
+            return StepForward(m_Guarder.GetGuarder(), m_Func);
         }
 
         void Rollback() override
@@ -451,7 +451,7 @@ namespace StepExcutor_Internal
 
         using guard_type = typename std::conditional<ExcutorHasGuarder<Fty>::value,
             GuardWithCache, NoneGuardImpl>::type;
-        return std::make_shared<ExcutorImpl<Fty, guard_type>>(std::forward<Fty>(fn));
+        return std::make_shared<ExcutorImpl<Fty, guard_type>>(std::forward<Fty>(fn), nullptr);
     }
 
     template <typename Rty, typename Fty>
@@ -461,7 +461,7 @@ namespace StepExcutor_Internal
 
         using guard_type = typename std::conditional<ExcutorHasGuarder<Fty>::value,
             GuardWithCache, NoneGuardImpl>::type;
-        return std::make_shared<ExcutorWithFuture<Rty, Fty, guard_type>>(std::move(future), std::forward<Fty>(fn));
+        return std::make_shared<ExcutorWithFuture<Rty, Fty, guard_type>>(std::move(future), std::forward<Fty>(fn), nullptr);
     }
 
     template <typename Rty, typename Fty>
@@ -471,7 +471,7 @@ namespace StepExcutor_Internal
 
         using guard_type = typename std::conditional<ExcutorHasGuarder<Fty>::value,
             GuardWithCache, NoneGuardImpl>::type;
-        return std::make_shared<ExcutorWithSharedFuture<Rty, Fty, guard_type>>(future, std::forward<Fty>(fn));
+        return std::make_shared<ExcutorWithSharedFuture<Rty, Fty, guard_type>>(future, std::forward<Fty>(fn), nullptr);
     }
 
     template <typename Fty>

@@ -38,26 +38,18 @@ namespace Async_Internal
         KGFuture<typename AsyncRetType<utility::is_callable<Fty, Args...>::value, Fty, Args...>::type>
     >::type;
 
-    template <typename Rty>
-    struct AsyncExcutor
+    template <typename Rty, typename Fty, typename Args, size_t... Idxs>
+    static auto DoWork(KGPromise<Rty>& promise, Fty& fn, Args& args, KGIndexSequence<Idxs...>&&) -> typename std::enable_if<!std::is_void<Rty>::value>::type
     {
-        template <typename Fty, typename Args, size_t... Idxs>
-        static void Do(KGPromise<Rty>& promise, Fty& fn, Args& args, KGIndexSequence<Idxs...>&&)
-        {
-            promise.SetValue(fn(std::get<Idxs>(args)...));
-        }
-    };
+        promise.SetValue(fn(std::get<Idxs>(args)...));
+    }
 
-    template <>
-    struct AsyncExcutor<void>
+    template <typename Rty, typename Fty, typename Args, size_t... Idxs>
+    static auto DoWork(KGPromise<Rty>& promise, Fty& fn, Args& args, KGIndexSequence<Idxs...>&&) -> typename std::enable_if<std::is_void<Rty>::value>::type
     {
-        template <typename Fty, typename Args, size_t... Idxs>
-        static void Do(KGPromise<void>& promise, Fty& fn, Args& args, KGIndexSequence<Idxs...>&&)
-        {
-            fn(std::get<Idxs>(args)...);
-            promise.SetValue();
-        }
-    };
+        fn(std::get<Idxs>(args)...);
+        promise.SetValue();
+    }
 
     template <typename Rty, typename Fty, typename... Args>
     class Task : public IKGAsyncTask
@@ -74,7 +66,7 @@ namespace Async_Internal
 
         void Work() override
         {
-            AsyncExcutor<Rty>::Do(m_Promise, m_Func, m_Args, KGMakeIndexSequence<sizeof...(Args)>());
+            DoWork(m_Promise, m_Func, m_Args, KGMakeIndexSequence<sizeof...(Args)>());
         }
 
         KGFuture<Rty> GetFuture()
