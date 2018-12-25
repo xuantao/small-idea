@@ -1,6 +1,5 @@
 ﻿#include "KGStepExcutor.h"
 
-///
 KGQueueStepExcutor::~KGQueueStepExcutor()
 {
     if (m_eRet != KGSTEP_STATUS::Completed)
@@ -34,12 +33,15 @@ void KGQueueStepExcutor::DoRollback()
     m_StepIndex = 0;
 }
 
+
 KGSTEP_STATUS KGParallelStepExcutor::Step()
 {
+    if (Empty())
+        return KGSTEP_STATUS::Completed;
+
     KGSTEP_STATUS eRet = KGSTEP_STATUS::Completed;
     size_t nIndex = 0;
     size_t nBusy = 0;
-
     while (nIndex < m_Steps.size())
     {
         eRet = m_Steps[nIndex]->Step();

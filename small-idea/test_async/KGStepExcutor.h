@@ -15,23 +15,18 @@ namespace StepExcutor_Internal
     struct GuardWithCache;
     typedef KGAllocatorAdapter<int8_t, KGSerialAllocator<>> GuardAllocator;
 
-    template <typename Fty>
-    KGStepExcutorPtr MakeExcutor(Fty&& fn);
-
-    template <typename Rty, typename Fty>
-    KGStepExcutorPtr MakeExcutor(KGFuture<Rty>&& future, Fty&& fn);
-
-    template <typename Rty, typename Fty>
-    KGStepExcutorPtr MakeExcutor(const KGSharedFuture<Rty>& future, Fty&& fn);
-
-    template <typename Fty>
-    KGStepExcutorPtr MakeExcutor(Fty&& fn, KGSerialAllocator<>* alloc);
-
-    template <typename Rty, typename Fty>
-    KGStepExcutorPtr MakeExcutor(KGFuture<Rty>&& future, Fty&& fn, KGSerialAllocator<>* alloc);
-
-    template <typename Rty, typename Fty>
-    KGStepExcutorPtr MakeExcutor(const KGSharedFuture<Rty>& future, Fty&& fn, KGSerialAllocator<>* alloc);
+    //template <typename Fty>
+    //KGStepExcutorPtr MakeExcutor(Fty&& fn);
+    //template <typename Rty, typename Fty>
+    //KGStepExcutorPtr MakeExcutor(KGFuture<Rty>&& future, Fty&& fn);
+    //template <typename Rty, typename Fty>
+    //KGStepExcutorPtr MakeExcutor(const KGSharedFuture<Rty>& future, Fty&& fn);
+    //template <typename Fty>
+    //KGStepExcutorPtr MakeExcutor(Fty&& fn, KGSerialAllocator<>* alloc);
+    //template <typename Rty, typename Fty>
+    //KGStepExcutorPtr MakeExcutor(KGFuture<Rty>&& future, Fty&& fn, KGSerialAllocator<>* alloc);
+    //template <typename Rty, typename Fty>
+    //KGStepExcutorPtr MakeExcutor(const KGSharedFuture<Rty>& future, Fty&& fn, KGSerialAllocator<>* alloc);
 }
 
 enum class KGSTEP_STATUS
@@ -42,13 +37,17 @@ enum class KGSTEP_STATUS
     Completed,  // 结束
 };
 
-#define IS_STEP_FINISHED(eStatus) (eStatus == KGSTEP_STATUS::Failed || eStatus == KGSTEP_STATUS::Completed)
+#define IS_STEP_STOPPED(eStatus)    (eStatus == KGSTEP_STATUS::Failed || eStatus == KGSTEP_STATUS::Completed)
 
 /* 分布执行器接口 */
 struct IKGStepExcutor
 {
     virtual ~IKGStepExcutor() { }
+
+    /* 向前走一步 */
     virtual KGSTEP_STATUS Step() = 0;
+
+    /* 错误异常回滚 */
     virtual void Rollback() = 0;
 };
 typedef std::shared_ptr<IKGStepExcutor> KGStepExcutorPtr;
@@ -139,7 +138,8 @@ private:
     KGSTEP_STATUS m_eRet = KGSTEP_STATUS::Busy;
     std::vector<KGStepExcutorPtr> m_Steps;
     KGPoolSerialAlloc<512> m_Alloc;
-};
+}; // KGQueueStepExcutor
+
 
 /* 并行分布执行 */
 class KGParallelStepExcutor : public IKGStepExcutor
@@ -161,9 +161,15 @@ public:
 
 protected:
     std::vector<KGStepExcutorPtr> m_Steps;
-};
+}; // KGParallelStepExcutor
 
-/* 构建一个分布执行器 */
+
+/* 构建一个分布执行器
+ * Fty支持的函数签名为:
+ * 1. void(), void(KStepGuard&)
+ * 2. bool(), bool(KGStepGuard&),
+ * 3. KGSTEP_STATUS(), KGSTEP_STATUS(KGStepGuard&)
+*/
 template <typename Fty>
 inline KGStepExcutorPtr MakeStepExcutor(Fty&& fn)
 {
@@ -340,7 +346,7 @@ namespace StepExcutor_Internal
         return fn(guader.GetGuarder()) ? KGSTEP_STATUS::Completed : KGSTEP_STATUS::Failed;
     }
 
-    /* functor: KGSTEP_RET(KGStepGuard&) */
+    /* functor: KGSTEP_STATUS(KGStepGuard&) */
     template <typename Fty>
     inline auto StepForward(GuardImpl& guader, const Fty& fn) -> ExcutorEnableIf_t<Fty, KGSTEP_STATUS(KGStepGuard&)>
     {
@@ -362,7 +368,7 @@ namespace StepExcutor_Internal
         return fn() ? KGSTEP_STATUS::Completed : KGSTEP_STATUS::Failed;
     }
 
-    /* functor: KGSTEP_RET() */
+    /* functor: KGSTEP_STATUS() */
     template <typename Fty>
     inline auto StepForward(const NoneGuardImpl&, const Fty& fn) -> ExcutorEnableIf_t<Fty, KGSTEP_STATUS()>
     {
@@ -437,7 +443,7 @@ namespace StepExcutor_Internal
     };
 
 #define _STEP_EXCUTOR_ERROR_MESSAGE "Functor signature is not allowed! Only support functor with "  \
-            "void(), void(KGStepGuard&), bool(), bool(KGStepGuard&), KGSTEP_RET() and KGSTEP_RET(KGStepGuard&)"
+            "void(), void(KGStepGuard&), bool(), bool(KGStepGuard&), KGSTEP_STATUS() and KGSTEP_STATUS(KGStepGuard&)"
 #define _STEP_EXCUTOR_CHECK(Fty)    static_assert(StepExcutor_Internal::ExcutorCheck<Fty>::value, _STEP_EXCUTOR_ERROR_MESSAGE)
 
     template <typename Fty>
@@ -474,6 +480,7 @@ namespace StepExcutor_Internal
     inline KGStepExcutorPtr MakeExcutor(Fty&& fn, KGSerialAllocator<>* alloc)
     {
         _STEP_EXCUTOR_CHECK(Fty);
+
         using guard_type = typename std::conditional<ExcutorHasGuarder<Fty>::value, GuardImpl, NoneGuardImpl>::type;
         using exutor_type = ExcutorImpl<Fty, guard_type>;
         return std::allocate_shared<exutor_type>(alloc->GetAdapter<exutor_type>(), std::forward<Fty>(fn), alloc);
@@ -483,6 +490,7 @@ namespace StepExcutor_Internal
     inline KGStepExcutorPtr MakeExcutor(KGFuture<Rty>&& future, Fty&& fn, KGSerialAllocator<>* alloc)
     {
         _STEP_EXCUTOR_CHECK(Fty);
+
         using guard_type = typename std::conditional<ExcutorHasGuarder<Fty>::value, GuardImpl, NoneGuardImpl>::type;
         using exutor_type = ExcutorWithFuture<Rty, Fty, guard_type>;
         return std::allocate_shared<exutor_type>(alloc->GetAdapter<exutor_type>(),
@@ -493,6 +501,7 @@ namespace StepExcutor_Internal
     inline KGStepExcutorPtr MakeExcutor(const KGSharedFuture<Rty>& future, Fty&& fn, KGSerialAllocator<>* alloc)
     {
         _STEP_EXCUTOR_CHECK(Fty);
+
         using guard_type = typename std::conditional<ExcutorHasGuarder<Fty>::value, GuardImpl, NoneGuardImpl>::type;
         using exutor_type = ExcutorWithSharedFuture<Rty, Fty, guard_type>;
         return std::allocate_shared<exutor_type>(alloc->GetAdapter<exutor_type>(),
