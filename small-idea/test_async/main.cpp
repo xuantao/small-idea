@@ -316,7 +316,8 @@ int main(int argc, char* argv[])
     //std::allocator<int> a2(a1);
     //std::allocator<void> a3 = a1;
 
-    TestStep();
+    //TestStep();
+    TestSerialAllocator();
 
     //TestCallable(&obj);
 

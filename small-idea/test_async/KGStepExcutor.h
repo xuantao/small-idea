@@ -274,15 +274,8 @@ namespace StepExcutor_Internal
         {
         }
 
-        inline KGStepGuard& GetGuarder()
-        {
-            return m_Guarder;
-        }
-
-        inline void Rollback()
-        {
-            m_Guarder.Rollback();
-        }
+        inline KGStepGuard& GetGuarder() { return m_Guarder; }
+        inline void Rollback() { m_Guarder.Rollback(); }
 
     private:
         KGStepGuard m_Guarder;
@@ -294,15 +287,8 @@ namespace StepExcutor_Internal
         {
         }
 
-        inline KGStepGuard& GetGuarder()
-        {
-            return m_Guarder;
-        }
-
-        inline void Rollback()
-        {
-            m_Guarder.Rollback();
-        }
+        inline KGStepGuard& GetGuarder() { return m_Guarder; }
+        inline void Rollback() { m_Guarder.Rollback(); }
 
     private:
         KGPoolSerialAlloc<128> m_Alloc;

@@ -22,6 +22,9 @@
     <ClCompile Include="KGAsync.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="TestSerialAllocator.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KGStepExcutor.h">

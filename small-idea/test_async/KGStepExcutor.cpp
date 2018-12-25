@@ -19,7 +19,7 @@ KGSTEP_STATUS StepFor(IKGStepExcutor* pSteper, size_t nDuration)
 KGQueueStepExcutor::~KGQueueStepExcutor()
 {
     if (m_eRet != KGSTEP_STATUS::Completed)
-        DoRollback();
+        DoRollback();   // 没有成功结束就回滚
     m_Steps.clear();
 }
 
@@ -28,7 +28,7 @@ KGSTEP_STATUS KGQueueStepExcutor::Step()
     if (m_StepIndex >= m_Steps.size())
         return KGSTEP_STATUS::Completed;
 
-    if (m_eRet != KGSTEP_STATUS::Busy)
+    if (IS_STEP_STOPPED(m_eRet))
         return m_eRet;
 
     m_eRet = m_Steps[m_StepIndex]->Step();

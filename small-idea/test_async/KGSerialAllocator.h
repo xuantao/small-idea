@@ -32,6 +32,7 @@ public:
     KGSerialAllocatorImpl& operator = (KGSerialAllocatorImpl&& other)
     {
         MoveFrom(other);
+        return *this;
     }
 
 public:
@@ -53,7 +54,7 @@ public:
 
     void Dealloc(void*, size_t)
     {
-        //
+        // not support
     }
 
     void Swap(KGSerialAllocatorImpl& other)
@@ -92,6 +93,7 @@ public:
     typedef KGSerialAllocator<A> MyType;
     typedef KGSerialAllocatorImpl<A> AllocImpl;
     typedef KGSinglyNode<AllocImpl> AllocNode;
+
     static constexpr size_t DefaultBlock = 4096;
 
 public:
@@ -107,11 +109,16 @@ public:
     {
     }
 
-    /* build allocator with default pool, the default pool will node free */
+    /* build allocator with default pool, the default pool will not free */
     KGSerialAllocator(void* pDefautPool, size_t nDefaultSize, size_t block = DefaultBlock)
         : m_nBlock(block)
         , m_AllocNode(pDefautPool, nDefaultSize)
     {
+    }
+
+    KGSerialAllocator(KGSerialAllocator&& other)
+    {
+        MoveFrom(other);
     }
 
     ~KGSerialAllocator()
@@ -119,9 +126,11 @@ public:
         Dissolve();
     }
 
-    KGSerialAllocator(const KGSerialAllocator&) = delete;
-    KGSerialAllocator& operator = (const KGSerialAllocator&) = delete;
-    //TODO: add move semantic
+    KGSerialAllocator& operator = (KGSerialAllocator&& other)
+    {
+        Dissolve();
+        MoveFrom(other);
+    }
 
 public:
     void* Alloc(size_t nSize)
@@ -139,7 +148,7 @@ public:
 
     void Dealloc(void*, size_t)
     {
-        //
+        // not support
     }
 
     /* Reset the allocator without free alloc node */
@@ -193,6 +202,14 @@ public:
         }
     }
 
+    void Swap(MyType& other)
+    {
+        std::swap(m_nBlock, other.m_nBlock);
+        std::swap(m_pEmptyNode, other.m_pEmptyNode);
+        std::swap(m_AllocNode.pNext, other.m_AllocNode.pNext);
+        m_AllocNode.Value.Swap(other.m_AllocNode.Value);
+    }
+
     template <typename Ty>
     inline KGAllocatorAdapter<Ty, MyType> GetAdapter()
     {
@@ -240,6 +257,17 @@ private:
         }
 
         return pNode;
+    }
+
+    void MoveFrom(MyType& other)
+    {
+        m_nBlock = other.m_nBlock;
+        m_pEmptyNode = other.m_pEmptyNode;
+        m_AllocNode.pNext = other.m_AllocNode.pNext;
+        m_AllocNode.Value.Swap(other.m_AllocNode.Value);
+
+        other.m_pEmptyNode = nullptr;
+        other.m_AllocNode.pNext = nullptr;
     }
 
 private:

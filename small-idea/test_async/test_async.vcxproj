@@ -119,6 +119,7 @@
     <ClCompile Include="KGStepExcutor.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TestAsync.cpp" />
+    <ClCompile Include="TestSerialAllocator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KGAllocatorAdapter.h" />
