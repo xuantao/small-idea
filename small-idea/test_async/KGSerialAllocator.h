@@ -92,8 +92,6 @@ public:
     typedef KGSerialAllocator<A> MyType;
     typedef KGSerialAllocatorImpl<A> AllocImpl;
     typedef KGSinglyNode<AllocImpl> AllocNode;
-
-public:
     static constexpr size_t DefaultBlock = 4096;
 
 public:
@@ -109,6 +107,13 @@ public:
     {
     }
 
+    /* build allocator with default pool, the default pool will node free */
+    KGSerialAllocator(void* pDefautPool, size_t nDefaultSize, size_t block = DefaultBlock)
+        : m_nBlock(block)
+        , m_AllocNode(pDefautPool, nDefaultSize)
+    {
+    }
+
     ~KGSerialAllocator()
     {
         Dissolve();
@@ -117,14 +122,6 @@ public:
     KGSerialAllocator(const KGSerialAllocator&) = delete;
     KGSerialAllocator& operator = (const KGSerialAllocator&) = delete;
     //TODO: add move semantic
-
-protected:
-    /* build allocator with default pool, the default pool will node free */
-    KGSerialAllocator(void* pDefautPool, size_t nDefaultSize, size_t block = DefaultBlock)
-        : m_nBlock(block)
-        , m_AllocNode(pDefautPool, nDefaultSize)
-    {
-    }
 
 public:
     void* Alloc(size_t nSize)
@@ -253,15 +250,14 @@ private:
 
 /* serial allocator with an default memory pool */
 template <size_t N, size_t A = sizeof(void*)>
-class KGPoolSerialAlloc : private KGSerialAllocator<A>
+class KGPoolSerialAlloc
 {
-    typedef KGSerialAllocator<A> BaseType;
 public:
-    KGPoolSerialAlloc() : BaseType(m_Pool, N)
+    KGPoolSerialAlloc() : m_Alloc(m_Pool, N, N)
     {
     }
 
-    KGPoolSerialAlloc(size_t nBlock) : BaseType(m_Pool, N, nBlock)
+    KGPoolSerialAlloc(size_t nBlock) : m_Alloc(m_Pool, N, nBlock)
     {
     }
 
@@ -270,39 +266,43 @@ public:
     }
 
     KGPoolSerialAlloc(const KGPoolSerialAlloc&) = delete;
-    KGPoolSerialAlloc(KGPoolSerialAlloc&&) = delete;
-    KGPoolSerialAlloc& operator = (KGPoolSerialAlloc&&) = delete;
     KGPoolSerialAlloc& operator = (const KGPoolSerialAlloc&) = delete;
 
 public:
     inline void* Alloc(size_t nSize)
     {
-        return BaseType::Alloc(nSize);
+        return m_Alloc.Alloc(nSize);
     }
 
     inline void Dealloc(void* p, size_t nSize)
     {
-        BaseType::Dealloc(p, nSize);
+        m_Alloc.Dealloc(p, nSize);
     }
 
     /* Reset the allocator without free alloc node */
     inline void Reset()
     {
-        BaseType::Reset();
+        m_Alloc.Reset();
     }
 
     /* Reset the allocator and free alloc node */
-    void Dissolve()
+    inline void Dissolve()
     {
-        BaseType::Dissolve();
+        m_Alloc.Dissolve();
+    }
+
+    inline KGSerialAllocator<A>* GetAlloc()
+    {
+        return &m_Alloc;
     }
 
     template <typename Ty>
-    inline KGAllocatorAdapter<Ty, BaseType> GetAdapter()
+    inline KGAllocatorAdapter<Ty, KGSerialAllocator<A>> GetAdapter()
     {
-        return BaseType::template GetAdapter<Ty>();
+        return m_Alloc.GetAdapter<Ty>();
     }
 
 private:
+    KGSerialAllocator<A> m_Alloc;
     alignas (A) int8_t m_Pool[N];
 };

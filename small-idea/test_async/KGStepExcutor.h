@@ -88,21 +88,21 @@ public:
     inline void Add(Fty&& fn)
     {
         Add(StepExcutor_Internal::MakeExcutor(
-            std::forward<Fty>(fn), reinterpret_cast<KGSerialAllocator<>*>(&m_Alloc)));
+            std::forward<Fty>(fn), m_Alloc.GetAlloc()));
     }
 
     template <typename Rty, typename Fty>
     inline void Add(KGFuture<Rty>&& future, Fty&& fn)
     {
         Add(StepExcutor_Internal::MakeExcutor(
-            std::move(future), std::forward<Fty>(fn), reinterpret_cast<KGSerialAllocator<>*>(&m_Alloc)));
+            std::move(future), std::forward<Fty>(fn), m_Alloc.GetAlloc()));
     }
 
     template <typename Rty, typename Fty>
     inline void Add(const KGSharedFuture<Rty>& future, Fty&& fn)
     {
         Add(StepExcutor_Internal::MakeExcutor(
-            future, std::forward<Fty>(fn), reinterpret_cast<KGSerialAllocator<>*>(&m_Alloc)));
+            future, std::forward<Fty>(fn), m_Alloc.GetAlloc()));
     }
 
 private:
@@ -274,14 +274,6 @@ namespace StepExcutor_Internal
         {
         }
 
-        GuardImpl(const GuardAllocator& alloc) : m_Guarder(alloc)
-        {
-        }
-
-        ~GuardImpl()
-        {
-        }
-
         inline KGStepGuard& GetGuarder()
         {
             return m_Guarder;
@@ -322,7 +314,7 @@ namespace StepExcutor_Internal
         NoneGuardImpl(KGSerialAllocator<>*) { }
 
         inline int GetGuarder() { return 0; }
-        void Rollback() { }
+        inline void Rollback() { }
     };
 
     /* functor: bool(KGStepGuard&) */
@@ -406,6 +398,10 @@ namespace StepExcutor_Internal
             assert(m_Future.IsValid());
         }
 
+        virtual ~ExcutorWithFuture()
+        {
+        }
+
         KGSTEP_STATUS Step() override
         {
             if (!m_Future.IsReady())
@@ -424,6 +420,10 @@ namespace StepExcutor_Internal
             , m_Future(future)
         {
             assert(m_Future.IsValid());
+        }
+
+        virtual ~ExcutorWithSharedFuture()
+        {
         }
 
         KGSTEP_STATUS Step() override
@@ -503,12 +503,6 @@ namespace StepExcutor_Internal
     }
 } // namesapce StepExcutor_Internal
 
-/* 构建一个分布执行器
- * Fty支持的函数签名为:
- * 1. void(), void(KStepGuard&)
- * 2. bool(), bool(KGStepGuard&),
- * 3. KGSTEP_STATUS(), KGSTEP_STATUS(KGStepGuard&)
-*/
 template <typename Fty>
 inline KGStepExcutorPtr MakeStepExcutor(Fty&& fn)
 {
