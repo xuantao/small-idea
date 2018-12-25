@@ -299,7 +299,7 @@ public:
     template <typename Ty>
     inline KGAllocatorAdapter<Ty, KGSerialAllocator<A>> GetAdapter()
     {
-        return m_Alloc.GetAdapter<Ty>();
+        return m_Alloc.template GetAdapter<Ty>();
     }
 
 private:
