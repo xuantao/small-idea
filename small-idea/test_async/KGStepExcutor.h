@@ -9,26 +9,6 @@
 #include "KGFuture.h"
 #include "KGScopeGuard.h"
 
-namespace StepExcutor_Internal
-{
-    struct GuardImpl;
-    struct GuardWithCache;
-    typedef KGAllocatorAdapter<int8_t, KGSerialAllocator<>> GuardAllocator;
-
-    //template <typename Fty>
-    //KGStepExcutorPtr MakeExcutor(Fty&& fn);
-    //template <typename Rty, typename Fty>
-    //KGStepExcutorPtr MakeExcutor(KGFuture<Rty>&& future, Fty&& fn);
-    //template <typename Rty, typename Fty>
-    //KGStepExcutorPtr MakeExcutor(const KGSharedFuture<Rty>& future, Fty&& fn);
-    //template <typename Fty>
-    //KGStepExcutorPtr MakeExcutor(Fty&& fn, KGSerialAllocator<>* alloc);
-    //template <typename Rty, typename Fty>
-    //KGStepExcutorPtr MakeExcutor(KGFuture<Rty>&& future, Fty&& fn, KGSerialAllocator<>* alloc);
-    //template <typename Rty, typename Fty>
-    //KGStepExcutorPtr MakeExcutor(const KGSharedFuture<Rty>& future, Fty&& fn, KGSerialAllocator<>* alloc);
-}
-
 enum class KGSTEP_STATUS
 {
     Busy,       // 繁忙
@@ -52,6 +32,12 @@ struct IKGStepExcutor
 };
 typedef std::shared_ptr<IKGStepExcutor> KGStepExcutorPtr;
 
+namespace StepExcutor_Internal
+{
+    struct GuardImpl;
+    struct GuardWithCache;
+    typedef KGAllocatorAdapter<int8_t, KGSerialAllocator<>> GuardAllocator;
+}
 /* 步进器守卫 */
 class KGStepGuard
 {
@@ -88,6 +74,12 @@ private:
     KGScopeGuardImpl<Allocator> m_Guarder;
 }; // class KGStepGuard
 
+namespace StepExcutor_Internal
+{
+    template <typename Fty> KGStepExcutorPtr MakeExcutor(Fty&& fn, KGSerialAllocator<>* alloc);
+    template <typename Rty, typename Fty> KGStepExcutorPtr MakeExcutor(KGFuture<Rty>&& future, Fty&& fn, KGSerialAllocator<>* alloc);
+    template <typename Rty, typename Fty> KGStepExcutorPtr MakeExcutor(const KGSharedFuture<Rty>& future, Fty&& fn, KGSerialAllocator<>* alloc);
+}
 /* 分布执行列表, 顺序执行 */
 class KGQueueStepExcutor final : public IKGStepExcutor
 {
@@ -164,6 +156,12 @@ protected:
 }; // KGParallelStepExcutor
 
 
+namespace StepExcutor_Internal
+{
+    template <typename Fty> KGStepExcutorPtr MakeExcutor(Fty&& fn);
+    template <typename Rty, typename Fty> KGStepExcutorPtr MakeExcutor(KGFuture<Rty>&& future, Fty&& fn);
+    template <typename Rty, typename Fty> KGStepExcutorPtr MakeExcutor(const KGSharedFuture<Rty>& future, Fty&& fn);
+}
 /* 构建一个分布执行器
  * Fty支持的函数签名为:
  * 1. void(), void(KStepGuard&)
