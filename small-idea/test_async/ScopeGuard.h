@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <cassert>
-#include "KGSerialAllocator.h"
+#include "SerialAllocator.h"
 
 namespace ScopeGuard_Internal
 {
@@ -77,7 +77,7 @@ namespace ScopeGuard_Internal
         }
 
     private:
-        KGPoolSerialAlloc<N, A> m_Alloc;
+        PoolSerialAlloc<N, A> m_Alloc;
     };
 } // namespace ScopeGuard_Internal
 
@@ -89,30 +89,30 @@ namespace ScopeGuard_Internal
  * Alloc: 内存分配器
 */
 template <typename Alloc = ScopeGuard_Internal::Allocator<int8_t, 512>>
-class KGScopeGuardImpl
+class ScopeGuardImpl
 {
 public:
     typedef typename std::allocator_traits<Alloc>::template rebind_alloc<int8_t> Allocator;
     typedef ScopeGuard_Internal::KGRollbackNode Node;
 
 public:
-    KGScopeGuardImpl()
+    ScopeGuardImpl()
     {
     }
 
     template <typename _Alloc>
-    KGScopeGuardImpl(_Alloc&& alloc)
+    ScopeGuardImpl(_Alloc&& alloc)
         : m_Alloc(std::forward<_Alloc>(alloc))
     {
     }
 
-    ~KGScopeGuardImpl()
+    ~ScopeGuardImpl()
     {
         Done();
     }
 
-    KGScopeGuardImpl(const KGScopeGuardImpl&) = delete;
-    KGScopeGuardImpl& operator = (const KGScopeGuardImpl&) = delete;
+    ScopeGuardImpl(const ScopeGuardImpl&) = delete;
+    ScopeGuardImpl& operator = (const ScopeGuardImpl&) = delete;
 
 public:
     /*
@@ -190,4 +190,4 @@ private:
  * 默认512字节大小是个经验值, 在64位程序中，像 [this] { //TODO: } 这样持有一个指针变量的lambda,
  * 在内部构建的回滚对象大小是24Byte, 默认栈上的分配器可以分配21个回滚对象, 能够满足大多数情况了。
 */
-typedef KGScopeGuardImpl<> KGScopeGuard;
+typedef ScopeGuardImpl<> ScopeGuard;

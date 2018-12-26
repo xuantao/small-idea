@@ -1,4 +1,4 @@
-﻿#include "KGAsync.h"
+﻿#include "Async.h"
 #include "Tesh.h"
 
 namespace
@@ -32,14 +32,14 @@ static int TestCall_Int(int v)
 void TestAsync()
 {
     Caller callObj;
-    KGAsync::Startup(2);
+    Async::Startup(2);
 
-    auto cFuture1 = KGAsync::Run(callObj);
-    auto cFuture2 = KGAsync::Run(callObj, 1);
+    auto cFuture1 = Async::Run(callObj);
+    auto cFuture2 = Async::Run(callObj, 1);
 
-    auto cFuture3 = KGAsync::Run(&TestCall);
+    auto cFuture3 = Async::Run(&TestCall);
     //auto cFuture3_1 = KGAsync::Run(&TestCall, 1);
-    auto cFuture4 = KGAsync::Run(&TestCall_Int, 1);
+    auto cFuture4 = Async::Run(&TestCall_Int, 1);
 
     //KGAsync::Run(&callObj);
 
@@ -59,5 +59,5 @@ void TestAsync()
     {
     }
 
-    KGAsync::Shutdown();
+    Async::Shutdown();
 }

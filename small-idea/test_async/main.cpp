@@ -5,83 +5,11 @@
 #include <type_traits>
 #include <iostream>
 #include <future>
-//#include <experimental/future>
-#include "KGStepExcutor.h"
+#include "StepExcutor.h"
 #include "Tesh.h"
-#include "serial_allocator.h"
 
 using namespace utility;
 
-template <size_t A = sizeof(void*)>
-struct xxx_allocator
-{
-    typedef singly_node<serial_allocator<A>> node_type;
-
-    xxx_allocator(size_t inc)
-        : _increment(inc)
-        ,_alloc_node(0, 0)
-    {
-    }
-
-    xxx_allocator(size_t inc, void* defPool, size_t defSize)
-        : _increment(inc)
-        , _alloc_node(defPool, defSize)
-    {
-    }
-
-    ~xxx_allocator()
-    {
-        node_type* pRoot = _alloc_node.next;
-        while (pRoot)
-        {
-            node_type* pCur = pRoot;
-            pRoot = pCur->next;
-
-            pCur->~node_type();
-            delete reinterpret_cast<int8_t*>(pCur);
-        }
-    }
-
-public:
-    void* allocate(size_t sz)
-    {
-        void* pBuff = _alloc_node.value.allocate(sz);
-        if (pBuff)
-            return pBuff;
-
-        create_node(std::max(align_size(sz), _increment));
-        pBuff = _alloc_node.value.allocate(sz);
-        assert(pBuff);
-        return pBuff;
-    }
-
-    void deallocate(void* p, size_t) { }
-
-private:
-    void create_node(size_t s)
-    {
-        int8_t* p = new int8_t[align_size(sizeof(node_type)) + s];
-        assert(p);
-        node_type* pNode = new (p) node_type(p + align_size(sizeof(node_type)), s);
-        _alloc_node.value.swap(pNode->value);
-        pNode->next = _alloc_node.next;
-        _alloc_node.next = pNode;
-    }
-
-    size_t _increment;
-    node_type _alloc_node;
-};
-
-template <size_t DefSize, size_t A = sizeof(void*)>
-struct special_allocator : xxx_allocator<A>
-{
-    special_allocator(size_t extra_size) : xxx_allocator<A>(extra_size, _pool, DefSize)
-    {
-    }
-
-private:
-    alignas (A) int8_t _pool[DefSize];
-};
 
 //void test_ref(int)
 //{
@@ -90,7 +18,7 @@ private:
 
 void TestScopeGuard()
 {
-    KGScopeGuard guard;
+    ScopeGuard guard;
     guard.Push([] { printf("11111111\n"); });
 }
 
@@ -111,16 +39,6 @@ void test_spe_allocator()
     test_ref(i);
     //test_callable(&test_ref);
     //test_ref(1);
-
-    //std::map
-
-    special_allocator<16> alloc(64);
-
-    alloc.allocate(6);
-    alloc.allocate(10);
-    alloc.allocate(1024);
-    alloc.allocate(10);
-
 }
 
 void TestStep()
@@ -137,37 +55,37 @@ void TestStep()
 
     MakeStepExcutor([] {
         printf("111111111\n");
-        return KGSTEP_STATUS::Completed;
+        return STEP_STATUS::Completed;
     });
 
-    MakeStepExcutor([](KGStepGuard&) {
+    MakeStepExcutor([](StepGuard&) {
         printf("111111111\n");
     });
 
-    MakeStepExcutor([](KGStepGuard&) {
-        printf("111111111\n");
-        return true;
-    });
-
-    MakeStepExcutor([](KGStepGuard&) {
+    MakeStepExcutor([](StepGuard&) {
         printf("111111111\n");
         return true;
     });
 
-    MakeStepExcutor([](KGStepGuard&) {
+    MakeStepExcutor([](StepGuard&) {
         printf("111111111\n");
-        return KGSTEP_STATUS::Completed;
+        return true;
     });
 
-    KGQueueStepExcutor steper;
-    steper.Add([](KGStepGuard& guard) {
+    MakeStepExcutor([](StepGuard&) {
+        printf("111111111\n");
+        return STEP_STATUS::Completed;
+    });
+
+    QueueStepExcutor steper;
+    steper.Add([](StepGuard& guard) {
         printf("222222222222\n");
         guard.Push([] {
             printf("33333333333\n");
         });
     });
 
-    steper.Add([](KGStepGuard& guard) {
+    steper.Add([](StepGuard& guard) {
         printf("444444444444\n");
         guard.Push([] {
             printf("5555555555\n");
@@ -182,33 +100,33 @@ void TestStep()
 
     steper.Add([] {
         printf("11111111111");
-        return KGSTEP_STATUS::Completed;
+        return STEP_STATUS::Completed;
     });
 
-    steper.Add([] (KGStepGuard&) {
+    steper.Add([] (StepGuard&) {
         printf("11111111111");
-        return KGSTEP_STATUS::Completed;
+        return STEP_STATUS::Completed;
     });
 
-    KGFuture<int> future;
+    Future<int> future;
     steper.Add(std::move(future), [] {
         printf("11111111111");
-        return KGSTEP_STATUS::Completed;
+        return STEP_STATUS::Completed;
     });
 
-    steper.Add(std::move(future), [] (KGStepGuard& guard) {
+    steper.Add(std::move(future), [] (StepGuard& guard) {
         printf("11111111111");
-        return KGSTEP_STATUS::Completed;
+        return STEP_STATUS::Completed;
     });
 
     steper.Add(future.Share(), [] {
         printf("11111111111");
-        return KGSTEP_STATUS::Completed;
+        return STEP_STATUS::Completed;
     });
 
-    steper.Add(future.Share(), [](KGStepGuard& guard) {
+    steper.Add(future.Share(), [](StepGuard& guard) {
         printf("11111111111");
-        return KGSTEP_STATUS::Completed;
+        return STEP_STATUS::Completed;
     });
 }
 

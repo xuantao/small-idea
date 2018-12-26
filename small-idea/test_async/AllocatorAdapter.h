@@ -1,17 +1,17 @@
 ﻿#pragma once
 
 template <typename Alloc>
-struct KGAllocatorAdapterBase
+struct AllocatorAdapterBase
 {
-    KGAllocatorAdapterBase(Alloc* pAlloc) : m_pAlloc(pAlloc)
+    AllocatorAdapterBase(Alloc* pAlloc) : m_pAlloc(pAlloc)
     {
     }
 
-    KGAllocatorAdapterBase(const KGAllocatorAdapterBase& o) : m_pAlloc(o.m_pAlloc)
+    AllocatorAdapterBase(const AllocatorAdapterBase& o) : m_pAlloc(o.m_pAlloc)
     {
     }
 
-    KGAllocatorAdapterBase& operator = (const KGAllocatorAdapterBase& o)
+    AllocatorAdapterBase& operator = (const AllocatorAdapterBase& o)
     {
         m_pAlloc = o.m_pAlloc;
         return *this;
@@ -28,9 +28,9 @@ private:
 
 /* 适配标准库的分配器 */
 template <typename Ty, class AllocImpl>
-class KGAllocatorAdapter : protected KGAllocatorAdapterBase<AllocImpl>
+class AllocatorAdapter : protected AllocatorAdapterBase<AllocImpl>
 {
-    typedef KGAllocatorAdapterBase<AllocImpl> BaseType;
+    typedef AllocatorAdapterBase<AllocImpl> BaseType;
 public:
     typedef Ty                value_type;
     typedef value_type*       pointer;
@@ -41,34 +41,34 @@ public:
     typedef std::ptrdiff_t    difference_type;
 
     template <class U>
-    struct rebind { typedef KGAllocatorAdapter<U, AllocImpl> other; };
+    struct rebind { typedef AllocatorAdapter<U, AllocImpl> other; };
 
 public:
-    KGAllocatorAdapter() : BaseType(nullptr)
+    AllocatorAdapter() : BaseType(nullptr)
     {
     }
 
-    KGAllocatorAdapter(AllocImpl* pAlloc) : BaseType(pAlloc)
+    AllocatorAdapter(AllocImpl* pAlloc) : BaseType(pAlloc)
     {
     }
 
-    KGAllocatorAdapter(const KGAllocatorAdapter& o) : BaseType(o)
+    AllocatorAdapter(const AllocatorAdapter& o) : BaseType(o)
     {
     }
 
     template <typename U>
-    KGAllocatorAdapter(const KGAllocatorAdapter<U, AllocImpl>& o) : BaseType(*(BaseType*)&o)
+    AllocatorAdapter(const AllocatorAdapter<U, AllocImpl>& o) : BaseType(*(BaseType*)&o)
     {
     }
 
-    KGAllocatorAdapter& operator = (const KGAllocatorAdapter& o)
+    AllocatorAdapter& operator = (const AllocatorAdapter& o)
     {
         *(BaseType*)this = *(BaseType*)&o;
         return *this;
     }
 
     template <typename U>
-    KGAllocatorAdapter& operator = (const KGAllocatorAdapter<U, AllocImpl>& o)
+    AllocatorAdapter& operator = (const AllocatorAdapter<U, AllocImpl>& o)
     {
         *(BaseType*)this = *(BaseType*)&o;
         return *this;
@@ -95,13 +95,13 @@ public:
 };
 
 template <class Ty, typename AllocImpl>
-inline bool operator == (const KGAllocatorAdapter<Ty, AllocImpl>& l, const KGAllocatorAdapter<Ty, AllocImpl>& r)
+inline bool operator == (const AllocatorAdapter<Ty, AllocImpl>& l, const AllocatorAdapter<Ty, AllocImpl>& r)
 {
     return l.m_pAlloc == r.m_pAlloc;
 }
 
 template <class Ty, typename AllocImpl>
-inline bool operator != (const KGAllocatorAdapter<Ty, AllocImpl>& l, const KGAllocatorAdapter<Ty, AllocImpl>& r)
+inline bool operator != (const AllocatorAdapter<Ty, AllocImpl>& l, const AllocatorAdapter<Ty, AllocImpl>& r)
 {
     return l.m_pAlloc != r.m_pAlloc;
 }

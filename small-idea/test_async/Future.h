@@ -159,34 +159,34 @@ namespace Future_Internal
 } // namespace Future_Internal
 
 template<class Ty>
-class KGSharedFuture;
+class SharedFuture;
 
 template<class Ty>
-class KGFuture
+class Future
     : public Future_Internal::FutureState<Ty>
 {
     typedef Future_Internal::FutureState<Ty> FutureState;
     typedef typename FutureState::RetType RetType;
 
 public:
-    KGFuture()
+    Future()
     {
     }
 
-    KGFuture(typename FutureState::AssociatedStatePtr pState)
+    Future(typename FutureState::AssociatedStatePtr pState)
         : FutureState(pState)
     {
     }
 
-    ~KGFuture()
+    ~Future()
     {
     }
 
-    KGFuture(KGFuture&&) = default;
-    KGFuture& operator = (KGFuture&&) = default;
+    Future(Future&&) = default;
+    Future& operator = (Future&&) = default;
 
-    KGFuture(const KGFuture&) = delete;
-    KGFuture& operator = (const KGFuture&) = delete;
+    Future(const Future&) = delete;
+    Future& operator = (const Future&) = delete;
 
 public:
     RetType GetValue()
@@ -194,37 +194,37 @@ public:
         this->_GetValue();
     }
 
-    KGSharedFuture<Ty> Share()
+    SharedFuture<Ty> Share()
     {
-        return (KGSharedFuture<Ty>(std::move(*this)));
+        return (SharedFuture<Ty>(std::move(*this)));
     }
 };
 
 template<class Ty>
-class KGFuture<Ty&>
+class Future<Ty&>
     : public Future_Internal::FutureState<Ty*>
 {
     typedef Future_Internal::FutureState<Ty*> FutureState;
 
 public:
-    KGFuture()
+    Future()
     {
     }
 
-    KGFuture(typename FutureState::AssociatedStatePtr pState)
+    Future(typename FutureState::AssociatedStatePtr pState)
         : FutureState(pState)
     {
     }
 
-    ~KGFuture()
+    ~Future()
     {
     }
 
-    KGFuture(KGFuture&&) = default;
-    KGFuture& operator=(KGFuture&&) = default;
+    Future(Future&&) = default;
+    Future& operator=(Future&&) = default;
 
-    KGFuture(const KGFuture&) = delete;
-    KGFuture& operator=(const KGFuture&) = delete;
+    Future(const Future&) = delete;
+    Future& operator=(const Future&) = delete;
 
 public:
     Ty& GetValue()
@@ -232,37 +232,37 @@ public:
         return *this->_GetValue();
     }
 
-    KGSharedFuture<Ty&> Share()
+    SharedFuture<Ty&> Share()
     {
-        return KGSharedFuture<Ty&>(std::move(*this));
+        return SharedFuture<Ty&>(std::move(*this));
     }
 };
 
 template<>
-class KGFuture<void>
+class Future<void>
     : public Future_Internal::FutureState<int>
 {
     typedef Future_Internal::FutureState<int> FutureState;
 
 public:
-    KGFuture()
+    Future()
     {
     }
 
-    KGFuture(typename FutureState::AssociatedStatePtr pState)
+    Future(typename FutureState::AssociatedStatePtr pState)
         : FutureState(pState)
     {
     }
 
-    ~KGFuture()
+    ~Future()
     {
     }
 
-    KGFuture(KGFuture&&) = default;
-    KGFuture& operator = (KGFuture&&) = default;
+    Future(Future&&) = default;
+    Future& operator = (Future&&) = default;
 
-    KGFuture(const KGFuture&) = delete;
-    KGFuture& operator = (const KGFuture&) = delete;
+    Future(const Future&) = delete;
+    Future& operator = (const Future&) = delete;
 
 public:
     void GetValue()
@@ -270,48 +270,48 @@ public:
         this->GetValue();
     }
 
-    KGSharedFuture<void> Share();
+    SharedFuture<void> Share();
 };
 
 template<class Ty>
-class KGSharedFuture : public Future_Internal::FutureState<Ty>
+class SharedFuture : public Future_Internal::FutureState<Ty>
 {
     typedef Future_Internal::FutureState<Ty> FutureState;
     typedef typename FutureState::RetType RetType;
 
 public:
-    KGSharedFuture()
+    SharedFuture()
     {
     }
 
-    KGSharedFuture(const KGSharedFuture& other)
+    SharedFuture(const SharedFuture& other)
         : FutureState(other)
     {
     }
 
-    KGSharedFuture& operator = (const KGSharedFuture& other)
+    SharedFuture& operator = (const SharedFuture& other)
     {
         FutureState::operator = (other);
         return (*this);
     }
 
-    KGSharedFuture(KGFuture<Ty>&& other)
+    SharedFuture(Future<Ty>&& other)
         : FutureState(std::forward<FutureState>(other))
     {
     }
 
-    KGSharedFuture(KGSharedFuture&& other)
+    SharedFuture(SharedFuture&& other)
         : FutureState(std::move(other))
     {
     }
 
-    KGSharedFuture& operator = (KGSharedFuture&& other)
+    SharedFuture& operator = (SharedFuture&& other)
     {
         FutureState::operator = (std::move(other));
         return (*this);
     }
 
-    ~KGSharedFuture()
+    ~SharedFuture()
     {
     }
 
@@ -323,43 +323,43 @@ public:
 };
 
 template<class Ty>
-class KGSharedFuture<Ty&> : public Future_Internal::FutureState<Ty*>
+class SharedFuture<Ty&> : public Future_Internal::FutureState<Ty*>
 {
     typedef Future_Internal::FutureState<Ty*> FutureState;
 
 public:
-    KGSharedFuture()
+    SharedFuture()
     {
     }
 
-    KGSharedFuture(const KGSharedFuture& other)
+    SharedFuture(const SharedFuture& other)
         : FutureState(other)
     {
     }
 
-    KGSharedFuture& operator = (const KGSharedFuture& other)
+    SharedFuture& operator = (const SharedFuture& other)
     {
         FutureState::operator = (other);
         return (*this);
     }
 
-    KGSharedFuture(KGFuture<Ty&>&& other)
+    SharedFuture(Future<Ty&>&& other)
         : FutureState(std::forward<FutureState>(other))
     {
     }
 
-    KGSharedFuture(KGSharedFuture&& other)
+    SharedFuture(SharedFuture&& other)
         : FutureState(std::move(other))
     {
     }
 
-    KGSharedFuture& operator = (KGSharedFuture&& other)
+    SharedFuture& operator = (SharedFuture&& other)
     {
         FutureState::operator = (std::move(other));
         return (*this);
     }
 
-    ~KGSharedFuture()
+    ~SharedFuture()
     {
     }
 
@@ -371,43 +371,43 @@ public:
 };
 
 template<>
-class KGSharedFuture<void> : public Future_Internal::FutureState<int>
+class SharedFuture<void> : public Future_Internal::FutureState<int>
 {
     typedef Future_Internal::FutureState<int> FutureState;
 
 public:
-    KGSharedFuture()
+    SharedFuture()
     {
     }
 
-    KGSharedFuture(const KGSharedFuture& other)
+    SharedFuture(const SharedFuture& other)
         : FutureState(other)
     {
     }
 
-    KGSharedFuture& operator = (const KGSharedFuture& other)
+    SharedFuture& operator = (const SharedFuture& other)
     {
         FutureState::operator = (other);
         return (*this);
     }
 
-    KGSharedFuture(KGSharedFuture&& other)
+    SharedFuture(SharedFuture&& other)
         : FutureState(std::move(other))
     {
     }
 
-    KGSharedFuture(KGFuture<void>&& other)
+    SharedFuture(Future<void>&& other)
         : FutureState(std::forward<FutureState>(other))
     {
     }
 
-    KGSharedFuture& operator = (KGSharedFuture&& other)
+    SharedFuture& operator = (SharedFuture&& other)
     {
         FutureState::operator = (std::move(other));
         return (*this);
     }
 
-    ~KGSharedFuture()
+    ~SharedFuture()
     {
     }
 
@@ -418,48 +418,48 @@ public:
     }
 };
 
-inline KGSharedFuture<void> KGFuture<void>::Share()
+inline SharedFuture<void> Future<void>::Share()
 {
-    return KGSharedFuture<void>(std::move(*this));
+    return SharedFuture<void>(std::move(*this));
 }
 
 /* promise */
 template<class Ty>
-class KGPromise
+class Promise
 {
 public:
-    KGPromise()
+    Promise()
         : m_Promise(std::make_shared<Future_Internal::AssociatedState<Ty>>())
     {
     }
 
-    KGPromise(KGPromise&& other)
+    Promise(Promise&& other)
         : m_Promise(std::move(other.m_Promise))
     {
     }
 
-    KGPromise& operator = (KGPromise&& other)
+    Promise& operator = (Promise&& other)
     {
-        KGPromise(std::move(other)).swap(*this);
+        Promise(std::move(other)).swap(*this);
         return *this;
     }
 
-    ~KGPromise()
+    ~Promise()
     {
     }
 
-    KGPromise(const KGPromise&) = delete;
-    KGPromise& operator = (const KGPromise&) = delete;
+    Promise(const Promise&) = delete;
+    Promise& operator = (const Promise&) = delete;
 
 public:
-    void Swap(KGPromise& other)
+    void Swap(Promise& other)
     {
         m_Promise.Swap(other.m_Promise);
     }
 
-    KGFuture<Ty> GetFuture()
+    Future<Ty> GetFuture()
     {
-        return KGFuture<Ty>(m_Promise.GetState());
+        return Future<Ty>(m_Promise.GetState());
     }
 
     void SetValue(const Ty& val)
@@ -477,41 +477,41 @@ private:
 };
 
 template<class Ty>
-class KGPromise<Ty&>
+class Promise<Ty&>
 {
 public:
-    KGPromise()
+    Promise()
         : m_Promise(std::make_shared<Future_Internal::AssociatedState<Ty*>>())
     {
     }
 
-    KGPromise(KGPromise&& other)
+    Promise(Promise&& other)
         : m_Promise(std::move(other.m_Promise))
     {
     }
 
-    KGPromise& operator = (KGPromise&& other)
+    Promise& operator = (Promise&& other)
     {
-        KGPromise(std::move(other)).swap(*this);
+        Promise(std::move(other)).swap(*this);
         return *this;
     }
 
-    ~KGPromise()
+    ~Promise()
     {
     }
 
-    KGPromise(const KGPromise&) = delete;
-    KGPromise& operator=(const KGPromise&) = delete;
+    Promise(const Promise&) = delete;
+    Promise& operator=(const Promise&) = delete;
 
 public:
-    void Swap(KGPromise& other)
+    void Swap(Promise& other)
     {
         m_Promise.Swap(other.m_Promise);
     }
 
-    KGFuture<Ty&> GetFuture()
+    Future<Ty&> GetFuture()
     {
-        return KGFuture<Ty&>(m_Promise.GetState());
+        return Future<Ty&>(m_Promise.GetState());
     }
 
     void SetValue(Ty& val)
@@ -524,41 +524,41 @@ private:
 };
 
 template<>
-class KGPromise<void>
+class Promise<void>
 {
 public:
-    KGPromise()
+    Promise()
         : m_Promise(std::make_shared<Future_Internal::AssociatedState<int>>())
     {
     }
 
-    KGPromise(KGPromise&& other)
+    Promise(Promise&& other)
         : m_Promise(std::move(other.m_Promise))
     {
     }
 
-    KGPromise& operator = (KGPromise&& other)
+    Promise& operator = (Promise&& other)
     {
-        KGPromise(std::move(other)).Swap(*this);
+        Promise(std::move(other)).Swap(*this);
         return (*this);
     }
 
-    ~KGPromise()
+    ~Promise()
     {
     }
 
-    KGPromise(const KGPromise&) = delete;
-    KGPromise& operator=(const KGPromise&) = delete;
+    Promise(const Promise&) = delete;
+    Promise& operator=(const Promise&) = delete;
 
 public:
-    void Swap(KGPromise& _Other)
+    void Swap(Promise& _Other)
     {
         m_Promise.Swap(_Other.m_Promise);
     }
 
-    KGFuture<void> GetFuture()
+    Future<void> GetFuture()
     {
-        return KGFuture<void>(m_Promise.GetState());
+        return Future<void>(m_Promise.GetState());
     }
 
     void SetValue()

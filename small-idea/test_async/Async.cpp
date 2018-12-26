@@ -3,7 +3,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
-#include "KGAsync.h"
+#include "Async.h"
 
 /* 线程池 */
 static class KGAsyncTaskPool
@@ -12,8 +12,7 @@ public:
     KGAsyncTaskPool() = default;
     ~KGAsyncTaskPool()
     {
-        if (m_bRunning)
-            Destory();
+        Destory();
     }
 
     KGAsyncTaskPool(const KGAsyncTaskPool&) = delete;
@@ -41,23 +40,20 @@ public:
 
     void Destory()
     {
-        if (m_bRunning == false)
-            return;
+        if (m_bRunning)
+        {
+            m_bRunning = false;
+            m_Condition.notify_all();
 
-        m_bRunning = false;
-        m_Condition.notify_all();
-
-        for (auto& t : m_Threads)
-            t.join();
+            for (auto& t : m_Threads)
+                t.join();
+        }
 
         while (!m_Tasks.empty())
-        {
-            delete m_Tasks.front();
             m_Tasks.pop();
-        }
     }
 
-    bool AddTask(IKGAsyncTask* pTask)
+    bool AddTask(KGAsyncTaskPtr pTask)
     {
         {
             std::lock_guard<std::mutex> cLock(m_Mutex);
@@ -67,6 +63,7 @@ public:
         return true;
     }
 
+    inline bool IsRunning() const { return m_bRunning; }
     inline int GetThreadNum() const { return (int)m_Threads.size(); }
 
 private:
@@ -74,7 +71,7 @@ private:
     {
         while (m_bRunning)
         {
-            IKGAsyncTask* pTask = nullptr;
+            KGAsyncTaskPtr pTask = nullptr;
             if (m_Tasks.empty())
             {
                 std::unique_lock<std::mutex> cLock(m_Mutex);
@@ -99,7 +96,6 @@ private:
             }
 
             pTask->Work();
-            delete pTask;
         }
     }
 
@@ -108,14 +104,14 @@ private:
     std::mutex m_Mutex;
     std::condition_variable m_Condition;
     std::vector<std::thread> m_Threads;
-    std::queue<IKGAsyncTask*> m_Tasks;
+    std::queue<KGAsyncTaskPtr> m_Tasks;
 } s_TaskPool;
 
-namespace KGAsync
+namespace Async
 {
     bool Startup(size_t threadNum)
     {
-        assert(s_TaskPool.GetThreadNum() == 0);
+        assert(!s_TaskPool.IsRunning());
         return s_TaskPool.Create(threadNum);
     }
 
@@ -124,10 +120,15 @@ namespace KGAsync
         s_TaskPool.Destory();
     }
 
-    void Run(IKGAsyncTask* pTask)
+    bool IsRunning()
+    {
+        return s_TaskPool.IsRunning();
+    }
+
+    void Run(KGAsyncTaskPtr pTask)
     {
         assert(pTask);
-        assert(s_TaskPool.GetThreadNum());
+        assert(s_TaskPool.IsRunning());
         s_TaskPool.AddTask(pTask);
     }
 }

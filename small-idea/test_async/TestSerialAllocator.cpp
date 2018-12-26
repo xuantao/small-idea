@@ -1,5 +1,5 @@
-#include "Tesh.h"
-#include "KGSerialAllocator.h"
+﻿#include "Tesh.h"
+#include "SerialAllocator.h"
 
 static void TestAllocImpl()
 {
@@ -7,7 +7,7 @@ static void TestAllocImpl()
     int8_t Pool[POOL_SIZE];
 
     void* pBuff = nullptr;
-    KGSerialAllocatorImpl<> alloc_1(Pool, POOL_SIZE);
+    SerialAllocatorImpl<> alloc_1(Pool, POOL_SIZE);
     pBuff = alloc_1.Alloc(10);  //X64: align(10) = 16
     assert(pBuff);
     pBuff = alloc_1.Alloc(24);  //X64: align(24) = 24
@@ -17,14 +17,14 @@ static void TestAllocImpl()
     pBuff = alloc_1.Alloc(4);   //X64: align(4)  = 8
     assert(pBuff == nullptr);
 
-    KGSerialAllocatorImpl<> alloc_2(std::move(alloc_1));
+    SerialAllocatorImpl<> alloc_2(std::move(alloc_1));
     pBuff = alloc_1.Alloc(4);   // alloc_1 has cleared
     assert(pBuff == nullptr);
 
     pBuff = alloc_2.Alloc(4);   // alloc_2 is empty
     assert(pBuff == nullptr);
 
-    KGSerialAllocatorImpl<> alloc_3(nullptr, 0);
+    SerialAllocatorImpl<> alloc_3(nullptr, 0);
     pBuff = alloc_3.Alloc(4);   // alloc_3 is empty
     assert(pBuff == nullptr);
 
@@ -42,7 +42,7 @@ static void TestAllocImpl()
     pBuff = alloc_3.Alloc(4);   //X64: align(4)  = 8
     assert(pBuff == nullptr);
 
-    KGSerialAllocatorImpl<> alloc_4(nullptr, 0);
+    SerialAllocatorImpl<> alloc_4(nullptr, 0);
     alloc_3.Reset();
     alloc_4.Swap(alloc_3);
 

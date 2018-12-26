@@ -13,42 +13,45 @@
     <ClCompile Include="main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="KGStepExcutor.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="TestAsync.cpp">
       <Filter>test</Filter>
-    </ClCompile>
-    <ClCompile Include="KGAsync.cpp">
-      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="TestSerialAllocator.cpp">
       <Filter>test</Filter>
     </ClCompile>
+    <ClCompile Include="TestStepExcutor.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="Async.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="StepExcutor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="KGStepExcutor.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="KGScopeGuard.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="KGTemplate.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="KGAsync.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="Tesh.h">
       <Filter>test</Filter>
     </ClInclude>
-    <ClInclude Include="KGFuture.h">
+    <ClInclude Include="Async.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="KGSerialAllocator.h">
+    <ClInclude Include="Future.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="KGAllocatorAdapter.h">
+    <ClInclude Include="ScopeGuard.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="SerialAllocator.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="StepExcutor.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="AllocatorAdapter.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

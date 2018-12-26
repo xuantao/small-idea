@@ -1,48 +1,48 @@
-﻿#include "KGStepExcutor.h"
+﻿#include "StepExcutor.h"
 #include <chrono>
 
-KGSTEP_STATUS StepFor(IKGStepExcutor* pSteper, size_t nDuration)
+STEP_STATUS StepFor(IStepExcutor* pSteper, size_t nDuration)
 {
     if (pSteper == nullptr)
-        return KGSTEP_STATUS::Completed;
+        return STEP_STATUS::Completed;
 
-    KGSTEP_STATUS eStatus;
+    STEP_STATUS eStatus;
     auto endTime = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(nDuration);
     do
     {
         eStatus = pSteper->Step();
-    } while (eStatus == KGSTEP_STATUS::Busy && endTime > std::chrono::high_resolution_clock::now());
+    } while (eStatus == STEP_STATUS::Busy && endTime > std::chrono::high_resolution_clock::now());
 
     return eStatus;
 }
 
-KGQueueStepExcutor::~KGQueueStepExcutor()
+QueueStepExcutor::~QueueStepExcutor()
 {
-    if (m_eRet != KGSTEP_STATUS::Completed)
+    if (m_eRet != STEP_STATUS::Completed)
         DoRollback();   // 没有成功结束就回滚
     m_Steps.clear();
 }
 
-KGSTEP_STATUS KGQueueStepExcutor::Step()
+STEP_STATUS QueueStepExcutor::Step()
 {
     if (m_StepIndex >= m_Steps.size())
-        return KGSTEP_STATUS::Completed;
+        return STEP_STATUS::Completed;
 
     if (IS_STEP_STOPPED(m_eRet))
         return m_eRet;
 
     m_eRet = m_Steps[m_StepIndex]->Step();
-    if (m_eRet == KGSTEP_STATUS::Completed)
+    if (m_eRet == STEP_STATUS::Completed)
     {
         ++ m_StepIndex;
         if (m_StepIndex < m_Steps.size())
-            m_eRet = KGSTEP_STATUS::Busy;
+            m_eRet = STEP_STATUS::Busy;
     }
 
     return m_eRet;
 }
 
-void KGQueueStepExcutor::DoRollback()
+void QueueStepExcutor::DoRollback()
 {
     for (int i = (int)m_StepIndex; i >= 0; --i)
         m_Steps[i]->Rollback();
@@ -50,12 +50,12 @@ void KGQueueStepExcutor::DoRollback()
 }
 
 
-KGSTEP_STATUS KGParallelStepExcutor::Step()
+STEP_STATUS ParallelStepExcutor::Step()
 {
     if (Empty())
-        return KGSTEP_STATUS::Completed;
+        return STEP_STATUS::Completed;
 
-    KGSTEP_STATUS eRet = KGSTEP_STATUS::Completed;
+    STEP_STATUS eRet = STEP_STATUS::Completed;
     size_t nIndex = 0;
     size_t nBusy = 0;
     while (nIndex < m_Steps.size())
@@ -63,18 +63,18 @@ KGSTEP_STATUS KGParallelStepExcutor::Step()
         eRet = m_Steps[nIndex]->Step();
         switch (eRet)
         {
-        case KGSTEP_STATUS::Busy:
+        case STEP_STATUS::Busy:
             ++nBusy;
-        case KGSTEP_STATUS::Idle:
+        case STEP_STATUS::Idle:
             ++nIndex;
             break;
-        case KGSTEP_STATUS::Failed:
+        case STEP_STATUS::Failed:
             m_Steps[nIndex]->Rollback();
-        case KGSTEP_STATUS::Completed:
+        case STEP_STATUS::Completed:
             m_Steps.erase(m_Steps.begin() + nIndex);
             break;
         }
     }
 
-    return nBusy ? KGSTEP_STATUS::Busy : KGSTEP_STATUS::Idle;
+    return nBusy ? STEP_STATUS::Busy : STEP_STATUS::Idle;
 }
