@@ -53,7 +53,7 @@ public:
             m_Tasks.pop();
     }
 
-    bool AddTask(KGAsyncTaskPtr pTask)
+    bool AddTask(AsyncTaskPtr pTask)
     {
         {
             std::lock_guard<std::mutex> cLock(m_Mutex);
@@ -71,7 +71,7 @@ private:
     {
         while (m_bRunning)
         {
-            KGAsyncTaskPtr pTask = nullptr;
+            AsyncTaskPtr pTask = nullptr;
             if (m_Tasks.empty())
             {
                 std::unique_lock<std::mutex> cLock(m_Mutex);
@@ -104,7 +104,7 @@ private:
     std::mutex m_Mutex;
     std::condition_variable m_Condition;
     std::vector<std::thread> m_Threads;
-    std::queue<KGAsyncTaskPtr> m_Tasks;
+    std::queue<AsyncTaskPtr> m_Tasks;
 } s_TaskPool;
 
 namespace Async
@@ -125,7 +125,7 @@ namespace Async
         return s_TaskPool.IsRunning();
     }
 
-    void Run(KGAsyncTaskPtr pTask)
+    void Run(AsyncTaskPtr pTask)
     {
         assert(pTask);
         assert(s_TaskPool.IsRunning());

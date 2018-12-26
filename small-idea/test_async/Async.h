@@ -10,13 +10,13 @@
 #include "Future.h"
 
 /* 异步任务接口 */
-class IKGAsyncTask
+class IAsyncTask
 {
 public:
-    virtual ~IKGAsyncTask() {}
+    virtual ~IAsyncTask() {}
     virtual void Work() = 0;
 };
-typedef std::shared_ptr<IKGAsyncTask> KGAsyncTaskPtr;
+typedef std::shared_ptr<IAsyncTask> AsyncTaskPtr;
 
 /* internal implamentation */
 namespace Async_Internal
@@ -56,7 +56,7 @@ namespace Async_Internal
     }
 
     template <typename Rty, typename Fty, typename... Args>
-    class Task : public IKGAsyncTask
+    class Task : public IAsyncTask
     {
     public:
         Task(Fty&& fn, Args&&... args)
@@ -99,7 +99,7 @@ namespace Async
     bool IsRunning();
 
     /* 向线程池压入一个异步任务 */
-    void Run(KGAsyncTaskPtr pTask);
+    void Run(AsyncTaskPtr pTask);
 
     /* 执行异步任务
      * 创建一个异步任务并当如线程池队列
