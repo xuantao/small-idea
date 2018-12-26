@@ -3,7 +3,9 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
-#include "Async.h"
+#include "utility/async.h"
+
+UTILITY_NAMESPACE_BEGIN
 
 /* 线程池 */
 static class KGAsyncTaskPool
@@ -132,3 +134,5 @@ namespace Async
         s_TaskPool.AddTask(pTask);
     }
 }
+
+UTILITY_NAMESPACE_END

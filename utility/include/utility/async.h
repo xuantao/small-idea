@@ -6,8 +6,10 @@
 #include <memory>
 #include <cassert>
 #include <tuple>
-#include "KGTemplate.h"
-#include "Future.h"
+#include "common.h"
+#include "future.h"
+
+UTILITY_NAMESPACE_BEGIN
 
 /* 异步任务接口 */
 class IAsyncTask
@@ -24,7 +26,7 @@ namespace Async_Internal
     template <bool, typename Fty, typename... Args>
     struct AsyncRetType
     {
-        typedef typename utility::invoke_result<Fty, Args...>::type type;
+        typedef typename std_ext::invoke_result<Fty, Args...>::type type;
     };
 
     template <typename Fty, typename... Args>
@@ -34,22 +36,22 @@ namespace Async_Internal
     };
 
     template <typename Fty, typename... Args>
-    using AsyncRetType_t = typename AsyncRetType<utility::is_callable<Fty, Args...>::value, Fty, Args...>::type;
+    using AsyncRetType_t = typename AsyncRetType<std_ext::is_callable<Fty, Args...>::value, Fty, Args...>::type;
 
     template <typename Fty, typename... Args>
     using EnableIf = typename std::enable_if<
-        utility::is_callable<Fty, Args...>::value,
+        std_ext::is_callable<Fty, Args...>::value,
         Future<AsyncRetType_t<Fty, Args...>>
     >::type;
 
     template <typename Rty, typename Fty, typename Args, size_t... Idxs>
-    static auto DoWork(Promise<Rty>& promise, Fty& fn, Args& args, KGIndexSequence<Idxs...>&&) -> typename std::enable_if<!std::is_void<Rty>::value>::type
+    static auto DoWork(Promise<Rty>& promise, Fty& fn, Args& args, std_ext::index_sequence<Idxs...>&&) -> typename std::enable_if<!std::is_void<Rty>::value>::type
     {
         promise.SetValue(fn(std::get<Idxs>(args)...));
     }
 
     template <typename Rty, typename Fty, typename Args, size_t... Idxs>
-    static auto DoWork(Promise<Rty>& promise, Fty& fn, Args& args, KGIndexSequence<Idxs...>&&) -> typename std::enable_if<std::is_void<Rty>::value>::type
+    static auto DoWork(Promise<Rty>& promise, Fty& fn, Args& args, std_ext::index_sequence<Idxs...>&&) -> typename std::enable_if<std::is_void<Rty>::value>::type
     {
         fn(std::get<Idxs>(args)...);
         promise.SetValue();
@@ -70,7 +72,7 @@ namespace Async_Internal
 
         void Work() override
         {
-            DoWork(m_Promise, m_Func, m_Args, KGMakeIndexSequence<sizeof...(Args)>());
+            DoWork(m_Promise, m_Func, m_Args, std_ext::make_index_sequence_t<sizeof...(Args)>());
         }
 
         Future<Rty> GetFuture()
@@ -116,3 +118,5 @@ namespace Async
         return cFuture;
     }
 }
+
+UTILITY_NAMESPACE_END

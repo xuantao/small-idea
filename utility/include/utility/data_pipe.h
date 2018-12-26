@@ -96,7 +96,7 @@ private:
 
     void next_node(bool w_node)
     {
-        std::lock_guard<spin_lock> guard(_rw_lock);
+        std::lock_guard<SpinLock> guard(_rw_lock);
 
         if (w_node)
         {
@@ -152,12 +152,12 @@ private:
     std::atomic<size_t> _count = ATOMIC_VAR_INIT(0);    // data count
 
     buffer_node* _r_buf = nullptr;
-    spin_lock _r_lock;
+    SpinLock _r_lock;
 
     buffer_node* _w_buf = nullptr;
-    spin_lock _w_lock;
+    SpinLock _w_lock;
 
-    spin_lock _rw_lock;     // read and write will modify same member data
+    SpinLock _rw_lock;     // read and write will modify same member data
 
     w_unlocker _w_unlocker = { this };
     r_unlocker _r_unlocker = { this };

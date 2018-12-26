@@ -11,11 +11,11 @@ UTILITY_NAMESPACE_BEGIN
 
 /* stack allocator (first allocate buffer last deallocate, like a stack structure) */
 template <size_t A = sizeof(void*)>
-class stack_allocator : private serial_allocator<A>
+class stack_allocator : private SerialAllocatorImpl<A>
 {
 public:
-    typedef serial_allocator<A> base_type;
-    using base_type::align_byte;
+    typedef SerialAllocatorImpl<A> base_type;
+    using base_type::AlignBytes;
 
 public:
     stack_allocator(void* pool, size_t cap_size) : base_type(pool, cap_size)
@@ -24,26 +24,26 @@ public:
 public:
     inline scoped_buffer allocate(size_t sz)
     {
-        return scoped_buffer(&_dealloc, base_type::allocate(sz), sz);
+        return scoped_buffer(&_dealloc, base_type::Alloc(sz), sz);
     }
 
-    inline bool empty() const { return base_type::empty(); }
-    inline size_t size() const { return base_type::size(); }
-    inline size_t capacity() const { return base_type::capacity(); }
+    inline bool empty() const { return base_type::Empty(); }
+    inline size_t size() const { return base_type::Size(); }
+    inline size_t capacity() const { return base_type::Capacity(); }
 
 protected:
-    using base_type::_pool;
-    using base_type::_alloced;
+    using base_type::pool_;
+    using base_type::alloced_;
 
     void deallocate(void* buffer, size_t sz)
     {
         int8_t* addr = (int8_t*)buffer;
-        size_t al_sz = UTILITY_NAMESPCE align_size(sz, align_byte);
+        size_t al_sz = UTILITY_NAMESPCE align_size(sz, AlignBytes);
 
-        assert(addr >= _pool && "not allocate from this object");
-        assert((addr - _pool == _alloced - al_sz) && "deallocate order not as allocated");
+        assert(addr >= pool_ && "not allocate from this object");
+        assert((addr - pool_ == alloced_ - al_sz) && "deallocate order not as allocated");
 
-        _alloced -= al_sz;
+        alloced_ -= al_sz;
     }
 
     struct deallocator : public iscope_deallocator

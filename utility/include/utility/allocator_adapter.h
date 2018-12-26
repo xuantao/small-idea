@@ -1,29 +1,32 @@
-﻿#pragma once
+﻿/* adpate std allocator */
+#pragma once
+
+UTILITY_NAMESPACE_BEGIN
 
 template <typename Alloc>
 struct AllocatorAdapterBase
 {
-    AllocatorAdapterBase(Alloc* pAlloc) : m_pAlloc(pAlloc)
+    AllocatorAdapterBase(Alloc* alloc) : alloc_(alloc)
     {
     }
 
-    AllocatorAdapterBase(const AllocatorAdapterBase& o) : m_pAlloc(o.m_pAlloc)
+    AllocatorAdapterBase(const AllocatorAdapterBase& other) : alloc_(other.alloc_)
     {
     }
 
-    AllocatorAdapterBase& operator = (const AllocatorAdapterBase& o)
+    AllocatorAdapterBase& operator = (const AllocatorAdapterBase& other)
     {
-        m_pAlloc = o.m_pAlloc;
+        alloc_ = other.alloc_;
         return *this;
     }
 
     inline Alloc* GetAlloc()
     {
-        return m_pAlloc;
+        return alloc_;
     }
 
 private:
-    Alloc* m_pAlloc;
+    Alloc* alloc_;
 };
 
 /* 适配标准库的分配器 */
@@ -48,7 +51,7 @@ public:
     {
     }
 
-    AllocatorAdapter(AllocImpl* pAlloc) : BaseType(pAlloc)
+    AllocatorAdapter(AllocImpl* alloc) : BaseType(alloc)
     {
     }
 
@@ -97,11 +100,13 @@ public:
 template <class Ty, typename AllocImpl>
 inline bool operator == (const AllocatorAdapter<Ty, AllocImpl>& l, const AllocatorAdapter<Ty, AllocImpl>& r)
 {
-    return l.m_pAlloc == r.m_pAlloc;
+    return l.alloc_ == r.alloc_;
 }
 
 template <class Ty, typename AllocImpl>
 inline bool operator != (const AllocatorAdapter<Ty, AllocImpl>& l, const AllocatorAdapter<Ty, AllocImpl>& r)
 {
-    return l.m_pAlloc != r.m_pAlloc;
+    return l.alloc_ != r.alloc_;
 }
+
+UTILITY_NAMESPACE_END

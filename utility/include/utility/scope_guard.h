@@ -11,192 +11,150 @@
 
 UTILITY_NAMESPACE_BEGIN
 
-namespace scope_guard_detail
+namespace ScopeGuard_Internal
 {
-    struct caller
+    struct Caller
     {
-        caller(size_t s) : size(size) {}
+        Caller(size_t s) : size(size) {}
 
-        virtual ~caller() {}
-        virtual void call() = 0;
+        virtual ~Caller() {}
+        virtual void Do() = 0;
 
-        caller* next = nullptr;
+        Caller* next = nullptr;
         size_t size;
     };
 
-    template <typename Fy>
-    struct caller_impl final : caller
+    template <typename Fty>
+    struct CallerImpl final : Caller
     {
-        typedef caller_impl<Fy> _MyType;
-        typedef Fy FuncType;
-
-        caller_impl(const FuncType& fn)
-            : caller(sizeof(caller_impl)), _func(fn)
+        CallerImpl(Fty&& fn) : Caller(sizeof(CallerImpl)), func(std::forward<Fty>(fn))
         { }
 
-        caller_impl(FuncType&& fn)
-            : caller(sizeof(caller_impl)), _func(std::forward<FuncType>(fn))
-        { }
+        virtual ~CallerImpl() { }
+        void Do() override { func(); }
 
-        virtual ~caller_impl() {}
-
-        void call() override { _func(); }
-
-    private:
-        FuncType _func;
+        Fty func;
     };
 
-    template <size_t _Bsize, size_t _Align = sizeof(void*)>
-    class scope_guard_allocator : protected chain_serial_allocator<_Bsize, _Align>
+    template <typename Ty, size_t N, size_t A = sizeof(void*)>
+    class Allocator
     {
     public:
-        typedef chain_serial_allocator<_Bsize, _Align> base_type;
-        static constexpr size_t block_size = base_type::block_size;
-        static constexpr size_t align_byte = base_type::align_byte;
+        typedef Ty                  value_type;
+        typedef value_type*         pointer;
+        typedef const value_type*   const_pointer;
+        typedef value_type&         reference;
+        typedef const value_type&   const_reference;
+        typedef std::size_t         size_type;
+        typedef std::ptrdiff_t      difference_type;
+
+        template <typename U>
+        struct rebind {
+            typedef Allocator<U, N, A> other;
+        };
 
     public:
-        ~scope_guard_allocator()
+        Allocator() : alloc_(N)
         {
-#ifdef LOG_DEBUG_INFO
-            size_t inc_size = base_type::node_size() * block_size;
-            if (inc_size)
-                std::cerr << "scope_guard_allocator should inc size to:" << inc_size + block_size << std::endl;
-#endif // LOG_DEBUG_INFO
         }
 
-        inline void* allocate(size_t s)
+        ~Allocator()
         {
-            if (need_raw_alloc(s))
-                return new char[s];
-            return base_type::allocate(s);
         }
 
-        inline void deallocate(void* p, size_t s)
+        Allocator(const Allocator&) = delete;
+        Allocator& operator = (const Allocator&) = delete;
+
+    public:
+        pointer allocate(size_t size)
         {
-            if (need_raw_alloc(s))
-                delete[] static_cast<char*>(p);
+            return reinterpret_cast<pointer>(alloc_.Alloc(sizeof(value_type) * size));
+        }
+
+        void deallocate(pointer p, size_t size)
+        {
+            alloc_.Dealloc(p, size);
         }
 
     private:
-        inline bool need_raw_alloc(size_t s) const
-        {
-            // ignore alignment cause alloc error
-            // when s is closer BlockSize,
-            // align operate may be not alloc successfully
-            return (s + align_byte > block_size);
-        }
-    };
-
-    template <>
-    class scope_guard_allocator<0>
-    {
-    public:
-        enum { BlockSize = 0 };
-
-    public:
-        void* allocate(size_t s)
-        {
-            printf("alloc   size:%2d\n", (int)s);
-            return new char[s];
-        }
-
-        void deallocate(void* p, size_t s)
-        {
-            printf("dealloc size:%2d\n", (int)s);
-            delete[] static_cast<char*>(p);
-        }
+        PoolSerialAlloc<N, A> alloc_;
     };
 } // namespace detail
 
-template <typename Ty>
-class scope_guard
+/* Guard Stack */
+template <class Alloc = ScopeGuard_Internal::Allocator<int8_t, 512>>
+class ScopeGuard
 {
 public:
-    scope_guard(Ty&& func) : _rollback(std::forward<Ty>(func))
-    { }
+    typedef typename std::allocator_traits<Alloc>::template rebind_alloc<int8_t> Allocator;
+    typedef ScopeGuard_Internal::Caller Caller;
 
-    scope_guard(scope_guard&&) = default;
-    scope_guard(const scope_guard&) = delete;
-    scope_guard& operator = (const scope_guard&) = delete;
-
-    ~scope_guard()
+public:
+    ScopeGuard()
     {
-        if (!_dismiss)
-            _rollback();
     }
 
-public:
-    inline bool is_dissmissed() const { return _dismiss; }
-    inline void dismiss() { _dismiss = true; }
+    template <typename _Alloc>
+    ScopeGuard(_Alloc&& alloc) : alloc_(std::forward<_Alloc>(alloc))
+    {
+    }
 
-private:
-    bool _dismiss = false;
-    Ty _rollback;
-};
+    ~ScopeGuard()
+    {
+        Done();
+    }
 
-template <typename Ty>
-inline scope_guard<Ty> make_scope_guard(Ty&& func)
-{
-    return scope_guard<Ty>(std::forward<Ty>(func));
-}
-
-template <size_t _BlockSize = 512>
-class scope_guard_stack
-{
-public:
-    enum { BlockSize = _BlockSize };
-    typedef scope_guard_detail::scope_guard_allocator<_BlockSize> allocator;
-
-public:
-    scope_guard_stack() {}
-    ~scope_guard_stack() { done(); }
-
-    scope_guard_stack(const scope_guard_stack&) = delete;
-    scope_guard_stack& operator = (const scope_guard_stack&) = delete;
+    ScopeGuard(const ScopeGuard&) = delete;
+    ScopeGuard& operator = (const ScopeGuard&) = delete;
 
 public:
     template <typename Fy>
-    void push(Fy&& func)
+    void Push(Fy&& func)
     {
-        typedef typename std::decay<Fy>::type decay;
-        typedef scope_guard_detail::caller_impl<decay> caller_impl;
+        typedef ScopeGuard_Internal::CallerImpl<Fy> CallerImpl;
 
-        auto buff = _alloc.allocate(sizeof(caller_impl));
+        auto buff = alloc_.allocate(sizeof(CallerImpl));
         assert(buff);
 
-        auto node = new (buff) caller_impl(std::forward<Fy>(func));
-
-        node->next = _head;
-        _head = node;
+        auto node = new (buff) CallerImpl(std::forward<Fy>(func));
+        node->next = head_;
+        head_ = node;
     }
 
-    inline bool is_dissmissed() const { return _dismiss; }
-    inline void dismiss() { _dismiss = true; }
-
-    bool done()
+    inline bool IsDissmiss() const
     {
-        if (!is_dissmissed())
-            roll_back();
+        return dismiss_;
+    }
 
-        clear();
-        return is_dissmissed();
+    inline void Dismiss()
+    {
+        dismiss_ = true;
+    }
+
+    bool Done()
+    {
+        if (!IsDissmiss())
+            Rollback();
+
+        Clear();
+        return IsDissmiss();
     }
 
 private:
-    void roll_back()
+    void Rollback()
     {
-        auto node = _head;
+        auto node = head_;
         while (node)
         {
-            node->call();
+            node->Do();
             node = node->next;
         }
     }
 
-    void clear()
+    void Clear()
     {
-        auto node = _head;
-        _head = nullptr;
+        auto node = head_;
+        head_ = nullptr;
 
         while (node)
         {
@@ -204,15 +162,15 @@ private:
             auto size = node->size;
             node = node->next;
 
-            tmp->~caller();
-            _alloc.deallocate(tmp, size);
+            tmp->~Caller();
+            alloc_.deallocate(reinterpret_cast<int8_t*>(tmp), size);
         }
     }
 
 private:
-    bool _dismiss = false;
-    scope_guard_detail::caller* _head = nullptr;
-    allocator _alloc;
+    bool dismiss_ = false;
+    Caller* head_ = nullptr;
+    Allocator alloc_;
 };
 
 UTILITY_NAMESPACE_END

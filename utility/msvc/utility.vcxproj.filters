@@ -19,6 +19,12 @@
     <ClCompile Include="..\src\scope.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\async.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\step_excutor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\utility\common.h">
@@ -37,9 +43,6 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\utility\ring_buffer.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scope_guard.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\utility\serial_allocator.h">
@@ -76,6 +79,21 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\utility\scope_vector.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\allocator_adapter.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\async.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\future.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\scope_guard.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\step_excutor.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,5 +1,7 @@
-﻿#include "StepExcutor.h"
+﻿#include "utility/step_excutor.h"
 #include <chrono>
+
+UTILITY_NAMESPACE_BEGIN
 
 STEP_STATUS StepFor(IStepExcutor* pSteper, size_t nDuration)
 {
@@ -18,37 +20,36 @@ STEP_STATUS StepFor(IStepExcutor* pSteper, size_t nDuration)
 
 QueueStepExcutor::~QueueStepExcutor()
 {
-    if (m_eRet != STEP_STATUS::Completed)
+    if (status_ != STEP_STATUS::Completed)
         DoRollback();   // 没有成功结束就回滚
-    m_Steps.clear();
+    steps_.clear();
 }
 
 STEP_STATUS QueueStepExcutor::Step()
 {
-    if (m_StepIndex >= m_Steps.size())
+    if (step_index_ >= steps_.size())
         return STEP_STATUS::Completed;
 
-    if (IS_STEP_STOPPED(m_eRet))
-        return m_eRet;
+    if (IS_STEP_STOPPED(status_))
+        return status_;
 
-    m_eRet = m_Steps[m_StepIndex]->Step();
-    if (m_eRet == STEP_STATUS::Completed)
+    status_ = steps_[step_index_]->Step();
+    if (status_ == STEP_STATUS::Completed)
     {
-        ++ m_StepIndex;
-        if (m_StepIndex < m_Steps.size())
-            m_eRet = STEP_STATUS::Busy;
+        ++ step_index_;
+        if (step_index_ < steps_.size())
+            status_ = STEP_STATUS::Busy;
     }
 
-    return m_eRet;
+    return status_;
 }
 
 void QueueStepExcutor::DoRollback()
 {
-    for (int i = (int)m_StepIndex; i >= 0; --i)
-        m_Steps[i]->Rollback();
-    m_StepIndex = 0;
+    for (int i = (int)step_index_; i >= 0; --i)
+        steps_[i]->Rollback();
+    step_index_ = 0;
 }
-
 
 STEP_STATUS ParallelStepExcutor::Step()
 {
@@ -58,9 +59,9 @@ STEP_STATUS ParallelStepExcutor::Step()
     STEP_STATUS eRet = STEP_STATUS::Completed;
     size_t nIndex = 0;
     size_t nBusy = 0;
-    while (nIndex < m_Steps.size())
+    while (nIndex < steps_.size())
     {
-        eRet = m_Steps[nIndex]->Step();
+        eRet = steps_[nIndex]->Step();
         switch (eRet)
         {
         case STEP_STATUS::Busy:
@@ -69,12 +70,14 @@ STEP_STATUS ParallelStepExcutor::Step()
             ++nIndex;
             break;
         case STEP_STATUS::Failed:
-            m_Steps[nIndex]->Rollback();
+            steps_[nIndex]->Rollback();
         case STEP_STATUS::Completed:
-            m_Steps.erase(m_Steps.begin() + nIndex);
+            steps_.erase(steps_.begin() + nIndex);
             break;
         }
     }
 
     return nBusy ? STEP_STATUS::Busy : STEP_STATUS::Idle;
 }
+
+UTILITY_NAMESPACE_END

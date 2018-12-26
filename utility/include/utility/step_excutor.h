@@ -6,8 +6,10 @@
 #include <type_traits>
 #include <memory>
 #include <vector>
-#include "Future.h"
-#include "ScopeGuard.h"
+#include "future.h"
+#include "scope_guard.h"
+
+UTILITY_NAMESPACE_BEGIN
 
 enum class STEP_STATUS
 {
@@ -18,7 +20,8 @@ enum class STEP_STATUS
 };
 
 /* 判断分布执行器是否结束 */
-#define IS_STEP_STOPPED(eStatus) (eStatus == STEP_STATUS::Failed || eStatus == STEP_STATUS::Completed)
+#define IS_STEP_STOPPED(eStatus) (eStatus == UTILITY_NAMESPCE STEP_STATUS::Failed || \
+    eStatus == UTILITY_NAMESPCE STEP_STATUS::Completed)
 
 /* 步进器守卫 */
 class StepGuard;
@@ -68,8 +71,8 @@ namespace StepExcutor_Internal
 class QueueStepExcutor final : public IStepExcutor
 {
 public:
-    QueueStepExcutor() : m_Alloc(1024) { }
-    QueueStepExcutor(size_t cache_block_size) : m_Alloc(cache_block_size) {}
+    QueueStepExcutor() : alloc_(1024) { }
+    QueueStepExcutor(size_t cache_block_size) : alloc_(cache_block_size) {}
 
     virtual ~QueueStepExcutor();
 
@@ -81,38 +84,38 @@ public:
     void Rollback() override { DoRollback(); }
 
 public:
-    inline bool Empty() const { return m_Steps.empty(); }
-    inline void Add(StepExcutorPtr ptr) { m_Steps.push_back(ptr); }
+    inline bool Empty() const { return steps_.empty(); }
+    inline void Add(StepExcutorPtr ptr) { steps_.push_back(ptr); }
 
     template <typename Fty>
     inline void Add(Fty&& fn)
     {
         Add(StepExcutor_Internal::MakeExcutor(
-            std::forward<Fty>(fn), m_Alloc.GetAlloc()));
+            std::forward<Fty>(fn), alloc_.GetAlloc()));
     }
 
     template <typename Rty, typename Fty>
     inline void Add(Future<Rty>&& future, Fty&& fn)
     {
         Add(StepExcutor_Internal::MakeExcutor(
-            std::move(future), std::forward<Fty>(fn), m_Alloc.GetAlloc()));
+            std::move(future), std::forward<Fty>(fn), alloc_.GetAlloc()));
     }
 
     template <typename Rty, typename Fty>
     inline void Add(const SharedFuture<Rty>& future, Fty&& fn)
     {
         Add(StepExcutor_Internal::MakeExcutor(
-            future, std::forward<Fty>(fn), m_Alloc.GetAlloc()));
+            future, std::forward<Fty>(fn), alloc_.GetAlloc()));
     }
 
 private:
     void DoRollback();
 
 private:
-    size_t m_StepIndex = 0;
-    STEP_STATUS m_eRet = STEP_STATUS::Idle;
-    std::vector<StepExcutorPtr> m_Steps;
-    PoolSerialAlloc<512> m_Alloc;
+    size_t step_index_ = 0;
+    STEP_STATUS status_ = STEP_STATUS::Idle;
+    std::vector<StepExcutorPtr> steps_;
+    PoolSerialAlloc<512> alloc_;
 }; // QueueStepExcutor
 
 
@@ -131,11 +134,11 @@ public:
     void Rollback() override { /* can do nothing */}
 
 public:
-    inline bool Empty() const { return m_Steps.empty(); }
-    inline void Add(StepExcutorPtr ptr) { m_Steps.push_back(ptr); }
+    inline bool Empty() const { return steps_.empty(); }
+    inline void Add(StepExcutorPtr ptr) { steps_.push_back(ptr); }
 
 protected:
-    std::vector<StepExcutorPtr> m_Steps;
+    std::vector<StepExcutorPtr> steps_;
 }; // ParallelStepExcutor
 
 namespace StepExcutor_Internal
@@ -153,13 +156,13 @@ private:
     friend StepExcutor_Internal::GuardWithCache;
     typedef StepExcutor_Internal::GuardAllocator Allocator;
 
-    StepGuard(const Allocator& alloc) : m_Guarder(alloc)
+    StepGuard(const Allocator& alloc) : guarder_(alloc)
     {
     }
 
     ~StepGuard()
     {
-        m_Guarder.Dismiss();
+        guarder_.Dismiss();
     }
 
     StepGuard(const StepGuard&) = delete;
@@ -167,18 +170,18 @@ private:
 
     void Rollback()
     {
-        m_Guarder.Done();
+        guarder_.Done();
     }
 
 public:
     template <typename Fty>
     void Push(Fty&& func)
     {
-        m_Guarder.Push(std::forward<Fty>(func));
+        guarder_.Push(std::forward<Fty>(func));
     }
 
 private:
-    ScopeGuardImpl<Allocator> m_Guarder;
+    ScopeGuard<Allocator> guarder_;
 }; // class KGStepGuard
 
 namespace StepExcutor_Internal
@@ -216,20 +219,20 @@ namespace StepExcutor_Internal
     template <bool, typename Fty>
     struct ExcutorRetTypeTrait
     {
-        typedef typename utility::invoke_result<Fty>::type type;
+        typedef typename std_ext::invoke_result<Fty>::type type;
     };
 
     template <typename Fty>
     struct ExcutorRetTypeTrait<true, Fty>
     {
-        typedef typename utility::invoke_result<Fty, StepGuard&>::type type;
+        typedef typename std_ext::invoke_result<Fty, StepGuard&>::type type;
     };
 
     /* check has guarder */
     template <typename Ty>
     struct ExcutorHasGuarder
     {
-        static constexpr bool value = utility::is_callable<Ty, StepGuard&>::value;
+        static constexpr bool value = std_ext::is_callable<Ty, StepGuard&>::value;
     };
 
     template <typename Fty>
@@ -237,15 +240,15 @@ namespace StepExcutor_Internal
 
     template <typename Fty, typename Call>
     using ExcutorEnableIf_t = typename std::enable_if<
-        utility::is_callable<Fty, FunctorArgType_t<Call>>::value && std::is_same<ExcutorRetType_t<Fty>, FunctorRetType_t<Call>>::value,
+        std_ext::is_callable<Fty, FunctorArgType_t<Call>>::value && std::is_same<ExcutorRetType_t<Fty>, FunctorRetType_t<Call>>::value,
         STEP_STATUS
     >::type;
 
     template <typename Fty>
     struct ExcutorSignatureCheck
     {
-        static constexpr bool value = utility::is_callable<Fty>::value ||
-            (!utility::is_callable<Fty, const StepGuard&>::value && utility::is_callable<Fty, StepGuard&>::value);
+        static constexpr bool value = std_ext::is_callable<Fty>::value ||
+            (!std_ext::is_callable<Fty, const StepGuard&>::value && std_ext::is_callable<Fty, StepGuard&>::value);
     };
 
     template <bool, typename Fty>
@@ -506,3 +509,5 @@ inline StepExcutorPtr MakeStepExcutor(const SharedFuture<Rty>& future, Fty&& fn)
 {
     return StepExcutor_Internal::MakeExcutor(future, std::forward<Fty>(fn));
 }
+
+UTILITY_NAMESPACE_END

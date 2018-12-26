@@ -5,8 +5,11 @@
  * remove "wait", "wait_for" and "wait_until" interface
 */
 #pragma once
+#include "common.h"
 #include <memory>
 #include <cassert>
+
+UTILITY_NAMESPACE_BEGIN
 
 /* internal states */
 namespace Future_Internal
@@ -569,3 +572,5 @@ public:
 private:
     Future_Internal::PromiseState<int> m_Promise;
 };
+
+UTILITY_NAMESPACE_END

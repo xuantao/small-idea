@@ -84,7 +84,7 @@ namespace detail
     }
 
     template <typename... Args, size_t... Idxs>
-    inline void log_with_name(char* buf, size_t size, const char* names, std::tuple<Args...>&& vals, index_sequence<Idxs...>&& is)
+    inline void log_with_name(char* buf, size_t size, const char* names, std::tuple<Args...>&& vals, std_ext::index_sequence<Idxs...>&& is)
     {
         constexpr size_t N = sizeof...(Args);
         std::array<val_name, N> name_array;
@@ -93,7 +93,7 @@ namespace detail
 
         detail::to_str_sep(buf, size, ", ",
             std::make_tuple(std::make_pair(std::get<Idxs>(name_array), std::get<Idxs>(vals))...),
-            std::forward<index_sequence<Idxs...>>(is)
+            std::forward<std_ext::index_sequence<Idxs...>>(is)
         );
     }
 
@@ -132,7 +132,7 @@ inline void log_with_name(int level, const char* names, Args&&... args)
     char buff[LOG_MAX_STACK_BUFF_SIZE];
     detail::log_with_name(buff, LOG_MAX_STACK_BUFF_SIZE, names,
         std::make_tuple(std::forward<Args>(args)...),
-        make_index_sequence_t<sizeof...(Args)>()
+        std_ext::make_index_sequence_t<sizeof...(Args)>()
     );
     get_log_proxy()->log(level, buff);
 }

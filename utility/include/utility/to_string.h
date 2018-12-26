@@ -255,7 +255,7 @@ namespace detail
     }
 
     template <typename... Args, size_t... Idxs>
-    inline int to_str_sep(char* buff, size_t size, const char* sep, std::tuple<Args...>&& vals, index_sequence<Idxs...>&&)
+    inline int to_str_sep(char* buff, size_t size, const char* sep, std::tuple<Args...>&& vals, std_ext::index_sequence<Idxs...>&&)
     {
         using its = int[];
         constexpr size_t N = sizeof...(Args) - 1;
@@ -274,7 +274,7 @@ namespace detail
     }
 
     template <typename... Args, size_t... Idxs>
-    inline int to_str_mul(char* buff, size_t size, std::tuple<Args...>&& vals, index_sequence<Idxs...>&&)
+    inline int to_str_mul(char* buff, size_t size, std::tuple<Args...>&& vals, std_ext::index_sequence<Idxs...>&&)
     {
         using its = int[];
         if (size)
@@ -313,7 +313,7 @@ inline int to_str_sep(char* buff, size_t size, const char* sep, Args&&... args)
 {
     return detail::to_str_sep(buff, size, sep,
         std::make_tuple(std::forward<Args>(args)...),
-        make_index_sequence_t<sizeof...(Args)>()
+        std_ext::make_index_sequence_t<sizeof...(Args)>()
     );
 }
 
@@ -322,7 +322,7 @@ inline int to_str_mul(char* buff, size_t size, Args&&... args)
 {
     return detail::to_str_mul(buff, size,
         std::make_tuple(std::forward<Args>(args)...),
-        make_index_sequence_t<sizeof...(Args)>()
+        std_ext::make_index_sequence_t<sizeof...(Args)>()
     );
 }
 

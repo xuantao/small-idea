@@ -25,24 +25,54 @@
     #include <iostream>
 #endif // LOG_DEBUG_INFO
 
-UTILITY_NAMESPACE_BEGIN
-
 // support c++ 11
-
-template<size_t...>
-struct index_sequence {};
-
-template <size_t N, size_t... Indices>
-struct make_index_sequence : make_index_sequence<N - 1, N - 1, Indices...> {};
-
-template<size_t... Indices>
-struct make_index_sequence<0, Indices...>
+namespace std_ext
 {
-    typedef index_sequence<Indices...> type;
-};
+    template<size_t...>
+    struct index_sequence {};
 
-template <size_t N>
-using make_index_sequence_t = typename make_index_sequence<N>::type;
+    template <size_t N, size_t... Indices>
+    struct make_index_sequence : make_index_sequence<N - 1, N - 1, Indices...> {};
+
+    template<size_t... Indices>
+    struct make_index_sequence<0, Indices...>
+    {
+        typedef index_sequence<Indices...> type;
+    };
+
+    template <size_t N>
+    using make_index_sequence_t = typename make_index_sequence<N>::type;
+
+    template <typename Ty>
+    using decay_t = typename std::decay<Ty>::type;
+
+    template <typename Fty, typename... Args>
+    struct invoke_result
+    {
+        typedef typename std::result_of<Fty(Args...)>::type type;
+    };
+
+    /* check Fty is callable by specified parementers */
+    template <typename Fty, typename... Args>
+    struct is_callable
+    {
+        template<typename U> static auto Check(int) -> decltype(std::declval<U>()(std::declval<Args>()...), std::true_type());
+        template<typename U> static std::false_type Check(...);
+
+        static constexpr bool value = std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;
+    };
+
+    template <typename Fty>
+    struct is_callable<Fty, void>
+    {
+        template<typename U> static auto Check(int) -> decltype(std::declval<U>()(), std::true_type());
+        template<typename U> static std::false_type Check(...);
+
+        static constexpr bool value = std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;
+    };
+}
+
+UTILITY_NAMESPACE_BEGIN
 
 /* 单向链表 */
 template <typename Ty>
@@ -61,6 +91,20 @@ struct singly_node
     value_type value;
 };
 
+/* 单向链表 */
+template <typename Ty>
+struct SinglyNode
+{
+    SinglyNode() { }
+
+    template <typename... Args>
+    SinglyNode(Args&&... args) : Value(std::forward<Args>(args)...)
+    { }
+
+    SinglyNode* pNext = nullptr;
+    Ty Value;
+};
+
 inline constexpr size_t align_padding(size_t sz, size_t bound = sizeof(void*))
 {
     return bound == 0 ? 0 : (bound - sz % bound) % bound;
@@ -70,6 +114,17 @@ inline constexpr size_t align_padding(size_t sz, size_t bound = sizeof(void*))
 inline constexpr size_t align_size(size_t sz, size_t bound = sizeof(void*))
 {
     return sz + align_padding(sz, bound);
+}
+
+inline constexpr size_t KGAlignPadding(size_t sz, size_t bound = sizeof(void*))
+{
+    return bound == 0 ? 0 : (bound - sz % bound) % bound;
+}
+
+/* 对齐（1，2，4，8...） */
+inline constexpr size_t KGAlignSize(size_t sz, size_t bound = sizeof(void*))
+{
+    return sz + KGAlignPadding(sz, bound);
 }
 
 UTILITY_NAMESPACE_END

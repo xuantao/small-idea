@@ -1,146 +1,338 @@
-#pragma once
+Ôªø#pragma once
+#include <type_traits>
+#include <algorithm>
+#include <cassert>
 #include "common.h"
+#include "allocator_adapter.h"
 
 UTILITY_NAMESPACE_BEGIN
-
 /*
- * –Ú¡– Ω∑÷≈‰∆˜, À≥–Ú¥”“ªøÈª∫¥Ê÷–∑÷≈‰“ª∂Œƒ⁄¥Ê
- * ÷ª∑÷≈‰≤ª∏∫‘ Õ∑≈°£µ±≤ªπªø’º‰∑÷≈‰ ±∑µªÿnullptr
+ * Â∫èÂàóÂºèÂàÜÈÖçÂô®, È°∫Â∫è‰ªé‰∏ÄÂùóÁºìÂ≠ò‰∏≠ÂàÜÈÖç‰∏ÄÊÆµÂÜÖÂ≠ò
+ * Âè™ÂàÜÈÖç‰∏çË¥üË¥£ÈáäÊîæ„ÄÇÂΩì‰∏çÂ§üÁ©∫Èó¥ÂàÜÈÖçÊó∂ËøîÂõûnullptr
 */
 template <size_t A = sizeof(void*)>
-class serial_allocator
+class SerialAllocatorImpl
 {
 public:
-    static constexpr size_t align_byte = A;
+    static constexpr size_t AlignBytes = A;
 
 public:
-    serial_allocator(void* pool, size_t cap_size)
-        : _pool((int8_t*)pool), _capacity(cap_size)
+    SerialAllocatorImpl(void* pool, size_t cap_size)
+        : pool_((int8_t*)pool), capacity_(cap_size)
     { }
 
-    serial_allocator(const serial_allocator&) = delete;
-    serial_allocator& operator = (const serial_allocator&) = delete;
+    SerialAllocatorImpl(SerialAllocatorImpl&& other)
+    {
+        MoveFrom(other);
+    }
+
+    ~SerialAllocatorImpl()
+    {
+    }
+
+    SerialAllocatorImpl& operator = (SerialAllocatorImpl&& other)
+    {
+        MoveFrom(other);
+        return *this;
+    }
 
 public:
-    inline bool empty() const { return _alloced == 0; }
-    inline size_t size() const { return _alloced; }
-    inline size_t capacity() const { return _capacity; }
-    inline void reset() { _alloced = 0; }
+    inline bool Empty() const { return alloced_ == 0; }
+    inline size_t Size() const { return alloced_; }
+    inline size_t Capacity() const { return capacity_; }
+    inline void Reset() { alloced_ = 0; }
 
-    inline void* allocate(size_t sz)
+    inline void* Alloc(size_t sz)
     {
-        size_t al_sz = UTILITY_NAMESPCE align_size(sz, align_byte);
-        if (al_sz > _capacity - _alloced)
+        size_t al_sz = KGAlignSize(sz, AlignBytes);
+        if (al_sz > capacity_ - alloced_)
             return nullptr;
 
-        int8_t* buf = _pool + _alloced;
-        _alloced += al_sz;
+        int8_t* buf = pool_ + alloced_;
+        alloced_ += al_sz;
         return buf;
+    }
+
+    void Dealloc(void*, size_t)
+    {
+        // not support
+    }
+
+    void Swap(SerialAllocatorImpl& other)
+    {
+        std::swap(other.alloced_, alloced_);
+        std::swap(other.capacity_, capacity_);
+        std::swap(other.pool_, pool_);
     }
 
 protected:
-    size_t _alloced = 0;
-    size_t _capacity;
-    int8_t* _pool;
-}; // class serial_allocator
-
-/* fixed serial allocator */
-template <size_t N, size_t A = sizeof(void*)>
-class fixed_serial_allocator : public serial_allocator<A>
-{
-public:
-    typedef serial_allocator<A> base_type;
-
-public:
-    fixed_serial_allocator() : base_type(_pool, N)
-    { }
-
-private:
-    int8_t _pool[N];
-}; // class fixed_serial_allocator
-
-/* chain serial allocator */
-template <size_t B, size_t A = sizeof(void*)>
-class chain_serial_allocator
-{
-public:
-    static constexpr size_t block_size = align_size(B, A);
-    static constexpr size_t align_byte = A;
-    typedef singly_node<fixed_serial_allocator<block_size, align_byte>> alloc_node;
-
-public:
-    chain_serial_allocator() : _cur(&_head) { }
-    ~chain_serial_allocator() { reset(true); }
-
-    chain_serial_allocator(const chain_serial_allocator&) = delete;
-    chain_serial_allocator& operator = (const chain_serial_allocator&) = delete;
-
-public:
-    void* allocate(size_t s)
+    void MoveFrom(SerialAllocatorImpl& other)
     {
-        if (s > block_size)
-            return nullptr;
+        alloced_ = other.alloced_;
+        capacity_ = other.capacity_;
+        pool_ = other.pool_;
 
-        void* buf = _cur->value.allocate(s);
-        if (buf == nullptr)
-        {
-            if (_cur->next == nullptr)
-                _cur->next = new alloc_node();
-            _cur = _cur->next;
-
-            buf = _cur->value.allocate(s);
-            assert(buf);
-        }
-
-        return buf;
+        other.alloced_ = 0;
+        other.capacity_ = 0;
+        other.pool_ = nullptr;
     }
 
-    inline void reset() { reset(false); }
+protected:
+    size_t alloced_ = 0;
+    size_t capacity_;
+    int8_t* pool_;
+}; // class SerialAllocatorImpl
 
-    void reset(bool dissolve)
+/* serial allocator
+ * only alloc memory but do not dealloc
+*/
+template <size_t A = sizeof(void*)>
+class SerialAllocator
+{
+public:
+    typedef SerialAllocator<A> MyType;
+    typedef SerialAllocatorImpl<A> AllocImpl;
+    typedef SinglyNode<AllocImpl> AllocNode;
+
+    static constexpr size_t AlignBytes = AllocImpl::AlignBytes;
+    static constexpr size_t DefaultBlock = 4096;
+
+public:
+    SerialAllocator()
+        : block_(DefaultBlock)
+        , alloc_node_(nullptr, 0)
     {
-        _cur = &_head;
-
-        if (dissolve)
-        {
-            alloc_node* node = _cur->next;
-            _cur->value.reset();
-            _cur->next = nullptr;
-
-            while (node)
-            {
-                alloc_node* tmp = node;
-                node = node->next;
-                delete tmp; // remove all extra node
-            }
-        }
-        else
-        {
-            alloc_node* node = _cur;
-            while (node)
-            {
-                node->value.reset();
-                node = node->next;
-            }
-        }
     }
 
-    size_t node_size() const
+    SerialAllocator(size_t block)
+        : block_(block)
+        , alloc_node_(nullptr, 0)
     {
-        size_t ns = 0;
-        const alloc_node* node = &_head;
+    }
+
+    /* build allocator with default pool, the default pool will not free */
+    SerialAllocator(void* defaut_pool, size_t default_size, size_t block = DefaultBlock)
+        : block_(block)
+        , alloc_node_(defaut_pool, default_size)
+    {
+    }
+
+    SerialAllocator(SerialAllocator&& other)
+    {
+        MoveFrom(other);
+    }
+
+    ~SerialAllocator()
+    {
+        Dissolve();
+    }
+
+    SerialAllocator& operator = (SerialAllocator&& other)
+    {
+        Dissolve();
+        MoveFrom(other);
+    }
+
+public:
+    void* Alloc(size_t size)
+    {
+        void* buff = alloc_node_.Value.Alloc(size);
+        if (buff)
+            return buff;
+
+        CreateNode(std::max(KGAlignSize(size, AlignBytes), block_));
+
+        buff = alloc_node_.Value.Alloc(size);
+        assert(buff);
+        return buff;
+    }
+
+    void Dealloc(void*, size_t)
+    {
+        // not support
+    }
+
+    /* Reset the allocator without free alloc node */
+    void Reset()
+    {
+        AllocNode* cur = nullptr;
+        AllocNode* node = alloc_node_.pNext;
 
         while (node)
         {
-            node = node->next;
-            ++ns;
+            cur = node;
+            node = node->pNext;
+
+            cur->pNext = empty_node_;
+            cur->Value.Reset();
+            empty_node_ = cur;
         }
-        return ns;
+
+        alloc_node_.pNext = nullptr;
+        alloc_node_.Value.Reset();
+
+        if (cur)
+            alloc_node_.Value.Swap(cur->Value);
     }
 
-protected:
-    alloc_node* _cur;
-    alloc_node _head;
-}; // chain_serial_allocator
+    /* Reset the allocator and free alloc node */
+    void Dissolve()
+    {
+        AllocNode* node = alloc_node_.pNext;
+        alloc_node_.pNext = nullptr;
+        while (node)
+        {
+            AllocNode* cur = node;
+            node = node->pNext;
+
+            if (node == nullptr)
+                alloc_node_.Value.Swap(cur->Value);
+
+            cur->~AllocNode();
+            delete reinterpret_cast<int8_t*>(cur);
+        }
+
+        while (empty_node_)
+        {
+            AllocNode* pCur = empty_node_;
+            empty_node_ = empty_node_->pNext;
+
+            pCur->~AllocNode();
+            delete reinterpret_cast<int8_t*>(pCur);
+        }
+    }
+
+    void Swap(MyType& other)
+    {
+        std::swap(block_, other.block_);
+        std::swap(empty_node_, other.empty_node_);
+        std::swap(alloc_node_.pNext, other.alloc_node_.pNext);
+        alloc_node_.Value.Swap(other.alloc_node_.Value);
+    }
+
+    template <typename Ty>
+    inline AllocatorAdapter<Ty, MyType> GetAdapter()
+    {
+        return AllocatorAdapter<Ty, MyType>(this);
+    }
+
+private:
+    void CreateNode(size_t size)
+    {
+        AllocNode* node = FindSuitableNode(size);
+        if (node == nullptr)
+        {
+            constexpr size_t NodeObjSize = KGAlignSize(sizeof(AllocNode), AlignBytes);
+            int8_t* mem = new int8_t[NodeObjSize + size];
+            assert(mem);
+
+            node = new (mem) AllocNode(mem + NodeObjSize, size);
+        }
+
+        alloc_node_.Value.Swap(node->Value);
+        node->pNext = alloc_node_.pNext;
+        alloc_node_.pNext = node;
+    }
+
+    AllocNode* FindSuitableNode(size_t size)
+    {
+        AllocNode* prev = nullptr;
+        AllocNode* node = empty_node_;
+
+        while (node)
+        {
+            if (node->Value.Capacity() < size)
+            {
+                prev = node;
+                node = node->pNext;
+            }
+            else
+            {
+                if (prev)
+                    prev->pNext = node->pNext;
+                else
+                    empty_node_ = node->pNext;
+                break;
+            }
+        }
+
+        return node;
+    }
+
+    void MoveFrom(MyType& other)
+    {
+        block_ = other.block_;
+        empty_node_ = other.empty_node_;
+        alloc_node_.pNext = other.alloc_node_.pNext;
+        alloc_node_.Value.Swap(other.alloc_node_.Value);
+
+        other.empty_node_ = nullptr;
+        other.alloc_node_.pNext = nullptr;
+    }
+
+private:
+    size_t      block_;
+    AllocNode*  empty_node_ = nullptr;
+    AllocNode   alloc_node_;
+};
+
+/* serial allocator with an default memory pool */
+template <size_t N, size_t A = sizeof(void*)>
+class PoolSerialAlloc
+{
+public:
+    PoolSerialAlloc() : alloc_(pool_, N, N)
+    {
+    }
+
+    PoolSerialAlloc(size_t block) : alloc_(pool_, N, block)
+    {
+    }
+
+    ~PoolSerialAlloc()
+    {
+    }
+
+    PoolSerialAlloc(const PoolSerialAlloc&) = delete;
+    PoolSerialAlloc& operator = (const PoolSerialAlloc&) = delete;
+
+public:
+    inline void* Alloc(size_t s)
+    {
+        return alloc_.Alloc(s);
+    }
+
+    inline void Dealloc(void* p, size_t s)
+    {
+        alloc_.Dealloc(p, s);
+    }
+
+    /* Reset the allocator without free alloc node */
+    inline void Reset()
+    {
+        alloc_.Reset();
+    }
+
+    /* Reset the allocator and free alloc node */
+    inline void Dissolve()
+    {
+        alloc_.Dissolve();
+    }
+
+    inline SerialAllocator<A>* GetAlloc()
+    {
+        return &alloc_;
+    }
+
+    template <typename Ty>
+    inline AllocatorAdapter<Ty, SerialAllocator<A>> GetAdapter()
+    {
+        return alloc_.template GetAdapter<Ty>();
+    }
+
+private:
+    SerialAllocator<A> alloc_;
+    alignas (A) int8_t pool_[N];
+};
 
 UTILITY_NAMESPACE_END

@@ -9,18 +9,18 @@
 
 UTILITY_NAMESPACE_BEGIN
 
-class spin_lock
+class SpinLock
 {
 public:
     inline void lock()
     {
 #ifdef _DEBUG
         auto id = std::this_thread::get_id();
-        assert(_thread_id != id);
-        _thread_id = id;
+        assert(thread_id_ != id);
+        thread_id_ = id;
 #endif // _DEBUG
 
-        while (_locked.test_and_set(std::memory_order_acquire))
+        while (locked_.test_and_set(std::memory_order_acquire))
         {
         }
     }
@@ -28,17 +28,17 @@ public:
     inline void unlock()
     {
 #ifdef _DEBUG
-        _thread_id = std::thread::id();
+        thread_id_ = std::thread::id();
 #endif // _DEBUG
 
-        _locked.clear(std::memory_order_release);
+        locked_.clear(std::memory_order_release);
     }
 
 private:
-    std::atomic_flag _locked = ATOMIC_FLAG_INIT;
+    std::atomic_flag locked_ = ATOMIC_FLAG_INIT;
 
 #ifdef _DEBUG
-    std::thread::id _thread_id;
+    std::thread::id thread_id_;
 #endif // _DEBUG
 };
 
