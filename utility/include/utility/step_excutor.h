@@ -42,8 +42,8 @@ typedef std::shared_ptr<IStepExcutor> StepExcutorPtr;
 
 /* 构建一个分布执行器
  * Fty支持的函数签名为:
- * 1. void(), void(tepGuard&)
- * 2. bool(), bool(StepGuard&),
+ * 1. void(), void(tepGuard&), the status will be STEP_STATUS::Completed
+ * 2. bool(), bool(StepGuard&), the status will be (ret ? STEP_STATUS::Completed : STEP_STATUS::Failed)
  * 3. STEP_STATUS(), STEP_STATUS(StepGuard&)
 */
 template <typename Fty>
@@ -60,6 +60,12 @@ StepExcutorPtr MakeStepExcutor(const SharedFuture<Rty>& future, Fty&& fn);
 */
 STEP_STATUS StepFor(IStepExcutor* pSteper, size_t nDuration);
 inline STEP_STATUS StepFor(StepExcutorPtr pSteper, size_t nDuration) { return StepFor(pSteper.get(), nDuration); }
+
+/* 持续执行步进器知道结束
+ * 当步进器遇到Failed, Completed结束
+*/
+STEP_STATUS StepEnd(IStepExcutor* pSteper);
+inline STEP_STATUS StepEnd(StepExcutorPtr pSteper) { return StepEnd(pSteper.get()); }
 
 namespace StepExcutor_Internal
 {

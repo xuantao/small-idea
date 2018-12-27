@@ -20,7 +20,7 @@ namespace scoped
      * 分配一段域范围内有效缓存
      * 缓存要求分配与释放必须严格保证顺序关系
     */
-    scoped_buffer allocate(size_t size);
+    ScopeBuffer allocate(size_t size);
 
     template <class Ty>
     scope_vector<Ty> vector(std::size_t size)

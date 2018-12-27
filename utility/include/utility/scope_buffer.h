@@ -7,59 +7,94 @@
 
 UTILITY_NAMESPACE_BEGIN
 
-struct iscope_deallocator
+/* 空白释放器 */
+struct NoneDeallocator
 {
-    virtual ~iscope_deallocator() { }
-    virtual void deallocate(void* buff, size_t size) = 0;
+    void operator() (void*, size_t) { }
 };
 
 /*
- * scoped buffer, 作用域范围内有效的Buffer
+ * ScopeBuffer, 作用域范围内有效的Buffer
  * 对象用来管理和控制缓存的生命期
  * 不可以被复制/持有
 */
-class scoped_buffer
+class ScopeBuffer
 {
+    template <typename _Dealloc>
+    using Dealloc = CallableObject<_Dealloc, void*, size_t>;
+    typedef SmallObjStorage<ICallable<void(void*, size_t)>> Storage;
 public:
-    scoped_buffer() = default;
+    ScopeBuffer() = default;
 
-    scoped_buffer(iscope_deallocator* dealloc, void* buffer, size_t sz)
-        : _deallocator(dealloc), _buff(buffer), _size(sz)
+    template <typename _Dealloc>
+    ScopeBuffer(void* buffer, size_t sz, _Dealloc&& dealloc)
+        : buff_(buffer), size_(sz)
     {
+        Construct(std::forward<_Dealloc>(dealloc), IsLarge<Dealloc<_Dealloc>>());
     }
 
-    scoped_buffer(scoped_buffer&& other)
-        : _deallocator(other._deallocator)
-        , _buff(other._buff)
-        , _size(other._size)
+    ScopeBuffer(ScopeBuffer&& other)
+        : buff_(other.buff_)
+        , size_(other.size_)
     {
-        other._deallocator = nullptr;
-        other._buff = nullptr;
-        other._size = 0;
+        other.buff_ = nullptr;
+        other.size_ = 0;
+
+        if (!other.storage_.IsEmpty())
+        {
+            if (other.storage_.IsLocal())
+            {
+                other.storage_.GetImpl()->Move(storage_.GetSpace());
+            }
+            else
+            {
+                storage_.Set(other.storage_.GetImpl());
+                other.storage_.Set(nullptr);
+            }
+        }
     }
 
-    ~scoped_buffer()
+    ~ScopeBuffer()
     {
-        if (_deallocator && _buff)
-            _deallocator->deallocate(_buff, _size);
+        if (storage_.IsEmpty())
+            return;
+
+        storage_.GetImpl()->Call(buff_, size_);
+        if (storage_.IsLocal())
+            storage_.GetImpl()->~ICallable<void(void*, size_t)>();
+        else
+            delete storage_.GetImpl();
     }
 
-    scoped_buffer(const scoped_buffer& other) = delete;
-    scoped_buffer& operator = (const scoped_buffer&) = delete;
+    ScopeBuffer(const ScopeBuffer& other) = delete;
+    ScopeBuffer& operator = (const ScopeBuffer&) = delete;
 
 public:
-    inline void* get() const { return _buff; }
-    inline size_t size() const { return _size; }
+    inline void* get() const { return buff_; }
+    inline size_t size() const { return size_; }
     inline bool empty() const { return get() == nullptr; }
-    inline explicit operator bool() const { return _buff != nullptr; }
+    inline explicit operator bool() const { return buff_ != nullptr; }
 
     template <typename Ty>
-    inline Ty& as() { *((Ty*)_buff); }
+    inline Ty& as() { *((Ty*)buff_); }
+
+private:
+    template <typename _Dealloc>
+    inline void Construct(_Dealloc&& alloc, std::true_type)
+    {
+        storage_.Set(new Dealloc<_Dealloc>(std::forward<_Dealloc>(alloc)));
+    }
+
+    template <typename _Dealloc>
+    inline void Construct(_Dealloc&& alloc, std::false_type)
+    {
+        storage_.Set(new (storage_.GetSpace()) Dealloc<_Dealloc>(std::forward<_Dealloc>(alloc)));
+    }
 
 protected:
-    iscope_deallocator* _deallocator = nullptr;
-    void* _buff = nullptr;
-    size_t _size = 0;
+    void* buff_ = nullptr;
+    size_t size_ = 0;
+    Storage storage_;
 };
 
 UTILITY_NAMESPACE_END

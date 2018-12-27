@@ -146,6 +146,7 @@
     <ClInclude Include="..\include\utility\async.h" />
     <ClInclude Include="..\include\utility\common.h" />
     <ClInclude Include="..\include\utility\data_pipe.h" />
+    <ClInclude Include="..\include\utility\detail\alloc_internal.h" />
     <ClInclude Include="..\include\utility\detail\_tree.h" />
     <ClInclude Include="..\include\utility\detail\_vector.h" />
     <ClInclude Include="..\include\utility\future.h" />
@@ -162,7 +163,7 @@
     <ClInclude Include="..\include\utility\scope_vector.h" />
     <ClInclude Include="..\include\utility\serial_allocator.h" />
     <ClInclude Include="..\include\utility\spin_lock.h" />
-    <ClInclude Include="..\include\utility\stack_allocator.h" />
+    <ClInclude Include="..\include\utility\stacked_allocator.h" />
     <ClInclude Include="..\include\utility\step_excutor.h" />
     <ClInclude Include="..\include\utility\to_string.h" />
   </ItemGroup>

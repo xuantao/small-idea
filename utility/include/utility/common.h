@@ -70,6 +70,26 @@ namespace std_ext
 
         static constexpr bool value = std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;
     };
+
+    /* 从VC标准库拷贝出来的
+     * 经测试clang 3.4和gcc 4.8 不支持std::align
+    */
+    inline void* align(size_t _Bound, size_t _Size,
+        void*& _Ptr, size_t& _Space)
+    {
+        // try to carve out _Size bytes on boundary _Bound
+        size_t _Off = (size_t)((uintptr_t)_Ptr & (_Bound - 1));
+        if (0 < _Off)
+            _Off = _Bound - _Off;	// number of bytes to skip
+        if (_Space < _Off || _Space - _Off < _Size)
+            return (0);
+        else
+        {   // enough room, update
+            _Ptr = (char *)_Ptr + _Off;
+            _Space -= _Off;
+            return (_Ptr);
+        }
+    }
 }
 
 UTILITY_NAMESPACE_BEGIN
@@ -98,11 +118,11 @@ struct SinglyNode
     SinglyNode() { }
 
     template <typename... Args>
-    SinglyNode(Args&&... args) : Value(std::forward<Args>(args)...)
+    SinglyNode(Args&&... args) : val(std::forward<Args>(args)...)
     { }
 
-    SinglyNode* pNext = nullptr;
-    Ty Value;
+    SinglyNode* next_node = nullptr;
+    Ty val;
 };
 
 inline constexpr size_t align_padding(size_t sz, size_t bound = sizeof(void*))
@@ -116,15 +136,92 @@ inline constexpr size_t align_size(size_t sz, size_t bound = sizeof(void*))
     return sz + align_padding(sz, bound);
 }
 
-inline constexpr size_t KGAlignPadding(size_t sz, size_t bound = sizeof(void*))
+inline constexpr size_t AlignPadding(size_t sz, size_t bound = sizeof(void*))
 {
     return bound == 0 ? 0 : (bound - sz % bound) % bound;
 }
 
 /* 对齐（1，2，4，8...） */
-inline constexpr size_t KGAlignSize(size_t sz, size_t bound = sizeof(void*))
+inline constexpr size_t AlignSize(size_t sz, size_t bound = sizeof(void*))
 {
-    return sz + KGAlignPadding(sz, bound);
+    return sz + AlignPadding(sz, bound);
 }
+
+template <typename Ty>
+struct ICallable;
+
+template <typename Rty, typename... Args>
+struct ICallable<Rty(Args...)>
+{
+    virtual ~ICallable() { }
+
+    virtual Rty Call(Args... args) = 0;
+    virtual ICallable* Move(void* mem) = 0;
+    virtual ICallable* Copy(void* mem) = 0;
+};
+
+template <typename Fty, typename... Args>
+class CallableObject final : public ICallable<typename std_ext::invoke_result<Fty, Args...>::type (Args...)>
+{
+public:
+    using RetType = typename std_ext::invoke_result<Fty, Args...>::type;
+    using BaseType = ICallable<RetType(Args...)>;
+
+    CallableObject(const Fty& fn) : func_(fn) { }
+    CallableObject(Fty&& fn) : func_(std::forward<Fty>(fn)) { }
+    ~CallableObject() { }
+
+    RetType Call(Args... args) override
+    {
+        return func_(std::forward<Args>(args)...);
+    }
+
+    BaseType* Move(void* mem) override
+    {
+        return new (mem) CallableObject(std::move(func_));
+    }
+
+    BaseType* Copy(void* mem) override
+    {
+        return new (mem) CallableObject(func_);
+    }
+
+private:
+    Fty func_;
+};
+
+/* 小对象缓存池大小配置 */
+constexpr int SmallObjectNumPtrs = 6 + 16 / sizeof(void *);
+constexpr size_t SpaceSize = (SmallObjectNumPtrs - 1) * sizeof(void *);
+
+template <typename Ty>
+struct IsLarge : std::bool_constant<SpaceSize < sizeof(Ty)> {};
+
+template <typename Ty>
+class SmallObjStorage
+{
+public:
+    SmallObjStorage() { Set(nullptr); }
+
+    /* not support copy, unknown how to copy */
+    SmallObjStorage(const SmallObjStorage&) = delete;
+    SmallObjStorage& operator = (const SmallObjStorage&) = delete;
+
+public:
+    inline bool IsEmpty() const { return GetImpl() == nullptr; }
+    inline bool IsLocal() const { return GetSpace() == GetImpl(); }
+    inline Ty* GetImpl() const { return (real_.ptrs_[SmallObjectNumPtrs - 1]); }
+    inline void Set(Ty* ptr) { real_.ptrs_[SmallObjectNumPtrs - 1] = ptr; }
+    inline void* GetSpace() { return (&real_); }
+    inline const void *GetSpace() const { return (&real_); }
+
+private:
+    union
+    {
+        std::max_align_t dummy_1_;
+        char dummy_2_[SpaceSize];
+        Ty* ptrs_[SmallObjectNumPtrs];
+    } real_;
+};
 
 UTILITY_NAMESPACE_END

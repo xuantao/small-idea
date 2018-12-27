@@ -65,7 +65,7 @@ public:
     typedef typename _my_base::pairib pairib;
 
 public:
-    scope_map(scoped_buffer&& buffer) : _my_base(std::forward<scoped_buffer>(buffer))
+    scope_map(ScopeBuffer&& buffer) : _my_base(std::forward<ScopeBuffer>(buffer))
     {
     }
 

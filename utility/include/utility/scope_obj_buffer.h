@@ -11,26 +11,26 @@ UTILITY_NAMESPACE_BEGIN
  * 用scoped_buffer构造的Obj数组
 */
 template <class Ty>
-class scope_obj_buffer : private scoped_buffer
+class scope_obj_buffer : private ScopeBuffer
 {
 public:
     typedef std::ptrdiff_t difference_type;
 
 public:
     scope_obj_buffer(scope_obj_buffer&& other)
-        : scoped_buffer(std::forward<scoped_buffer>(other))
+        : ScopeBuffer(std::forward<ScopeBuffer>(other))
     {
     }
 
-    scope_obj_buffer(scoped_buffer&& buffer, size_t count)
-        : scoped_buffer(std::forward<scoped_buffer>(buffer))
+    scope_obj_buffer(ScopeBuffer&& buffer, size_t count)
+        : ScopeBuffer(std::forward<ScopeBuffer>(buffer))
     {
         construct();
     }
 
     template <typename ...Args>
-    scope_obj_buffer(scoped_buffer&& buffer, size_t count, Args&& ...args)
-        : scoped_buffer(std::forward<scoped_buffer>(buffer))
+    scope_obj_buffer(ScopeBuffer&& buffer, size_t count, Args&& ...args)
+        : ScopeBuffer(std::forward<ScopeBuffer>(buffer))
     {
         construct(std::forward<Args>(args)...);
     }
@@ -44,8 +44,8 @@ public:
     scope_obj_buffer& operator = (const scope_obj_buffer&) = delete;
 
 public:
-    inline Ty* get() const { return (Ty*)scoped_buffer::get(); }
-    inline size_t count() const { return scoped_buffer::size() / sizeof(Ty); }
+    inline Ty* get() const { return (Ty*)ScopeBuffer::get(); }
+    inline size_t count() const { return ScopeBuffer::size() / sizeof(Ty); }
     inline bool empty() const { return count() == 0; }
 
     const Ty& operator [] (difference_type idx) const

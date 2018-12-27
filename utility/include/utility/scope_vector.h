@@ -35,8 +35,8 @@ public:
     static size_type buffer_size(size_type c) { return element_size * c; }
 
 public:
-    scope_vector(scoped_buffer&& buffer)
-        : _buff(std::forward<scoped_buffer>(buffer))
+    scope_vector(ScopeBuffer&& buffer)
+        : _buff(std::forward<ScopeBuffer>(buffer))
         , _val(static_cast<pointer>(_buff.get()))
     {
     }
@@ -205,7 +205,7 @@ protected:
     inline Ty* Base() { return _val._base; }
     inline difference_type& Next() { return _val._next; }
 protected:
-    scoped_buffer _buff;
+    ScopeBuffer _buff;
     _val_type _val;
 };
 

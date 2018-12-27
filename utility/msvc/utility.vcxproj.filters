@@ -51,9 +51,6 @@
     <ClInclude Include="..\include\utility\spin_lock.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\utility\stack_allocator.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\utility\to_string.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -94,6 +91,12 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\utility\step_excutor.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\detail\alloc_internal.h">
+      <Filter>include\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\stacked_allocator.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

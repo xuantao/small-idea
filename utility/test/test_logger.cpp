@@ -21,6 +21,7 @@ namespace
 
 void test_logger()
 {
+    //std::function
     TestToStringObj obj;
     printf("test logger ...\n");
     LOG_INFO(1, 1, "xuantao", true, obj, obj.a, &TestToStringObj::print);

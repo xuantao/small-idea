@@ -18,6 +18,20 @@ STEP_STATUS StepFor(IStepExcutor* pSteper, size_t nDuration)
     return eStatus;
 }
 
+STEP_STATUS StepEnd(IStepExcutor* pSteper)
+{
+    if (pSteper == nullptr)
+        return STEP_STATUS::Completed;
+
+    STEP_STATUS eStatus;
+    do
+    {
+        eStatus = pSteper->Step();
+    } while (!IS_STEP_STOPPED(eStatus));
+
+    return eStatus;
+}
+
 QueueStepExcutor::~QueueStepExcutor()
 {
     if (status_ != STEP_STATUS::Completed)

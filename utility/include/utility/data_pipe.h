@@ -43,10 +43,10 @@ public:
     inline bool empty() const { return _count == 0; }
     inline size_t count() const { return _count; }
 
-    scoped_buffer write(size_t sz)
+    ScopeBuffer write(size_t sz)
     {
         if (sz == 0 || sz > block_size)
-            return scoped_buffer();
+            return ScopeBuffer();
 
         _w_lock.lock();
 
@@ -59,13 +59,13 @@ public:
             assert(data);
         }
 
-        return scoped_buffer(&_w_unlocker, data, sz);
+        return ScopeBuffer(&_w_unlocker, data, sz);
     }
 
-    scoped_buffer read()
+    ScopeBuffer read()
     {
         if (empty())
-            return scoped_buffer();
+            return ScopeBuffer();
 
         _r_lock.lock();
 
@@ -76,7 +76,7 @@ public:
         void* data = _r_buf->value.read_begin(sz);
         assert(data);
 
-        return scoped_buffer(&_r_unlocker, data, sz);
+        return ScopeBuffer(&_r_unlocker, data, sz);
     }
 
 private:
@@ -131,18 +131,18 @@ private:
     }
 
 private:
-    struct w_unlocker final : iscope_deallocator
+    struct w_unlocker final
     {
         w_unlocker(data_pipe* pipe) : _pipe(pipe) {}
-        void deallocate(void*, size_t) override { _pipe->write_end(); }
+        void operator() (void*, size_t) override { _pipe->write_end(); }
 
         data_pipe* _pipe;
     };
 
-    struct r_unlocker final : iscope_deallocator
+    struct r_unlocker final
     {
         r_unlocker(data_pipe* pipe) : _pipe(pipe) {}
-        void deallocate(void*, size_t) override { _pipe->read_end(); }
+        void operator() (void*, size_t) override { _pipe->read_end(); }
 
         data_pipe* _pipe;
     };

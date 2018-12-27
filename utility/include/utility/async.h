@@ -105,7 +105,7 @@ namespace Async
 
     /* 执行异步任务
      * 创建一个异步任务并当如线程池队列
-     * 返回Future<Rty>用来判断任务是否完成，获取返回值
+     * 返回Future<Rty>用来判断任务状态并获取返回值
     */
     template <typename Fty, typename... Args>
     auto Run(Fty&& fn, Args&&... args) -> typename Async_Internal::EnableIf<Fty, Args...>

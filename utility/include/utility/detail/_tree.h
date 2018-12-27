@@ -271,8 +271,8 @@ namespace detail
         static size_type buffer_size(size_type count) { return allocator::element_size * (count + 1); }
 
     public:
-        _tree(scoped_buffer&& buffer)
-            : _buffer(std::forward<scoped_buffer>(buffer))
+        _tree(ScopeBuffer&& buffer)
+            : _buffer(std::forward<ScopeBuffer>(buffer))
             , _alloc(_buffer.get(), _buffer.size())
         {
             _node_ptr node = _alloc.allocate();
@@ -864,7 +864,7 @@ namespace detail
             return head;
         }
     protected:
-        scoped_buffer _buffer;
+        ScopeBuffer _buffer;
         allocator _alloc;
         key_compare _camp;
         _val_type _val;

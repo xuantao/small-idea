@@ -45,7 +45,7 @@ public:
     typedef typename _my_base::const_iterator const_iterator;
 
 public:
-    scope_set(scoped_buffer&& buffer) : _my_base(std::forward<scoped_buffer>(buffer))
+    scope_set(ScopeBuffer&& buffer) : _my_base(std::forward<ScopeBuffer>(buffer))
     {
     }
 
