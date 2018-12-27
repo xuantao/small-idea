@@ -125,17 +125,6 @@ struct SinglyNode
     Ty val;
 };
 
-inline constexpr size_t align_padding(size_t sz, size_t bound = sizeof(void*))
-{
-    return bound == 0 ? 0 : (bound - sz % bound) % bound;
-}
-
-/* 对齐（1，2，4，8...） */
-inline constexpr size_t align_size(size_t sz, size_t bound = sizeof(void*))
-{
-    return sz + align_padding(sz, bound);
-}
-
 inline constexpr size_t AlignPadding(size_t sz, size_t bound = sizeof(void*))
 {
     return bound == 0 ? 0 : (bound - sz % bound) % bound;
