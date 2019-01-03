@@ -159,6 +159,7 @@
     <ClCompile Include="..\test\test_scope_vector.cpp" />
     <ClCompile Include="..\test\test_serial_allocator.cpp" />
     <ClCompile Include="..\test\test_stack_allocator.cpp" />
+    <ClCompile Include="..\test\test_step_excutor.cpp" />
     <ClCompile Include="..\test\test_to_string.cpp" />
     <ClCompile Include="..\test\test_util.cpp" />
   </ItemGroup>
