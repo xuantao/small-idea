@@ -26,6 +26,7 @@ int main(int argc, char* argv[])
     //test_scope_guard();
     //test_to_string();
     //test_logger();
+    test_step_excutor();
     system("pause");
     return 0;
 }

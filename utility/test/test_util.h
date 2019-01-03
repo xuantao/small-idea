@@ -24,17 +24,22 @@ namespace test
     template <typename ...Ty>
     void log(const char* format, Ty&&... param)
     {
-        log(Tab::tab, format, std::forward<Ty>(param)...);
-    }
-
-    template <typename ...Ty>
-    void log(int tab, const char* format, Ty&&... param)
-    {
+        auto tab = Tab::tab;
         while (tab--)
             printf("    ");
         printf(format, std::forward<Ty>(param)...);
         printf("\n");
+        //log(Tab::tab, format, std::forward<Ty>(param)...);
     }
+
+    //template <typename ...Ty>
+    //void log(int tab, const char* format, Ty&&... param)
+    //{
+    //    while (tab--)
+    //        printf("    ");
+    //    printf(format, std::forward<Ty>(param)...);
+    //    printf("\n");
+    //}
 
     struct Obj
     {

@@ -46,7 +46,8 @@ static void test_normal()
 
 static void test_obj_move()
 {
-    test::log(test::Tab::tab++, "init startup data");
+    test::Tab::tab++;
+    test::log("init startup data");
     test::Obj obj;                  // test::Obj()
     scope_vector<test::Obj> vec = scoped::vector<test::Obj>(3);
 
@@ -55,22 +56,25 @@ static void test_obj_move()
     vec.push_back(test::Obj(2));    // test::Obj(int)
                                     // test::Obj(test::Obj&&)
                                     // ~test::Obj()
-    test::log(--test::Tab::tab, "init complete");
+    --test::Tab::tab;
+    test::log("init complete");
 
     assert(vec[0] == 0);
     assert(vec[1] == 1);
     assert(vec[2] == 2);
 
-
-    test::log(test::Tab::tab++, "test erase begin");
+    test::Tab::tab++;
+    test::log("test erase begin");
     vec.erase(vec.begin() + 1);     // ~Test()
                                     // Test(const test::Obj&)
                                     // ~Test()
     assert(vec[0] == 0);
     assert(vec[1] == 2);
-    test::log(--test::Tab::tab, "test erase end");
+    --test::Tab::tab;
+    test::log("test erase end");
 
-    test::log(test::Tab::tab++, "test insert begin");
+    test::Tab::tab++;
+    test::log("test insert begin");
     vec.insert(vec.begin() + 1, test::Obj(1));          // test::Obj(int)
                                                         // test::Obj(const test::Obj&)
                                                         // ~test::Obj()
@@ -80,7 +84,8 @@ static void test_obj_move()
     assert(vec[0] == 0);
     assert(vec[1] == 1);
     assert(vec[2] == 2);
-    test::log(--test::Tab::tab, "test insert end");
+    --test::Tab::tab;
+    test::log("test insert end");
     // ~test::Obj()
     // ~test::Obj()
     // ~test::Obj()
@@ -152,9 +157,11 @@ static void test_const_iterator()
 
 void scoped_vector_test()
 {
-    test::log(test::Tab::tab++, "scoped_vector_test begin");
+    test::Tab::tab++;
+    test::log("scoped_vector_test begin");
     test_normal();
     //test_iterator();
     test_obj_move();
-    test::log(--test::Tab::tab, "scoped_vector_test end");
+    --test::Tab::tab;
+    test::log("scoped_vector_test end");
 }

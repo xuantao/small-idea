@@ -279,7 +279,7 @@ namespace StepExcutor_Internal
 
     /* functor: bool(StepGuard&) */
     template <typename Fty>
-    inline auto StepForward(StepGuard& guader, Fty& fn) -> typename std::enable_if<std::is_void<ExcutorRetType_t<Fty>>::value, void>::type
+    inline auto StepForward(StepGuard& guader, Fty& fn) -> typename std::enable_if<std::is_void<ExcutorRetType_t<Fty>>::value, STEP_STATUS>::type
     {
         fn(guader);
         return STEP_STATUS::Completed;
@@ -287,7 +287,7 @@ namespace StepExcutor_Internal
 
     /* functor: bool(StepGuard&) */
     template <typename Fty>
-    inline auto StepForward(StepGuard& guader, Fty& fn) -> typename std::enable_if<std::is_same<bool, ExcutorRetType_t<Fty>>::value, bool>::type
+    inline auto StepForward(StepGuard& guader, Fty& fn) -> typename std::enable_if<std::is_same<bool, ExcutorRetType_t<Fty>>::value, STEP_STATUS>::type
     {
         return fn(guader) ? STEP_STATUS::Completed : STEP_STATUS::Failed;
     }
@@ -301,7 +301,7 @@ namespace StepExcutor_Internal
 
     /* functor: void() */
     template <typename Fty>
-    inline auto StepForward(int, Fty& fn) -> typename std::enable_if<std::is_void<ExcutorRetType_t<Fty>>::value, void>::type
+    inline auto StepForward(int, Fty& fn) -> typename std::enable_if<std::is_void<ExcutorRetType_t<Fty>>::value, STEP_STATUS>::type
     {
         fn();
         return STEP_STATUS::Completed;
@@ -309,7 +309,7 @@ namespace StepExcutor_Internal
 
     /* functor: bool() */
     template <typename Fty>
-    inline auto StepForward(int, Fty& fn) -> typename std::enable_if<std::is_same<bool, ExcutorRetType_t<Fty>>::value, bool>::type
+    inline auto StepForward(int, Fty& fn) -> typename std::enable_if<std::is_same<bool, ExcutorRetType_t<Fty>>::value, STEP_STATUS>::type
     {
         return fn() ? STEP_STATUS::Completed : STEP_STATUS::Failed;
     }
