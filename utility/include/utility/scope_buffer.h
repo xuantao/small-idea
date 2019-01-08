@@ -4,6 +4,7 @@
 */
 #pragma once
 #include "common.h"
+#include "small_obj_storage.h"
 
 UTILITY_NAMESPACE_BEGIN
 

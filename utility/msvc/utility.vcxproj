@@ -162,6 +162,7 @@
     <ClInclude Include="..\include\utility\scope_set.h" />
     <ClInclude Include="..\include\utility\scope_vector.h" />
     <ClInclude Include="..\include\utility\serial_allocator.h" />
+    <ClInclude Include="..\include\utility\small_obj_storage.h" />
     <ClInclude Include="..\include\utility\spin_lock.h" />
     <ClInclude Include="..\include\utility\stacked_allocator.h" />
     <ClInclude Include="..\include\utility\step_excutor.h" />

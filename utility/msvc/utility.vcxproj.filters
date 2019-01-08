@@ -99,5 +99,8 @@
     <ClInclude Include="..\include\utility\stacked_allocator.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\utility\small_obj_storage.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
