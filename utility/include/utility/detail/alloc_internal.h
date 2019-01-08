@@ -129,7 +129,7 @@ namespace Alloc_Internal
 
         void Swap(AllocCtrlChain<AllocCtrl>& other)
         {
-            std::swap(block_, other.block_);
+            std::swap(block_size_, other.block_size_);
             std::swap(empty_head_, other.empty_head_);
             std::swap(alloc_node_.next_node, other.alloc_node_.next_node);
             alloc_node_.val.Swap(other.alloc_node_.Value);
@@ -146,9 +146,9 @@ namespace Alloc_Internal
                 cur = node;
                 node = node->next_node;
 
-                cur->next_node = empty_node_;
+                cur->next_node = empty_head_;
                 cur->val.Reset();
-                empty_node_ = cur;
+                empty_head_ = cur;
             }
 
             alloc_node_.next_node = nullptr;

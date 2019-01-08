@@ -30,7 +30,7 @@ public:
     ScopeBuffer(void* buffer, size_t sz, _Dealloc&& dealloc)
         : buff_(buffer), size_(sz)
     {
-        Construct(std::forward<_Dealloc>(dealloc), IsLarge<Dealloc<_Dealloc>>());
+        storage_.Construct<Dealloc<_Dealloc>>(std::forward<_Dealloc>(dealloc));
     }
 
     ScopeBuffer(ScopeBuffer&& other)
@@ -44,11 +44,11 @@ public:
         {
             if (other.storage_.IsLocal())
             {
-                other.storage_.GetImpl()->Move(storage_.GetSpace());
+                other.storage_.Get()->Move(storage_.GetSpace());
             }
             else
             {
-                storage_.Set(other.storage_.GetImpl());
+                storage_.Set(other.storage_.Get());
                 other.storage_.Set(nullptr);
             }
         }
@@ -59,11 +59,8 @@ public:
         if (storage_.IsEmpty())
             return;
 
-        storage_.GetImpl()->Call(buff_, size_);
-        if (storage_.IsLocal())
-            storage_.GetImpl()->~ICallable<void(void*, size_t)>();
-        else
-            delete storage_.GetImpl();
+        storage_.Get()->Call(buff_, size_);
+        storage_.Release();
     }
 
     ScopeBuffer(const ScopeBuffer& other) = delete;
@@ -77,19 +74,6 @@ public:
 
     template <typename Ty>
     inline Ty& as() { *((Ty*)buff_); }
-
-private:
-    template <typename _Dealloc>
-    inline void Construct(_Dealloc&& alloc, std::true_type)
-    {
-        storage_.Set(new Dealloc<_Dealloc>(std::forward<_Dealloc>(alloc)));
-    }
-
-    template <typename _Dealloc>
-    inline void Construct(_Dealloc&& alloc, std::false_type)
-    {
-        storage_.Set(new (storage_.GetSpace()) Dealloc<_Dealloc>(std::forward<_Dealloc>(alloc)));
-    }
 
 protected:
     void* buff_ = nullptr;
