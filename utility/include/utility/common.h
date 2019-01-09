@@ -46,29 +46,29 @@ namespace std_ext
     template <typename Ty>
     using decay_t = typename std::decay<Ty>::type;
 
-    template <typename Fty, typename... Args>
+    template <typename Fy, typename... Args>
     struct invoke_result
     {
-        typedef typename std::result_of<Fty(Args...)>::type type;
+        typedef typename std::result_of<Fy(Args...)>::type type;
     };
 
-    /* check Fty is callable by specified parementers */
-    template <typename Fty, typename... Args>
+    /* check Fy is callable by specified parementers */
+    template <typename Fy, typename... Args>
     struct is_callable
     {
         template<typename U> static auto Check(int) -> decltype(std::declval<U>()(std::declval<Args>()...), std::true_type());
         template<typename U> static std::false_type Check(...);
 
-        static constexpr bool value = std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;
+        static constexpr bool value = std::is_same<decltype(Check<Fy>(0)), std::true_type>::value;
     };
 
-    template <typename Fty>
-    struct is_callable<Fty, void>
+    template <typename Fy>
+    struct is_callable<Fy, void>
     {
         template<typename U> static auto Check(int) -> decltype(std::declval<U>()(), std::true_type());
         template<typename U> static std::false_type Check(...);
 
-        static constexpr bool value = std::is_same<decltype(Check<Fty>(0)), std::true_type>::value;
+        static constexpr bool value = std::is_same<decltype(Check<Fy>(0)), std::true_type>::value;
     };
 
     /* 从VC标准库拷贝出来的
@@ -139,25 +139,25 @@ inline constexpr size_t AlignSize(size_t sz, size_t bound = sizeof(void*))
 template <typename Ty>
 struct ICallable;
 
-template <typename Rty, typename... Args>
-struct ICallable<Rty(Args...)>
+template <typename Ry, typename... Args>
+struct ICallable<Ry(Args...)>
 {
     virtual ~ICallable() { }
 
-    virtual Rty Call(Args... args) = 0;
+    virtual Ry Call(Args... args) = 0;
     virtual ICallable* Move(void* mem) = 0;
     virtual ICallable* Copy(void* mem) = 0;
 };
 
-template <typename Fty, typename... Args>
-class CallableObject final : public ICallable<typename std_ext::invoke_result<Fty, Args...>::type (Args...)>
+template <typename Fy, typename... Args>
+class CallableObject final : public ICallable<typename std_ext::invoke_result<Fy, Args...>::type (Args...)>
 {
 public:
-    using RetType = typename std_ext::invoke_result<Fty, Args...>::type;
+    using RetType = typename std_ext::invoke_result<Fy, Args...>::type;
     using BaseType = ICallable<RetType(Args...)>;
 
-    CallableObject(const Fty& fn) : func_(fn) { }
-    CallableObject(Fty&& fn) : func_(std::forward<Fty>(fn)) { }
+    CallableObject(const Fy& fn) : func_(fn) { }
+    CallableObject(Fy&& fn) : func_(std::forward<Fy>(fn)) { }
     ~CallableObject() { }
 
     RetType Call(Args... args) override
@@ -176,7 +176,36 @@ public:
     }
 
 private:
-    Fty func_;
+    Fy func_;
+};
+
+template <typename Fy, typename... Args>
+class CallablePackage
+{
+public:
+    typedef typename std_ext::invoke_result<Fy, Args...>::type RetType;
+
+    CallablePackage(Fy&& func, Args&&... args)
+        : func_(std::forward<Fy>(func))
+        , args_(std::forward<Args>(args)...)
+    {
+    }
+
+    inline RetType operator ()()
+    {
+        return DoCall(std_ext::make_index_sequence_t<sizeof(Args...)>());
+    }
+
+private:
+    template <size_t... Idx>
+    inline RetType DoCall(std_ext::index_sequence<Idx...>)
+    {
+        return func_(std::get<Idx>(args_)...);
+    }
+
+private:
+    Fy func_;
+    std::tuple<Args...> args_;
 };
 
 UTILITY_NAMESPACE_END

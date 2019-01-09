@@ -26,6 +26,8 @@ enum class STEP_STATUS
 /* 步进器守卫 */
 class StepGuard;
 
+class StepStaion;
+
 /* 分布执行器接口 */
 struct IStepExcutor
 {
@@ -151,6 +153,7 @@ namespace StepExcutor_Internal
 {
     struct GuardImpl;
     struct GuardWithCache;
+    class StationImpl;
     typedef AllocatorAdapter<int8_t, SerialAllocator<>> GuardAllocator;
 }
 
@@ -189,6 +192,165 @@ public:
 private:
     ScopeGuard<Allocator> guarder_;
 }; // class KGStepGuard
+
+struct QueuedStepExcutorImpl
+{
+    typedef SinglyNode<StepExcutorPtr> StepNode;
+
+    QueuedStepExcutorImpl(SerialAllocator<>* alloc) : alloc_(alloc)
+    {
+    }
+
+    ~QueuedStepExcutorImpl()
+    {
+        Clear();
+    }
+
+    inline SerialAllocator<>* GetAlloc() const
+    {
+        return alloc_;
+    }
+
+    void Push(StepExcutorPtr ptr)
+    {
+        void* mem = alloc_->Alloc(sizeof(StepNode));
+        auto node = new (mem) StepNode(ptr);
+
+        if (tail_)
+            tail_->next_node = node;
+        else
+            head_ = node;
+
+        tail_ = node;
+    }
+
+    void Clear()
+    {
+        while (head_)
+        {
+            auto node = head_;
+            head_ = head_->next_node;
+            node->~StepNode();
+        }
+
+        while (step_)
+        {
+            auto node = step_;
+            step_ = step_->next_node;
+            node->~StepNode();
+        }
+
+        head_ = tail_ = step_ = nullptr;
+    }
+
+    STEP_STATUS Step()
+    {
+        if (head_ == nullptr)
+            return STEP_STATUS::Completed;
+
+        STEP_STATUS status = head_->val->Step();
+        if (status == STEP_STATUS::Completed)
+        {
+            auto node = head_;
+            head_ = head_->next_node;
+
+            node->next_node = step_;
+            step_ = node;
+
+            return STEP_STATUS::Busy;
+        }
+        return status;
+    }
+
+    void Rollback()
+    {
+        if (head_)
+            head_->val->Rollback();
+
+        while (step_)
+        {
+            auto node = step_;
+            step_ = step_->next_node;
+
+            node->val->Rollback();
+            node->next_node = head_;
+            head_ = node;
+        }
+    }
+
+private:
+    StepNode* head_ = nullptr;
+    StepNode* tail_ = nullptr;
+    StepNode* step_ = nullptr;
+    SerialAllocator<>* alloc_;
+};
+
+class StepStaion
+{
+private:
+    using Allocator = StepExcutor_Internal::GuardAllocator;
+    friend class StepExcutor_Internal::StationImpl;
+
+    StepStaion(SerialAllocator<>* alloc)
+        : queue_(alloc)
+        , guarder_(alloc->GetAdapter<Allocator>())
+    {
+    }
+
+    ~StepStaion()
+    {
+        guarder_.Dismiss();
+        guarder_.Done();
+        queue_.Clear();
+    }
+
+    StepStaion(const StepGuard&) = delete;
+    StepStaion& operator = (const StepGuard&) = delete;
+
+public:
+    //inline void Sub(StepExcutorPtr ptr) { queue_.Push(ptr); }
+
+    template <typename Fty>
+    inline void Sub(Fty&& fn)
+    {
+        //Sub(StepExcutor_Internal::MakeExcutor(std::forward<Fty>(fn), queue_.GetAlloc()));
+    }
+
+    template <typename Rty, typename Fty>
+    inline void Sub(Future<Rty>&& future, Fty&& fn)
+    {
+        //Sub(StepExcutor_Internal::MakeExcutor(std::move(future), std::forward<Fty>(fn), queue_.GetAlloc()));
+    }
+
+    template <typename Rty, typename Fty>
+    inline void Sub(const SharedFuture<Rty>& future, Fty&& fn)
+    {
+        //Sub(StepExcutor_Internal::MakeExcutor(future, std::forward<Fty>(fn), queue_.GetAlloc()));
+    }
+
+    template <typename Fy>
+    inline void Guard(Fy&& func)
+    {
+        guarder_.Push(std::forward<Fy>(func));
+    }
+
+private:
+    template <typename Fy>
+    StepExcutorPtr MakeExcutor(Fy&& fn, std::false_type)
+    {
+        return nullptr;
+    }
+
+    template <typename Fy>
+    StepExcutorPtr MakeExcutor(Fy&& fn, std::true_type)
+    {
+        return nullptr;
+    }
+
+private:
+    QueuedStepExcutorImpl queue_;
+    ScopeGuard<Allocator> guarder_;
+};
 
 namespace StepExcutor_Internal
 {
@@ -321,6 +483,215 @@ namespace StepExcutor_Internal
         return fn();
     }
 
+    /* functor: void() */
+    template <typename Fy>
+    inline auto StepForward(Fy& fn) -> typename std::enable_if<std::is_void<ExcutorRetType_t<Fy>>::value, STEP_STATUS>::type
+    {
+        fn();
+        return STEP_STATUS::Completed;
+    }
+
+    /* functor: bool() */
+    template <typename Fy>
+    inline auto StepForward(Fy& fn) -> typename std::enable_if<std::is_same<bool, ExcutorRetType_t<Fy>>::value, STEP_STATUS>::type
+    {
+        return fn() ? STEP_STATUS::Completed : STEP_STATUS::Failed;
+    }
+
+    /* functor: STEP_STATUS() */
+    template <typename Fy>
+    inline auto StepForward(Fy& fn) -> typename std::enable_if<std::is_same<STEP_STATUS, ExcutorRetType_t<Fy>>::value, STEP_STATUS>::type
+    {
+        return fn();
+    }
+
+    //struct QueuedStepExcutorImpl
+    //{
+    //    typedef SinglyNode<StepExcutorPtr> StepNode;
+
+    //    QueuedStepExcutorImpl(SerialAllocator<>* alloc) : alloc_(alloc)
+    //    {
+    //    }
+
+    //    ~QueuedStepExcutorImpl()
+    //    {
+    //        Clear();
+    //    }
+
+    //    void Push(StepExcutorPtr ptr)
+    //    {
+    //        void* mem = alloc_->Alloc(sizeof(StepNode));
+    //        auto node = new (mem) StepNode(ptr);
+
+    //        if (tail_)
+    //            tail_->next_node = node;
+    //        else
+    //            head_ = node;
+
+    //        tail_ = node;
+    //    }
+
+    //    void Clear()
+    //    {
+    //        while (head_)
+    //        {
+    //            auto node = head_;
+    //            head_ = head_->next_node;
+    //            node->~StepNode();
+    //        }
+
+    //        while (step_)
+    //        {
+    //            auto node = step_;
+    //            step_ = step_->next_node;
+    //            node->~StepNode();
+    //        }
+
+    //        head_ = tail_ = step_ = nullptr;
+    //    }
+
+    //    STEP_STATUS Step()
+    //    {
+    //        if (head_ == nullptr)
+    //            return STEP_STATUS::Completed;
+
+    //        STEP_STATUS status = head_->val->Step();
+    //        if (status == STEP_STATUS::Completed)
+    //        {
+    //            auto node = head_;
+    //            head_ = head_->next_node;
+
+    //            node->next_node = step_;
+    //            step_ = node;
+
+    //            return STEP_STATUS::Busy;
+    //        }
+    //        return status;
+    //    }
+
+    //    void Rollback()
+    //    {
+    //        if (head_)
+    //            head_->val->Rollback();
+
+    //        while (step_)
+    //        {
+    //            auto node = step_;
+    //            step_ = step_->next_node;
+
+    //            node->val->Rollback();
+    //            node->next_node = head_;
+    //            head_ = node;
+    //        }
+    //    }
+
+    //private:
+    //    StepNode* head_ = nullptr;
+    //    StepNode* tail_ = nullptr;
+    //    StepNode* step_ = nullptr;
+    //    SerialAllocator<>* alloc_;
+    //};
+
+    //class Staion : public S
+    //{
+
+    //};
+
+    class StationImpl : public IStepExcutor
+    {
+    public:
+        StationImpl(SerialAllocator<>* alloc) : station_(alloc)
+        {
+        }
+
+        ~StationImpl()
+        {
+            station_.guarder_.Dismiss();
+            station_.guarder_.Done();
+            station_.queue_.Clear();
+        }
+
+        StepStaion& GetStation()
+        {
+            return station_;
+        }
+
+        STEP_STATUS Step() override
+        {
+            return station_.queue_.Step();
+        }
+
+        void Rollback() override
+        {
+            station_.guarder_.Done();
+        }
+
+    private:
+        StepStaion station_;
+    };
+
+    class StationAllocImpl : public StationImpl
+    {
+    public:
+        StationAllocImpl() : StationImpl(alloc_.GetAlloc())
+        {
+        }
+
+        PoolSerialAlloc<128> alloc_;
+    };
+
+    template <typename Fy, typename... Args>
+    class ExcutorDetail : public public IStepExcutor
+    {
+        using Callee = CallablePackage<Fy, Args...>;
+    public:
+        ExcutorDetail(Fy&& func, Args&&... args)
+            : callee_(std::forward<Fy>(func), std::forward<Args>(args)...)
+        {
+        }
+
+        virtual ~ExcutorDetail()
+        {
+        }
+
+        STEP_STATUS Step() override
+        {
+            return StepForward(callee_);
+        }
+
+        void Rollback() override
+        {
+        }
+
+    private:
+        Callee callee_;
+    };
+
+    template <typename F, typename... Args>
+    class FutureExcutor : public ExcutorDetail<Args...>
+    {
+    public:
+        FutureExcutor(F&& future, Args&&... args)
+            : ExcutorDetail<Args...>(std::forward<Args>(args)...)
+            , fucture_(future)
+        {
+        }
+
+        virtual ~FutureExcutor()
+        {
+        }
+
+        STEP_STATUS Step() override
+        {
+            if (!fucture_.IsReady())
+                return STEP_STATUS::Idle;
+            return ExcutorDetail<Args...>::Step();
+        }
+
+    private:
+        F fucture_;
+    };
+
     template <typename Fty, typename GuardType>
     struct ExcutorImpl : public IStepExcutor
     {
@@ -395,6 +766,30 @@ namespace StepExcutor_Internal
 
         SharedFuture<Rty> m_Future;
     };
+
+    template <typename Fty>
+    inline StepExcutorPtr MakeRawExcutor(Fty&& fn)
+    {
+        using guard_type = typename std::conditional<ExcutorHasGuarder<Fty>::value,
+            GuardWithCache, NoneGuardImpl>::type;
+        return std::make_shared<ExcutorImpl<Fty, guard_type>>(std::forward<Fty>(fn), nullptr);
+    }
+
+    template <typename Rty, typename Fty>
+    inline StepExcutorPtr MakeRawExcutor(Future<Rty>&& future, Fty&& fn)
+    {
+        using guard_type = typename std::conditional<ExcutorHasGuarder<Fty>::value,
+            GuardWithCache, NoneGuardImpl>::type;
+        return std::make_shared<ExcutorWithFuture<Rty, Fty, guard_type>>(std::move(future), std::forward<Fty>(fn), nullptr);
+    }
+
+    template <typename Rty, typename Fty>
+    inline StepExcutorPtr MakeRawExcutor(const SharedFuture<Rty>& future, Fty&& fn)
+    {
+        using guard_type = typename std::conditional<ExcutorHasGuarder<Fty>::value,
+            GuardWithCache, NoneGuardImpl>::type;
+        return std::make_shared<ExcutorWithSharedFuture<Rty, Fty, guard_type>>(future, std::forward<Fty>(fn), nullptr);
+    }
 
 #define _STEP_EXCUTOR_ERROR_MESSAGE "Functor signature is not allowed! Only support functor with "  \
             "void(), void(StepGuard&), bool(), bool(StepGuard&), STEP_STATUS() and STEP_STATUS(StepGuard&)"

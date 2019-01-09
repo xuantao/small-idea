@@ -17,6 +17,8 @@ struct IsLarge : std::bool_constant<SpaceSize < sizeof(Ty)> {};
 template <typename Ty>
 class SmallObjStorage
 {
+    static_assert(!std::is_array<Ty>::value, "small object storage not support array");
+
 public:
     SmallObjStorage() { Set(nullptr); }
     ~SmallObjStorage() { Release(); }
@@ -36,6 +38,8 @@ public:
     template <typename Impl, typename... Args>
     void Construct(Args&&... args)
     {
+        static_assert(std::is_convertible<Impl*, Ty*>::value, "construct object should be convertible to target");
+
         Release();
         DoConstruct<Impl>(IsLarge<Impl>(), std::forward<Args>(args)...);
     }
