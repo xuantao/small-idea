@@ -32,42 +32,11 @@ STEP_STATUS StepEnd(IStepExcutor* pSteper)
     return eStatus;
 }
 
-QueueStepExcutor::~QueueStepExcutor()
-{
-    if (status_ != STEP_STATUS::Completed)
-        DoRollback();   // 没有成功结束就回滚
-    steps_.clear();
-}
-
-STEP_STATUS QueueStepExcutor::Step()
-{
-    if (step_index_ >= steps_.size())
-        return STEP_STATUS::Completed;
-
-    if (IS_STEP_STOPPED(status_))
-        return status_;
-
-    status_ = steps_[step_index_]->Step();
-    if (status_ == STEP_STATUS::Completed)
-    {
-        ++ step_index_;
-        if (step_index_ < steps_.size())
-            status_ = STEP_STATUS::Busy;
-    }
-
-    return status_;
-}
-
-void QueueStepExcutor::DoRollback()
-{
-    for (int i = (int)step_index_; i >= 0; --i)
-        steps_[i]->Rollback();
-    step_index_ = 0;
-}
-
+//////////////////////////////////////////////////////////////////////////
+// class ParallelStepExcutor
 STEP_STATUS ParallelStepExcutor::Step()
 {
-    if (Empty())
+    if (IsEmpty())
         return STEP_STATUS::Completed;
 
     STEP_STATUS eRet = STEP_STATUS::Completed;
@@ -93,5 +62,107 @@ STEP_STATUS ParallelStepExcutor::Step()
 
     return nBusy ? STEP_STATUS::Busy : STEP_STATUS::Idle;
 }
+
+namespace StepExcutor_Internal
+{
+    //////////////////////////////////////////////////////////////////////////
+    // class QueuedStepImpl
+    void QueuedStepImpl::Push(StepExcutorPtr ptr)
+    {
+        void* mem = alloc_->Alloc(sizeof(StepNode));
+        auto node = new (mem) StepNode(ptr);
+
+        if (tail_)
+            tail_->next_node = node;
+        else
+            head_ = node;
+
+        tail_ = node;
+    }
+
+    void QueuedStepImpl::Clear()
+    {
+        if (!IsEmpty())
+            Rollback(); // not success completed
+
+        while (head_)
+        {
+            auto node = head_;
+            head_ = head_->next_node;
+            node->~StepNode();
+        }
+
+        while (step_)
+        {
+            auto node = step_;
+            step_ = step_->next_node;
+            node->~StepNode();
+        }
+
+        head_ = tail_ = step_ = nullptr;
+    }
+
+    STEP_STATUS QueuedStepImpl::Step()
+    {
+        if (head_ == nullptr)
+            return STEP_STATUS::Completed;
+
+        STEP_STATUS status = head_->val->Step();
+        if (status == STEP_STATUS::Completed)
+        {
+            auto node = head_;
+            head_ = head_->next_node;
+
+            node->next_node = step_;
+            step_ = node;
+
+            return STEP_STATUS::Busy;
+        }
+        return status;
+    }
+
+    void QueuedStepImpl::Rollback()
+    {
+        if (head_)
+            head_->val->Rollback();
+
+        while (step_)
+        {
+            auto node = step_;
+            step_ = step_->next_node;
+
+            node->val->Rollback();
+            node->next_node = head_;
+            head_ = node;
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    // class StackedGuardImpl
+    void StackedGuardImpl::Rollback()
+    {
+        while (head_)
+        {
+            GuardNode* node = head_;
+            head_ = head_->next_node;
+
+            node->val->Call();
+            node->val->~ICallable<void()>();
+            node->~GuardNode();
+        }
+    }
+
+    void StackedGuardImpl::Clear()
+    {
+        while (head_)
+        {
+            GuardNode* node = head_;
+            head_ = head_->next_node;
+
+            node->val->~ICallable<void()>();
+            node->~GuardNode();
+        }
+    }
+} // StepExcutor_Internal
 
 UTILITY_NAMESPACE_END
