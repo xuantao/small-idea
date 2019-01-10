@@ -209,34 +209,23 @@ private:
     std::tuple<Args...> args_;
 };
 
-//
-//template <typename Fy, typename... Args>
-//class CallablePackage<Fy>
-//{
-//public:
-//    typedef typename std_ext::invoke_result<Fy, Args...>::type RetType;
-//
-//    CallablePackage(Fy&& func, Args&&... args)
-//        : func_(std::forward<Fy>(func))
-//        , args_(std::forward<Args>(args)...)
-//    {
-//    }
-//
-//    inline RetType operator ()()
-//    {
-//        return DoCall(std_ext::make_index_sequence_t<sizeof...(Args)>());
-//    }
-//
-//private:
-//    template <size_t... Idx>
-//    inline RetType DoCall(std_ext::index_sequence<Idx...>)
-//    {
-//        return func_(std::get<Idx>(args_)...);
-//    }
-//
-//private:
-//    Fy func_;
-//    std::tuple<Args...> args_;
-//};
+template <typename Fy>
+class CallablePackage<Fy>
+{
+public:
+    typedef typename std_ext::invoke_result<Fy>::type RetType;
+
+    CallablePackage(Fy&& func) : func_(std::forward<Fy>(func))
+    {
+    }
+
+    inline RetType operator ()()
+    {
+        return func_();
+    }
+
+private:
+    Fy func_;
+};
 
 UTILITY_NAMESPACE_END

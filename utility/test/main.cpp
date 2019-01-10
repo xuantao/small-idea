@@ -3,6 +3,10 @@
 #include "test.h"
 #include "utility/common.h"
 #include <map>
+#define _CRTDBG_MAP_ALLOC
+#include <cstdlib>
+#include <crtdbg.h>
+
 using namespace utility;
 
 template <typename Fty, typename... Args>
@@ -28,5 +32,7 @@ int main(int argc, char* argv[])
     //test_logger();
     test_step_excutor();
     system("pause");
+
+    _CrtDumpMemoryLeaks();
     return 0;
 }

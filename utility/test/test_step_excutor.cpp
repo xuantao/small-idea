@@ -48,18 +48,21 @@ void test_step_excutor()
     });
 
     steper.Add([](utility::StepStation& guard) {
-        printf("[] (StepGuard& guard) { utility::STEP_STATUS::Completed; }\n");
+        printf("[] (StepGuard& guard) { }\n");
         for (int i = 0; i < 10; ++i)
         {
             guard.SubStep([i] { printf("SubStep %d\n", i); });
+            guard.Guard([i] { printf("SubStep %d\n", i); });
         }
     });
 
     steper.Add([](utility::StepStation& guard) {
-        printf("[] (StepGuard& guard) { utility::STEP_STATUS::Completed; }\n");
+        printf("[] (StepGuard& guard) { return true; }\n");
 
         guard.SubStep([](utility::StepStation& station) {
-            station.Guard([] { printf("StationGuard\n"); });
+            station.Guard([] { printf("test substep guard\n"); });
+            printf("test substep guard\n");
+            return false;
         });
 
         return true;
@@ -70,5 +73,6 @@ void test_step_excutor()
         return utility::STEP_STATUS::Completed;
     });
 
-    utility::StepEnd(&steper);
+    if (utility::StepEnd(&steper) == utility::STEP_STATUS::Failed)
+        steper.Rollback();
 }
