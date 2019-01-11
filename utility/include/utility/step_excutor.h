@@ -11,8 +11,11 @@
 
 UTILITY_NAMESPACE_BEGIN
 
-/* 站, 管理错误守卫、子步骤 */
-class StepStation;
+/* 分布控制器
+ * 1. 添加子节点
+ * 2. 添加控制守卫
+*/
+class StepCtrl;
 
 /* 步进器状态 */
 enum class STEP_STATUS
@@ -28,7 +31,7 @@ enum class STEP_STATUS
     eStatus == UTILITY_NAMESPCE STEP_STATUS::Completed)
 /* 静态类型坚持错误提示 */
 #define STEP_EXCUTOR_ERROR_MESSAGE_ "Functor signature is not allowed! Only support functor with "  \
-    "void(), void(StepStation&), bool(), bool(StepStation&), STEP_STATUS() and STEP_STATUS(StepStation&)"
+    "void(), void(StepCtrl), bool(), bool(StepCtrl), STEP_STATUS() and STEP_STATUS(StepCtrl)"
 
 /* 分布执行器接口 */
 struct IStepExcutor
@@ -121,13 +124,13 @@ namespace StepExcutor_Internal
     };
 
     /* 中间站控制器 */
-    class StepStationCtrl
+    class StepCtrlImpl
     {
     public:
-        StepStationCtrl(SerialAllocator<>* alloc) : queue_(alloc), guarder_(alloc)
+        StepCtrlImpl(SerialAllocator<>* alloc) : queue_(alloc), guarder_(alloc)
         { }
 
-        ~StepStationCtrl()
+        ~StepCtrlImpl()
         {
             if (!queue_.IsComplete())
                 Rollback(); // 没有执行完就析构表明出现错误, 需要回滚
@@ -267,12 +270,13 @@ protected:
     std::vector<StepExcutorPtr> steps_;
 }; // ParallelStepExcutor
 
-/* 步进器中转站 */
-class StepStation
+/* 步进控制器 */
+class StepCtrl
 {
 public:
-    StepStation(const StepStation&) = default;
-    StepStation& operator = (const StepStation&) = default;
+    ~StepCtrl() = default;
+    StepCtrl(const StepCtrl&) = default;
+    StepCtrl& operator = (const StepCtrl&) = default;
 
 public:
     /* 添加子步骤 */
@@ -309,48 +313,47 @@ public:
     }
 
 protected:
-    StepStation() = default;
-    ~StepStation() = default;
+    StepCtrl() = default;
 
 protected:
-    using StationCtrl = StepExcutor_Internal::StepStationCtrl;
+    using StepCtrlImpl = StepExcutor_Internal::StepCtrlImpl;
 
     inline SerialAllocator<>* GetAlloc() { return ctrl_->GetAlloc(); }
-    inline void SetCtrl(StationCtrl* ctrl) { ctrl_ = ctrl; }
-    inline StationCtrl* GetCtrl() { return ctrl_; }
+    inline void SetCtrlImpl(StepCtrlImpl* ctrl) { ctrl_ = ctrl; }
+    inline StepCtrlImpl* GetCtrlImpl() { return ctrl_; }
 
 private:
-    StationCtrl* ctrl_;
+    StepCtrlImpl* ctrl_;
 };
 
 /* 步进器工作站 */
 template <size_t Pool = 2048>
-class StepExcutorStation : public IStepExcutor, public StepStation
+class StepExcutorStation : public IStepExcutor, public StepCtrl
 {
 public:
     StepExcutorStation() : alloc_(Pool > 1024 ? Pool : 1024)
     {
-        SetCtrl(alloc_.Construct<StepExcutor_Internal::StepStationCtrl>(&alloc_));
+        SetCtrlImpl(alloc_.Construct<StepExcutor_Internal::StepCtrlImpl>(&alloc_));
     }
 
     virtual ~StepExcutorStation()
     {
-        alloc_.Destruct(GetCtrl());
+        alloc_.Destruct(GetCtrlImpl());
     }
 
 public:
     STEP_STATUS Step() override
     {
-        return GetCtrl()->Step();
+        return GetCtrlImpl()->Step();
     }
 
     void Rollback() override
     {
-        GetCtrl()->Rollback();
+        GetCtrlImpl()->Rollback();
 
-        alloc_.Destruct(GetCtrl());
+        alloc_.Destruct(GetCtrlImpl());
         alloc_.Reset();
-        SetCtrl(alloc_.Construct<StepExcutor_Internal::StepStationCtrl>(&alloc_));
+        SetCtrlImpl(alloc_.Construct<StepExcutor_Internal::StepCtrlImpl>(&alloc_));
     }
 
 private:
@@ -369,44 +372,36 @@ namespace StepExcutor_Internal
     template <typename Fy>
     struct ExcutorRetTypeTrait<true, Fy>
     {
-        typedef typename std_ext::invoke_result<Fy, StepStation&>::type type;
+        typedef typename std_ext::invoke_result<Fy, StepCtrl>::type type;
     };
 
     /* check has guarder */
     template <typename Ty>
-    struct ExcutorHasGuarder : public std::bool_constant<std_ext::is_callable<Ty, StepStation&>::value>
-    {
-    };
+    struct ExcutorHasGuarder : public std::bool_constant<std_ext::is_callable<Ty, StepCtrl>::value>
+    {};
 
     template <typename Fy>
     using ExcutorRetType_t = typename ExcutorRetTypeTrait<ExcutorHasGuarder<Fy>::value, Fy>::type;
 
     template <typename Fy>
-    struct ExcutorSignatureCheck
-    {
-        static constexpr bool value = std_ext::is_callable<Fy>::value ||
-            (std_ext::is_callable<Fy, const StepStation&>::value || std_ext::is_callable<Fy, StepStation&>::value);
-    };
+    struct ExcutorSignatureCheck : public std::bool_constant<
+        std_ext::is_callable<Fy>::value || std_ext::is_callable<Fy, StepCtrl>::value
+    >{};
 
     template <bool, typename Fy>
-    struct ExcutorCheckImpl
-    {
-        static constexpr bool value = std::is_void<ExcutorRetType_t<Fy>>::value ||
-            std::is_same<bool, ExcutorRetType_t<Fy>>::value ||
-            std::is_same<STEP_STATUS, ExcutorRetType_t<Fy>>::value;
-    };
+    struct ExcutorCheckImpl : public std::bool_constant<
+        std::is_void<ExcutorRetType_t<Fy>>::value ||
+        std::is_same<bool, ExcutorRetType_t<Fy>>::value ||
+        std::is_same<STEP_STATUS, ExcutorRetType_t<Fy>>::value
+    > {};
 
     template <typename Fy>
-    struct ExcutorCheckImpl<false, Fy>
-    {
-        static constexpr bool value = false;
-    };
+    struct ExcutorCheckImpl<false, Fy> : public std::false_type {};
 
     template <typename Fy>
-    struct ExcutorCheck
-    {
-        static constexpr bool value = ExcutorCheckImpl<ExcutorSignatureCheck<Fy>::value, Fy>::value;
-    };
+    struct ExcutorCheck : public std::bool_constant<
+        ExcutorCheckImpl<ExcutorSignatureCheck<Fy>::value, Fy>::value
+    > {};
 
     /* functor: void() */
     template <typename Fy>
@@ -430,12 +425,12 @@ namespace StepExcutor_Internal
         return fn();
     }
 
-    class StationExcutorImpl : public IStepExcutor, public StepStation
+    class StationExcutorImpl : public IStepExcutor, public StepCtrl
     {
     public:
         StationExcutorImpl(SerialAllocator<>* alloc) : ctrl_(alloc)
         {
-            StepStation::SetCtrl(&ctrl_);
+            StepCtrl::SetCtrlImpl(&ctrl_);
         }
 
         virtual ~StationExcutorImpl() = default;
@@ -445,7 +440,7 @@ namespace StepExcutor_Internal
         void Rollback() override { ctrl_.Rollback(); }
 
     private:
-        StepStationCtrl ctrl_;
+        StepCtrlImpl ctrl_;
     };
 
     class StepExcutorStationExt : public StepExcutorStation<128>
@@ -526,6 +521,8 @@ namespace StepExcutor_Internal
         SharedFuture<Ry> future_;
     };
 
+    inline StepCtrl GetStepCtrl(StepCtrl& station) { return station; }
+
     template <typename... Args>
     inline StepExcutorPtr PackageExcutor(SerialAllocator<>* alloc, Args&&... args)
     {
@@ -537,7 +534,7 @@ namespace StepExcutor_Internal
     inline StepExcutorPtr MakeExcutorImpl(std::true_type, Args&&... args)
     {
         auto station = std::make_shared<StepExcutorStationExt>();
-        auto step = PackageExcutor(station->GetAlloc(), std::forward<Args>(args)..., *station);
+        auto step = PackageExcutor(station->GetAlloc(), std::forward<Args>(args)..., GetStepCtrl(*station));
         station->SubStep(step);
         return station;
     }
@@ -552,7 +549,7 @@ namespace StepExcutor_Internal
     inline StepExcutorPtr AllocMakeExcutorImpl(std::true_type, SerialAllocator<>* alloc, Args&&... args)
     {
         auto station = std::allocate_shared<StationExcutorImpl>(alloc->GetAdapter<StationExcutorImpl>(), alloc);
-        auto step = PackageExcutor(alloc, std::forward<Args>(args)..., *station);
+        auto step = PackageExcutor(alloc, std::forward<Args>(args)..., GetStepCtrl(*station));
         station->SubStep(step);
         return station;
     }
