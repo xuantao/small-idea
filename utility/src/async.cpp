@@ -12,10 +12,7 @@ static class KGAsyncTaskPool
 {
 public:
     KGAsyncTaskPool() = default;
-    ~KGAsyncTaskPool()
-    {
-        Destory();
-    }
+    ~KGAsyncTaskPool() { Destory(); }
 
     KGAsyncTaskPool(const KGAsyncTaskPool&) = delete;
     KGAsyncTaskPool& operator = (const KGAsyncTaskPool&) = delete;
@@ -24,14 +21,14 @@ public:
     bool Create(size_t threadNum)
     {
         assert(threadNum > 0);
-        assert(m_bRunning == false);
+        assert(running_ == false);
 
-        if (m_bRunning)
+        if (running_)
             return false;
 
-        m_bRunning = true;
-        m_Threads.resize(threadNum);
-        for (auto& t : m_Threads)
+        running_ = true;
+        threads_.resize(threadNum);
+        for (auto& t : threads_)
         {
             std::thread tmp(std::bind(&KGAsyncTaskPool::DoThreadWork, this));
             t.swap(tmp);
@@ -42,71 +39,79 @@ public:
 
     void Destory()
     {
-        if (m_bRunning)
+        if (running_)
         {
-            m_bRunning = false;
-            m_Condition.notify_all();
+            running_ = false;
+            condition_.notify_all();
 
-            for (auto& t : m_Threads)
+            for (auto& t : threads_)
                 t.join();
         }
 
-        while (!m_Tasks.empty())
-            m_Tasks.pop();
+        while (!tasks_.empty())
+            tasks_.pop();
     }
 
     bool AddTask(AsyncTaskPtr pTask)
     {
         {
-            std::lock_guard<std::mutex> cLock(m_Mutex);
-            m_Tasks.push(pTask);
+            std::lock_guard<std::mutex> cLock(mutex_);
+            tasks_.push(pTask);
         }
-        m_Condition.notify_one();
+        condition_.notify_one();
         return true;
     }
 
-    inline bool IsRunning() const { return m_bRunning; }
-    inline int GetThreadNum() const { return (int)m_Threads.size(); }
+    inline bool IsRunning() const { return running_; }
+    inline int GetThreadNum() const { return (int)threads_.size(); }
 
 private:
+    AsyncTaskPtr PopTask()
+    {
+        AsyncTaskPtr task;
+        while (!tasks_.empty())
+        {
+            task = tasks_.front();
+            tasks_.pop();
+
+            if (task->IsAbandoned())
+                task = nullptr;
+            else
+                break;
+        }
+
+        return task;
+    }
+
     void DoThreadWork()
     {
-        while (m_bRunning)
+        while (running_)
         {
-            AsyncTaskPtr pTask = nullptr;
-            if (m_Tasks.empty())
+            AsyncTaskPtr task = nullptr;
+            if (tasks_.empty())
             {
-                std::unique_lock<std::mutex> cLock(m_Mutex);
-                m_Condition.wait(cLock);
+                std::unique_lock<std::mutex> lock(mutex_);
+                condition_.wait(lock);
 
-                if (m_bRunning == false)
-                    break;
-                if (m_Tasks.empty())
-                    continue;
-
-                pTask = m_Tasks.front();
-                m_Tasks.pop();
+                task = PopTask();
             }
             else
             {
-                std::lock_guard<std::mutex> cLock(m_Mutex);
-                if (m_Tasks.empty())
-                    continue;
-
-                pTask = m_Tasks.front();
-                m_Tasks.pop();
+                std::lock_guard<std::mutex> lock(mutex_);
+                task = PopTask();
             }
 
-            pTask->Work();
+            if (task)
+                task->Work();
         }
     }
 
 private:
-    bool m_bRunning = false;
-    std::mutex m_Mutex;
-    std::condition_variable m_Condition;
-    std::vector<std::thread> m_Threads;
-    std::queue<AsyncTaskPtr> m_Tasks;
+    bool running_ = false;
+    std::mutex mutex_;
+    std::condition_variable condition_;
+    std::vector<std::thread> threads_;
+    std::queue<AsyncTaskPtr> tasks_;
 } s_TaskPool;
 
 namespace Async

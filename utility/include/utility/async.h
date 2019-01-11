@@ -15,6 +15,11 @@ class IAsyncTask
 {
 public:
     virtual ~IAsyncTask() {}
+
+    /* check the task is abandoned, whether do real work*/
+    virtual bool IsAbandoned() = 0;
+
+    /* do real work in any thread */
     virtual void Work() = 0;
 };
 typedef std::shared_ptr<IAsyncTask> AsyncTaskPtr;
@@ -63,14 +68,31 @@ namespace Async_Internal
         Task(Fy&& fn, Args&&... args) : func_(std::forward<Fy>(fn), std::forward<Args>(args)...)
         { }
 
-        virtual ~Task() = default;
+        virtual ~Task() { }
 
+    public:
+        bool IsAbandoned() override { return false; }
         void Work() override { DoPromise(promise_, func_); }
+
         inline Future<RetType> GetFuture() { return promise_.GetFuture(); }
 
-    private:
+    protected:
         Callable func_;
         Promise<RetType> promise_;
+    };
+
+    template <typename Fy, typename... Args>
+    class ExpectedTask : public Task<Fy, Args...>
+    {
+    public:
+        ExpectedTask(Fy&& fn, Args&&... args) : Task<Fy, Args...>(std::forward<Fy>(fn), std::forward<Args>(args)...)
+        { }
+
+        virtual ~ExpectedTask() { }
+
+    public:
+        /* when none body is expected this task, task will be enter abandoned state */
+        bool IsAbandoned() override { return !this->promise_.IsExpected(); }
     };
 }
 
@@ -104,11 +126,15 @@ namespace Async
         return future;
     }
 
-    /* 使用指定内存适配器 */
-    template <typename Alloc, typename Fy, typename... Args>
-    inline auto AllocRun(const Alloc& alloc, Fy&& fn, Args&&... args) -> typename Async_Internal::EnableIf<Fy, Args...>
+    /* 执行被期待的异步任务
+     * 创建一个异步任务并当如线程池队列
+     * 返回Future<Rty>用来判断任务状态并获取返回值
+     * 当返回的Future不再被持有时, 任务进入废弃状态可能不会被执行
+    */
+    template <typename Fy, typename... Args>
+    inline auto ExpectedRun(Fy&& fn, Args&&... args) -> typename Async_Internal::EnableIf<Fy, Args...>
     {
-        auto task = std::allocate_shared<Async_Internal::Task<Fy, Args...>>(alloc, std::forward<Fy>(fn), std::forward<Args>(args)...);
+        auto task = std::make_shared<Async_Internal::ExpectedTask<Fy, Args...>>(std::forward<Fy>(fn), std::forward<Args>(args)...);
         auto future = task->GetFuture();
 
         Run(task);

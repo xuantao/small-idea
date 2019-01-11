@@ -194,7 +194,7 @@ static void test_step_async()
     auto f3 = utility::Async::Run([] { std::this_thread::sleep_for(std::chrono::milliseconds(1)); printf("asyn run 3\n"); }).Share();
     station.SubStep(f3, [] { printf("step excutor 3\n"); });
 
-    auto f4 = utility::Async::AllocRun(alloc.GetAdapter<int>(), [] { std::this_thread::yield(); printf("asyn run 4\n"); });
+    auto f4 = utility::Async::ExpectedRun([] { std::this_thread::yield(); printf("asyn run 4\n"); });
     station.SubStep(std::move(f4), [] { printf("step excutor 4\n"); });
 
     utility::StepEnd(&station);

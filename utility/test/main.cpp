@@ -31,6 +31,7 @@ int main(int argc, char* argv[])
     //test_to_string();
     //test_logger();
     test_step_excutor();
+    test_async();
     system("pause");
 
     _CrtDumpMemoryLeaks();

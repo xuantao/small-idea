@@ -22,13 +22,8 @@ namespace Future_Internal
         typedef typename std::conditional<std::is_scalar<Ty>::value, Ty, Ty&>::type RetType;
 
     public:
-        AssociatedState() : m_bReady(false)
-        {
-        }
-
-        ~AssociatedState()
-        {
-        }
+        AssociatedState() : ready_(false) { }
+        ~AssociatedState() = default;
 
         AssociatedState(const AssociatedState&) = delete;
         AssociatedState& operator=(const AssociatedState&) = delete;
@@ -36,30 +31,30 @@ namespace Future_Internal
     public:
         inline bool IsReady() const
         {
-            return m_bReady;
+            return ready_;
         }
 
         inline RetType GetValue()
         {
             assert(IsReady());
-            return m_Result;
+            return result_;
         }
 
-        void SetValue(const Ty& val)
+        inline void SetValue(const Ty& val)
         {
-            m_Result = val;
-            m_bReady = true;
+            result_ = val;
+            ready_ = true;
         }
 
-        void SetValue(Ty&& val)
+        inline void SetValue(Ty&& val)
         {
-            m_Result = std::forward<Ty>(val);
-            m_bReady = true;
+            result_ = std::forward<Ty>(val);
+            ready_ = true;
         }
 
     public:
-        Ty m_Result;
-        bool m_bReady;
+        Ty result_;
+        bool ready_;
     };
 
     template<class Ty>
@@ -70,44 +65,35 @@ namespace Future_Internal
         typedef typename AssociatedState<Ty>::RetType RetType;
 
     public:
-        FutureState()
-        {
-        }
-
-        FutureState(AssociatedStatePtr pState)
-            : m_pState(pState)
-        {
-        }
-
-        ~FutureState()
-        {
-        }
-
+        FutureState() = default;
+        FutureState(AssociatedStatePtr state) : state_(state) { }
         FutureState(const FutureState&) = default;
         FutureState(FutureState&&) = default;
+        ~FutureState() = default;
+
         FutureState& operator = (const FutureState&) = default;
         FutureState& operator = (FutureState&&) = default;
 
     public:
         inline bool IsValid() const
         {
-            return (bool)m_pState;
+            return (bool)state_;
         }
 
         inline bool IsReady() const
         {
-            return (m_pState && m_pState->IsReady());
+            return (state_ && state_->IsReady());
         }
 
     protected:
-        RetType _GetValue() const
+        inline RetType _GetValue() const
         {
             assert(IsValid() && IsReady());
-            return m_pState->GetValue();
+            return state_->GetValue();
         }
 
     private:
-        AssociatedStatePtr m_pState;
+        AssociatedStatePtr state_;
     };
 
     template<class Ty>
@@ -117,47 +103,27 @@ namespace Future_Internal
         typedef std::shared_ptr<AssociatedState<Ty>> AssociatedStatePtr;
 
     public:
-        PromiseState(AssociatedStatePtr pState)
-            : m_pState(pState)
-        {
-        }
+        PromiseState(AssociatedStatePtr state) : state_(state) { }
+        PromiseState(PromiseState&& other) : state_(std::move(other.state_)) { }
+        ~PromiseState() = default;
 
-        PromiseState(PromiseState&& other)
-            : m_pState(std::move(other.m_pState))
+        inline PromiseState& operator = (PromiseState&& other)
         {
-        }
-
-        PromiseState& operator = (PromiseState&& other)
-        {
-            m_pState = std::move(other.m_pState);
+            state_ = std::move(other.state_);
             return *this;
-        }
-
-        ~PromiseState()
-        {
         }
 
         PromiseState(const PromiseState&) = delete;
         PromiseState& operator=(const PromiseState&) = delete;
 
     public:
-        void Swap(PromiseState& other)
-        {
-            m_pState.swap(other.m_pState);
-        }
-
-        const AssociatedStatePtr& GetState() const
-        {
-            return m_pState;
-        }
-
-        AssociatedStatePtr& GetState()
-        {
-            return m_pState;
-        }
+        inline bool IsExpected() const { return state_.use_count() > 1; }
+        inline void Swap(PromiseState& other) { state_.swap(other.state_); }
+        inline const AssociatedStatePtr& GetState() const { return state_; }
+        inline AssociatedStatePtr& GetState() { return state_; }
 
     private:
-        AssociatedStatePtr m_pState;
+        AssociatedStatePtr state_;
     };
 } // namespace Future_Internal
 
@@ -165,147 +131,95 @@ template<class Ty>
 class SharedFuture;
 
 template<class Ty>
-class Future
-    : public Future_Internal::FutureState<Ty>
+class Future : public Future_Internal::FutureState<Ty>
 {
-    typedef Future_Internal::FutureState<Ty> FutureState;
-    typedef typename FutureState::RetType RetType;
-
+    using FutureState = Future_Internal::FutureState<Ty>;
+    using RetType = typename FutureState::RetType;
 public:
-    Future()
-    {
-    }
-
-    Future(typename FutureState::AssociatedStatePtr pState)
-        : FutureState(pState)
-    {
-    }
-
-    ~Future()
-    {
-    }
-
+    Future() = default;
+    Future(typename FutureState::AssociatedStatePtr state) : FutureState(state) { }
     Future(Future&&) = default;
+    ~Future() = default;
+
     Future& operator = (Future&&) = default;
 
     Future(const Future&) = delete;
     Future& operator = (const Future&) = delete;
 
 public:
-    RetType GetValue()
-    {
-        this->_GetValue();
-    }
+    /* get the async task return value, must be state is READY
+     * if the RetType is not a is_scalar type, the VALUE is referenced to avoid copy operate
+    */
+    inline RetType GetValue() { this->_GetValue(); }
 
-    SharedFuture<Ty> Share()
-    {
-        return (SharedFuture<Ty>(std::move(*this)));
-    }
+    /* make future shared */
+    inline SharedFuture<Ty> Share() { return (SharedFuture<Ty>(std::move(*this))); }
 };
 
 template<class Ty>
-class Future<Ty&>
-    : public Future_Internal::FutureState<Ty*>
+class Future<Ty&> : public Future_Internal::FutureState<Ty*>
 {
-    typedef Future_Internal::FutureState<Ty*> FutureState;
-
+    using FutureState = Future_Internal::FutureState<Ty*>;
 public:
-    Future()
-    {
-    }
-
-    Future(typename FutureState::AssociatedStatePtr pState)
-        : FutureState(pState)
-    {
-    }
-
-    ~Future()
-    {
-    }
-
+    Future() = default;
+    Future(typename FutureState::AssociatedStatePtr state) : FutureState(state) { }
     Future(Future&&) = default;
+    ~Future() = default;
+
     Future& operator=(Future&&) = default;
 
     Future(const Future&) = delete;
     Future& operator=(const Future&) = delete;
 
 public:
-    Ty& GetValue()
-    {
-        return *this->_GetValue();
-    }
+    /* get the async task return value, must be state is READY */
+    inline Ty& GetValue() { return *this->_GetValue(); }
 
-    SharedFuture<Ty&> Share()
-    {
-        return SharedFuture<Ty&>(std::move(*this));
-    }
+    /* make future shared */
+    inline SharedFuture<Ty&> Share() { return SharedFuture<Ty&>(std::move(*this)); }
 };
 
 template<>
 class Future<void>
     : public Future_Internal::FutureState<int>
 {
-    typedef Future_Internal::FutureState<int> FutureState;
-
+    using FutureState = Future_Internal::FutureState<int>;
 public:
-    Future()
-    {
-    }
-
-    Future(typename FutureState::AssociatedStatePtr pState)
-        : FutureState(pState)
-    {
-    }
-
-    ~Future()
-    {
-    }
-
+    Future() = default;
+    Future(typename FutureState::AssociatedStatePtr state) : FutureState(state) { }
     Future(Future&&) = default;
+    ~Future() = default;
+
     Future& operator = (Future&&) = default;
 
     Future(const Future&) = delete;
     Future& operator = (const Future&) = delete;
 
 public:
-    void GetValue()
-    {
-        this->GetValue();
-    }
+    /* get the async task return value, must be state is READY */
+    inline void GetValue() { this->_GetValue(); }
 
+    /* make future shared */
     SharedFuture<void> Share();
 };
 
 template<class Ty>
 class SharedFuture : public Future_Internal::FutureState<Ty>
 {
-    typedef Future_Internal::FutureState<Ty> FutureState;
-    typedef typename FutureState::RetType RetType;
-
+    using FutureState = Future_Internal::FutureState<Ty>;
+    using RetType = typename FutureState::RetType;
 public:
-    SharedFuture()
-    {
-    }
+    SharedFuture() { }
+    SharedFuture(const SharedFuture& other) : FutureState(other) { }
+    SharedFuture(Future<Ty>&& other) : FutureState(std::forward<FutureState>(other)) { }
+    SharedFuture(SharedFuture&& other) : FutureState(std::move(other)) { }
 
-    SharedFuture(const SharedFuture& other)
-        : FutureState(other)
-    {
-    }
+    ~SharedFuture() { }
 
     SharedFuture& operator = (const SharedFuture& other)
     {
         FutureState::operator = (other);
         return (*this);
-    }
-
-    SharedFuture(Future<Ty>&& other)
-        : FutureState(std::forward<FutureState>(other))
-    {
-    }
-
-    SharedFuture(SharedFuture&& other)
-        : FutureState(std::move(other))
-    {
     }
 
     SharedFuture& operator = (SharedFuture&& other)
@@ -314,46 +228,28 @@ public:
         return (*this);
     }
 
-    ~SharedFuture()
-    {
-    }
-
 public:
-    RetType GetValue() const
-    {
-        return this->_GetValue();
-    }
+    /* get the async task return value, must be state is READY
+     * if the RetType is not a is_scalar type, the VALUE is referenced to avoid copy operate
+    */
+    inline RetType GetValue() const { return this->_GetValue(); }
 };
 
 template<class Ty>
 class SharedFuture<Ty&> : public Future_Internal::FutureState<Ty*>
 {
-    typedef Future_Internal::FutureState<Ty*> FutureState;
-
+    using FutureState = Future_Internal::FutureState<Ty*>;
 public:
-    SharedFuture()
-    {
-    }
-
-    SharedFuture(const SharedFuture& other)
-        : FutureState(other)
-    {
-    }
+    SharedFuture() { }
+    SharedFuture(const SharedFuture& other) : FutureState(other) { }
+    SharedFuture(Future<Ty&>&& other) : FutureState(std::forward<FutureState>(other)) { }
+    SharedFuture(SharedFuture&& other) : FutureState(std::move(other)) { }
+    ~SharedFuture() { }
 
     SharedFuture& operator = (const SharedFuture& other)
     {
         FutureState::operator = (other);
         return (*this);
-    }
-
-    SharedFuture(Future<Ty&>&& other)
-        : FutureState(std::forward<FutureState>(other))
-    {
-    }
-
-    SharedFuture(SharedFuture&& other)
-        : FutureState(std::move(other))
-    {
     }
 
     SharedFuture& operator = (SharedFuture&& other)
@@ -362,46 +258,26 @@ public:
         return (*this);
     }
 
-    ~SharedFuture()
-    {
-    }
-
 public:
-    Ty& GetValue() const
-    {
-        return *this->_GetValue();
-    }
+    /* get the async task return value, must be state is READY */
+    inline Ty& GetValue() const { return *this->_GetValue(); }
 };
 
 template<>
 class SharedFuture<void> : public Future_Internal::FutureState<int>
 {
-    typedef Future_Internal::FutureState<int> FutureState;
-
+    using FutureState = Future_Internal::FutureState<int>;
 public:
-    SharedFuture()
-    {
-    }
-
-    SharedFuture(const SharedFuture& other)
-        : FutureState(other)
-    {
-    }
+    SharedFuture() { }
+    SharedFuture(const SharedFuture& other) : FutureState(other) { }
+    SharedFuture(SharedFuture&& other) : FutureState(std::move(other)) { }
+    SharedFuture(Future<void>&& other) : FutureState(std::forward<FutureState>(other)) { }
+    ~SharedFuture() { }
 
     SharedFuture& operator = (const SharedFuture& other)
     {
         FutureState::operator = (other);
         return (*this);
-    }
-
-    SharedFuture(SharedFuture&& other)
-        : FutureState(std::move(other))
-    {
-    }
-
-    SharedFuture(Future<void>&& other)
-        : FutureState(std::forward<FutureState>(other))
-    {
     }
 
     SharedFuture& operator = (SharedFuture&& other)
@@ -410,15 +286,9 @@ public:
         return (*this);
     }
 
-    ~SharedFuture()
-    {
-    }
-
 public:
-    void GetValue() const
-    {
-        this->_GetValue();
-    }
+    /* get the async task return value, must be state is READY */
+    inline void GetValue() const { this->_GetValue(); }
 };
 
 inline SharedFuture<void> Future<void>::Share()
@@ -431,67 +301,46 @@ template<class Ty>
 class Promise
 {
 public:
-    Promise()
-        : m_Promise(std::make_shared<Future_Internal::AssociatedState<Ty>>())
-    {
-    }
+    Promise() : promise_(std::make_shared<Future_Internal::AssociatedState<Ty>>())
+    { }
 
-    Promise(Promise&& other)
-        : m_Promise(std::move(other.m_Promise))
-    {
-    }
+    Promise(Promise&& other) : promise_(std::move(other.promise_))
+    { }
+
+    ~Promise() { }
 
     Promise& operator = (Promise&& other)
     {
         Promise(std::move(other)).swap(*this);
         return *this;
-    }
-
-    ~Promise()
-    {
     }
 
     Promise(const Promise&) = delete;
     Promise& operator = (const Promise&) = delete;
 
 public:
-    void Swap(Promise& other)
-    {
-        m_Promise.Swap(other.m_Promise);
-    }
+    inline bool IsExpected() const { return promise_.IsExpected(); }
+    inline void Swap(Promise& other) { promise_.Swap(other.promise_); }
+    inline Future<Ty> GetFuture() { return Future<Ty>(promise_.GetState()); }
 
-    Future<Ty> GetFuture()
-    {
-        return Future<Ty>(m_Promise.GetState());
-    }
-
-    void SetValue(const Ty& val)
-    {
-        m_Promise.GetState()->SetValue(val);
-    }
-
-    void SetValue(Ty&& val)
-    {
-        m_Promise.GetState()->SetValue(std::forward<Ty>(val));
-    }
+    inline void SetValue(const Ty& val) { promise_.GetState()->SetValue(val); }
+    inline void SetValue(Ty&& val) { promise_.GetState()->SetValue(std::forward<Ty>(val)); }
 
 private:
-    Future_Internal::PromiseState<Ty> m_Promise;
+    Future_Internal::PromiseState<Ty> promise_;
 };
 
 template<class Ty>
 class Promise<Ty&>
 {
 public:
-    Promise()
-        : m_Promise(std::make_shared<Future_Internal::AssociatedState<Ty*>>())
-    {
-    }
+    Promise() : promise_(std::make_shared<Future_Internal::AssociatedState<Ty*>>())
+    { }
 
-    Promise(Promise&& other)
-        : m_Promise(std::move(other.m_Promise))
-    {
-    }
+    Promise(Promise&& other) : promise_(std::move(other.promise_))
+    { }
+
+    ~Promise() { }
 
     Promise& operator = (Promise&& other)
     {
@@ -499,46 +348,30 @@ public:
         return *this;
     }
 
-    ~Promise()
-    {
-    }
-
     Promise(const Promise&) = delete;
     Promise& operator=(const Promise&) = delete;
 
 public:
-    void Swap(Promise& other)
-    {
-        m_Promise.Swap(other.m_Promise);
-    }
-
-    Future<Ty&> GetFuture()
-    {
-        return Future<Ty&>(m_Promise.GetState());
-    }
-
-    void SetValue(Ty& val)
-    {
-        m_Promise._Get_state()->SetValue(&val);
-    }
+    inline bool IsExpected() const { return promise_.IsExpected(); }
+    inline void Swap(Promise& other) { promise_.Swap(other.promise_); }
+    inline Future<Ty&> GetFuture() { return Future<Ty&>(promise_.GetState()); }
+    inline void SetValue(Ty& val) { promise_.GetState()->SetValue(&val); }
 
 private:
-    Future_Internal::PromiseState<Ty*> m_Promise;
+    Future_Internal::PromiseState<Ty*> promise_;
 };
 
 template<>
 class Promise<void>
 {
 public:
-    Promise()
-        : m_Promise(std::make_shared<Future_Internal::AssociatedState<int>>())
-    {
-    }
+    Promise() : promise_(std::make_shared<Future_Internal::AssociatedState<int>>())
+    { }
 
-    Promise(Promise&& other)
-        : m_Promise(std::move(other.m_Promise))
-    {
-    }
+    Promise(Promise&& other) : promise_(std::move(other.promise_))
+    { }
+
+    ~Promise() { }
 
     Promise& operator = (Promise&& other)
     {
@@ -546,31 +379,17 @@ public:
         return (*this);
     }
 
-    ~Promise()
-    {
-    }
-
     Promise(const Promise&) = delete;
     Promise& operator=(const Promise&) = delete;
 
 public:
-    void Swap(Promise& _Other)
-    {
-        m_Promise.Swap(_Other.m_Promise);
-    }
-
-    Future<void> GetFuture()
-    {
-        return Future<void>(m_Promise.GetState());
-    }
-
-    void SetValue()
-    {
-        m_Promise.GetState()->SetValue(1);
-    }
+    inline bool IsExpected() const { return promise_.IsExpected(); }
+    inline void Swap(Promise& _Other) { promise_.Swap(_Other.promise_); }
+    inline Future<void> GetFuture() { return Future<void>(promise_.GetState()); }
+    inline void SetValue() { promise_.GetState()->SetValue(1); }
 
 private:
-    Future_Internal::PromiseState<int> m_Promise;
+    Future_Internal::PromiseState<int> promise_;
 };
 
 UTILITY_NAMESPACE_END

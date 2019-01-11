@@ -11,3 +11,4 @@ void test_serial_allocator();
 void test_stack_allocator();
 void test_to_string();
 void test_step_excutor();
+void test_async();

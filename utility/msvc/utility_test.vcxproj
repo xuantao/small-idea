@@ -149,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\test\main.cpp" />
+    <ClCompile Include="..\test\test_async.cpp" />
     <ClCompile Include="..\test\test_logger.cpp" />
     <ClCompile Include="..\test\test_ref_count_set.cpp" />
     <ClCompile Include="..\test\test_ring_buffer.cpp" />

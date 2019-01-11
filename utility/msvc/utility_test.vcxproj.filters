@@ -53,6 +53,9 @@
     <ClCompile Include="..\test\test_step_excutor.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\test\test_async.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\test\test.h">

@@ -184,6 +184,7 @@ template <typename Fy, typename... Args>
 class CallablePackage
 {
 public:
+    static_assert(std_ext::is_callable<Fy, Args...>::value, "not a callable type");
     typedef typename std_ext::invoke_result<Fy, Args...>::type RetType;
 
     CallablePackage(Fy&& func, Args&&... args)
@@ -213,16 +214,13 @@ template <typename Fy>
 class CallablePackage<Fy>
 {
 public:
+    static_assert(std_ext::is_callable<Fy>::value, "not a callable type");
     typedef typename std_ext::invoke_result<Fy>::type RetType;
 
     CallablePackage(Fy&& func) : func_(std::forward<Fy>(func))
-    {
-    }
+    { }
 
-    inline RetType operator ()()
-    {
-        return func_();
-    }
+    inline RetType operator ()() { return func_(); }
 
 private:
     Fy func_;
