@@ -505,7 +505,7 @@ namespace StepExcutor_Internal
     };
 
     template <typename Ry, typename... Args>
-    class ExcutorImpl<SharedFuture<Ry>, Args...> : public ExcutorImplBase<Args...>
+    class ExcutorImpl<const SharedFuture<Ry>&, Args...> : public ExcutorImplBase<Args...>
     {
     public:
         ExcutorImpl(const SharedFuture<Ry>& future, Args&&... args)

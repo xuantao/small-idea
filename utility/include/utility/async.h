@@ -1,11 +1,10 @@
 ﻿/*
  * 异步任务
+ * 需要先初始化线程池
 */
 #pragma once
 #include <type_traits>
 #include <memory>
-#include <cassert>
-#include <tuple>
 #include "common.h"
 #include "future.h"
 
@@ -23,67 +22,55 @@ typedef std::shared_ptr<IAsyncTask> AsyncTaskPtr;
 /* internal implamentation */
 namespace Async_Internal
 {
-    template <bool, typename Fty, typename... Args>
+    template <bool, typename Fy, typename... Args>
     struct AsyncRetType
     {
-        typedef typename std_ext::invoke_result<Fty, Args...>::type type;
+        typedef typename std_ext::invoke_result<Fy, Args...>::type type;
     };
 
-    template <typename Fty, typename... Args>
-    struct AsyncRetType<false, Fty, Args...>
+    template <typename Fy, typename... Args>
+    struct AsyncRetType<false, Fy, Args...>
     {
         typedef void type;
     };
 
-    template <typename Fty, typename... Args>
-    using AsyncRetType_t = typename AsyncRetType<std_ext::is_callable<Fty, Args...>::value, Fty, Args...>::type;
+    template <typename Fy, typename... Args>
+    using AsyncRetType_t = typename AsyncRetType<std_ext::is_callable<Fy, Args...>::value, Fy, Args...>::type;
 
-    template <typename Fty, typename... Args>
-    using EnableIf = typename std::enable_if<
-        std_ext::is_callable<Fty, Args...>::value,
-        Future<AsyncRetType_t<Fty, Args...>>
-    >::type;
+    template <typename Fy, typename... Args>
+    using EnableIf = typename std::enable_if<std_ext::is_callable<Fy, Args...>::value, Future<AsyncRetType_t<Fy, Args...>>>::type;
 
-    template <typename Rty, typename Fty, typename Args, size_t... Idxs>
-    static auto DoWork(Promise<Rty>& promise, Fty& fn, Args& args, std_ext::index_sequence<Idxs...>&&) -> typename std::enable_if<!std::is_void<Rty>::value>::type
+    template <typename Ry, typename Fy>
+    inline auto DoPromise(Promise<Ry>& promise, Fy& func) -> typename std::enable_if<!std::is_void<Ry>::value>::type
     {
-        promise.SetValue(fn(std::get<Idxs>(args)...));
+        promise.SetValue(func());
     }
 
-    template <typename Rty, typename Fty, typename Args, size_t... Idxs>
-    static auto DoWork(Promise<Rty>& promise, Fty& fn, Args& args, std_ext::index_sequence<Idxs...>&&) -> typename std::enable_if<std::is_void<Rty>::value>::type
+    template <typename Ry, typename Fy>
+    inline auto DoPromise(Promise<Ry>& promise, Fy& func) -> typename std::enable_if<std::is_void<Ry>::value>::type
     {
-        fn(std::get<Idxs>(args)...);
+        func();
         promise.SetValue();
     }
 
-    template <typename Rty, typename Fty, typename... Args>
+    template <typename Fy, typename... Args>
     class Task : public IAsyncTask
     {
     public:
-        Task(Fty&& fn, Args&&... args)
-            : m_Func(std::forward<Fty>(fn))
-            , m_Args(std::forward<Args>(args)...)
-            , m_Promise()
-        {
-        }
+        using Callable = CallablePackage<Fy, Args...>;
+        using RetType = typename std_ext::invoke_result<Callable>::type;
+
+        Task(Fy&& fn, Args&&... args) : func_(std::forward<Fy>(fn), std::forward<Args>(args)...)
+        { }
 
         virtual ~Task() = default;
 
-        void Work() override
-        {
-            DoWork(m_Promise, m_Func, m_Args, std_ext::make_index_sequence_t<sizeof...(Args)>());
-        }
-
-        Future<Rty> GetFuture()
-        {
-            return m_Promise.GetFuture();
-        }
+        void Work() override { DoPromise(promise_, func_); }
+        inline Future<RetType> GetFuture() { return promise_.GetFuture(); }
 
     private:
-        Fty m_Func;
-        std::tuple<Args...> m_Args;
-        Promise<Rty> m_Promise;
+        Callable func_;
+        Promise<RetType> promise_;
     };
 }
 
@@ -107,15 +94,25 @@ namespace Async
      * 创建一个异步任务并当如线程池队列
      * 返回Future<Rty>用来判断任务状态并获取返回值
     */
-    template <typename Fty, typename... Args>
-    auto Run(Fty&& fn, Args&&... args) -> typename Async_Internal::EnableIf<Fty, Args...>
+    template <typename Fy, typename... Args>
+    inline auto Run(Fy&& fn, Args&&... args) -> typename Async_Internal::EnableIf<Fy, Args...>
     {
-        using Rty = Async_Internal::AsyncRetType_t<Fty, Args...>;
-        auto pTask = std::make_shared<Async_Internal::Task<Rty, Fty, Args...>>(std::forward<Fty>(fn), std::forward<Args>(args)...);
-        auto cFuture = pTask->GetFuture();
+        auto task = std::make_shared<Async_Internal::Task<Fy, Args...>>(std::forward<Fy>(fn), std::forward<Args>(args)...);
+        auto future = task->GetFuture();
 
-        Run(pTask);
-        return cFuture;
+        Run(task);
+        return future;
+    }
+
+    /* 使用指定内存适配器 */
+    template <typename Alloc, typename Fy, typename... Args>
+    inline auto AllocRun(const Alloc& alloc, Fy&& fn, Args&&... args) -> typename Async_Internal::EnableIf<Fy, Args...>
+    {
+        auto task = std::allocate_shared<Async_Internal::Task<Fy, Args...>>(alloc, std::forward<Fy>(fn), std::forward<Args>(args)...);
+        auto future = task->GetFuture();
+
+        Run(task);
+        return future;
     }
 }
 
