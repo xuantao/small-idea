@@ -6,24 +6,16 @@ UTILITY_NAMESPACE_BEGIN
 template <typename Alloc>
 struct AllocatorAdapterBase
 {
-    AllocatorAdapterBase(Alloc* alloc) : alloc_(alloc)
-    {
-    }
+    AllocatorAdapterBase(Alloc* alloc) : alloc_(alloc) { }
+    AllocatorAdapterBase(const AllocatorAdapterBase& other) : alloc_(other.alloc_) { }
 
-    AllocatorAdapterBase(const AllocatorAdapterBase& other) : alloc_(other.alloc_)
-    {
-    }
-
-    AllocatorAdapterBase& operator = (const AllocatorAdapterBase& other)
+    inline AllocatorAdapterBase& operator = (const AllocatorAdapterBase& other)
     {
         alloc_ = other.alloc_;
         return *this;
     }
 
-    inline Alloc* GetAlloc()
-    {
-        return alloc_;
-    }
+    inline Alloc* GetAlloc() { return alloc_; }
 
 private:
     Alloc* alloc_;
@@ -47,51 +39,42 @@ public:
     struct rebind { typedef AllocatorAdapter<U, AllocImpl> other; };
 
 public:
-    AllocatorAdapter() : BaseType(nullptr)
-    {
-    }
-
-    AllocatorAdapter(AllocImpl* alloc) : BaseType(alloc)
-    {
-    }
-
-    AllocatorAdapter(const AllocatorAdapter& o) : BaseType(o)
-    {
-    }
+    AllocatorAdapter() : BaseType(nullptr) { }
+    AllocatorAdapter(AllocImpl* alloc) : BaseType(alloc) { }
+    AllocatorAdapter(const AllocatorAdapter& other) : BaseType(other) { }
 
     template <typename U>
-    AllocatorAdapter(const AllocatorAdapter<U, AllocImpl>& o) : BaseType(*(BaseType*)&o)
-    {
-    }
+    AllocatorAdapter(const AllocatorAdapter<U, AllocImpl>& other) : BaseType(*(BaseType*)&other)
+    { }
 
-    AllocatorAdapter& operator = (const AllocatorAdapter& o)
+    inline AllocatorAdapter& operator = (const AllocatorAdapter& other)
     {
-        *(BaseType*)this = *(BaseType*)&o;
+        *(BaseType*)this = *(BaseType*)&other;
         return *this;
     }
 
     template <typename U>
-    AllocatorAdapter& operator = (const AllocatorAdapter<U, AllocImpl>& o)
+    inline AllocatorAdapter& operator = (const AllocatorAdapter<U, AllocImpl>& other)
     {
-        *(BaseType*)this = *(BaseType*)&o;
+        *(BaseType*)this = *(BaseType*)&other;
         return *this;
     }
 
 public:
-    pointer address(reference x) const { return &x; }
-    const_pointer address(const_reference x) const { return &x; }
+    inline pointer address(reference x) const { return &x; }
+    inline const_pointer address(const_reference x) const { return &x; }
 
-    size_type max_size() const { return static_cast<size_type>(-1) / sizeof(value_type); }
+    inline size_type max_size() const { return static_cast<size_type>(-1) / sizeof(value_type); }
 
-    void construct(pointer p, const value_type& x) { new(p) value_type(x); }
-    void destroy(pointer p) { p->~value_type(); }
+    inline void construct(pointer p, const value_type& x) { new(p) value_type(x); }
+    inline void destroy(pointer p) { p->~value_type(); }
 
-    pointer allocate(size_type n, const_pointer = 0)
+    inline pointer allocate(size_type n, const_pointer = 0)
     {
         return (pointer)this->GetAlloc()->Alloc(sizeof(value_type) * n);
     }
 
-    void deallocate(pointer p, size_type n)
+    inline void deallocate(pointer p, size_type n)
     {
         this->GetAlloc()->Dealloc(p, sizeof(value_type) * n);
     }

@@ -71,6 +71,9 @@ namespace Alloc_Internal
         int8_t* pool_;
     }; // class AllocCtrl
 
+    /* stacked allocator controler
+     * first alloc last dealloc, first in lat out
+    */
     template <size_t A = sizeof(void*)>
     struct StackedAllocCtrl : SerialAllocCtrl<A>
     {

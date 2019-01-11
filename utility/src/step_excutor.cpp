@@ -67,42 +67,32 @@ namespace StepExcutor_Internal
 {
     //////////////////////////////////////////////////////////////////////////
     // class QueuedStepImpl
-    void QueuedStepImpl::Push(StepExcutorPtr ptr)
+    QueueImpl::~QueueImpl()
     {
-        void* mem = alloc_->Alloc(sizeof(StepNode));
-        auto node = new (mem) StepNode(ptr);
-
-        if (tail_)
-            tail_->next_node = node;
-        else
-            head_ = node;
-
-        tail_ = node;
-    }
-
-    void QueuedStepImpl::Clear()
-    {
-        if (!IsEmpty())
-            Rollback(); // not success completed
-
-        while (head_)
-        {
-            auto node = head_;
-            head_ = head_->next_node;
-            node->~StepNode();
-        }
+        assert(head_ == nullptr);
 
         while (step_)
         {
             auto node = step_;
             step_ = step_->next_node;
-            node->~StepNode();
-        }
 
-        head_ = tail_ = step_ = nullptr;
+            alloc_->Destruct(node);
+        }
     }
 
-    STEP_STATUS QueuedStepImpl::Step()
+    void QueueImpl::Push(StepExcutorPtr ptr)
+    {
+        auto node = alloc_->Construct<StepNode>(ptr);
+
+        if (head_ == nullptr)
+            head_ = node;
+        else
+            tail_->next_node = node;
+
+        tail_ = node;
+    }
+
+    STEP_STATUS QueueImpl::Step()
     {
         if (head_ == nullptr)
             return STEP_STATUS::Completed;
@@ -115,16 +105,23 @@ namespace StepExcutor_Internal
 
             node->next_node = step_;
             step_ = node;
-
             return STEP_STATUS::Busy;
         }
         return status;
     }
 
-    void QueuedStepImpl::Rollback()
+    void QueueImpl::Rollback()
     {
         if (head_)
             head_->val->Rollback();
+
+        while (head_)
+        {
+            auto node = head_;
+            head_ = head_->next_node;
+
+            alloc_->Destruct(node);
+        }
 
         while (step_)
         {
@@ -132,35 +129,34 @@ namespace StepExcutor_Internal
             step_ = step_->next_node;
 
             node->val->Rollback();
-            node->next_node = head_;
-            head_ = node;
+            alloc_->Destruct(node);
         }
     }
 
     //////////////////////////////////////////////////////////////////////////
     // class StackedGuardImpl
-    void StackedGuardImpl::Rollback()
+    GuardImpl::~GuardImpl()
     {
         while (head_)
         {
-            GuardNode* node = head_;
+            auto node = head_;
             head_ = head_->next_node;
 
-            node->val->Call();
-            node->val->~ICallable<void()>();
-            node->~GuardNode();
+            alloc_->Destruct(node->val);
+            alloc_->Destruct(node);
         }
     }
 
-    void StackedGuardImpl::Clear()
+    void GuardImpl::Rollback()
     {
         while (head_)
         {
-            GuardNode* node = head_;
+            auto node = head_;
             head_ = head_->next_node;
 
-            node->val->~ICallable<void()>();
-            node->~GuardNode();
+            node->val->Call();
+            alloc_->Destruct(node->val);
+            alloc_->Destruct(node);
         }
     }
 } // StepExcutor_Internal

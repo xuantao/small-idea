@@ -1,5 +1,5 @@
 ﻿/*
- * 分步执行器
+ * 分步执行器（步进器）
 */
 #pragma once
 
@@ -37,7 +37,6 @@ struct IStepExcutor
 
     /* 向前走一步 */
     virtual STEP_STATUS Step() = 0;
-
     /* 错误回滚 */
     virtual void Rollback() = 0;
 };
@@ -61,30 +60,25 @@ namespace StepExcutor_Internal
     template <typename Fy, typename... Args>
     StepExcutorPtr AllocMakeExcutor(SerialAllocator<>* alloc, Args&&... args);
 
-    class QueuedStepImpl
+    /* 步进器执行序列 */
+    class QueueImpl
     {
         using StepNode = SinglyNode<StepExcutorPtr>;
     public:
-        QueuedStepImpl(SerialAllocator<>* alloc) : alloc_(alloc)
-        {
-        }
+        QueueImpl(SerialAllocator<>* alloc) : alloc_(alloc) { }
+        ~QueueImpl();
 
-        ~QueuedStepImpl()
-        {
-            Clear();
-        }
-
-        QueuedStepImpl(const QueuedStepImpl&) = delete;
-        QueuedStepImpl& operator = (const QueuedStepImpl&) = delete;
+        QueueImpl(const QueueImpl&) = delete;
+        QueueImpl& operator = (const QueueImpl&) = delete;
 
     public:
         inline SerialAllocator<>* GetAlloc() const { return alloc_; }
-        inline bool IsEmpty() const { return head_ == nullptr; }
+        inline bool IsEmpty() const { return head_ == nullptr && step_ == nullptr; }
+        inline bool IsComplete() const { return head_ == nullptr; }
 
         STEP_STATUS Step();
         void Rollback();
         void Push(StepExcutorPtr ptr);
-        void Clear();
 
     private:
         StepNode* head_ = nullptr;
@@ -93,52 +87,72 @@ namespace StepExcutor_Internal
         SerialAllocator<>* alloc_;
     };
 
-    class StackedGuardImpl
+    /* 守护器 */
+    class GuardImpl
     {
         using GuardNode = SinglyNode<ICallable<void()>*>;
     public:
-        StackedGuardImpl(SerialAllocator<>* alloc) : alloc_(alloc)
-        {
-        }
+        GuardImpl(SerialAllocator<>* alloc) : alloc_(alloc) { }
+        ~GuardImpl();
 
-        ~StackedGuardImpl()
-        {
-            Clear();
-        }
-
-        StackedGuardImpl(const StackedGuardImpl&) = delete;
-        StackedGuardImpl& operator = (const StackedGuardImpl&) = delete;
+        GuardImpl(const GuardImpl&) = delete;
+        GuardImpl& operator = (const GuardImpl&) = delete;
 
     public:
-        inline SerialAllocator<>* GetAlloc() const
-        {
-            return alloc_;
-        }
+        inline SerialAllocator<>* GetAlloc() const { return alloc_; }
 
         template <typename Fy, typename... Args>
         inline void Push(Fy&& func, Args&&... args)
         {
-            GuardNode* node = Construct(std::forward<Fy>(func), std::forward<Args>(args)...);
+            using Callable = CallableObject<Fy, Args...>;
+
+            auto node = alloc_->Construct<GuardNode>(nullptr);
+            node->val = alloc_->Construct<Callable>(std::forward<Fy>(func), std::forward<Args>(args)...);
+
             node->next_node = head_;
             head_ = node;
         }
 
         void Rollback();
-        void Clear();
-
-    private:
-        template <typename Fy, typename... Args>
-        GuardNode* Construct(Fy&& func, Args&&... args)
-        {
-            using Callable = CallableObject<Fy, Args...>;
-            GuardNode* node = new (alloc_->Alloc(sizeof(GuardNode))) GuardNode(nullptr);
-            node->val = new (alloc_->Alloc(sizeof(Callable))) Callable(std::forward<Fy>(func), std::forward<Args>(args)...);
-            return node;
-        }
 
     private:
         GuardNode* head_ = nullptr;
         SerialAllocator<>* alloc_;
+    };
+
+    /* 中间站控制器 */
+    class StepStationCtrl
+    {
+    public:
+        StepStationCtrl(SerialAllocator<>* alloc) : queue_(alloc), guarder_(alloc)
+        { }
+
+        ~StepStationCtrl()
+        {
+            if (!queue_.IsComplete())
+                Rollback(); // 没有执行完就析构表明出现错误, 需要回滚
+        }
+
+    public:
+        inline SerialAllocator<>* GetAlloc() { return queue_.GetAlloc(); }
+        inline void SubStep(StepExcutorPtr step) { queue_.Push(step); }
+        inline STEP_STATUS Step() { return queue_.Step(); }
+
+        inline void Rollback()
+        {
+            queue_.Rollback();
+            guarder_.Rollback();
+        }
+
+        template <typename Fy, typename... Args>
+        inline void Guard(Fy&& func, Args&&... args)
+        {
+            guarder_.Push(std::forward<Fy>(func), std::forward<Args>(args)...);
+        }
+
+    private:
+        QueueImpl queue_;
+        GuardImpl guarder_;
     };
 } // namespace StepExcutor_Internal
 
@@ -170,59 +184,65 @@ inline StepExcutorPtr MakeStepExcutor(const SharedFuture<Ry>& future, Fy&& fn)
 class QueueStepExcutor final : public IStepExcutor
 {
 public:
-    QueueStepExcutor()
-        : alloc_(1024)
-        , queue_(alloc_.GetAlloc())
+    QueueStepExcutor() : alloc_(1024)
     {
+        queue_ = alloc_.Construct<StepExcutor_Internal::QueueImpl>(&alloc_);
     }
 
-    QueueStepExcutor(size_t cache_block_size)
-        : alloc_(cache_block_size)
-        , queue_(alloc_.GetAlloc())
+    QueueStepExcutor(size_t cache_block_size) : alloc_(cache_block_size)
     {
+        queue_ = alloc_.Construct<StepExcutor_Internal::QueueImpl>(&alloc_);
     }
 
-    virtual ~QueueStepExcutor() = default;
+    virtual ~QueueStepExcutor()
+    {
+        if (!IsComplete())
+            Rollback();
+
+        alloc_.Destruct(queue_);
+        queue_ = nullptr;
+    }
 
     QueueStepExcutor(const QueueStepExcutor&) = delete;
     QueueStepExcutor& operator = (const QueueStepExcutor&) = delete;
 
 public:
-    STEP_STATUS Step() override { return queue_.Step(); }
-    void Rollback() override { queue_.Rollback(); }
+    STEP_STATUS Step() override { return queue_->Step(); }
+    void Rollback() override { queue_->Rollback(); }
 
 public:
-    inline bool IsEmpty() const { return queue_.IsEmpty(); }
+    inline bool IsEmpty() const { return queue_->IsEmpty(); }
+    inline bool IsComplete() const { return queue_->IsComplete(); }
 
     inline void Add(StepExcutorPtr ptr)
     {
-        queue_.Push(ptr);
+        queue_->Push(ptr);
     }
 
     template <typename Fy>
     inline void Add(Fy&& fn)
     {
-        queue_.Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(
-            alloc_.GetAlloc(), std::forward<Fy>(fn)));
+        queue_->Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(
+            &alloc_, std::forward<Fy>(fn)));
     }
 
     template <typename Ry, typename Fy>
     inline void Add(Future<Ry>&& future, Fy&& fn)
     {
-        queue_.Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(
-            alloc_.GetAlloc(), std::move(future), std::forward<Fy>(fn)));
+        queue_->Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(
+            &alloc_, std::move(future), std::forward<Fy>(fn)));
     }
 
     template <typename Ry, typename Fy>
     inline void Add(const SharedFuture<Ry>& future, Fy&& fn)
     {
-        queue_.Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(
-            alloc_.GetAlloc(), future, std::forward<Fy>(fn)));
+        queue_->Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(
+            &alloc_, future, std::forward<Fy>(fn)));
     }
 
 private:
-    PoolSerialAlloc<512> alloc_;
-    StepExcutor_Internal::QueuedStepImpl queue_;
+    StepExcutor_Internal::QueueImpl* queue_;
+    PooledSerialAlloc<512> alloc_;
 }; // QueueStepExcutor
 
 /* 并行式步进器 */
@@ -241,7 +261,7 @@ public:
 
 public:
     inline bool IsEmpty() const { return steps_.empty(); }
-    inline void Add(StepExcutorPtr ptr) { steps_.push_back(ptr); }
+    inline void AddStep(StepExcutorPtr ptr) { steps_.push_back(ptr); }
 
 protected:
     std::vector<StepExcutorPtr> steps_;
@@ -250,37 +270,33 @@ protected:
 /* 步进器中转站 */
 class StepStation
 {
-protected:
-    StepStation(StepExcutor_Internal::QueuedStepImpl* que, StepExcutor_Internal::StackedGuardImpl* guarder)
-        : queue_(que)
-        , guarder_(guarder)
-    { }
-
-    StepStation(const StepStation&) = delete;
-    StepStation& operator = (const StepStation&) = delete;
+public:
+    StepStation(const StepStation&) = default;
+    StepStation& operator = (const StepStation&) = default;
 
 public:
+    /* 添加子步骤 */
     inline void SubStep(StepExcutorPtr step)
     {
-        queue_->Push(step);
+        ctrl_->SubStep(step);
     }
 
     template <typename Fy>
     inline void SubStep(Fy&& fn)
     {
-        queue_->Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(queue_->GetAlloc(), std::forward<Fy>(fn)));
+        ctrl_->SubStep(StepExcutor_Internal::AllocMakeExcutor<Fy>(ctrl_->GetAlloc(), std::forward<Fy>(fn)));
     }
 
     template <typename Ry, typename Fy>
     inline void SubStep(Future<Ry>&& future, Fy&& fn)
     {
-        queue_->Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(queue_->GetAlloc(), std::move(future), std::forward<Fy>(fn)));
+        ctrl_->SubStep(StepExcutor_Internal::AllocMakeExcutor<Fy>(ctrl_->GetAlloc(), std::move(future), std::forward<Fy>(fn)));
     }
 
     template <typename Ry, typename Fy>
     inline void SubStep(const SharedFuture<Ry>& future, Fy&& fn)
     {
-        queue_->Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(queue_->GetAlloc(), future, std::forward<Fy>(fn)));
+        ctrl_->SubStep(StepExcutor_Internal::AllocMakeExcutor<Fy>(ctrl_->GetAlloc(), future, std::forward<Fy>(fn)));
     }
 
     /* 守卫函数
@@ -289,12 +305,56 @@ public:
     template <typename Fy, typename... Args>
     inline void Guard(Fy&& func, Args&&... args)
     {
-        guarder_->Push(std::forward<Fy>(func), std::forward<Args>(args)...);
+        ctrl_->Guard(std::forward<Fy>(func), std::forward<Args>(args)...);
+    }
+
+protected:
+    StepStation() = default;
+    ~StepStation() = default;
+
+protected:
+    using StationCtrl = StepExcutor_Internal::StepStationCtrl;
+
+    inline SerialAllocator<>* GetAlloc() { return ctrl_->GetAlloc(); }
+    inline void SetCtrl(StationCtrl* ctrl) { ctrl_ = ctrl; }
+    inline StationCtrl* GetCtrl() { return ctrl_; }
+
+private:
+    StationCtrl* ctrl_;
+};
+
+/* 步进器工作站 */
+template <size_t Pool = 2048>
+class StepExcutorStation : public IStepExcutor, public StepStation
+{
+public:
+    StepExcutorStation() : alloc_(Pool > 1024 ? Pool : 1024)
+    {
+        SetCtrl(alloc_.Construct<StepExcutor_Internal::StepStationCtrl>(&alloc_));
+    }
+
+    virtual ~StepExcutorStation()
+    {
+        alloc_.Destruct(GetCtrl());
+    }
+
+public:
+    STEP_STATUS Step() override
+    {
+        return GetCtrl()->Step();
+    }
+
+    void Rollback() override
+    {
+        GetCtrl()->Rollback();
+
+        alloc_.Destruct(GetCtrl());
+        alloc_.Reset();
+        SetCtrl(alloc_.Construct<StepExcutor_Internal::StepStationCtrl>(&alloc_));
     }
 
 private:
-    StepExcutor_Internal::QueuedStepImpl* queue_;
-    StepExcutor_Internal::StackedGuardImpl* guarder_;
+    PooledSerialAlloc<Pool> alloc_;
 };
 
 namespace StepExcutor_Internal
@@ -325,7 +385,7 @@ namespace StepExcutor_Internal
     struct ExcutorSignatureCheck
     {
         static constexpr bool value = std_ext::is_callable<Fy>::value ||
-            (!std_ext::is_callable<Fy, const StepStation&>::value && std_ext::is_callable<Fy, StepStation&>::value);
+            (std_ext::is_callable<Fy, const StepStation&>::value || std_ext::is_callable<Fy, StepStation&>::value);
     };
 
     template <bool, typename Fy>
@@ -370,80 +430,41 @@ namespace StepExcutor_Internal
         return fn();
     }
 
-    class StationCtrl : public StepStation
+    class StationExcutorImpl : public IStepExcutor, public StepStation
     {
     public:
-        StationCtrl(SerialAllocator<>* alloc)
-            : StepStation(&queue_, &guarder_)
-            , queue_(alloc)
-            , guarder_(alloc)
-        { }
-
-        ~StationCtrl()
+        StationExcutorImpl(SerialAllocator<>* alloc) : ctrl_(alloc)
         {
-            if (!queue_.IsEmpty())
-                Rollback();
-            guarder_.Clear();
-            queue_.Clear();
+            StepStation::SetCtrl(&ctrl_);
         }
 
-    public:
-        inline STEP_STATUS Step() { return queue_.Step(); }
-
-        inline void Rollback()
-        {
-            queue_.Rollback();
-            guarder_.Rollback();
-        }
-
-    private:
-        QueuedStepImpl queue_;
-        StackedGuardImpl guarder_;
-    };
-
-    class StationExcutor : public IStepExcutor
-    {
-    public:
-        StationExcutor(SerialAllocator<>* alloc) : ctrl_(alloc) {}
-        virtual ~StationExcutor() = default;
+        virtual ~StationExcutorImpl() = default;
 
     public:
-        inline StepStation& GetStation() { return ctrl_; }
         STEP_STATUS Step() override { return ctrl_.Step(); }
         void Rollback() override { ctrl_.Rollback(); }
 
     private:
-        StationCtrl ctrl_;
+        StepStationCtrl ctrl_;
     };
 
-    class AllocStationExcutor : public IStepExcutor
+    class StepExcutorStationExt : public StepExcutorStation<128>
     {
     public:
-        AllocStationExcutor() : alloc_(1024), ctrl_(alloc_.GetAlloc()) {}
-        virtual ~AllocStationExcutor() = default;
-
-    public:
-        inline SerialAllocator<>* GetAlloc() { return alloc_.GetAlloc(); }
-        inline StepStation& GetStation() { return ctrl_; }
-        STEP_STATUS Step() override { return ctrl_.Step(); }
-        void Rollback() override { ctrl_.Rollback(); }
-
-    private:
-        PoolSerialAlloc<128> alloc_;
-        StationCtrl ctrl_;
+        inline SerialAllocator<>* GetAlloc() { return StepExcutorStation<128>::GetAlloc(); }
     };
 
     template <typename Fy, typename... Args>
-    class ExcutorDetail : public IStepExcutor
+    class ExcutorImplBase : public IStepExcutor
     {
         using Callee = CallablePackage<Fy, Args...>;
     public:
-        ExcutorDetail(Fy&& func, Args&&... args)
+        ExcutorImplBase(Fy&& func, Args&&... args)
             : callee_(std::forward<Fy>(func), std::forward<Args>(args)...)
         {
         }
 
-        virtual ~ExcutorDetail() { }
+        virtual ~ExcutorImplBase() { }
         STEP_STATUS Step() override { return StepForward(callee_); }
         void Rollback() override { }
 
@@ -452,33 +473,31 @@ namespace StepExcutor_Internal
     };
 
     template <typename... Args>
-    class FutureExcutor : public ExcutorDetail<Args...>
+    class ExcutorImpl : public ExcutorImplBase<Args...>
     {
     public:
-        FutureExcutor(Args&&... args) : ExcutorDetail<Args...>(std::forward<Args>(args)...)
-        {
-        }
+        ExcutorImpl(Args&&... args) : ExcutorImplBase<Args...>(std::forward<Args>(args)...)
+        { }
 
-        virtual ~FutureExcutor() { }
+        virtual ~ExcutorImpl() { }
     };
 
     template <typename Ry, typename... Args>
-    class FutureExcutor<Future<Ry>, Args...> : public ExcutorDetail<Args...>
+    class ExcutorImpl<Future<Ry>, Args...> : public ExcutorImplBase<Args...>
     {
     public:
-        FutureExcutor(Future<Ry>&& future, Args&&... args)
-            : ExcutorDetail<Args...>(std::forward<Args>(args)...)
+        ExcutorImpl(Future<Ry>&& future, Args&&... args)
+            : ExcutorImplBase<Args...>(std::forward<Args>(args)...)
             , future_(std::move(future))
-        {
-        }
+        { }
 
-        virtual ~FutureExcutor() { }
+        virtual ~ExcutorImpl() { }
 
         STEP_STATUS Step() override
         {
             if (!future_.IsReady())
                 return STEP_STATUS::Idle;
-            return ExcutorDetail<Args...>::Step();
+            return ExcutorImplBase<Args...>::Step();
         }
 
     private:
@@ -486,22 +505,21 @@ namespace StepExcutor_Internal
     };
 
     template <typename Ry, typename... Args>
-    class FutureExcutor<SharedFuture<Ry>, Args...> : public ExcutorDetail<Args...>
+    class ExcutorImpl<SharedFuture<Ry>, Args...> : public ExcutorImplBase<Args...>
     {
     public:
-        FutureExcutor(const SharedFuture<Ry>& future, Args&&... args)
-            : ExcutorDetail<Args...>(std::forward<Args>(args)...)
+        ExcutorImpl(const SharedFuture<Ry>& future, Args&&... args)
+            : ExcutorImplBase<Args...>(std::forward<Args>(args)...)
             , future_(future)
-        {
-        }
+        { }
 
-        virtual ~FutureExcutor() { }
+        virtual ~ExcutorImpl() { }
 
         STEP_STATUS Step() override
         {
             if (!future_.IsReady())
                 return STEP_STATUS::Idle;
-            return ExcutorDetail<Args...>::Step();
+            return ExcutorImplBase<Args...>::Step();
         }
 
     private:
@@ -511,31 +529,31 @@ namespace StepExcutor_Internal
     template <typename... Args>
     inline StepExcutorPtr PackageExcutor(SerialAllocator<>* alloc, Args&&... args)
     {
-        using ExcutorType = FutureExcutor<Args...>;
+        using ExcutorType = ExcutorImpl<Args...>;
         return std::allocate_shared<ExcutorType>(alloc->GetAdapter<ExcutorType>(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     inline StepExcutorPtr MakeExcutorImpl(std::true_type, Args&&... args)
     {
-        auto station = std::make_shared<AllocStationExcutor>();
-        auto step = PackageExcutor<Args..., StepStation&>(station->GetAlloc(), std::forward<Args>(args)..., station->GetStation());
-        station->GetStation().SubStep(step);
+        auto station = std::make_shared<StepExcutorStationExt>();
+        auto step = PackageExcutor(station->GetAlloc(), std::forward<Args>(args)..., *station);
+        station->SubStep(step);
         return station;
     }
 
     template <typename... Args>
     inline StepExcutorPtr MakeExcutorImpl(std::false_type, Args&&... args)
     {
-        return std::make_shared<FutureExcutor<Args...>>(std::forward<Args>(args)...);
+        return std::make_shared<ExcutorImpl<Args...>>(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     inline StepExcutorPtr AllocMakeExcutorImpl(std::true_type, SerialAllocator<>* alloc, Args&&... args)
     {
-        auto station = std::allocate_shared<StationExcutor>(alloc->GetAdapter<StationExcutor>(), alloc);
-        auto step = PackageExcutor<Args..., StepStation&>(alloc, std::forward<Args>(args)..., station->GetStation());
-        station->GetStation().SubStep(step);
+        auto station = std::allocate_shared<StationExcutorImpl>(alloc->GetAdapter<StationExcutorImpl>(), alloc);
+        auto step = PackageExcutor(alloc, std::forward<Args>(args)..., *station);
+        station->SubStep(step);
         return station;
     }
 

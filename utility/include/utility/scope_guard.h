@@ -77,7 +77,7 @@ namespace ScopeGuard_Internal
         }
 
     private:
-        PoolSerialAlloc<N, A> alloc_;
+        PooledSerialAlloc<N, A> alloc_;
     };
 } // namespace detail
 
