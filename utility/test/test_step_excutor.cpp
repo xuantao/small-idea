@@ -176,29 +176,41 @@ static void test_parallel_step_excutor()
 
     if (utility::StepEnd(&paral) == utility::STEP_STATUS::Failed)
         paral.Rollback();
+
+    //auto f4 = utility::Async::ExpectedRun([] { std::this_thread::yield(); printf("asyn run 4\n"); });
+    //station.SubStep(std::move(f4), [] { printf("step excutor 4\n"); });
 }
 
 static void test_step_async()
 {
-    utility::PooledSerialAlloc<128> alloc;
-    utility::StepExcutorStation<256> station;
+    utility::StepExcutorStation<> station;
     utility::Async::Startup(4);
 
-    auto f1 = utility::Async::Run([] { std::this_thread::sleep_for(std::chrono::milliseconds(1)); printf("asyn run 1\n"); });
-    station.SubStep(std::move(f1), [] { printf("step excutor 1\n"); });
-    //station.SubStep(f1, [] { printf("step excutor 1\n"); });  // need rvalue future
+    auto f1 = utility::Async::Run([] {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        printf("asyn run 1\n");
+    });
+    station.SubStep(std::move(f1), [] {
+        printf("step excutor 1\n");
+    });
 
-    auto f2 = utility::Async::Run([] { std::this_thread::sleep_for(std::chrono::milliseconds(1)); printf("asyn run 2\n"); });
-    station.SubStep(std::move(f2), [] { printf("step excutor 2\n"); });
+    auto f2 = utility::Async::Run([] {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        printf("asyn run 2\n");
+    });
+    station.SubStep(std::move(f2), [] {
+        printf("step excutor 2\n");
+    });
 
-    auto f3 = utility::Async::Run([] { std::this_thread::sleep_for(std::chrono::milliseconds(1)); printf("asyn run 3\n"); }).Share();
-    station.SubStep(f3, [] { printf("step excutor 3\n"); });
-
-    auto f4 = utility::Async::ExpectedRun([] { std::this_thread::yield(); printf("asyn run 4\n"); });
-    station.SubStep(std::move(f4), [] { printf("step excutor 4\n"); });
+    auto f3 = utility::Async::Run([] {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        printf("asyn run 3\n");
+    }).Share();
+    station.SubStep(f3, [] {
+        printf("step excutor 3\n");
+    });
 
     utility::StepEnd(&station);
-
     utility::Async::Shutdown();
 }
 
