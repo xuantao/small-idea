@@ -11,7 +11,7 @@
 
 UTILITY_NAMESPACE_BEGIN
 
-/* 分布控制器
+/* 分布执行控制器
  * 1. 添加子节点
  * 2. 添加控制守卫
 */
@@ -21,7 +21,7 @@ class StepCtrl;
 enum class STEP_STATUS
 {
     Busy,       // 繁忙
-    Idle,       // 空闲
+    Idle,       // 空闲(当等待异步任务结束时)
     Failed,     // 失败
     Completed,  // 结束
 };
@@ -313,14 +313,13 @@ public:
     }
 
 protected:
-    StepCtrl() = default;
-
-protected:
     using StepCtrlImpl = StepExcutor_Internal::StepCtrlImpl;
 
-    inline SerialAllocator<>* GetAlloc() { return ctrl_->GetAlloc(); }
+    StepCtrl() = default;
+
+    inline SerialAllocator<>* GetAlloc() const { return ctrl_->GetAlloc(); }
+    inline StepCtrlImpl* GetCtrlImpl() const { return ctrl_; }
     inline void SetCtrlImpl(StepCtrlImpl* ctrl) { ctrl_ = ctrl; }
-    inline StepCtrlImpl* GetCtrlImpl() { return ctrl_; }
 
 private:
     StepCtrlImpl* ctrl_;

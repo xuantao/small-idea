@@ -7,8 +7,7 @@ UTILITY_NAMESPACE_BEGIN
 
 namespace Alloc_Internal
 {
-    /*
-     * 序列式分配器, 顺序从一块缓存中分配一段内存
+    /* 序列式分配器, 顺序从一块缓存中分配一段内存
      * 只分配不负责释放。当不够空间分配时返回nullptr
     */
     template <size_t A = sizeof(void*)>
@@ -66,8 +65,8 @@ namespace Alloc_Internal
             std::swap(other.pool_, pool_);
         }
 
-        size_t capacity_;
         size_t alloced_ = 0;
+        size_t capacity_;
         int8_t* pool_;
     }; // class AllocCtrl
 
@@ -230,9 +229,9 @@ namespace Alloc_Internal
             return node;
         }
 
-        size_t block_size_;
         AllocNode* empty_head_ = nullptr;
         AllocNode alloc_node_;
+        size_t block_size_;
     };
 } // Alloc_Internal
 

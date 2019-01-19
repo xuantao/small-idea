@@ -92,7 +92,7 @@ namespace Async_Internal
 
     public:
         /* when none body is expected this task, task will be enter abandoned state */
-        bool IsAbandoned() override { return !this->promise_.IsExpected(); }
+        bool IsAbandoned() override { return !this->promise_.IsExpecting(); }
     };
 }
 
@@ -132,7 +132,7 @@ namespace Async
      * 当返回的Future不再被持有时, 任务进入废弃状态可能不会被执行
     */
     template <typename Fy, typename... Args>
-    inline auto ExpectedRun(Fy&& fn, Args&&... args) -> typename Async_Internal::EnableIf<Fy, Args...>
+    inline auto ExpectRun(Fy&& fn, Args&&... args) -> typename Async_Internal::EnableIf<Fy, Args...>
     {
         auto task = std::make_shared<Async_Internal::ExpectedTask<Fy, Args...>>(std::forward<Fy>(fn), std::forward<Args>(args)...);
         auto future = task->GetFuture();

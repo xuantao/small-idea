@@ -82,7 +82,8 @@ namespace Future_Internal
 
         inline bool IsReady() const
         {
-            return (state_ && state_->IsReady());
+            assert(IsValid());
+            return (IsValid() && state_->IsReady());
         }
 
     protected:
@@ -117,7 +118,7 @@ namespace Future_Internal
         PromiseState& operator=(const PromiseState&) = delete;
 
     public:
-        inline bool IsExpected() const { return state_.use_count() > 1; }
+        inline bool IsExpecting() const { return state_.use_count() > 1; }
         inline void Swap(PromiseState& other) { state_.swap(other.state_); }
         inline const AssociatedStatePtr& GetState() const { return state_; }
         inline AssociatedStatePtr& GetState() { return state_; }
@@ -319,7 +320,7 @@ public:
     Promise& operator = (const Promise&) = delete;
 
 public:
-    inline bool IsExpected() const { return promise_.IsExpected(); }
+    inline bool IsExpecting() const { return promise_.IsExpecting(); }
     inline void Swap(Promise& other) { promise_.Swap(other.promise_); }
     inline Future<Ty> GetFuture() { return Future<Ty>(promise_.GetState()); }
 
@@ -352,7 +353,7 @@ public:
     Promise& operator=(const Promise&) = delete;
 
 public:
-    inline bool IsExpected() const { return promise_.IsExpected(); }
+    inline bool IsExpecting() const { return promise_.IsExpecting(); }
     inline void Swap(Promise& other) { promise_.Swap(other.promise_); }
     inline Future<Ty&> GetFuture() { return Future<Ty&>(promise_.GetState()); }
     inline void SetValue(Ty& val) { promise_.GetState()->SetValue(&val); }
@@ -383,7 +384,7 @@ public:
     Promise& operator=(const Promise&) = delete;
 
 public:
-    inline bool IsExpected() const { return promise_.IsExpected(); }
+    inline bool IsExpecting() const { return promise_.IsExpecting(); }
     inline void Swap(Promise& _Other) { promise_.Swap(_Other.promise_); }
     inline Future<void> GetFuture() { return Future<void>(promise_.GetState()); }
     inline void SetValue() { promise_.GetState()->SetValue(1); }
