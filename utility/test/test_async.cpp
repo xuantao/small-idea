@@ -12,13 +12,13 @@ void test_async_expected()
     });
 
     {
-        Async::ExpectedRun([] {
+        Async::ExpectRun([] {
             printf("this ExpectedRun will not be printed\n");
             assert(false);
         });
     }
 
-    auto f = Async::ExpectedRun([] {
+    auto f = Async::ExpectRun([] {
         printf("this ExpectedRun must be printed\n");
     });
 

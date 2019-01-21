@@ -45,16 +45,16 @@ private:
     void Dealloc(void* p, size_t size)
     {
         auto& alloc_node = this->alloc_node_;
-        auto& ctrl = alloc_node.val;
+        auto& ctrl = alloc_node.value;
         ctrl.Dealloc(p, size);
 
-        if (ctrl.Empty() && alloc_node.next_node)
+        if (ctrl.Empty() && alloc_node.next)
         {
-            auto* empty_node = alloc_node.next_node;
-            alloc_node.next_node = empty_node->next_node;
-            ctrl.Swap(empty_node->val);
+            auto* empty_node = alloc_node.next;
+            alloc_node.next = empty_node->next;
+            ctrl.Swap(empty_node->value);
 
-            empty_node->next_node = this->empty_head_;
+            empty_node->next = this->empty_head_;
             this->empty_head_ = empty_node;
         }
     }

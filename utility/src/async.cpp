@@ -112,31 +112,42 @@ private:
     std::condition_variable condition_;
     std::vector<std::thread> threads_;
     std::queue<AsyncTaskPtr> tasks_;
-} s_TaskPool;
+}* s_TaskPool = nullptr;
 
 namespace Async
 {
     bool Startup(size_t threadNum)
     {
-        assert(!s_TaskPool.IsRunning());
-        return s_TaskPool.Create(threadNum);
+        assert(s_TaskPool == nullptr);
+
+        s_TaskPool = new KGAsyncTaskPool();
+        if (!s_TaskPool->Create(threadNum))
+        {
+            delete s_TaskPool;
+            s_TaskPool = nullptr;
+            return false;
+        }
+
+        return true;
     }
 
     void Shutdown()
     {
-        s_TaskPool.Destory();
+        s_TaskPool->Destory();
+        delete s_TaskPool;
+        s_TaskPool = nullptr;
     }
 
     bool IsRunning()
     {
-        return s_TaskPool.IsRunning();
+        return s_TaskPool != nullptr;
     }
 
     void Run(AsyncTaskPtr pTask)
     {
         assert(pTask);
-        assert(s_TaskPool.IsRunning());
-        s_TaskPool.AddTask(pTask);
+        assert(s_TaskPool);
+        s_TaskPool->AddTask(pTask);
     }
 }
 

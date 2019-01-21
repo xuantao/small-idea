@@ -74,7 +74,7 @@ namespace StepExcutor_Internal
         while (step_)
         {
             auto node = step_;
-            step_ = step_->next_node;
+            step_ = step_->next;
 
             alloc_->Destruct(node);
         }
@@ -87,7 +87,7 @@ namespace StepExcutor_Internal
         if (head_ == nullptr)
             head_ = node;
         else
-            tail_->next_node = node;
+            tail_->next = node;
 
         tail_ = node;
     }
@@ -97,13 +97,13 @@ namespace StepExcutor_Internal
         if (head_ == nullptr)
             return STEP_STATUS::Completed;
 
-        STEP_STATUS status = head_->val->Step();
+        STEP_STATUS status = head_->value->Step();
         if (status == STEP_STATUS::Completed)
         {
             auto node = head_;
-            head_ = head_->next_node;
+            head_ = head_->next;
 
-            node->next_node = step_;
+            node->next = step_;
             step_ = node;
             return STEP_STATUS::Busy;
         }
@@ -113,12 +113,12 @@ namespace StepExcutor_Internal
     void QueueImpl::Rollback()
     {
         if (head_)
-            head_->val->Rollback();
+            head_->value->Rollback();
 
         while (head_)
         {
             auto node = head_;
-            head_ = head_->next_node;
+            head_ = head_->next;
 
             alloc_->Destruct(node);
         }
@@ -126,9 +126,9 @@ namespace StepExcutor_Internal
         while (step_)
         {
             auto node = step_;
-            step_ = step_->next_node;
+            step_ = step_->next;
 
-            node->val->Rollback();
+            node->value->Rollback();
             alloc_->Destruct(node);
         }
     }
@@ -140,9 +140,9 @@ namespace StepExcutor_Internal
         while (head_)
         {
             auto node = head_;
-            head_ = head_->next_node;
+            head_ = head_->next;
 
-            alloc_->Destruct(node->val);
+            alloc_->Destruct(node->value);
             alloc_->Destruct(node);
         }
     }
@@ -152,10 +152,10 @@ namespace StepExcutor_Internal
         while (head_)
         {
             auto node = head_;
-            head_ = head_->next_node;
+            head_ = head_->next;
 
-            node->val->Call();
-            alloc_->Destruct(node->val);
+            node->value->Call();
+            alloc_->Destruct(node->value);
             alloc_->Destruct(node);
         }
     }

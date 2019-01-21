@@ -3,53 +3,104 @@
 #include "utility/async.h"
 #include <thread>
 
+static void test_normal_steps()
+{
+    //return;
+    {
+        utility::StepExcutorStation<> station;
+        auto ctrl = station.GetCtrl();
+        ctrl.SubStep([] {
+            printf("[] () {}\n");
+        });
+
+        ctrl.SubStep([] {
+            printf("[] () { return true; }\n");
+            return true;
+        });
+
+        ctrl.SubStep([] {
+            printf("[] () { utility::STEP_STATUS::Completed; }\n");
+            return utility::STEP_STATUS::Completed;
+        });
+
+        if (StepEnd(&station) == utility::STEP_STATUS::Failed)
+            station.Rollback();
+    }
+
+    {
+        utility::StepExcutorStation<> station;
+        auto ctrl = station.GetCtrl();
+        ctrl.SubStep([] {
+            printf("[] () {}\n");
+        });
+
+        ctrl.SubStep([] {
+            printf("[] () { return true; }\n");
+            return true;
+        });
+
+        ctrl.SubStep([] {
+            printf("[] () { utility::STEP_STATUS::Completed; }\n");
+            return utility::STEP_STATUS::Completed;
+        });
+
+        ctrl.SubStep([] {
+            printf("[] () { utility::STEP_STATUS::Failed; }\n");
+            return utility::STEP_STATUS::Failed;
+        });
+
+        if (StepEnd(&station) == utility::STEP_STATUS::Failed)
+            station.Rollback();
+    }
+}
+
 static void test_step_excutor_station()
 {
     utility::StepExcutorStation<> station;
-
-    station.SubStep(utility::MakeStepExcutor([] {
+    auto ctrl = station.GetCtrl();
+    ctrl.SubStep(utility::MakeStepExcutor([] {
         printf("[] () {}\n");
     }));
 
-    station.SubStep(utility::MakeStepExcutor([] {
+    ctrl.SubStep(utility::MakeStepExcutor([] {
         printf("[] () { return true; }\n");
         return true;
     }));
 
-    station.SubStep(utility::MakeStepExcutor([] {
+    ctrl.SubStep(utility::MakeStepExcutor([] {
         printf("[] () { utility::STEP_STATUS::Completed; }\n");
         return utility::STEP_STATUS::Completed;
     }));
 
-    station.SubStep(utility::MakeStepExcutor([](utility::StepCtrl guard) {
+    ctrl.SubStep(utility::MakeStepExcutor([](utility::StepCtrl guard) {
         printf("[] (StepGuard& guard) { utility::STEP_STATUS::Completed; }\n");
     }));
 
-    station.SubStep(utility::MakeStepExcutor([](utility::StepCtrl guard) {
+    ctrl.SubStep(utility::MakeStepExcutor([](utility::StepCtrl guard) {
         printf("[] (StepGuard& guard) { utility::STEP_STATUS::Completed; }\n");
         return true;
     }));
 
-    station.SubStep(utility::MakeStepExcutor([](utility::StepCtrl guard) {
+    ctrl.SubStep(utility::MakeStepExcutor([](utility::StepCtrl guard) {
         printf("[] (StepGuard& guard) { utility::STEP_STATUS::Completed; }\n");
         return utility::STEP_STATUS::Completed;
     }));
 
-    station.SubStep([] {
+    ctrl.SubStep([] {
         printf("[] () {}\n");
     });
 
-    station.SubStep([] {
+    ctrl.SubStep([] {
         printf("[] () { return true; }\n");
         return true;
     });
 
-    station.SubStep([] {
+    ctrl.SubStep([] {
         printf("[] () { utility::STEP_STATUS::Completed; }\n");
         return utility::STEP_STATUS::Completed;
     });
 
-    station.SubStep([](utility::StepCtrl guard) {
+    ctrl.SubStep([](utility::StepCtrl guard) {
         printf("[] (StepGuard& guard) { }\n");
         for (int i = 0; i < 10; ++i)
         {
@@ -58,7 +109,7 @@ static void test_step_excutor_station()
         }
     });
 
-    station.SubStep([](utility::StepCtrl guard) {
+    ctrl.SubStep([](utility::StepCtrl guard) {
         printf("[] (StepGuard& guard) { return true; }\n");
 
         guard.SubStep([](utility::StepCtrl station) {
@@ -70,7 +121,7 @@ static void test_step_excutor_station()
         return true;
     });
 
-    station.SubStep([](utility::StepCtrl guard) {
+    ctrl.SubStep([](utility::StepCtrl guard) {
         printf("[] (StepGuard& guard) { utility::STEP_STATUS::Completed; }\n");
         return utility::STEP_STATUS::Completed;
     });
@@ -185,12 +236,13 @@ static void test_step_async()
 {
     utility::StepExcutorStation<> station;
     utility::Async::Startup(4);
+    auto ctrl = station.GetCtrl();
 
     auto f1 = utility::Async::Run([] {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         printf("asyn run 1\n");
     });
-    station.SubStep(std::move(f1), [] {
+    ctrl.SubStep(std::move(f1), [] {
         printf("step excutor 1\n");
     });
 
@@ -198,7 +250,7 @@ static void test_step_async()
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         printf("asyn run 2\n");
     });
-    station.SubStep(std::move(f2), [] {
+    ctrl.SubStep(std::move(f2), [] {
         printf("step excutor 2\n");
     });
 
@@ -206,7 +258,7 @@ static void test_step_async()
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         printf("asyn run 3\n");
     }).Share();
-    station.SubStep(f3, [] {
+    ctrl.SubStep(f3, [] {
         printf("step excutor 3\n");
     });
 
@@ -216,6 +268,7 @@ static void test_step_async()
 
 void test_step_excutor()
 {
+    test_normal_steps();
     test_step_excutor_station();
     test_queue_step_excutor();
     test_parallel_step_excutor();

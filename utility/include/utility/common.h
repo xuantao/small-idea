@@ -3,7 +3,6 @@
  * xuantao, 2017
 */
 #pragma once
-
 #include <type_traits>
 #include <tuple>
 #include <cstdint>
@@ -119,11 +118,10 @@ struct SinglyNode
     SinglyNode() { }
 
     template <typename... Args>
-    SinglyNode(Args&&... args) : val(std::forward<Args>(args)...)
-    { }
+    SinglyNode(Args&&... args) : value(std::forward<Args>(args)...) { }
 
-    SinglyNode* next_node = nullptr;
-    Ty val;
+    SinglyNode* next = nullptr;
+    Ty value;
 };
 
 inline constexpr size_t AlignPadding(size_t sz, size_t bound = sizeof(void*))

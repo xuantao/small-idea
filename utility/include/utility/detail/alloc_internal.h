@@ -118,13 +118,13 @@ namespace Alloc_Internal
 
         void* Alloc(size_t size)
         {
-            void* buff = alloc_node_.val.Alloc(size);
+            void* buff = alloc_node_.value.Alloc(size);
             if (buff)
                 return buff;
 
             CreateNode(std::max(AlignSize(size + Align, Align), block_size_));
 
-            buff = alloc_node_.val.Alloc(size);
+            buff = alloc_node_.value.Alloc(size);
             assert(buff);
             return buff;
         }
@@ -133,45 +133,45 @@ namespace Alloc_Internal
         {
             std::swap(block_size_, other.block_size_);
             std::swap(empty_head_, other.empty_head_);
-            std::swap(alloc_node_.next_node, other.alloc_node_.next_node);
-            alloc_node_.val.Swap(other.alloc_node_.Value);
+            std::swap(alloc_node_.next, other.alloc_node_.next_node);
+            alloc_node_.value.Swap(other.alloc_node_.Value);
         }
 
         /* Reset the allocator without free alloc node */
         void Reset()
         {
             AllocNode* cur = nullptr;
-            AllocNode* node = alloc_node_.next_node;
+            AllocNode* node = alloc_node_.next;
 
             while (node)
             {
                 cur = node;
-                node = node->next_node;
+                node = node->next;
 
-                cur->next_node = empty_head_;
-                cur->val.Reset();
+                cur->next = empty_head_;
+                cur->value.Reset();
                 empty_head_ = cur;
             }
 
-            alloc_node_.next_node = nullptr;
-            alloc_node_.val.Reset();
+            alloc_node_.next = nullptr;
+            alloc_node_.value.Reset();
 
             if (cur)
-                alloc_node_.val.Swap(cur->val);
+                alloc_node_.value.Swap(cur->value);
         }
 
         /* Reset the allocator and free alloc node */
         void Dissolve()
         {
-            AllocNode* node = alloc_node_.next_node;
-            alloc_node_.next_node = nullptr;
+            AllocNode* node = alloc_node_.next;
+            alloc_node_.next = nullptr;
             while (node)
             {
                 AllocNode* cur = node;
-                node = node->next_node;
+                node = node->next;
 
                 if (node == nullptr)
-                    alloc_node_.val.Swap(cur->val);
+                    alloc_node_.value.Swap(cur->value);
 
                 cur->~AllocNode();
                 delete reinterpret_cast<int8_t*>(cur);
@@ -180,7 +180,7 @@ namespace Alloc_Internal
             while (empty_head_)
             {
                 AllocNode* pCur = empty_head_;
-                empty_head_ = empty_head_->next_node;
+                empty_head_ = empty_head_->next;
 
                 pCur->~AllocNode();
                 delete reinterpret_cast<int8_t*>(pCur);
@@ -199,9 +199,9 @@ namespace Alloc_Internal
                 node = new (mem) AllocNode(mem + NodeObjSize, size);
             }
 
-            alloc_node_.val.Swap(node->val);
-            node->next_node = alloc_node_.next_node;
-            alloc_node_.next_node = node;
+            alloc_node_.value.Swap(node->value);
+            node->next = alloc_node_.next;
+            alloc_node_.next = node;
         }
 
         AllocNode* FindSuitableNode(size_t size)
@@ -211,17 +211,17 @@ namespace Alloc_Internal
 
             while (node)
             {
-                if (node->val.Capacity() < size)
+                if (node->value.Capacity() < size)
                 {
                     prev = node;
-                    node = node->next_node;
+                    node = node->next;
                 }
                 else
                 {
                     if (prev)
-                        prev->next_node = node->next_node;
+                        prev->next = node->next;
                     else
-                        empty_head_ = node->next_node;
+                        empty_head_ = node->next;
                     break;
                 }
             }
