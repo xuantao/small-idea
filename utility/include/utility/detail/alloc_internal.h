@@ -27,25 +27,10 @@ namespace Alloc_Internal
             Swap(other);
         }
 
-        inline bool Empty() const
-        {
-            return alloced_ == 0;
-        }
-
-        inline size_t Size() const
-        {
-            return alloced_;
-        }
-
-        inline size_t Capacity() const
-        {
-            return capacity_;
-        }
-
-        inline void Reset()
-        {
-            alloced_ = 0;
-        }
+        inline bool Empty() const { return alloced_ == 0; }
+        inline size_t Size() const { return alloced_; }
+        inline size_t Capacity() const { return capacity_; }
+        inline void Reset() { alloced_ = 0; }
 
         void* Alloc(size_t sz)
         {
