@@ -208,6 +208,8 @@ static void test_queue_step_excutor()
         steper.Rollback();
 }
 
+static int guard_call(int) { return 1; }
+
 static void test_parallel_step_excutor()
 {
     ParallelStepExcutor paral;
@@ -221,6 +223,8 @@ static void test_parallel_step_excutor()
         station.SubStep([] {
             printf("paralle step 4\n");
         });
+        station.Guard([] { printf("card"); });
+        station.Guard(guard_call, 1);
     }));
 
     paral.AddStep(MakeStepExcutor([] {

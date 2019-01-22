@@ -62,7 +62,7 @@ namespace Async_Internal
     class Task : public IAsyncTask
     {
     public:
-        using Callable = CallablePackage<Fy, Args...>;
+        using Callable = PackageCall<Fy, Args...>;
         using RetType = typename std_ext::invoke_result<Callable>::type;
 
         Task(Fy&& fn, Args&&... args) : func_(std::forward<Fy>(fn), std::forward<Args>(args)...)

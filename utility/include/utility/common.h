@@ -135,17 +135,26 @@ inline constexpr size_t AlignSize(size_t sz, size_t bound = sizeof(void*))
     return sz + AlignPadding(sz, bound);
 }
 
+template <typename... Args>
+struct ICallOnly
+{
+    virtual ~ICallOnly() { }
+    virtual void CallOnly(Args... args) = 0;
+};
+
 template <typename Ty>
 struct ICallable;
 
 template <typename Ry, typename... Args>
-struct ICallable<Ry(Args...)>
+struct ICallable<Ry(Args...)> : public ICallOnly<Args...>
 {
     virtual ~ICallable() { }
 
     virtual Ry Call(Args... args) = 0;
     virtual ICallable* Move(void* mem) = 0;
     virtual ICallable* Copy(void* mem) = 0;
+
+    void CallOnly(Args... args) final { Call(args...); }
 };
 
 template <typename Fy, typename... Args>
@@ -155,8 +164,9 @@ public:
     using RetType = typename std_ext::invoke_result<Fy, Args...>::type;
     using BaseType = ICallable<RetType(Args...)>;
 
-    CallableObject(const Fy& fn) : func_(fn) { }
-    CallableObject(Fy&& fn) : func_(std::forward<Fy>(fn)) { }
+    template <typename... Param>
+    CallableObject(Param&&... args) : func_(std::forward<Param>(args)...) { }
+
     ~CallableObject() { }
 
     RetType Call(Args... args) override
@@ -179,13 +189,13 @@ private:
 };
 
 template <typename Fy, typename... Args>
-class CallablePackage
+class PackageCall
 {
 public:
     static_assert(std_ext::is_callable<Fy, Args...>::value, "not a callable type");
     typedef typename std_ext::invoke_result<Fy, Args...>::type RetType;
 
-    CallablePackage(Fy&& func, Args&&... args)
+    PackageCall(Fy&& func, Args&&... args)
         : func_(std::forward<Fy>(func))
         , args_(std::forward<Args>(args)...)
     {
@@ -209,13 +219,13 @@ private:
 };
 
 template <typename Fy>
-class CallablePackage<Fy>
+class PackageCall<Fy>
 {
 public:
     static_assert(std_ext::is_callable<Fy>::value, "not a callable type");
     typedef typename std_ext::invoke_result<Fy>::type RetType;
 
-    CallablePackage(Fy&& func) : func_(std::forward<Fy>(func))
+    PackageCall(Fy&& func) : func_(std::forward<Fy>(func))
     { }
 
     inline RetType operator ()() { return func_(); }

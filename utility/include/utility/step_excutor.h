@@ -60,7 +60,7 @@ STEP_STATUS StepEnd(IStepExcutor* pSteper);
 namespace StepExcutor_Internal
 {
     /* 守护函数 */
-    using GaurdFuncPtr = ICallable<void()>*;
+    using GaurdFuncPtr = ICallOnly<>*;
 
     template <typename Fy, typename... Args>
     StepExcutorPtr MakeExcutor(Args&&... args);
@@ -305,7 +305,8 @@ public:
     template <typename Fy, typename... Args>
     inline void Guard(Fy&& func, Args&&... args)
     {
-        using Callable = CallableObject<Fy, Args...>;
+        using Package = PackageCall<Fy, Args...>;
+        using Callable = CallableObject<Package>;
         auto call = ctrl_->GetGuardAlloc()->Construct<Callable>(std::forward<Fy>(func), std::forward<Args>(args)...);
         assert(call);
         ctrl_->Guard(call);

@@ -154,7 +154,7 @@ namespace StepExcutor_Internal
             auto node = head_;
             head_ = head_->next;
 
-            node->value->Call();
+            node->value->CallOnly();
             alloc_->Destruct(node->value);
             alloc_->Destruct(node);
         }
