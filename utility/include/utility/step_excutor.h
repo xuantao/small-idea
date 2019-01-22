@@ -60,7 +60,22 @@ STEP_STATUS StepEnd(IStepExcutor* pSteper);
 namespace StepExcutor_Internal
 {
     /* 守护函数 */
-    using GaurdFuncPtr = ICallOnly<>*;
+    struct GuardCaller
+    {
+        virtual ~GuardCaller() {}
+        virtual void Call() = 0;
+    };
+
+    template <typename Fy>
+    struct GuardCallerImpl final : GuardCaller
+    {
+        GuardCallerImpl(Fy&& func) : func_(std::forward<Fy>(func)) { }
+        virtual ~GuardCallerImpl() { }
+
+        void Call() override { func_(); }
+    private:
+        Fy func_;
+    };
 
     template <typename Fy, typename... Args>
     StepExcutorPtr MakeExcutor(Args&&... args);
@@ -94,14 +109,14 @@ namespace StepExcutor_Internal
     /* 守护器 */
     class GuardImpl
     {
-        using GuardNode = SinglyNode<GaurdFuncPtr>;
+        using GuardNode = SinglyNode<GuardCaller*>;
     public:
         GuardImpl(SerialAllocator<>* alloc) : alloc_(alloc) { }
         ~GuardImpl();
 
     public:
         inline SerialAllocator<>* GetAlloc() const { return alloc_; }
-        inline void Push(GaurdFuncPtr func) { head_ = alloc_->Construct<GuardNode>(head_, func); }
+        inline void Push(GuardCaller* caller) { head_ = alloc_->Construct<GuardNode>(head_, caller); }
 
         void Rollback();
 
@@ -114,30 +129,30 @@ namespace StepExcutor_Internal
     class StepCtrlImpl
     {
     public:
-        StepCtrlImpl(SerialAllocator<>* alloc) : queue_(alloc), guarder_(alloc) { }
+        StepCtrlImpl(SerialAllocator<>* alloc) : steper_(alloc), guarder_(alloc) { }
 
         ~StepCtrlImpl()
         {
-            if (!queue_.IsComplete())
+            if (!steper_.IsComplete())
                 Rollback(); // 没有执行完就析构表明出现错误, 需要回滚
         }
 
     public:
-        inline SerialAllocator<>* GetStepAlloc() { return queue_.GetAlloc(); }
+        inline SerialAllocator<>* GetStepAlloc() { return steper_.GetAlloc(); }
         inline SerialAllocator<>* GetGuardAlloc() { return guarder_.GetAlloc(); }
 
-        inline void SubStep(StepExcutorPtr step) { queue_.Push(step); }
-        inline void Guard(GaurdFuncPtr func) { guarder_.Push(func); }
-        inline STEP_STATUS Step() { return queue_.Step(); }
+        inline void SubStep(StepExcutorPtr step) { steper_.Push(step); }
+        inline void Guard(GuardCaller* caller) { guarder_.Push(caller); }
+        inline STEP_STATUS Step() { return steper_.Step(); }
 
         inline void Rollback()
         {
-            queue_.Rollback();
+            steper_.Rollback();
             guarder_.Rollback();
         }
 
     private:
-        QueueImpl queue_;
+        QueueImpl steper_;
         GuardImpl guarder_;
     };
 
@@ -299,17 +314,11 @@ public:
         ctrl_->SubStep(StepExcutor_Internal::AllocMakeExcutor<Fy>(ctrl_->GetStepAlloc(), future, std::forward<Fy>(fn)));
     }
 
-    /* 守卫函数
-     * 将函数+参数打包成一个functor存起来, 当出现错误回滚时执行
-    */
-    template <typename Fy, typename... Args>
-    inline void Guard(Fy&& func, Args&&... args)
+    /* 守卫函数 */
+    template <typename Fy>
+    inline void Guard(Fy&& fn)
     {
-        using Package = PackageCall<Fy, Args...>;
-        using Callable = CallableObject<Package>;
-        auto call = ctrl_->GetGuardAlloc()->Construct<Callable>(std::forward<Fy>(func), std::forward<Args>(args)...);
-        assert(call);
-        ctrl_->Guard(call);
+        ctrl_->Guard(ctrl_->GetGuardAlloc()->Construct<StepExcutor_Internal::GuardCallerImpl<Fy>>(std::forward<Fy>(fn)));
     }
 
 private:

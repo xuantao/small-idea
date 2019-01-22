@@ -135,26 +135,17 @@ inline constexpr size_t AlignSize(size_t sz, size_t bound = sizeof(void*))
     return sz + AlignPadding(sz, bound);
 }
 
-template <typename... Args>
-struct ICallOnly
-{
-    virtual ~ICallOnly() { }
-    virtual void CallOnly(Args... args) = 0;
-};
-
 template <typename Ty>
 struct ICallable;
 
 template <typename Ry, typename... Args>
-struct ICallable<Ry(Args...)> : public ICallOnly<Args...>
+struct ICallable<Ry(Args...)>
 {
     virtual ~ICallable() { }
 
     virtual Ry Call(Args... args) = 0;
     virtual ICallable* Move(void* mem) = 0;
     virtual ICallable* Copy(void* mem) = 0;
-
-    void CallOnly(Args... args) final { Call(args...); }
 };
 
 template <typename Fy, typename... Args>
