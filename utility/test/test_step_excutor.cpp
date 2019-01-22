@@ -267,6 +267,16 @@ static void test_step_async()
         printf("step excutor 3\n");
     });
 
+    int i = 0;
+    ctrl.SubStep([i]() mutable {
+        while (i < 2) // 不能使用 for, for的累加操作会被跳过
+        {
+            printf("step excutor 4 sub:{%d}\n", i++);
+            return STEP_STATUS::Busy;
+        }
+        return STEP_STATUS::Completed;
+    });
+
     if (StepEnd(&station) == STEP_STATUS::Failed)
         station.Rollback();
     Async::Shutdown();
