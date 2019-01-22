@@ -82,7 +82,7 @@ namespace StepExcutor_Internal
 
     void QueueImpl::Push(StepExcutorPtr ptr)
     {
-        auto node = alloc_->Construct<StepNode>(ptr);
+        auto node = alloc_->Construct<StepNode>(nullptr, ptr);
 
         if (head_ == nullptr)
             head_ = node;

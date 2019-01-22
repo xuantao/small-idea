@@ -38,8 +38,9 @@ struct IStepExcutor
 {
     virtual ~IStepExcutor() { }
 
-    /* 向前走一步 */
+    /* 向前走一步并返回当前状态 */
     virtual STEP_STATUS Step() = 0;
+
     /* 错误回滚 */
     virtual void Rollback() = 0;
 };
@@ -58,6 +59,9 @@ STEP_STATUS StepEnd(IStepExcutor* pSteper);
 /* 内部实现细节 */
 namespace StepExcutor_Internal
 {
+    /* 守护函数 */
+    using GaurdFuncPtr = ICallable<void()>*;
+
     template <typename Fy, typename... Args>
     StepExcutorPtr MakeExcutor(Args&&... args);
     template <typename Fy, typename... Args>
@@ -70,9 +74,6 @@ namespace StepExcutor_Internal
     public:
         QueueImpl(SerialAllocator<>* alloc) : alloc_(alloc) { }
         ~QueueImpl();
-
-        QueueImpl(const QueueImpl&) = delete;
-        QueueImpl& operator = (const QueueImpl&) = delete;
 
     public:
         inline SerialAllocator<>* GetAlloc() const { return alloc_; }
@@ -93,28 +94,14 @@ namespace StepExcutor_Internal
     /* 守护器 */
     class GuardImpl
     {
-        using GuardNode = SinglyNode<ICallable<void()>*>;
+        using GuardNode = SinglyNode<GaurdFuncPtr>;
     public:
         GuardImpl(SerialAllocator<>* alloc) : alloc_(alloc) { }
         ~GuardImpl();
 
-        GuardImpl(const GuardImpl&) = delete;
-        GuardImpl& operator = (const GuardImpl&) = delete;
-
     public:
         inline SerialAllocator<>* GetAlloc() const { return alloc_; }
-
-        template <typename Fy, typename... Args>
-        inline void Push(Fy&& func, Args&&... args)
-        {
-            using Callable = CallableObject<Fy, Args...>;
-
-            auto node = alloc_->Construct<GuardNode>(nullptr);
-            node->value = alloc_->Construct<Callable>(std::forward<Fy>(func), std::forward<Args>(args)...);
-
-            node->next = head_;
-            head_ = node;
-        }
+        inline void Push(GaurdFuncPtr func) { head_ = alloc_->Construct<GuardNode>(head_, func); }
 
         void Rollback();
 
@@ -127,8 +114,7 @@ namespace StepExcutor_Internal
     class StepCtrlImpl
     {
     public:
-        StepCtrlImpl(SerialAllocator<>* alloc) : queue_(alloc), guarder_(alloc)
-        { }
+        StepCtrlImpl(SerialAllocator<>* alloc) : queue_(alloc), guarder_(alloc) { }
 
         ~StepCtrlImpl()
         {
@@ -137,8 +123,11 @@ namespace StepExcutor_Internal
         }
 
     public:
-        inline SerialAllocator<>* GetAlloc() { return queue_.GetAlloc(); }
+        inline SerialAllocator<>* GetStepAlloc() { return queue_.GetAlloc(); }
+        inline SerialAllocator<>* GetGuardAlloc() { return guarder_.GetAlloc(); }
+
         inline void SubStep(StepExcutorPtr step) { queue_.Push(step); }
+        inline void Guard(GaurdFuncPtr func) { guarder_.Push(func); }
         inline STEP_STATUS Step() { return queue_.Step(); }
 
         inline void Rollback()
@@ -147,51 +136,11 @@ namespace StepExcutor_Internal
             guarder_.Rollback();
         }
 
-        template <typename Fy, typename... Args>
-        inline void Guard(Fy&& func, Args&&... args)
-        {
-            guarder_.Push(std::forward<Fy>(func), std::forward<Args>(args)...);
-        }
-
     private:
         QueueImpl queue_;
         GuardImpl guarder_;
     };
 
-    class StationImpl : public IStepExcutor
-    {
-    public:
-        StationImpl(SerialAllocator<>* alloc) { Init(alloc); }
-        virtual ~StationImpl() { Uninit(); }
-
-    public:
-        STEP_STATUS Step() override { return ctrl_->Step(); }
-        void Rollback() override { ctrl_->Rollback(); }
-
-    protected:
-        /* 这里提供受保护的构造、初始化操作是为了可以手动控制创建、销毁流程
-         * 当子类要持有内存分配器时，不能直接使用构造函数构造对象。
-         * 为了要保证成员变量的初始化顺序
-        */
-        StationImpl() { }
-
-        inline void Init(SerialAllocator<>* alloc)
-        {
-            ctrl_ = alloc->Construct<StepCtrlImpl>(alloc);
-        }
-
-        void Uninit()
-        {
-            if (ctrl_)
-            {
-                ctrl_->GetAlloc()->Destruct(ctrl_);
-                ctrl_ = nullptr;
-            }
-        }
-
-    protected:
-        StepCtrlImpl* ctrl_ = nullptr;
-    };
 } // namespace StepExcutor_Internal
 
 /* 构建一个分布执行器
@@ -335,19 +284,19 @@ public:
     template <typename Fy>
     inline void SubStep(Fy&& fn)
     {
-        ctrl_->SubStep(StepExcutor_Internal::AllocMakeExcutor<Fy>(ctrl_->GetAlloc(), std::forward<Fy>(fn)));
+        ctrl_->SubStep(StepExcutor_Internal::AllocMakeExcutor<Fy>(ctrl_->GetStepAlloc(), std::forward<Fy>(fn)));
     }
 
     template <typename Ry, typename Fy>
     inline void SubStep(Future<Ry>&& future, Fy&& fn)
     {
-        ctrl_->SubStep(StepExcutor_Internal::AllocMakeExcutor<Fy>(ctrl_->GetAlloc(), std::move(future), std::forward<Fy>(fn)));
+        ctrl_->SubStep(StepExcutor_Internal::AllocMakeExcutor<Fy>(ctrl_->GetStepAlloc(), std::move(future), std::forward<Fy>(fn)));
     }
 
     template <typename Ry, typename Fy>
     inline void SubStep(const SharedFuture<Ry>& future, Fy&& fn)
     {
-        ctrl_->SubStep(StepExcutor_Internal::AllocMakeExcutor<Fy>(ctrl_->GetAlloc(), future, std::forward<Fy>(fn)));
+        ctrl_->SubStep(StepExcutor_Internal::AllocMakeExcutor<Fy>(ctrl_->GetStepAlloc(), future, std::forward<Fy>(fn)));
     }
 
     /* 守卫函数
@@ -356,36 +305,83 @@ public:
     template <typename Fy, typename... Args>
     inline void Guard(Fy&& func, Args&&... args)
     {
-        ctrl_->Guard(std::forward<Fy>(func), std::forward<Args>(args)...);
+        using Callable = CallableObject<Fy, Args...>;
+        auto call = ctrl_->GetGuardAlloc()->Construct<Callable>(std::forward<Fy>(func), std::forward<Args>(args)...);
+        assert(call);
+        ctrl_->Guard(call);
     }
 
 private:
     StepCtrlImpl* ctrl_;
 };
 
-/* 步进器工作站 */
-template <size_t Pool = 2048>
-class StepExcutorStation : public StepExcutor_Internal::StationImpl
+/* 步进器工作站基类
+ * 这里提供受保护的构造、初始化操作是为了可以手动控制创建、销毁流程
+ * 当子类要持有内存分配器时，不能直接使用构造函数构造对象。
+ * 为了要保证成员变量的初始化顺序
+*/
+class StepExcutorStationBase : public IStepExcutor
 {
-    using StepCtrlImpl = StepExcutor_Internal::StepCtrlImpl;
 public:
-    StepExcutorStation() { Init(&alloc_); }
-    virtual ~StepExcutorStation() { Uninit(); }
+    StepExcutorStationBase(SerialAllocator<>* alloc) { Init(alloc); }
+    virtual ~StepExcutorStationBase() { Uninit(); }
+
+    StepExcutorStationBase(const StepExcutorStationBase&) = delete;
+    StepExcutorStationBase& operator = (const StepExcutorStationBase&) = delete;
 
 public:
-    void Rollback() override
-    {
-        StepExcutor_Internal::StationImpl::Rollback();
-        /* 清空内存分配器 */
-        Uninit();
-        alloc_.Reset();
-        Init(&alloc_);
-    }
+    STEP_STATUS Step() override { return ctrl_->Step(); }
+    void Rollback() override { ctrl_->Rollback(); }
 
     inline StepCtrl GetCtrl() const { return StepCtrl(ctrl_); }
 
+protected:
+    StepExcutorStationBase() { }
+
+    inline void Init(SerialAllocator<>* alloc)
+    {
+        assert(ctrl_ == nullptr);
+        ctrl_ = alloc->Construct<StepExcutor_Internal::StepCtrlImpl>(alloc);
+    }
+
+    void Uninit()
+    {
+        if (ctrl_)
+        {
+            ctrl_->GetStepAlloc()->Destruct(ctrl_);
+            ctrl_ = nullptr;
+        }
+    }
+
+protected:
+    StepExcutor_Internal::StepCtrlImpl* ctrl_ = nullptr;
+};
+
+/* 步进器工作站
+ * 工作站是一次性的, 执行完毕、出错回滚以后变不再可用
+ * Pool: 指定持有缓存大小, 避免过多细碎内存分配
+*/
+template <size_t Pool = 2048>
+class StepExcutorStation : public StepExcutorStationBase
+{
+public:
+    StepExcutorStation() : alloc_((Pool > 1024 ? Pool : 1024))
+    {
+        Init(&alloc_);
+    }
+
+    StepExcutorStation(size_t block_size) : alloc_(block_size)
+    {
+        Init(&alloc_);
+    }
+
+    virtual ~StepExcutorStation()
+    {
+        Uninit();
+    }
+
 private:
-    PooledSerialAlloc<Pool> alloc_{(Pool > 1024 ? Pool : 1024)};
+    PooledSerialAlloc<Pool> alloc_;
 };
 
 namespace StepExcutor_Internal
@@ -405,31 +401,28 @@ namespace StepExcutor_Internal
 
     /* check has guarder */
     template <typename Ty>
-    struct ExcutorHasGuarder : public std::bool_constant<std_ext::is_callable<Ty, StepCtrl>::value>
-    {};
+    struct ExcutorHasGuarder : public std::bool_constant<
+        std_ext::is_callable<Ty, StepCtrl>::value> {};
 
     template <typename Fy>
     using ExcutorRetType_t = typename ExcutorRetTypeTrait<ExcutorHasGuarder<Fy>::value, Fy>::type;
 
     template <typename Fy>
     struct ExcutorSignatureCheck : public std::bool_constant<
-        std_ext::is_callable<Fy>::value || std_ext::is_callable<Fy, StepCtrl>::value
-    > {};
+        std_ext::is_callable<Fy>::value || std_ext::is_callable<Fy, StepCtrl>::value> {};
 
     template <bool, typename Fy>
     struct ExcutorCheckImpl : public std::bool_constant<
         std::is_void<ExcutorRetType_t<Fy>>::value ||
         std::is_same<bool, ExcutorRetType_t<Fy>>::value ||
-        std::is_same<STEP_STATUS, ExcutorRetType_t<Fy>>::value
-    > {};
+        std::is_same<STEP_STATUS, ExcutorRetType_t<Fy>>::value> {};
 
     template <typename Fy>
     struct ExcutorCheckImpl<false, Fy> : public std::false_type {};
 
     template <typename Fy>
     struct ExcutorCheck : public std::bool_constant<
-        ExcutorCheckImpl<ExcutorSignatureCheck<Fy>::value, Fy>::value
-    > {};
+        ExcutorCheckImpl<ExcutorSignatureCheck<Fy>::value, Fy>::value> {};
 
     /* functor: void() */
     template <typename Fy>
@@ -453,23 +446,19 @@ namespace StepExcutor_Internal
         return fn();
     }
 
-    /* 内部使用的控制器 */
-    struct InnerStation1 : public StationImpl
+    /* 内部使用的控制器, 共享内存分配器 */
+    struct InnerStation1 : public StepExcutorStationBase
     {
-        InnerStation1(SerialAllocator<>* alloc) : StationImpl(alloc) { }
-
+        InnerStation1(SerialAllocator<>* alloc) : StepExcutorStationBase(alloc) { }
         inline StepCtrlImpl* GetCtrlImpl() const { return ctrl_; }
     };
 
-    class InnerStation2 : public StationImpl
+    /* 内部使用的控制器, 独立使用内存分配器 */
+    class InnerStation2 : public StepExcutorStation<128>
     {
     public:
-        InnerStation2() : StationImpl() { Init(&alloc_); }
-        virtual ~InnerStation2() { Uninit(); }
-
+        InnerStation2() : StepExcutorStation(1024) { }
         inline StepCtrlImpl* GetCtrlImpl() const { return ctrl_; }
-    private:
-        PooledSerialAlloc<128> alloc_{1024};
     };
 
     /* 打包执行函数 */
@@ -508,8 +497,7 @@ namespace StepExcutor_Internal
     {
         using Callable = StepCallable<Fy, Args...>;
     public:
-        ExcutorImplBase(Fy&& func, Args&&... args)
-            : func_(std::forward<Fy>(func), std::forward<Args>(args)...)
+        ExcutorImplBase(Fy&& func, Args&&... args) : func_(std::forward<Fy>(func), std::forward<Args>(args)...)
         { }
         virtual ~ExcutorImplBase() { }
 
@@ -585,7 +573,7 @@ namespace StepExcutor_Internal
     inline StepExcutorPtr MakeExcutorImpl(std::true_type, Args&&... args)
     {
         auto station = std::make_shared<InnerStation2>();
-        auto step = PackageExcutor(station->GetCtrlImpl()->GetAlloc(), std::forward<Args>(args)..., station->GetCtrlImpl());
+        auto step = PackageExcutor(station->GetCtrlImpl()->GetStepAlloc(), std::forward<Args>(args)..., station->GetCtrlImpl());
         station->GetCtrlImpl()->SubStep(step);
         return station;
     }

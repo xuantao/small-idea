@@ -118,7 +118,7 @@ struct SinglyNode
     SinglyNode() { }
 
     template <typename... Args>
-    SinglyNode(Args&&... args) : value(std::forward<Args>(args)...) { }
+    SinglyNode(SinglyNode<Ty>* n, Args&&... args) : next(n), value(std::forward<Args>(args)...) { }
 
     SinglyNode* next = nullptr;
     Ty value;

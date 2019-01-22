@@ -85,13 +85,13 @@ namespace Alloc_Internal
         using AllocNode = SinglyNode<AllocCtrl>;
 
         AllocCtrlChain(size_t block_size)
-            : alloc_node_(nullptr, 0)
+            : alloc_node_(nullptr, nullptr, 0)
             , block_size_(block_size)
         {
         }
 
         AllocCtrlChain(void* default_pool, size_t default_size, size_t block_size)
-            : alloc_node_(default_pool, default_size)
+            : alloc_node_(nullptr, default_pool, default_size)
             , block_size_(block_size)
         {
         }
@@ -181,7 +181,7 @@ namespace Alloc_Internal
                 int8_t* mem = new int8_t[NodeObjSize + size];
                 assert(mem);
 
-                node = new (mem) AllocNode(mem + NodeObjSize, size);
+                node = new (mem) AllocNode(nullptr, mem + NodeObjSize, size);
             }
 
             alloc_node_.value.Swap(node->value);
