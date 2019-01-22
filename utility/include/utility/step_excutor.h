@@ -1,5 +1,6 @@
-﻿/*
- * 分步执行器（步进器）
+﻿/* 分步执行器（步进器）
+ * 将耗时逻辑拆分为单个简短的操作, 避免耗时操作卡住主逻辑循环。
+ * 需要注意的是一般步进器都是一次性的, 不可重复步进。
 */
 #pragma once
 
@@ -56,9 +57,69 @@ STEP_STATUS StepFor(IStepExcutor* pSteper, size_t nDuration);
 */
 STEP_STATUS StepEnd(IStepExcutor* pSteper);
 
+namespace StepExcutor_Internal
+{
+    template <typename Fy, typename... Args> StepExcutorPtr MakeExcutor(Args&&... args);
+}
+
+/* 构建一个分布执行器
+ * Fy支持的函数签名为:
+ * 1. void(), void(StepStation&), the status will be STEP_STATUS::Completed
+ * 2. bool(), bool(StepStation&), the status will be (ret ? STEP_STATUS::Completed : STEP_STATUS::Failed)
+ * 3. STEP_STATUS(), STEP_STATUS(StepStation&)
+*/
+template <typename Fy>
+inline StepExcutorPtr MakeStepExcutor(Fy&& fn)
+{
+    return StepExcutor_Internal::MakeExcutor<Fy>(std::forward<Fy>(fn));
+}
+
+/* 等待Future对象Ready以后再步进
+ * 当Future位处于Ready状态则返回STEP_STATUS::Idle
+*/
+template <typename Ry, typename Fy>
+inline StepExcutorPtr MakeStepExcutor(Future<Ry>&& future, Fy&& fn)
+{
+    return StepExcutor_Internal::MakeExcutor<Fy>(std::move(future), std::forward<Fy>(fn));
+}
+
+/* 同上 */
+template <typename Ry, typename Fy>
+inline StepExcutorPtr MakeStepExcutor(const SharedFuture<Ry>& future, Fy&& fn)
+{
+    return StepExcutor_Internal::MakeExcutor<Fy>(future, std::forward<Fy>(fn));
+}
+
+/* 并行式步进器
+ * 由于是并行式的, 当一个步进器执行完毕以后会从列表中删除, 无法提供总的回滚操作。
+ * 且一个步进器出现错误, 只回滚错误的步进器而不会影响其它的。
+*/
+class ParallelStepExcutor : public IStepExcutor
+{
+public:
+    ParallelStepExcutor() = default;
+    virtual ~ParallelStepExcutor() = default;
+
+    ParallelStepExcutor(const ParallelStepExcutor&) = delete;
+    ParallelStepExcutor& operator = (const ParallelStepExcutor&) = delete;
+
+public:
+    STEP_STATUS Step() override;
+    void Rollback() override { /* nothing can do */ }
+
+public:
+    inline bool IsEmpty() const { return steps_.empty(); }
+    inline void AddStep(StepExcutorPtr ptr) { steps_.push_back(ptr); }
+
+protected:
+    std::vector<StepExcutorPtr> steps_;
+}; // ParallelStepExcutor
+
 /* 内部实现细节 */
 namespace StepExcutor_Internal
 {
+    template <typename Fy, typename... Args> StepExcutorPtr AllocMakeExcutor(SerialAllocator<>* alloc, Args&&... args);
+
     /* 守护函数 */
     struct GuardCaller
     {
@@ -76,11 +137,6 @@ namespace StepExcutor_Internal
     private:
         Fy func_;
     };
-
-    template <typename Fy, typename... Args>
-    StepExcutorPtr MakeExcutor(Args&&... args);
-    template <typename Fy, typename... Args>
-    StepExcutorPtr AllocMakeExcutor(SerialAllocator<>* alloc, Args&&... args);
 
     /* 步进器执行序列 */
     class QueueImpl
@@ -158,125 +214,6 @@ namespace StepExcutor_Internal
 
 } // namespace StepExcutor_Internal
 
-/* 构建一个分布执行器
- * Fy支持的函数签名为:
- * 1. void(), void(StepStation&), the status will be STEP_STATUS::Completed
- * 2. bool(), bool(StepStation&), the status will be (ret ? STEP_STATUS::Completed : STEP_STATUS::Failed)
- * 3. STEP_STATUS(), STEP_STATUS(StepStation&)
-*/
-template <typename Fy>
-inline StepExcutorPtr MakeStepExcutor(Fy&& fn)
-{
-    return StepExcutor_Internal::MakeExcutor<Fy>(std::forward<Fy>(fn));
-}
-
-template <typename Ry, typename Fy>
-inline StepExcutorPtr MakeStepExcutor(Future<Ry>&& future, Fy&& fn)
-{
-    return StepExcutor_Internal::MakeExcutor<Fy>(std::move(future), std::forward<Fy>(fn));
-}
-
-template <typename Ry, typename Fy>
-inline StepExcutorPtr MakeStepExcutor(const SharedFuture<Ry>& future, Fy&& fn)
-{
-    return StepExcutor_Internal::MakeExcutor<Fy>(future, std::forward<Fy>(fn));
-}
-
-/* 队列式步进器 */
-class QueueStepExcutor final : public IStepExcutor
-{
-public:
-    QueueStepExcutor() : alloc_(1024)
-    {
-        queue_ = alloc_.Construct<StepExcutor_Internal::QueueImpl>(&alloc_);
-    }
-
-    QueueStepExcutor(size_t block_size) : alloc_(block_size)
-    {
-        queue_ = alloc_.Construct<StepExcutor_Internal::QueueImpl>(&alloc_);
-    }
-
-    virtual ~QueueStepExcutor()
-    {
-        if (!IsComplete())
-            Rollback();
-
-        alloc_.Destruct(queue_);
-        queue_ = nullptr;
-    }
-
-    QueueStepExcutor(const QueueStepExcutor&) = delete;
-    QueueStepExcutor& operator = (const QueueStepExcutor&) = delete;
-
-public:
-    STEP_STATUS Step() override { return queue_->Step(); }
-
-    void Rollback() override
-    {
-        queue_->Rollback();
-        /* 清空&重建 */
-        alloc_.Destruct(queue_);
-        alloc_.Reset();
-        queue_ = alloc_.Construct<StepExcutor_Internal::QueueImpl>(&alloc_);
-    }
-
-public:
-    inline bool IsEmpty() const { return queue_->IsEmpty(); }
-    inline bool IsComplete() const { return queue_->IsComplete(); }
-
-    inline void Add(StepExcutorPtr ptr)
-    {
-        queue_->Push(ptr);
-    }
-
-    template <typename Fy>
-    inline void Add(Fy&& fn)
-    {
-        queue_->Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(
-            &alloc_, std::forward<Fy>(fn)));
-    }
-
-    template <typename Ry, typename Fy>
-    inline void Add(Future<Ry>&& future, Fy&& fn)
-    {
-        queue_->Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(
-            &alloc_, std::move(future), std::forward<Fy>(fn)));
-    }
-
-    template <typename Ry, typename Fy>
-    inline void Add(const SharedFuture<Ry>& future, Fy&& fn)
-    {
-        queue_->Push(StepExcutor_Internal::AllocMakeExcutor<Fy>(
-            &alloc_, future, std::forward<Fy>(fn)));
-    }
-
-private:
-    StepExcutor_Internal::QueueImpl* queue_;
-    PooledSerialAlloc<512> alloc_;
-}; // QueueStepExcutor
-
-/* 并行式步进器 */
-class ParallelStepExcutor : public IStepExcutor
-{
-public:
-    ParallelStepExcutor() = default;
-    virtual ~ParallelStepExcutor() = default;
-
-    ParallelStepExcutor(const ParallelStepExcutor&) = delete;
-    ParallelStepExcutor& operator = (const ParallelStepExcutor&) = delete;
-
-public:
-    STEP_STATUS Step() override;
-    void Rollback() override { /* nothing can do */ }
-
-public:
-    inline bool IsEmpty() const { return steps_.empty(); }
-    inline void AddStep(StepExcutorPtr ptr) { steps_.push_back(ptr); }
-
-protected:
-    std::vector<StepExcutorPtr> steps_;
-}; // ParallelStepExcutor
-
 /* 步进控制器 */
 class StepCtrl
 {
@@ -333,8 +270,8 @@ private:
 class StepExcutorStationBase : public IStepExcutor
 {
 public:
-    StepExcutorStationBase(SerialAllocator<>* alloc) { Init(alloc); }
-    virtual ~StepExcutorStationBase() { Uninit(); }
+    StepExcutorStationBase(SerialAllocator<>* alloc) { DoInit(alloc); }
+    virtual ~StepExcutorStationBase() { DoUninit(); }
 
     StepExcutorStationBase(const StepExcutorStationBase&) = delete;
     StepExcutorStationBase& operator = (const StepExcutorStationBase&) = delete;
@@ -348,13 +285,15 @@ public:
 protected:
     StepExcutorStationBase() { }
 
-    inline void Init(SerialAllocator<>* alloc)
+    inline StepExcutor_Internal::StepCtrlImpl* GetCtrlImpl() const { return ctrl_; }
+
+    inline void DoInit(SerialAllocator<>* alloc)
     {
         assert(ctrl_ == nullptr);
         ctrl_ = alloc->Construct<StepExcutor_Internal::StepCtrlImpl>(alloc);
     }
 
-    void Uninit()
+    void DoUninit()
     {
         if (ctrl_)
         {
@@ -363,7 +302,7 @@ protected:
         }
     }
 
-protected:
+private:
     StepExcutor_Internal::StepCtrlImpl* ctrl_ = nullptr;
 };
 
@@ -377,17 +316,17 @@ class StepExcutorStation : public StepExcutorStationBase
 public:
     StepExcutorStation() : alloc_((Pool > 1024 ? Pool : 1024))
     {
-        Init(&alloc_);
+        DoInit(&alloc_);
     }
 
     StepExcutorStation(size_t block_size) : alloc_(block_size)
     {
-        Init(&alloc_);
+        DoInit(&alloc_);
     }
 
     virtual ~StepExcutorStation()
     {
-        Uninit();
+        DoUninit();
     }
 
 private:
@@ -460,7 +399,7 @@ namespace StepExcutor_Internal
     struct InnerStation1 : public StepExcutorStationBase
     {
         InnerStation1(SerialAllocator<>* alloc) : StepExcutorStationBase(alloc) { }
-        inline StepCtrlImpl* GetCtrlImpl() const { return ctrl_; }
+        inline StepCtrlImpl* GetCtrlImpl() const { return StepExcutorStationBase::GetCtrlImpl(); }
     };
 
     /* 内部使用的控制器, 独立使用内存分配器 */
@@ -468,7 +407,7 @@ namespace StepExcutor_Internal
     {
     public:
         InnerStation2() : StepExcutorStation(1024) { }
-        inline StepCtrlImpl* GetCtrlImpl() const { return ctrl_; }
+        inline StepCtrlImpl* GetCtrlImpl() const { return StepExcutorStation<128>::GetCtrlImpl(); }
     };
 
     /* 打包执行函数 */

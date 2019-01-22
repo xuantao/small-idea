@@ -134,51 +134,52 @@ static void test_step_excutor_station()
 
 static void test_queue_step_excutor()
 {
-    QueueStepExcutor steper;
+    StepExcutorStation<> station;
+    auto steper = station.GetCtrl();
 
-    steper.Add(MakeStepExcutor([] {
+    steper.SubStep(MakeStepExcutor([] {
         printf("[] () {}\n");
     }));
 
-    steper.Add(MakeStepExcutor([] {
+    steper.SubStep(MakeStepExcutor([] {
         printf("[] () { return true; }\n");
         return true;
     }));
 
-    steper.Add(MakeStepExcutor([] {
+    steper.SubStep(MakeStepExcutor([] {
         printf("[] () { STEP_STATUS::Completed; }\n");
         return STEP_STATUS::Completed;
     }));
 
-    steper.Add(MakeStepExcutor([] (StepCtrl guard) {
+    steper.SubStep(MakeStepExcutor([] (StepCtrl guard) {
         printf("[] (StepGuard& guard) { STEP_STATUS::Completed; }\n");
     }));
 
-    steper.Add(MakeStepExcutor([] (StepCtrl guard) {
+    steper.SubStep(MakeStepExcutor([] (StepCtrl guard) {
         printf("[] (StepGuard& guard) { STEP_STATUS::Completed; }\n");
         return true;
     }));
 
-    steper.Add(MakeStepExcutor([] (StepCtrl guard) {
+    steper.SubStep(MakeStepExcutor([] (StepCtrl guard) {
         printf("[] (StepGuard& guard) { STEP_STATUS::Completed; }\n");
         return STEP_STATUS::Completed;
     }));
 
-    steper.Add([] {
+    steper.SubStep([] {
         printf("[] () {}\n");
     });
 
-    steper.Add([] {
+    steper.SubStep([] {
         printf("[] () { return true; }\n");
         return true;
     });
 
-    steper.Add([] {
+    steper.SubStep([] {
         printf("[] () { STEP_STATUS::Completed; }\n");
         return STEP_STATUS::Completed;
     });
 
-    steper.Add([](StepCtrl guard) {
+    steper.SubStep([](StepCtrl guard) {
         printf("[] (StepGuard& guard) { }\n");
         for (int i = 0; i < 10; ++i)
         {
@@ -187,7 +188,7 @@ static void test_queue_step_excutor()
         }
     });
 
-    steper.Add([](StepCtrl guard) {
+    steper.SubStep([](StepCtrl guard) {
         printf("[] (StepGuard& guard) { return true; }\n");
 
         guard.SubStep([](StepCtrl station) {
@@ -199,13 +200,13 @@ static void test_queue_step_excutor()
         return true;
     });
 
-    steper.Add([](StepCtrl guard) {
+    steper.SubStep([](StepCtrl guard) {
         printf("[] (StepGuard& guard) { STEP_STATUS::Completed; }\n");
         return STEP_STATUS::Completed;
     });
 
-    if (StepEnd(&steper) == STEP_STATUS::Failed)
-        steper.Rollback();
+    if (StepEnd(&station) == STEP_STATUS::Failed)
+        station.Rollback();
 }
 
 static void test_parallel_step_excutor()
@@ -221,7 +222,8 @@ static void test_parallel_step_excutor()
         station.SubStep([] {
             printf("paralle step 4\n");
         });
-        station.Guard([] { printf("card"); });
+        station.Guard([] { printf("111111111111 guard\n"); });
+        return false;
     }));
 
     paral.AddStep(MakeStepExcutor([] {
