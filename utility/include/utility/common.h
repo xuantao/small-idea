@@ -46,6 +46,9 @@ namespace std_ext
     template <typename Ty>
     using decay_t = typename std::decay<Ty>::type;
 
+    template <bool B>
+    using bool_constant = std::integral_constant<bool, B>;
+
     template <typename Fy, typename... Args>
     struct invoke_result
     {

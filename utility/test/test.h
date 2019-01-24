@@ -12,3 +12,4 @@ void test_stack_allocator();
 void test_to_string();
 void test_step_excutor();
 void test_async();
+void test_com_obj_ptr();

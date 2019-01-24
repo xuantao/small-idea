@@ -14,8 +14,9 @@ int main(int argc, char* argv[])
     //test_scope_guard();
     //test_to_string();
     //test_logger();
-    test_step_excutor();
-    test_async();
+    //test_step_excutor();
+    //test_async();
+    test_com_obj_ptr();
     system("pause");
 
     _CrtDumpMemoryLeaks();

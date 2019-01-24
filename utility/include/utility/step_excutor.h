@@ -350,18 +350,17 @@ namespace StepExcutor_Internal
 
     /* check has guarder */
     template <typename Ty>
-    struct ExcutorHasGuarder : public std::bool_constant<
-        std_ext::is_callable<Ty, StepCtrl>::value> {};
+    struct ExcutorHasGuarder : public std_ext::bool_constant<std_ext::is_callable<Ty, StepCtrl>::value> {};
 
     template <typename Fy>
     using ExcutorRetType_t = typename ExcutorRetTypeTrait<ExcutorHasGuarder<Fy>::value, Fy>::type;
 
     template <typename Fy>
-    struct ExcutorSignatureCheck : public std::bool_constant<
+    struct ExcutorSignatureCheck : public std_ext::bool_constant<
         std_ext::is_callable<Fy>::value || std_ext::is_callable<Fy, StepCtrl>::value> {};
 
     template <bool, typename Fy>
-    struct ExcutorCheckImpl : public std::bool_constant<
+    struct ExcutorCheckImpl : public std_ext::bool_constant<
         std::is_void<ExcutorRetType_t<Fy>>::value ||
         std::is_same<bool, ExcutorRetType_t<Fy>>::value ||
         std::is_same<STEP_STATUS, ExcutorRetType_t<Fy>>::value> {};
@@ -370,7 +369,7 @@ namespace StepExcutor_Internal
     struct ExcutorCheckImpl<false, Fy> : public std::false_type {};
 
     template <typename Fy>
-    struct ExcutorCheck : public std::bool_constant<
+    struct ExcutorCheck : public std_ext::bool_constant<
         ExcutorCheckImpl<ExcutorSignatureCheck<Fy>::value, Fy>::value> {};
 
     /* functor: void() */

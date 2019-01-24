@@ -102,5 +102,8 @@
     <ClInclude Include="..\include\utility\small_obj_storage.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\utility\com_obj_ptr.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
