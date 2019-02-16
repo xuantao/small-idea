@@ -153,6 +153,7 @@
     <ClInclude Include="..\include\utility\com_obj_ptr.h" />
     <ClInclude Include="..\include\utility\logger.h" />
     <ClInclude Include="..\include\utility\particular_allocator.h" />
+    <ClInclude Include="..\include\utility\ref_count_obj_array.h" />
     <ClInclude Include="..\include\utility\ref_count_set.h" />
     <ClInclude Include="..\include\utility\ring_buffer.h" />
     <ClInclude Include="..\include\utility\scope.h" />
