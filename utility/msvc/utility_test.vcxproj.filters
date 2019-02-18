@@ -59,6 +59,9 @@
     <ClCompile Include="..\test\test_com_obj_ptr.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\test\test_shared_obj_array.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\test\test.h">

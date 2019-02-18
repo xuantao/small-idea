@@ -105,7 +105,7 @@
     <ClInclude Include="..\include\utility\com_obj_ptr.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\utility\ref_count_obj_array.h">
+    <ClInclude Include="..\include\utility\shared_obj_array.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

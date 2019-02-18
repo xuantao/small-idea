@@ -160,6 +160,7 @@
     <ClCompile Include="..\test\test_scope_set.cpp" />
     <ClCompile Include="..\test\test_scope_vector.cpp" />
     <ClCompile Include="..\test\test_serial_allocator.cpp" />
+    <ClCompile Include="..\test\test_shared_obj_array.cpp" />
     <ClCompile Include="..\test\test_stack_allocator.cpp" />
     <ClCompile Include="..\test\test_step_excutor.cpp" />
     <ClCompile Include="..\test\test_to_string.cpp" />

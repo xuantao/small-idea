@@ -16,7 +16,8 @@ int main(int argc, char* argv[])
     //test_logger();
     //test_step_excutor();
     //test_async();
-    test_com_obj_ptr();
+    //test_com_obj_ptr();
+    test_shared_obj_array();
     system("pause");
 
     _CrtDumpMemoryLeaks();

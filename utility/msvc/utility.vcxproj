@@ -153,7 +153,6 @@
     <ClInclude Include="..\include\utility\com_obj_ptr.h" />
     <ClInclude Include="..\include\utility\logger.h" />
     <ClInclude Include="..\include\utility\particular_allocator.h" />
-    <ClInclude Include="..\include\utility\ref_count_obj_array.h" />
     <ClInclude Include="..\include\utility\ref_count_set.h" />
     <ClInclude Include="..\include\utility\ring_buffer.h" />
     <ClInclude Include="..\include\utility\scope.h" />
@@ -164,6 +163,7 @@
     <ClInclude Include="..\include\utility\scope_set.h" />
     <ClInclude Include="..\include\utility\scope_vector.h" />
     <ClInclude Include="..\include\utility\serial_allocator.h" />
+    <ClInclude Include="..\include\utility\shared_obj_array.h" />
     <ClInclude Include="..\include\utility\small_obj_storage.h" />
     <ClInclude Include="..\include\utility\spin_lock.h" />
     <ClInclude Include="..\include\utility\stacked_allocator.h" />
