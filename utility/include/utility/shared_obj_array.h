@@ -202,9 +202,8 @@ public:
     template <typename Func>
     void Traverse(Func& func)
     {
-        for (size_t i = 0; i < objs_.size(); ++i)
+        for (auto& e : objs_)
         {
-            auto& e = objs_[i];
             if (e.IsValid())
                 func(*e.GetObj());
         }
