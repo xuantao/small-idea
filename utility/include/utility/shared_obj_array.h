@@ -17,7 +17,8 @@ namespace shared_obj_internal
     {
     public:
         inline bool IsValid() const { return refCount_ < 0; }
-        inline Ty* GetObj() { return reinterpret_cast<Ty*>(dataStorage_); }
+        inline Ty* GetObj() { return reinterpret_cast<Ty*>(storage_); }
+        inline const Ty* GetObj() const { return reinterpret_cast<const Ty*>(storage_); }
 
     public:
         union
@@ -30,13 +31,14 @@ namespace shared_obj_internal
         union
         {
             std::max_align_t dummy_;
-            int8_t dataStorage_[sizeof(Ty)];
+            int8_t storage_[sizeof(Ty)];
         };
     };
 
     template <typename Ty, bool>
     struct ArrayObj : public ArrayObjBase<Ty> { };
 
+    /* 非平凡复制构造 */
     template <typename Ty>
     struct ArrayObj<Ty, false> : public ArrayObjBase<Ty>
     {
