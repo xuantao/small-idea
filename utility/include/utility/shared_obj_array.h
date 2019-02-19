@@ -52,7 +52,7 @@ namespace shared_obj_internal
 
         ArrayObj& operator = (const ArrayObj&) = delete;
     };
-}
+} // namespace shared_obj_internal
 
 /* 带引用计数的共享对象 */
 template <typename Ty, typename Constructor>
@@ -88,8 +88,10 @@ public:
         return *this;
     }
 
-public:
+    inline bool operator == (const SharedObj& obj) const { return index_ == obj.index_; }
+    inline bool operator != (const SharedObj& obj) const { return !(*this == obj); }
 
+public:
     inline bool IsValid() const { return index_ > 0; }
     inline explicit operator bool() { return IsValid(); }
 
@@ -121,7 +123,7 @@ private:
 
 private:
     int index_;
-};
+}; // class SharedObj
 
 /* 默认对象构造器 */
 template <typename Ty>
@@ -187,12 +189,12 @@ public:
         }
 
         int index = objs_.front().nextIndex_;
+        ArrayObj* aryObj = GetAryObj(index);
+        if (constructor_.Construct(aryObj->GetObj(), std::forward<Args>(args)...) == nullptr)
+            return obj_type(0);
+
         objs_.front().nextIndex_ = objs_[index].nextIndex_;
-
-        ArrayObj* element = GetElement(index);
-        element->refCount_ = -1;
-        constructor_.Construct(element->GetObj(), std::forward<Args>(args)...);
-
+        aryObj->refCount_ = -1;
         return obj_type(index);
     }
 
@@ -210,25 +212,25 @@ public:
     }
 
 private:
-    inline ArrayObj* GetElement(int index)
+    inline ArrayObj* GetAryObj(int index)
     {
         assert(index > 0 && (size_t)index < objs_.size());
         return &objs_[index];
     }
 
-    inline Ty* GetObj(int index) { return GetElement(index)->GetObj(); }
-    inline void AddRef(int index) { GetElement(index)->refCount_ -= 1; }
+    inline Ty* GetObj(int index) { return GetAryObj(index)->GetObj(); }
+    inline void AddRef(int index) { GetAryObj(index)->refCount_ -= 1; }
 
     void UnRef(int index)
     {
-        ArrayObj* element = GetElement(index);
-        element->refCount_ += 1;
+        ArrayObj* aryObj = GetAryObj(index);
+        aryObj->refCount_ += 1;
 
-        if (element->refCount_ == 0)
+        if (aryObj->refCount_ == 0)
         {
-            constructor_.Destruct(element->GetObj());
+            constructor_.Destruct(aryObj->GetObj());
 
-            element->nextIndex_ = objs_.front().nextIndex_;
+            aryObj->nextIndex_ = objs_.front().nextIndex_;
             objs_.front().nextIndex_ = index;
         }
     }
