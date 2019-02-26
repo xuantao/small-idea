@@ -108,5 +108,8 @@
     <ClInclude Include="..\include\utility\shared_obj_array.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\utility\weak_obj_array.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
