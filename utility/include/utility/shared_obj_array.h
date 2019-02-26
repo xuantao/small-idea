@@ -155,6 +155,17 @@ private:
         objs_.back().nextIndex_ = 0;
     }
 
+    ~SharedObjArray()
+    {
+        for (auto& e : objs_)
+        {
+            if (e.IsValid())
+                constructor_.Destruct(e.GetObj());
+        }
+
+        objs_.clear();
+    }
+
     SharedObjArray(const SharedObjArray&) = delete;
     SharedObjArray& operator  = (const SharedObjArray&) = delete;
 
@@ -170,31 +181,21 @@ public:
         return true;
     }
 
+    static void Shutdown()
+    {
+        delete s_instance_;
+        s_instance_ = nullptr;
+    }
+
     inline static SharedObjArray* GetObjArray() { return s_instance_; }
 
 public:
+    /* alloc object with constructor paramenters */
     template <typename... Args>
-    obj_type AllocObj(Args&&... args)
+    inline obj_type AllocObj(Args&&... args)
     {
-        if (objs_.front().nextIndex_ == 0)
-        {
-            size_t old_size = objs_.size();
-            size_t new_size = objs_.size() + incremental_;
-
-            objs_.resize(new_size);
-            for (size_t i = old_size; i < new_size; ++i)
-                objs_[i].nextIndex_ = (int)(i + 1);
-            objs_.front().nextIndex_ = (int)old_size;
-            objs_.back().nextIndex_ = 0;
-        }
-
-        int index = objs_.front().nextIndex_;
-        ArrayObj* aryObj = GetAryObj(index);
-        if (constructor_.Construct(aryObj->GetObj(), std::forward<Args>(args)...) == nullptr)
-            return obj_type(0);
-
-        objs_.front().nextIndex_ = objs_[index].nextIndex_;
-        aryObj->refCount_ = -1;
+        int index = AllocIndex();
+        constructor_.Construct(objs_[index].GetObj(), std::forward<Args>(args)...);
         return obj_type(index);
     }
 
@@ -212,25 +213,47 @@ public:
     }
 
 private:
-    inline ArrayObj* GetAryObj(int index)
+    int AllocIndex()
     {
-        assert(index > 0 && (size_t)index < objs_.size());
-        return &objs_[index];
+        if (objs_.front().nextIndex_ == 0)
+        {
+            size_t old_size = objs_.size();
+            size_t new_size = objs_.size() + incremental_;
+
+            objs_.resize(new_size);
+            for (size_t i = old_size; i < new_size; ++i)
+                objs_[i].nextIndex_ = (int)(i + 1);
+            objs_.front().nextIndex_ = (int)old_size;
+            objs_.back().nextIndex_ = 0;
+        }
+
+        int index = objs_.front().nextIndex_;
+        ArrayObj& aryObj = objs_[index];
+
+        objs_.front().nextIndex_ = aryObj.nextIndex_;
+        aryObj.refCount_ = -1;
+        return index;
     }
 
-    inline Ty* GetObj(int index) { return GetAryObj(index)->GetObj(); }
-    inline void AddRef(int index) { GetAryObj(index)->refCount_ -= 1; }
+    inline ArrayObj& GetAryObj(int index)
+    {
+        assert(index > 0 && (size_t)index < objs_.size());
+        return objs_[index];
+    }
+
+    inline Ty* GetObj(int index) { return GetAryObj(index).GetObj(); }
+    inline void AddRef(int index) { GetAryObj(index).refCount_ -= 1; }
 
     void UnRef(int index)
     {
-        ArrayObj* aryObj = GetAryObj(index);
-        aryObj->refCount_ += 1;
+        ArrayObj& aryObj = GetAryObj(index);
+        aryObj.refCount_ += 1;
 
-        if (aryObj->refCount_ == 0)
+        if (aryObj.refCount_ == 0)
         {
-            constructor_.Destruct(aryObj->GetObj());
+            constructor_.Destruct(aryObj.GetObj());
 
-            aryObj->nextIndex_ = objs_.front().nextIndex_;
+            aryObj.nextIndex_ = objs_.front().nextIndex_;
             objs_.front().nextIndex_ = index;
         }
     }
