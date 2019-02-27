@@ -228,4 +228,9 @@ private:
     Fy func_;
 };
 
+namespace const_values
+{
+    static constexpr int kInvalidIndex = -1;
+}
+
 UTILITY_NAMESPACE_END

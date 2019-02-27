@@ -32,9 +32,11 @@ namespace
 
 static void test_trivial()
 {
-    using ObjArray = utility::SharedObjArray<TestObj, TestObjConstructor>;
+    using ObjArray = utility::SharedObjArray<TestObj>;
     using SharedObj = typename ObjArray::obj_type;
     ObjArray::Startup(16);
+    utility::ScopeGuard<> guard;
+    guard.Push([] { ObjArray::Shutdown(); });
 
     auto o1 = ObjArray::GetObjArray()->AllocObj();
     o1 = ObjArray::GetObjArray()->AllocObj();
@@ -47,10 +49,9 @@ static void test_none_trivial()
 {
     TestObjEx::s_index_ = 0;
 
-    using ObjArray = utility::SharedObjArray<TestObjEx, TestObjConstructor>;
+    using ObjArray = utility::SharedObjArray<TestObjEx>;
     using SharedObj = typename ObjArray::obj_type;
     ObjArray::Startup(16);
-
     utility::ScopeGuard<> guard;
     guard.Push([] { ObjArray::Shutdown(); });
 

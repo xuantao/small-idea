@@ -25,6 +25,9 @@
     <ClCompile Include="..\src\step_excutor.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\weak_obj_array.cpp">
+      <Filter>include</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\utility\common.h">

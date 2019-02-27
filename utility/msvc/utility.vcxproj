@@ -140,6 +140,7 @@
     <ClCompile Include="..\src\logger.cpp" />
     <ClCompile Include="..\src\scope.cpp" />
     <ClCompile Include="..\src\step_excutor.cpp" />
+    <ClCompile Include="..\src\weak_obj_array.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\utility\allocator_adapter.h" />

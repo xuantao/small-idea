@@ -165,6 +165,7 @@
     <ClCompile Include="..\test\test_step_excutor.cpp" />
     <ClCompile Include="..\test\test_to_string.cpp" />
     <ClCompile Include="..\test\test_util.cpp" />
+    <ClCompile Include="..\test\test_weak_obj_array.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\test\test.h" />

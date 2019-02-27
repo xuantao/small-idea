@@ -4,7 +4,7 @@
 
 UTILITY_NAMESPACE_BEGIN
 
-template <typename Ty, typename Contrutor>
+template <typename Ty>
 class SharedObjArray;
 
 namespace shared_obj_internal
@@ -16,22 +16,26 @@ namespace shared_obj_internal
     struct ArrayObjBase
     {
     public:
-        inline bool IsValid() const { return refCount_ < 0; }
-        inline Ty* GetObj() { return reinterpret_cast<Ty*>(storage_); }
-        inline const Ty* GetObj() const { return reinterpret_cast<const Ty*>(storage_); }
+        inline bool IsValid() const { return ref_count < 0; }
+        inline Ty* GetObj() { return reinterpret_cast<Ty*>(storage); }
+        inline const Ty* GetObj() const { return reinterpret_cast<const Ty*>(storage); }
+        inline void* GetMem() { return static_cast<void*>(storage); }
 
     public:
+        /* 记录引用计数或下一个空闲位置索引
+         * 引用计数使用复数，空闲缩影使用正数
+        */
         union
         {
-            int refCount_;  // 引用计数
-            int nextIndex_; // 下一个空闲元素
+            int ref_count;  // 引用计数
+            int next_index; // 下一个空闲元素
         };
 
     private:
         union
         {
             std::max_align_t dummy_;
-            int8_t storage_[sizeof(Ty)];
+            int8_t storage[sizeof(Ty)];
         };
     };
 
@@ -46,8 +50,8 @@ namespace shared_obj_internal
 
         ArrayObj(const ArrayObj& other)
         {
-            this->refCount_ = other.refCount_;
-            new (this->GetObj()) Ty(*other.GetObj());
+            this->ref_count = other.ref_count;
+            new (this->GetMem()) Ty(*other.GetObj());
         }
 
         ArrayObj& operator = (const ArrayObj&) = delete;
@@ -55,19 +59,19 @@ namespace shared_obj_internal
 } // namespace shared_obj_internal
 
 /* 带引用计数的共享对象 */
-template <typename Ty, typename Constructor>
+template <typename Ty>
 class SharedObj
 {
 private:
-    using ObjArray = SharedObjArray<Ty, Constructor>;
-    friend class SharedObjArray<Ty, Constructor>;
+    using ObjArray = SharedObjArray<Ty>;
+    friend class SharedObjArray<Ty>;
 
     /* 由管理器做最初始的构造 */
     SharedObj(int index) : index_(index) { }
 
 public:
-    SharedObj() : index_(0) {}
-    SharedObj(SharedObj&& obj) : index_(obj.index_) { obj.index_ = 0; }
+    SharedObj() : index_(const_values::kInvalidIndex) {}
+    SharedObj(SharedObj&& obj) : index_(obj.index_) { obj.index_ = const_values::kInvalidIndex; }
     SharedObj(const SharedObj& obj) : index_(obj.index_) { AddRef(); }
     ~SharedObj() { UnRef(); }
 
@@ -84,7 +88,7 @@ public:
     {
         UnRef();
         index_ = obj.index_;
-        obj.index_ = 0;
+        obj.index_ = const_values::kInvalidIndex;
         return *this;
     }
 
@@ -92,7 +96,7 @@ public:
     inline bool operator != (const SharedObj& obj) const { return !(*this == obj); }
 
 public:
-    inline bool IsValid() const { return index_ > 0; }
+    inline bool IsValid() const { return index_ >= 0; }
     inline explicit operator bool() { return IsValid(); }
 
     inline Ty* GetObj() const
@@ -105,17 +109,17 @@ public:
     inline void Release()
     {
         UnRef();
-        index_ = 0;
+        index_ = const_values::kInvalidIndex;
     }
 
 private:
-    void AddRef()
+    inline void AddRef()
     {
         if (IsValid())
             ObjArray::GetObjArray()->AddRef(index_);
     }
 
-    void UnRef()
+    inline void UnRef()
     {
         if (IsValid())
             ObjArray::GetObjArray()->UnRef(index_);
@@ -125,34 +129,22 @@ private:
     int index_;
 }; // class SharedObj
 
-/* 默认对象构造器 */
-template <typename Ty>
-struct DefaultSharedObjConstructor
-{
-    template <typename... Args>
-    inline Ty* Construct(Ty* mem, Args&&... args) { return new (mem) Ty(std::forward<Args>(args)...); }
-
-    inline void Destruct(Ty* obj) { obj->~Ty(); }
-};
-
 /* 共享对象的数组集合 */
-template <typename Ty, typename Constructor = DefaultSharedObjConstructor<Ty> >
+template <typename Ty>
 class SharedObjArray
 {
     using ArrayObj = shared_obj_internal::ArrayObj<Ty, std::is_trivially_copyable<Ty>::value>;
-    friend class SharedObj<Ty, Constructor>;
+    friend class SharedObj<Ty>;
 
 public:
     using value_type = Ty;
-    using obj_type = SharedObj<Ty, Constructor>;
+    using obj_type = SharedObj<Ty>;
 
 private:
-    SharedObjArray(size_t incremental) : incremental_(incremental)
+    SharedObjArray(size_t incremental)
+        : free_index_(const_values::kInvalidIndex)
+        , incremental_(incremental)
     {
-        objs_.resize(incremental);
-        for (size_t i = 0; i < incremental; ++i)
-            objs_[i].nextIndex_ = (int)(i + 1);
-        objs_.back().nextIndex_ = 0;
     }
 
     ~SharedObjArray()
@@ -160,17 +152,17 @@ private:
         for (auto& e : objs_)
         {
             if (e.IsValid())
-                constructor_.Destruct(e.GetObj());
+                e.GetObj()->~Ty();
         }
 
         objs_.clear();
     }
 
     SharedObjArray(const SharedObjArray&) = delete;
-    SharedObjArray& operator  = (const SharedObjArray&) = delete;
+    SharedObjArray& operator = (const SharedObjArray&) = delete;
 
 public:
-    static bool Startup(size_t incremental)
+    static bool Startup(size_t incremental = 1024)
     {
         assert(incremental);
         assert(s_instance_ == nullptr);
@@ -192,10 +184,27 @@ public:
 public:
     /* alloc object with constructor paramenters */
     template <typename... Args>
-    inline obj_type AllocObj(Args&&... args)
+    obj_type AllocObj(Args&&... args)
     {
-        int index = AllocIndex();
-        constructor_.Construct(objs_[index].GetObj(), std::forward<Args>(args)...);
+        if (free_index_ == const_values::kInvalidIndex)
+        {
+            size_t old_size = objs_.size();
+            size_t new_size = objs_.size() + incremental_;
+
+            objs_.resize(new_size);
+            for (size_t i = old_size; i < new_size; ++i)
+                objs_[i].next_index = (int)(i + 1);
+
+            objs_.back().next_index = const_values::kInvalidIndex;
+            free_index_ = (int)old_size;
+        }
+
+        int index = free_index_;
+        ArrayObj& aryObj = objs_[index];
+        free_index_ = aryObj.next_index;
+
+        aryObj.ref_count = -1;
+        new (aryObj.GetMem()) Ty(std::forward<Args>(args)...);
         return obj_type(index);
     }
 
@@ -213,61 +222,38 @@ public:
     }
 
 private:
-    int AllocIndex()
-    {
-        if (objs_.front().nextIndex_ == 0)
-        {
-            size_t old_size = objs_.size();
-            size_t new_size = objs_.size() + incremental_;
-
-            objs_.resize(new_size);
-            for (size_t i = old_size; i < new_size; ++i)
-                objs_[i].nextIndex_ = (int)(i + 1);
-            objs_.front().nextIndex_ = (int)old_size;
-            objs_.back().nextIndex_ = 0;
-        }
-
-        int index = objs_.front().nextIndex_;
-        ArrayObj& aryObj = objs_[index];
-
-        objs_.front().nextIndex_ = aryObj.nextIndex_;
-        aryObj.refCount_ = -1;
-        return index;
-    }
-
     inline ArrayObj& GetAryObj(int index)
     {
-        assert(index > 0 && (size_t)index < objs_.size());
+        assert(index >= 0 && (size_t)index < objs_.size());
         return objs_[index];
     }
 
     inline Ty* GetObj(int index) { return GetAryObj(index).GetObj(); }
-    inline void AddRef(int index) { GetAryObj(index).refCount_ -= 1; }
+    inline void AddRef(int index) { GetAryObj(index).ref_count -= 1; }
 
-    void UnRef(int index)
+    inline void UnRef(int index)
     {
         ArrayObj& aryObj = GetAryObj(index);
-        aryObj.refCount_ += 1;
+        aryObj.ref_count += 1;
 
-        if (aryObj.refCount_ == 0)
+        if (aryObj.ref_count == 0)
         {
-            constructor_.Destruct(aryObj.GetObj());
-
-            aryObj.nextIndex_ = objs_.front().nextIndex_;
-            objs_.front().nextIndex_ = index;
+            aryObj.GetObj()->~Ty();
+            aryObj.next_index = free_index_;
+            free_index_ = index;
         }
     }
 
 private:
+    int free_index_;
     size_t incremental_;            // 每次扩容增量
-    Constructor constructor_;       // 对象构造、销毁
     std::vector<ArrayObj> objs_;    // 对象数组
 
 private:
-    static SharedObjArray<Ty, Constructor>* s_instance_;
+    static SharedObjArray<Ty>* s_instance_;
 };
 
-template <typename Ty, typename Constructor>
-SharedObjArray<Ty, Constructor>* SharedObjArray<Ty, Constructor>::s_instance_ = nullptr;
+template <typename Ty>
+SharedObjArray<Ty>* SharedObjArray<Ty>::s_instance_ = nullptr;
 
 UTILITY_NAMESPACE_END
