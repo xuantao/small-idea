@@ -8,10 +8,7 @@
 UTILITY_NAMESPACE_BEGIN
 
 template <typename Ty>
-struct IsLarge// : std::bool_constant<(bool)(vals::kSmallObjectSpaceSize < sizeof(Ty))> {};
-{
-    static constexpr bool value = vals::kSmallObjectSpaceSize < sizeof(Ty);
-};
+struct IsLarge : std::integral_constant<bool, vals::kSmallObjectSpaceSize < sizeof(Ty)> {};
 
 template <typename Ty>
 class SmallObjStorage
@@ -40,7 +37,7 @@ public:
         static_assert(std::is_convertible<Impl*, Ty*>::value, "construct object should be convertible to target");
 
         Release();
-        DoConstruct<Impl>(std::integral_constant<bool, IsLarge<Impl>::value>(), std::forward<Args>(args)...);
+        DoConstruct<Impl>(IsLarge<Impl>(), std::forward<Args>(args)...);
     }
 
     void Release()

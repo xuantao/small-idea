@@ -302,15 +302,8 @@ namespace detail
         }
 
     protected:
-        _tree(const _my_tree& other)
-        {
-            static_assert(false, "not allow copy");
-        }
-
-        _my_tree& operator = (const _my_tree& other)
-        {
-            static_assert(false, "not allow copy");
-        }
+        _tree(const _my_tree& other) = delete;
+        _my_tree& operator = (const _my_tree& other) = delete;
 
     public:
         iterator begin()
