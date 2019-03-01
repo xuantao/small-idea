@@ -14,7 +14,7 @@ class WeakObjIndex
 {
     friend class WeakObjArray;
 public:
-    WeakObjIndex() : index_(const_values::kInvalidIndex) { }
+    WeakObjIndex() : index_(vals::kInvalidIndex) { }
     ~WeakObjIndex();
 
     WeakObjIndex(const WeakObjIndex&) = delete;
@@ -55,7 +55,7 @@ private:
     WeakObjArray(int inc)
         : inc_(inc)
         , serial_num_gener_(0)
-        , free_index(const_values::kInvalidIndex)
+        , free_index(vals::kInvalidIndex)
     {
     }
 
@@ -78,13 +78,13 @@ public:
         static_assert(weak_obj_internal::HasIndex<Ty>::value, "do not support weak obj");
         assert(obj);
         if (obj == nullptr)
-            return const_values::kInvalidIndex;
+            return vals::kInvalidIndex;
 
         auto& weak_index = GetIndex(obj);
-        if (weak_index.index_ != const_values::kInvalidIndex)
+        if (weak_index.index_ != vals::kInvalidIndex)
             return weak_index.index_;
 
-        if (free_index == const_values::kInvalidIndex)
+        if (free_index == vals::kInvalidIndex)
         {
             int old_size = (int)obj_.size();
             int new_size = old_size + inc_;
@@ -97,7 +97,7 @@ public:
                 o.serial_num = 0;
                 o.obj = nullptr;
             }
-            obj_.back().next_index = const_values::kInvalidIndex;
+            obj_.back().next_index = vals::kInvalidIndex;
             free_index = old_size;
         }
 
@@ -120,7 +120,7 @@ public:
 
     inline void FreeIndex(WeakObjIndex& weak_index)
     {
-        if (weak_index.index_ == const_values::kInvalidIndex)
+        if (weak_index.index_ == vals::kInvalidIndex)
             return;
 
         auto ary_obj = GetArrayObj(weak_index.index_);
@@ -129,7 +129,7 @@ public:
         ary_obj->serial_num = 0;
 
         free_index = weak_index.index_;
-        weak_index.index_ = const_values::kInvalidIndex;
+        weak_index.index_ = vals::kInvalidIndex;
     }
 
     inline void* GetObject(int index)
@@ -193,14 +193,14 @@ namespace weak_obj_internal
     class WeakObjBase
     {
     public:
-        WeakObjBase() : index_(const_values::kInvalidIndex), serial_num_(0) { }
+        WeakObjBase() : index_(vals::kInvalidIndex), serial_num_(0) { }
         WeakObjBase(const WeakObjBase& other) = default;
         WeakObjBase& operator = (const WeakObjBase& other) = default;
 
     public:
         inline bool IsValid() const
         {
-            return index_ != const_values::kInvalidIndex &&
+            return index_ != vals::kInvalidIndex &&
                 serial_num_ == WeakObjArray::GetInstance()->GetSerialNum(index_);
         }
 
@@ -216,12 +216,12 @@ namespace weak_obj_internal
         {
             index_ = WeakObjArray::GetInstance()->AllocIndex(obj);
             serial_num_ = WeakObjArray::GetInstance()->GetSerialNum(index_);
-            assert(index_ != const_values::kInvalidIndex);
+            assert(index_ != vals::kInvalidIndex);
         }
 
         inline void Reset()
         {
-            index_ = const_values::kInvalidIndex;
+            index_ = vals::kInvalidIndex;
             serial_num_ = 0;
         }
 

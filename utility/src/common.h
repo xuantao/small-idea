@@ -233,9 +233,14 @@ private:
     Fy func_;
 };
 
-namespace const_values
+namespace vals
 {
-    static constexpr int kInvalidIndex = -1;
+    /* invalid array index */
+    constexpr int kInvalidIndex = -1;
+    /* small object pointer number*/
+    constexpr int kSmallObjectNumPtrs = 6 + 16 / sizeof(void*);
+    /* small object space size */
+    constexpr size_t kSmallObjectSpaceSize = (kSmallObjectNumPtrs - 1) * sizeof(void*);
 }
 
 UTILITY_NAMESPACE_END

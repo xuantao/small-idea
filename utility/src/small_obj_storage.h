@@ -7,12 +7,8 @@
 
 UTILITY_NAMESPACE_BEGIN
 
-/* 小对象缓存池大小配置 */
-constexpr int SmallObjectNumPtrs = 6 + 16 / sizeof(void*);
-constexpr size_t SpaceSize = (SmallObjectNumPtrs - 1) * sizeof(void*);
-
 template <typename Ty>
-struct IsLarge : std::bool_constant<SpaceSize < sizeof(Ty)> {};
+struct IsLarge : std::bool_constant<vals::kSmallObjectSpaceSize < sizeof(Ty)> {};
 
 template <typename Ty>
 class SmallObjStorage
@@ -30,10 +26,10 @@ public:
 public:
     inline bool IsEmpty() const { return Get() == nullptr; }
     inline bool IsLocal() const { return GetSpace() == Get(); }
-    inline Ty* Get() const { return (real_.ptrs_[SmallObjectNumPtrs - 1]); }
-    inline void Set(Ty* ptr) { real_.ptrs_[SmallObjectNumPtrs - 1] = ptr; }
-    inline void* GetSpace() { return (&real_); }
-    inline const void *GetSpace() const { return (&real_); }
+    inline Ty* Get() const { return (ptrs_[vals::kSmallObjectNumPtrs - 1]); }
+    inline void Set(Ty* ptr) { ptrs_[vals::kSmallObjectNumPtrs - 1] = ptr; }
+    inline void* GetSpace() { return (ptrs_); }
+    inline const void *GetSpace() const { return (ptrs_); }
 
     template <typename Impl, typename... Args>
     void Construct(Args&&... args)
@@ -73,9 +69,9 @@ private:
     union
     {
         std::max_align_t dummy_1_;
-        char dummy_2_[SpaceSize];
-        Ty* ptrs_[SmallObjectNumPtrs];
-    } real_;
+        char dummy_2_[vals::kSmallObjectSpaceSize];
+        Ty* ptrs_[vals::kSmallObjectNumPtrs];
+    };
 };
 
 UTILITY_NAMESPACE_END

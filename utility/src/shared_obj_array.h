@@ -71,8 +71,8 @@ private:
     SharedObjPtr(int index) : index_(index) { }
 
 public:
-    SharedObjPtr() : index_(const_values::kInvalidIndex) {}
-    SharedObjPtr(SharedObjPtr&& obj) : index_(obj.index_) { obj.index_ = const_values::kInvalidIndex; }
+    SharedObjPtr() : index_(vals::kInvalidIndex) {}
+    SharedObjPtr(SharedObjPtr&& obj) : index_(obj.index_) { obj.index_ = vals::kInvalidIndex; }
     SharedObjPtr(const SharedObjPtr& obj) : index_(obj.index_) { AddRef(); }
     ~SharedObjPtr() { UnRef(); }
 
@@ -89,7 +89,7 @@ public:
     {
         UnRef();
         index_ = obj.index_;
-        obj.index_ = const_values::kInvalidIndex;
+        obj.index_ = vals::kInvalidIndex;
         return *this;
     }
 
@@ -110,7 +110,7 @@ public:
     inline void Release()
     {
         UnRef();
-        index_ = const_values::kInvalidIndex;
+        index_ = vals::kInvalidIndex;
     }
 
 private:
@@ -143,7 +143,7 @@ public:
 
 private:
     SharedObjArray(int inc)
-        : free_index_(const_values::kInvalidIndex)
+        : free_index_(vals::kInvalidIndex)
         , inc_(inc)
     {
     }
@@ -177,7 +177,7 @@ public:
     template <typename... Args>
     obj_type AllocObj(Args&&... args)
     {
-        if (free_index_ == const_values::kInvalidIndex)
+        if (free_index_ == vals::kInvalidIndex)
         {
             size_t old_size = objs_.size();
             size_t new_size = objs_.size() + inc_;
@@ -186,7 +186,7 @@ public:
             for (size_t i = old_size; i < new_size; ++i)
                 objs_[i].next_index = (int)(i + 1);
 
-            objs_.back().next_index = const_values::kInvalidIndex;
+            objs_.back().next_index = vals::kInvalidIndex;
             free_index_ = (int)old_size;
         }
 
