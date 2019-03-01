@@ -28,8 +28,8 @@ enum class STEP_STATUS
 };
 
 /* 判断分布执行器是否结束 */
-#define IS_STEP_STOPPED(eStatus)    (eStatus == UTILITY_NAMESPCE STEP_STATUS::Failed || \
-    eStatus == UTILITY_NAMESPCE STEP_STATUS::Completed)
+#define IS_STEP_STOPPED(eStatus)    (eStatus == UTILITY_NAMESPACE STEP_STATUS::Failed || \
+    eStatus == UTILITY_NAMESPACE STEP_STATUS::Completed)
 /* 静态类型坚持错误提示 */
 #define STEP_EXCUTOR_ERROR_MESSAGE_ "Functor signature is not allowed! Only support functor with "  \
     "void(), void(StepCtrl), bool(), bool(StepCtrl), STEP_STATUS() and STEP_STATUS(StepCtrl)"

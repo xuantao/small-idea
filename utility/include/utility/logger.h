@@ -139,6 +139,6 @@ inline void log_with_name(int level, const char* names, Args&&... args)
 
 UTILITY_NAMESPACE_END
 
-#define LOG_INFO(Level, ...)        UTILITY_NAMESPCE log_info(Level, ##__VA_ARGS__)
-#define LOG_FORMAT(Level, Fmt, ...) UTILITY_NAMESPCE log_format(Level, Fmt, ##__VA_ARGS__)
-#define LOG_VALS(Level, ...)        UTILITY_NAMESPCE log_with_name(Level, UTILITY_NAMESPCE detail::empty_str(#__VA_ARGS__), ##__VA_ARGS__)
+#define LOG_INFO(Level, ...)        UTILITY_NAMESPACE log_info(Level, ##__VA_ARGS__)
+#define LOG_FORMAT(Level, Fmt, ...) UTILITY_NAMESPACE log_format(Level, Fmt, ##__VA_ARGS__)
+#define LOG_VALS(Level, ...)        UTILITY_NAMESPACE log_with_name(Level, UTILITY_NAMESPACE detail::empty_str(#__VA_ARGS__), ##__VA_ARGS__)

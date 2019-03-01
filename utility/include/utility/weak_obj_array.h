@@ -6,6 +6,8 @@
 #include "singleton.h"
 #include <vector>
 
+#define DECLARE_WEAK_OBJ_INDEX_MEMBER   UTILITY_NAMESPACE WeakObjIndex WEAK_OBJ_INDEX_MEMBER_NAME
+
 UTILITY_NAMESPACE_BEGIN
 
 class WeakObjIndex
@@ -27,7 +29,7 @@ namespace weak_obj_internal
     template <typename Ty>
     struct HasIndexMember
     {
-        template<typename U> static auto Check(int) -> decltype(std::declval<U>().weak_obj_index);
+        template<typename U> static auto Check(int) -> decltype(std::declval<U>(). WEAK_OBJ_INDEX_MEMBER_NAME);
         template<typename U> static std::false_type Check(...);
 
         static constexpr bool value = std::is_same<decltype(Check<Ty>(0)), WeakObjIndex>::value;
@@ -171,7 +173,7 @@ private:
     template <typename Ty>
     inline WeakObjIndex& GetIndex(std::false_type, Ty* obj)
     {
-        return obj->weak_obj_index;
+        return obj->WEAK_OBJ_INDEX_MEMBER_NAME;
     }
 
 private:

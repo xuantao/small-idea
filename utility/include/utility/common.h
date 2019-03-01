@@ -12,7 +12,7 @@
 #define UTILITY_NAMESPACE_BEGIN namespace utility {
 #define UTILITY_NAMESPACE_END }
 #define UTILITY_USING_NAMESPACE using namespace utility;
-#define UTILITY_NAMESPCE utility::
+#define UTILITY_NAMESPACE utility::
 
 #define SCOPED_ALLOCATOR_BLOCK_SIZE 1024 * 1024
 #define SCOPED_ALLOCATOR_ALIGN_SIZE sizeof(void*)
@@ -20,6 +20,12 @@
 #define SCOPED_ALLOCATOR_MULTITHREAD 0
 
 #define LOG_DEBUG_INFO 1
+
+// weak obj index member name
+#ifndef WEAK_OBJ_INDEX_MEMBER_NAME
+    #define WEAK_OBJ_INDEX_MEMBER_NAME weak_obj_index
+#endif // !WEAK_OBJ_INDEX_MEMBER_NAME
+
 
 #if LOG_DEBUG_INFO
     #include <iostream>

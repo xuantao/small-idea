@@ -11,7 +11,7 @@ namespace
 
     struct TestMember
     {
-        WeakObjIndex weak_obj_index;
+        DECLARE_WEAK_OBJ_INDEX_MEMBER;
     };
 
     struct TestMember2 : TestMember

@@ -46,7 +46,7 @@ namespace
     printf("to_string, %s: %s\n", #val, buff)
 
 #define TEST_TO_STR_T(val)                          \
-    UTILITY_NAMESPCE to_str_t(buff, BUFF_LEN, val); \
+    UTILITY_NAMESPACE to_str_t(buff, BUFF_LEN, val); \
     printf("to_string, %s: %s\n", #val, buff)
 
 static void test_to_string_normal()
