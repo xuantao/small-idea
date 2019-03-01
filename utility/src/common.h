@@ -26,7 +26,6 @@
     #define WEAK_OBJ_INDEX_MEMBER_NAME weak_obj_index
 #endif // !WEAK_OBJ_INDEX_MEMBER_NAME
 
-
 #if LOG_DEBUG_INFO
     #include <iostream>
 #endif // LOG_DEBUG_INFO

@@ -93,7 +93,9 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -102,7 +104,9 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -113,7 +117,9 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -128,7 +134,9 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -136,41 +144,41 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\allocator_adapter.h" />
+    <ClInclude Include="..\src\async.h" />
+    <ClInclude Include="..\src\common.h" />
+    <ClInclude Include="..\src\com_obj_ptr.h" />
+    <ClInclude Include="..\src\data_pipe.h" />
+    <ClInclude Include="..\src\detail\alloc_internal.h" />
+    <ClInclude Include="..\src\detail\_tree.h" />
+    <ClInclude Include="..\src\detail\_vector.h" />
+    <ClInclude Include="..\src\future.h" />
+    <ClInclude Include="..\src\logger.h" />
+    <ClInclude Include="..\src\particular_allocator.h" />
+    <ClInclude Include="..\src\ref_count_set.h" />
+    <ClInclude Include="..\src\ring_buffer.h" />
+    <ClInclude Include="..\src\scope.h" />
+    <ClInclude Include="..\src\scope_buffer.h" />
+    <ClInclude Include="..\src\scope_guard.h" />
+    <ClInclude Include="..\src\scope_map.h" />
+    <ClInclude Include="..\src\scope_obj_buffer.h" />
+    <ClInclude Include="..\src\scope_set.h" />
+    <ClInclude Include="..\src\scope_vector.h" />
+    <ClInclude Include="..\src\serial_allocator.h" />
+    <ClInclude Include="..\src\shared_obj_array.h" />
+    <ClInclude Include="..\src\singleton.h" />
+    <ClInclude Include="..\src\small_obj_storage.h" />
+    <ClInclude Include="..\src\spin_lock.h" />
+    <ClInclude Include="..\src\stacked_allocator.h" />
+    <ClInclude Include="..\src\step_excutor.h" />
+    <ClInclude Include="..\src\to_string.h" />
+    <ClInclude Include="..\src\weak_obj_array.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="..\src\async.cpp" />
     <ClCompile Include="..\src\logger.cpp" />
     <ClCompile Include="..\src\scope.cpp" />
     <ClCompile Include="..\src\step_excutor.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\include\utility\allocator_adapter.h" />
-    <ClInclude Include="..\include\utility\async.h" />
-    <ClInclude Include="..\include\utility\common.h" />
-    <ClInclude Include="..\include\utility\data_pipe.h" />
-    <ClInclude Include="..\include\utility\detail\alloc_internal.h" />
-    <ClInclude Include="..\include\utility\detail\_tree.h" />
-    <ClInclude Include="..\include\utility\detail\_vector.h" />
-    <ClInclude Include="..\include\utility\future.h" />
-    <ClInclude Include="..\include\utility\com_obj_ptr.h" />
-    <ClInclude Include="..\include\utility\logger.h" />
-    <ClInclude Include="..\include\utility\particular_allocator.h" />
-    <ClInclude Include="..\include\utility\ref_count_set.h" />
-    <ClInclude Include="..\include\utility\ring_buffer.h" />
-    <ClInclude Include="..\include\utility\scope.h" />
-    <ClInclude Include="..\include\utility\scope_buffer.h" />
-    <ClInclude Include="..\include\utility\scope_guard.h" />
-    <ClInclude Include="..\include\utility\scope_map.h" />
-    <ClInclude Include="..\include\utility\scope_obj_buffer.h" />
-    <ClInclude Include="..\include\utility\scope_set.h" />
-    <ClInclude Include="..\include\utility\scope_vector.h" />
-    <ClInclude Include="..\include\utility\serial_allocator.h" />
-    <ClInclude Include="..\include\utility\shared_obj_array.h" />
-    <ClInclude Include="..\include\utility\singleton.h" />
-    <ClInclude Include="..\include\utility\small_obj_storage.h" />
-    <ClInclude Include="..\include\utility\spin_lock.h" />
-    <ClInclude Include="..\include\utility\stacked_allocator.h" />
-    <ClInclude Include="..\include\utility\step_excutor.h" />
-    <ClInclude Include="..\include\utility\to_string.h" />
-    <ClInclude Include="..\include\utility\weak_obj_array.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

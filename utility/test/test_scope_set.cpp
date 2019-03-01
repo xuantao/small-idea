@@ -2,8 +2,8 @@
 #include <vector>
 #include <functional>
 #include <time.h>
-#include "utility/scope.h"
-#include "utility/scope_set.h"
+#include "scope.h"
+#include "scope_set.h"
 #include "test_util.h"
 #include "test.h"
 

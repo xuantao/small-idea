@@ -1,4 +1,4 @@
-#include "utility/com_obj_ptr.h"
+#include "com_obj_ptr.h"
 
 namespace
 {

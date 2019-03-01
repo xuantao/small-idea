@@ -5,114 +5,111 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="include">
-      <UniqueIdentifier>{c4d424a5-739c-4d12-afd3-5b22678e3e58}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\detail">
-      <UniqueIdentifier>{909ad91e-ebb4-4127-b6e7-5d3f5736979f}</UniqueIdentifier>
+    <Filter Include="src\detail">
+      <UniqueIdentifier>{57df5cce-daea-4261-a3b7-12c1d8956f26}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\detail\_tree.h">
+      <Filter>src\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\detail\_vector.h">
+      <Filter>src\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\detail\alloc_internal.h">
+      <Filter>src\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\allocator_adapter.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\async.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\com_obj_ptr.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\data_pipe.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\future.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\logger.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\particular_allocator.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ref_count_set.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ring_buffer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scope.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scope_buffer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scope_guard.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scope_map.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scope_obj_buffer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scope_set.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scope_vector.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\serial_allocator.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shared_obj_array.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\singleton.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\small_obj_storage.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\spin_lock.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\stacked_allocator.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\step_excutor.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\to_string.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\weak_obj_array.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\async.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\logger.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\scope.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\async.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\step_excutor.cpp">
       <Filter>src</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\include\utility\common.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\data_pipe.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\logger.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\particular_allocator.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\ref_count_set.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\ring_buffer.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\serial_allocator.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\spin_lock.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\to_string.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\detail\_tree.h">
-      <Filter>include\detail</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\detail\_vector.h">
-      <Filter>include\detail</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scope.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scope_buffer.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scope_map.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scope_obj_buffer.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scope_set.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scope_vector.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\allocator_adapter.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\async.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\future.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\scope_guard.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\step_excutor.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\detail\alloc_internal.h">
-      <Filter>include\detail</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\stacked_allocator.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\small_obj_storage.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\com_obj_ptr.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\shared_obj_array.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\weak_obj_array.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utility\singleton.h">
-      <Filter>include</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

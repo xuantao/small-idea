@@ -1,6 +1,6 @@
 #include "test.h"
-#include "utility/shared_obj_array.h"
-#include "utility/scope_guard.h"
+#include "shared_obj_array.h"
+#include "scope_guard.h"
 
 namespace
 {

@@ -1,5 +1,5 @@
 ﻿#include <algorithm>
-#include "utility/scope.h"
+#include "scope.h"
 #include "test_util.h"
 #include "test.h"
 

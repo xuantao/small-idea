@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <type_traits>
 #include "test.h"
-#include "utility/common.h"
+#include "common.h"
 #include <map>
 #define _CRTDBG_MAP_ALLOC
 #include <cstdlib>

@@ -1,5 +1,5 @@
-﻿#include "utility/scope_map.h"
-#include "utility/scope.h"
+﻿#include "scope_map.h"
+#include "scope.h"
 #include "test_util.h"
 #include "test.h"
 

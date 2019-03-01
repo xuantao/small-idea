@@ -1,5 +1,5 @@
 #include "test.h"
-#include "utility/weak_obj_array.h"
+#include "weak_obj_array.h"
 
 using namespace utility;
 

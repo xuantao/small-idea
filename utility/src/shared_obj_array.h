@@ -61,23 +61,23 @@ namespace shared_obj_internal
 
 /* 带引用计数的共享对象 */
 template <typename Ty>
-class SharedObj
+class SharedObjPtr
 {
 private:
     using ObjArray = SharedObjArray<Ty>;
     friend class SharedObjArray<Ty>;
 
     /* 由管理器做最初始的构造 */
-    SharedObj(int index) : index_(index) { }
+    SharedObjPtr(int index) : index_(index) { }
 
 public:
-    SharedObj() : index_(const_values::kInvalidIndex) {}
-    SharedObj(SharedObj&& obj) : index_(obj.index_) { obj.index_ = const_values::kInvalidIndex; }
-    SharedObj(const SharedObj& obj) : index_(obj.index_) { AddRef(); }
-    ~SharedObj() { UnRef(); }
+    SharedObjPtr() : index_(const_values::kInvalidIndex) {}
+    SharedObjPtr(SharedObjPtr&& obj) : index_(obj.index_) { obj.index_ = const_values::kInvalidIndex; }
+    SharedObjPtr(const SharedObjPtr& obj) : index_(obj.index_) { AddRef(); }
+    ~SharedObjPtr() { UnRef(); }
 
 public:
-    inline SharedObj& operator = (const SharedObj& obj)
+    inline SharedObjPtr& operator = (const SharedObjPtr& obj)
     {
         UnRef();
         index_ = obj.index_;
@@ -85,7 +85,7 @@ public:
         return *this;
     }
 
-    inline SharedObj& operator = (SharedObj&& obj)
+    inline SharedObjPtr& operator = (SharedObjPtr&& obj)
     {
         UnRef();
         index_ = obj.index_;
@@ -93,8 +93,8 @@ public:
         return *this;
     }
 
-    inline bool operator == (const SharedObj& obj) const { return index_ == obj.index_; }
-    inline bool operator != (const SharedObj& obj) const { return !(*this == obj); }
+    inline bool operator == (const SharedObjPtr& obj) const { return index_ == obj.index_; }
+    inline bool operator != (const SharedObjPtr& obj) const { return !(*this == obj); }
 
 public:
     inline bool IsValid() const { return index_ >= 0; }
@@ -103,7 +103,7 @@ public:
     inline Ty* GetObj() const
     {
         if (IsValid())
-            return ObjArray::GetObjArray()->GetObj(index_);
+            return ObjArray::GetInstance()->GetObj(index_);
         return nullptr;
     }
 
@@ -135,11 +135,11 @@ template <typename Ty>
 class SharedObjArray : public Singleton<SharedObjArray<Ty>>
 {
     using ArrayObj = shared_obj_internal::ArrayObj<Ty, std::is_trivially_copyable<Ty>::value>;
-    friend class SharedObj<Ty>;
+    friend class SharedObjPtr<Ty>;
 
 public:
     using value_type = Ty;
-    using obj_type = SharedObj<Ty>;
+    using obj_type = SharedObjPtr<Ty>;
 
 private:
     SharedObjArray(int inc)
