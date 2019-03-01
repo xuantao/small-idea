@@ -68,7 +68,7 @@ private:
 private:
     union
     {
-        std::max_align_t dummy_1_;
+        std_ext::max_align_t dummy_1_;
         char dummy_2_[vals::kSmallObjectSpaceSize];
         Ty* ptrs_[vals::kSmallObjectNumPtrs];
     };

@@ -35,7 +35,7 @@ namespace shared_obj_internal
     private:
         union
         {
-            std::max_align_t dummy_;
+            std_ext::max_align_t dummy_;
             int8_t storage[sizeof(Ty)];
         };
     };

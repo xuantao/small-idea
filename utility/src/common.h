@@ -33,6 +33,8 @@
 // support c++ 11
 namespace std_ext
 {
+    typedef double max_align_t;
+
     template<size_t...>
     struct index_sequence {};
 
