@@ -132,7 +132,7 @@ public:
         weak_index.index_ = vals::kInvalidIndex;
     }
 
-    inline void* GetObject(int index)
+    inline void* GetObject(int index) const
     {
         auto ary_obj = GetArrayObj(index);
         return ary_obj ? ary_obj->obj : nullptr;
