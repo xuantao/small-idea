@@ -1,5 +1,6 @@
 #pragma once
 #include "common.h"
+#include "singleton.h"
 #include <vector>
 
 UTILITY_NAMESPACE_BEGIN
@@ -116,13 +117,13 @@ private:
     inline void AddRef()
     {
         if (IsValid())
-            ObjArray::GetObjArray()->AddRef(index_);
+            ObjArray::GetInstance()->AddRef(index_);
     }
 
     inline void UnRef()
     {
         if (IsValid())
-            ObjArray::GetObjArray()->UnRef(index_);
+            ObjArray::GetInstance()->UnRef(index_);
     }
 
 private:
@@ -131,7 +132,7 @@ private:
 
 /* 共享对象的数组集合 */
 template <typename Ty>
-class SharedObjArray
+class SharedObjArray : public Singleton<SharedObjArray<Ty>>
 {
     using ArrayObj = shared_obj_internal::ArrayObj<Ty, std::is_trivially_copyable<Ty>::value>;
     friend class SharedObj<Ty>;
@@ -141,9 +142,9 @@ public:
     using obj_type = SharedObj<Ty>;
 
 private:
-    SharedObjArray(size_t incremental)
+    SharedObjArray(int inc)
         : free_index_(const_values::kInvalidIndex)
-        , incremental_(incremental)
+        , inc_(inc)
     {
     }
 
@@ -162,24 +163,14 @@ private:
     SharedObjArray& operator = (const SharedObjArray&) = delete;
 
 public:
-    static bool Startup(size_t incremental = 1024)
+    static bool Startup(int inc = 1024)
     {
-        assert(incremental);
-        assert(s_instance_ == nullptr);
-        if (s_instance_ != nullptr)
-            return false;
-
-        s_instance_ = new SharedObjArray(incremental);
+        assert(inc > 0 && SharedObjArray::GetInstance() == nullptr);
+        new SharedObjArray(inc);
         return true;
     }
 
-    static void Shutdown()
-    {
-        delete s_instance_;
-        s_instance_ = nullptr;
-    }
-
-    inline static SharedObjArray* GetObjArray() { return s_instance_; }
+    void Purge() { delete this; }
 
 public:
     /* alloc object with constructor paramenters */
@@ -189,7 +180,7 @@ public:
         if (free_index_ == const_values::kInvalidIndex)
         {
             size_t old_size = objs_.size();
-            size_t new_size = objs_.size() + incremental_;
+            size_t new_size = objs_.size() + inc_;
 
             objs_.resize(new_size);
             for (size_t i = old_size; i < new_size; ++i)
@@ -246,7 +237,7 @@ private:
 
 private:
     int free_index_;
-    size_t incremental_;            // 每次扩容增量
+    int inc_;                       // 每次扩容增量
     std::vector<ArrayObj> objs_;    // 对象数组
 
 private:

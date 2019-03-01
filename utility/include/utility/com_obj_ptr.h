@@ -9,11 +9,8 @@ namespace com_ptr_internal
     template <typename Ty>
     struct HasAddRef
     {
-        template<typename U> static auto check(int) -> decltype(&U::AddRef, std::true_type());
+        template<typename U> static auto check(int) -> decltype(std::declval<U*>()->AddRef(), std::true_type());
         template<typename U> static std::false_type check(...);
-
-        template<typename U> static auto HasRelease(int) -> decltype(&U::Release, std::true_type());
-        template<typename U> static std::false_type HasRelease(...);
 
         static constexpr bool value = decltype(check<Ty>(0))::value;
     };
@@ -21,7 +18,7 @@ namespace com_ptr_internal
     template <typename Ty>
     struct HasRelease
     {
-        template<typename U> static auto check(int) -> decltype(&U::Release, std::true_type());
+        template<typename U> static auto check(int) -> decltype(std::declval<U*>()->Release(), std::true_type());
         template<typename U> static std::false_type check(...);
 
         static constexpr bool value = decltype(check<Ty>(0))::value;

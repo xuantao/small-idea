@@ -36,13 +36,13 @@ static void test_trivial()
     using SharedObj = typename ObjArray::obj_type;
     ObjArray::Startup(16);
     utility::ScopeGuard<> guard;
-    guard.Push([] { ObjArray::Shutdown(); });
+    guard.Push([] { ObjArray::GetInstance()->Purge(); });
 
-    auto o1 = ObjArray::GetObjArray()->AllocObj();
-    o1 = ObjArray::GetObjArray()->AllocObj();
+    auto o1 = ObjArray::GetInstance()->AllocObj();
+    o1 = ObjArray::GetInstance()->AllocObj();
 
     for (int i = 0; i < 16;++ i)
-        o1 = ObjArray::GetObjArray()->AllocObj();
+        o1 = ObjArray::GetInstance()->AllocObj();
 }
 
 static void test_none_trivial()
@@ -53,14 +53,14 @@ static void test_none_trivial()
     using SharedObj = typename ObjArray::obj_type;
     ObjArray::Startup(16);
     utility::ScopeGuard<> guard;
-    guard.Push([] { ObjArray::Shutdown(); });
+    guard.Push([] { ObjArray::GetInstance()->Purge(); });
 
-    auto o1 = ObjArray::GetObjArray()->AllocObj();
-    o1 = ObjArray::GetObjArray()->AllocObj(2);
+    auto o1 = ObjArray::GetInstance()->AllocObj();
+    o1 = ObjArray::GetInstance()->AllocObj(2);
 
     std::vector<SharedObj> vecs;
     for (int i = 0; i < 16; ++ i)
-        vecs.push_back(ObjArray::GetObjArray()->AllocObj(i));
+        vecs.push_back(ObjArray::GetInstance()->AllocObj(i));
 }
 
 void test_shared_obj_array()

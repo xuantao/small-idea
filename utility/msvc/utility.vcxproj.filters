@@ -25,9 +25,6 @@
     <ClCompile Include="..\src\step_excutor.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\weak_obj_array.cpp">
-      <Filter>include</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\utility\common.h">
@@ -112,6 +109,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\utility\weak_obj_array.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utility\singleton.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

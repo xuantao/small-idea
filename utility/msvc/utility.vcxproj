@@ -140,7 +140,6 @@
     <ClCompile Include="..\src\logger.cpp" />
     <ClCompile Include="..\src\scope.cpp" />
     <ClCompile Include="..\src\step_excutor.cpp" />
-    <ClCompile Include="..\src\weak_obj_array.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\utility\allocator_adapter.h" />
@@ -165,6 +164,7 @@
     <ClInclude Include="..\include\utility\scope_vector.h" />
     <ClInclude Include="..\include\utility\serial_allocator.h" />
     <ClInclude Include="..\include\utility\shared_obj_array.h" />
+    <ClInclude Include="..\include\utility\singleton.h" />
     <ClInclude Include="..\include\utility\small_obj_storage.h" />
     <ClInclude Include="..\include\utility\spin_lock.h" />
     <ClInclude Include="..\include\utility\stacked_allocator.h" />
