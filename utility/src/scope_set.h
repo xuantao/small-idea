@@ -5,7 +5,7 @@
 #pragma once
 
 #include "detail/_tree.h"
-#include <xstddef>
+#include <stddef.h>
 
 UTILITY_NAMESPACE_BEGIN
 
