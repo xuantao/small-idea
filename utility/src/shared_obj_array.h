@@ -64,8 +64,8 @@ template <typename Ty>
 class SharedObjPtr
 {
 private:
-    using ObjArray = SharedObjArray<Ty>;
     friend class SharedObjArray<Ty>;
+    using ObjArray = SharedObjArray<Ty>;
 
     /* 由管理器做最初始的构造 */
     SharedObjPtr(int index) : index_(index) { }
@@ -143,8 +143,8 @@ public:
 
 private:
     SharedObjArray(int inc)
-        : free_index_(vals::kInvalidIndex)
-        , inc_(inc)
+        : inc_(inc)
+        , free_index_(vals::kInvalidIndex)
     {
     }
 
@@ -236,15 +236,9 @@ private:
     }
 
 private:
-    int free_index_;
     int inc_;                       // 每次扩容增量
+    int free_index_;                // 空闲位置索引
     std::vector<ArrayObj> objs_;    // 对象数组
-
-private:
-    static SharedObjArray<Ty>* s_instance_;
 };
-
-template <typename Ty>
-SharedObjArray<Ty>* SharedObjArray<Ty>::s_instance_ = nullptr;
 
 UTILITY_NAMESPACE_END
