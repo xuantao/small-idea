@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * weak_obj_ptr
 */
 #pragma once
@@ -61,7 +61,7 @@ namespace weak_obj_ptr_internal
     };
 } // namespace weak_obj_ptr_internal
 
-/* ÈõÖ¸Õë */
+/* å¼±æŒ‡é’ˆ */
 template <typename Ty>
 class WeakObjPtr : private weak_obj_ptr_internal::WeakObjPtrBase
 {
