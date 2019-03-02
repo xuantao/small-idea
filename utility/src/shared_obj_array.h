@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "common.h"
 #include "singleton.h"
 #include <vector>
@@ -10,8 +10,8 @@ class SharedObjArray;
 
 namespace shared_obj_internal
 {
-    /* Êµ¼ÊÊı¾İÔªËØ
-     * refCount < 0: Êı×éÔªËØ³ÖÓĞ¶ÔÏó
+    /* å®é™…æ•°æ®å…ƒç´ 
+     * refCount < 0: æ•°ç»„å…ƒç´ æŒæœ‰å¯¹è±¡
     */
     template <typename Ty>
     struct ArrayObjBase
@@ -23,13 +23,13 @@ namespace shared_obj_internal
         inline void* GetMem() { return static_cast<void*>(storage); }
 
     public:
-        /* ¼ÇÂ¼ÒıÓÃ¼ÆÊı»òÏÂÒ»¸ö¿ÕÏĞÎ»ÖÃË÷Òı
-         * ÒıÓÃ¼ÆÊıÊ¹ÓÃ¸´Êı£¬¿ÕÏĞËõÓ°Ê¹ÓÃÕıÊı
+        /* è®°å½•å¼•ç”¨è®¡æ•°æˆ–ä¸‹ä¸€ä¸ªç©ºé—²ä½ç½®ç´¢å¼•
+         * å¼•ç”¨è®¡æ•°ä½¿ç”¨å¤æ•°ï¼Œç©ºé—²ç¼©å½±ä½¿ç”¨æ­£æ•°
         */
         union
         {
-            int ref_count;  // ÒıÓÃ¼ÆÊı
-            int next_index; // ÏÂÒ»¸ö¿ÕÏĞÔªËØ
+            int ref_count;  // å¼•ç”¨è®¡æ•°
+            int next_index; // ä¸‹ä¸€ä¸ªç©ºé—²å…ƒç´ 
         };
 
     private:
@@ -43,7 +43,7 @@ namespace shared_obj_internal
     template <typename Ty, bool>
     struct ArrayObj : public ArrayObjBase<Ty> { };
 
-    /* ·ÇÆ½·²¸´ÖÆ¹¹Ôì */
+    /* éå¹³å‡¡å¤åˆ¶æ„é€  */
     template <typename Ty>
     struct ArrayObj<Ty, false> : public ArrayObjBase<Ty>
     {
@@ -59,7 +59,7 @@ namespace shared_obj_internal
     };
 } // namespace shared_obj_internal
 
-/* ´øÒıÓÃ¼ÆÊıµÄ¹²Ïí¶ÔÏó */
+/* å¸¦å¼•ç”¨è®¡æ•°çš„å…±äº«å¯¹è±¡ */
 template <typename Ty>
 class SharedObjPtr
 {
@@ -67,7 +67,7 @@ private:
     using ObjArray = SharedObjArray<Ty>;
     friend class SharedObjArray<Ty>;
 
-    /* ÓÉ¹ÜÀíÆ÷×ö×î³õÊ¼µÄ¹¹Ôì */
+    /* ç”±ç®¡ç†å™¨åšæœ€åˆå§‹çš„æ„é€  */
     SharedObjPtr(int index) : index_(index) { }
 
 public:
@@ -130,7 +130,7 @@ private:
     int index_;
 }; // class SharedObj
 
-/* ¹²Ïí¶ÔÏóµÄÊı×é¼¯ºÏ */
+/* å…±äº«å¯¹è±¡çš„æ•°ç»„é›†åˆ */
 template <typename Ty>
 class SharedObjArray : public Singleton<SharedObjArray<Ty>>
 {
@@ -237,8 +237,8 @@ private:
 
 private:
     int free_index_;
-    int inc_;                       // Ã¿´ÎÀ©ÈİÔöÁ¿
-    std::vector<ArrayObj> objs_;    // ¶ÔÏóÊı×é
+    int inc_;                       // æ¯æ¬¡æ‰©å®¹å¢é‡
+    std::vector<ArrayObj> objs_;    // å¯¹è±¡æ•°ç»„
 
 private:
     static SharedObjArray<Ty>* s_instance_;

@@ -70,7 +70,7 @@ public:
 public:
     inline void* get() const { return buff_; }
     inline size_t size() const { return size_; }
-    inline bool empty() const { return get() == nullptr; }
+    inline bool empty() const { return buff_ == nullptr; }
     inline explicit operator bool() const { return buff_ != nullptr; }
 
     template <typename Ty>

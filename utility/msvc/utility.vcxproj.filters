@@ -94,6 +94,9 @@
     <ClInclude Include="..\src\to_string.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\weak_obj_ptr.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\weak_obj_array.h">
       <Filter>src</Filter>
     </ClInclude>

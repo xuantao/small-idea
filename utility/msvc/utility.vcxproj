@@ -173,6 +173,7 @@
     <ClInclude Include="..\src\step_excutor.h" />
     <ClInclude Include="..\src\to_string.h" />
     <ClInclude Include="..\src\weak_obj_array.h" />
+    <ClInclude Include="..\src\weak_obj_ptr.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\async.cpp" />

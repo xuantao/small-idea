@@ -1,8 +1,8 @@
-/*
+ï»¿/*
  * to_strings
  * xuantao, 2018-04-19
- * ²»ÄÜ½«to_string¼°ÆäÏà¹ØÖØÔØ·ÅÖÃÔÚÃüÃû¿Õ¼äÖĞ
- * Ä£°åº¯ÊıÒıÓÃÊ±£¬ÓÑÔªÉùÃ÷Ãû×Ö²éÕÒ¿ÉÄÜÓĞÎÊÌâ
+ * ä¸èƒ½å°†to_stringåŠå…¶ç›¸å…³é‡è½½æ”¾ç½®åœ¨å‘½åç©ºé—´ä¸­
+ * æ¨¡æ¿å‡½æ•°å¼•ç”¨æ—¶ï¼Œå‹å…ƒå£°æ˜åå­—æŸ¥æ‰¾å¯èƒ½æœ‰é—®é¢˜
 */
 #pragma once
 
@@ -127,14 +127,14 @@ namespace detail
         typedef typename std::remove_reference<Ty>::type src_type;
         typedef typename std::conditional<
             std::is_pointer<src_type>::value,
-            pointer_type,   // Ö¸ÕëÀàĞÍ
+            pointer_type,   // æŒ‡é’ˆç±»å‹
                 typename std::conditional<
                     std::is_enum<src_type>::value,
-                    enum_type,  // Ã¶¾Ù
+                    enum_type,  // æšä¸¾
                     typename std::conditional<
                         has_to_string<src_type>::value,
-                        tostring_type,  // ÖØÔØÁËto_string
-                    normal_type     // ÆÕÍ¨ÀàĞÍ
+                        tostring_type,  // é‡è½½äº†to_string
+                    normal_type     // æ™®é€šç±»å‹
                 >::type
             >::type
         >::type type;
@@ -147,7 +147,7 @@ namespace detail
         int capacity;
     };
 
-    /* ±ØĞë·Åµ½×îºóÊµÏÖ */
+    /* å¿…é¡»æ”¾åˆ°æœ€åå®ç° */
     template <typename Ty> inline void to_str_impl(str_buff& sb, const Ty& val);
 
     inline int _to_string_array(char* buff, size_t size, const char* src, size_t len)

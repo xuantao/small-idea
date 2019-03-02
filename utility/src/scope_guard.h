@@ -1,4 +1,4 @@
-/*
+﻿/*
  * scope guard
  * guard resources or roll back initialize operators
  * xuantao, 2018

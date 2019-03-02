@@ -1,9 +1,9 @@
-#pragma once
+ï»¿#pragma once
 #include "common.h"
 
 UTILITY_NAMESPACE_BEGIN
 
-/* Ñ­»·»º³åÇø */
+/* å¾ªçŽ¯ç¼“å†²åŒº */
 template <size_t A = sizeof(void*)>
 class ring_buffer
 {

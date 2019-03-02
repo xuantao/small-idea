@@ -1,17 +1,17 @@
 #include "test.h"
-#include "weak_obj_array.h"
+#include "weak_obj_ptr.h"
 
 using namespace utility;
 
 namespace
 {
-    struct TestDrive : WeakObjIndex
+    struct TestDrive : ObjectIndex
     {
     };
 
     struct TestMember
     {
-        DECLARE_WEAK_OBJ_INDEX_MEMBER;
+        DECLARE_OBJECT_INDEX_MEMBER;
     };
 
     struct TestMember2 : TestMember

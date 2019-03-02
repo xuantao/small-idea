@@ -1,4 +1,4 @@
-/*
+﻿/*
  * singleton base
 */
 #pragma once

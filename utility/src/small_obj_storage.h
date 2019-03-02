@@ -29,7 +29,7 @@ public:
     inline Ty* Get() const { return (ptrs_[vals::kSmallObjectNumPtrs - 1]); }
     inline void Set(Ty* ptr) { ptrs_[vals::kSmallObjectNumPtrs - 1] = ptr; }
     inline void* GetSpace() { return (ptrs_); }
-    inline const void *GetSpace() const { return (ptrs_); }
+    inline const void* GetSpace() const { return (ptrs_); }
 
     template <typename Impl, typename... Args>
     void Construct(Args&&... args)
