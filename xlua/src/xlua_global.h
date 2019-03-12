@@ -5,31 +5,32 @@ XLUA_NAMESPACE_BEGIN
 
 namespace xlua_internal
 {
-    typedef void (*TypeRegisterFunc)();
+    typedef const TypeInfo* (*GetTypeInfoFunc)();
 
-    class TypeInitNode
+    class TypeNode
     {
+        friend class GlobalVar;
     protected:
-        TypeInitNode(TypeRegisterFunc f);
-        ~TypeInitNode();
+        TypeNode(GetTypeInfoFunc f);
+        ~TypeNode();
 
-        TypeInitNode(const TypeInitNode&) = delete;
-        TypeInitNode& operator = (const TypeInitNode&) = delete;
+        TypeNode(const TypeNode&) = delete;
+        TypeNode& operator = (const TypeNode&) = delete;
 
-    public:
-        TypeInitNode* next;
-        TypeRegisterFunc func;
+    private:
+        TypeNode* next;
+        GetTypeInfoFunc func;
     };
 
-    template <typename Ty>
-    struct TypeInitializer : private TypeInitNode
-    {
-        TypeInitializer(TypeRegisterFunc func) : TypeInitNode(func) { }
-    };
+    ITypeDesc* AllocTypeInfo();
+    const TypeInfo* GetTypeInfo(int index);
 
     class GlobalVar
     {
 
+
+    public:
+        static const TypeInfo* GetTypeInfo(const TypeNode& node);
     };
 } // namespace xlua_internal
 

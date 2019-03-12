@@ -22,6 +22,7 @@
     <ClInclude Include="..\src\xlua.h" />
     <ClInclude Include="..\src\xlua_def.h" />
     <ClInclude Include="..\src\xlua_global.h" />
+    <ClInclude Include="..\src\xlua_traits.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\xlua.cpp" />

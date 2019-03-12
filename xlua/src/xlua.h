@@ -9,9 +9,6 @@ namespace xlua_internal
 
 } // namespace xlua_internal
 
-typedef int(*LuaFunction)(lua_State*);
-typedef int(*LuaIndexer)(lua_State*, void*);
-
 struct MemberFunc
 {
     const char* name;

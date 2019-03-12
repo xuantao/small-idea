@@ -19,6 +19,9 @@
     <ClInclude Include="..\src\xlua_def.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\xlua_traits.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\xlua.cpp">
