@@ -15,8 +15,8 @@ const TypeInfo* GetTypeInfo(int index)
 
 namespace detail
 {
-    static TypeNode* node_head_ = nullptr;
-    GlobalVar* GlobalVar::instance_ = nullptr;
+    static TypeNode* s_node_head = nullptr;
+    static GlobalVar* s_global = nullptr;
 
     struct TypeDesc : public ITypeDesc
     {
@@ -58,41 +58,63 @@ namespace detail
         std::vector<MemberVar> static_var_func_;
     };
 
-    TypeNode::TypeNode(GetInfoFunc f) : func(f), next(nullptr)
+    TypeNode::TypeNode(fnGetInfo func) : func_(func), next_(nullptr)
     {
-        next = node_head_;
-        node_head_ = this;
+        next_ = s_node_head;
+        s_node_head = this;
 
-        /* 系统已经初始化则注册 */
-        //if (GlobalVar::GetInstance())
-            //f();
+        if (GlobalVar::GetInstance())
+        {
+            //TODO: 注册
+        }
     }
 
     TypeNode::~TypeNode()
     {
-        if (node_head_ == this)
-        {
-            node_head_ = next;
-        }
-        else
-        {
-            TypeNode* node = node_head_;
-            while (node)
-            {
-                if (node->next == this)
-                {
-                    node->next = next;
-                    break;
-                }
+        TypeNode* node = s_node_head;
+        while (node != this && node->next_ != this)
+            node = node->next_;
 
-                node = node->next;
-            }
-        }
+        if (node == this)
+            s_node_head = next_;
+        else
+            node->next_ = next_;
+        next_ = nullptr;
 
         if (GlobalVar::GetInstance())
         {
             //TODO: 反注册
         }
+    }
+
+    bool GlobalVar::Startup()
+    {
+        if (s_global)
+            return false;
+
+        s_global = new GlobalVar();
+        return true;
+    }
+
+    GlobalVar* GlobalVar::GetInstance()
+    {
+        return s_global;
+    }
+
+    void GlobalVar::Purge()
+    {
+        delete s_global;
+        s_global = nullptr;
+    }
+
+    GlobalVar::GlobalVar()
+    {
+
+    }
+
+    GlobalVar::~GlobalVar()
+    {
+
     }
 
     ITypeDesc* GlobalVar::AllocType(const char* name, const TypeInfo* super)

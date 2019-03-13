@@ -6,33 +6,37 @@
 
 XLUA_NAMESPACE_BEGIN
 
-typedef int(*LuaFunction)(lua_State*);
-typedef int(*LuaIndexer)(lua_State*, void*);
-
+struct xLuaState;
 struct TypeInfo;
 
-template <typename... Tys>
-struct Declare;
+typedef int(*LuaFunction)(xLuaState*);
+typedef int(*LuaIndexer)(xLuaState*, void*);
+
+template <typename Ty, typename... Bys>
+struct Declare
+{
+    static_assert(sizeof...(Bys) > 1, "not support multy inherit");
+};
 
 template <typename Ty>
 struct Declare<Ty>
 {
-    typedef Ty      SelfType;
     typedef void    SuperType;
+    typedef Ty      SelfType;
 };
 
 template <typename Ty, typename By>
-struct Declare<Ty>
+struct Declare<Ty, By>
 {
-    typedef By  SuperType;
-    typedef Ty  SelfType;
+    typedef By      SuperType;
+    typedef Ty      SelfType;
 };
 
 struct ITypeDesc
 {
     virtual ~ITypeDesc() { }
-    virtual void AddFunc(const char* name, LuaFunction func, bool global) = 0;
-    virtual void AddVar(const char* name, LuaIndexer getter, LuaIndexer setter, bool global) = 0;
+    virtual void AddFunc(const char* name, LuaFunction func, bool member) = 0;
+    virtual void AddVar(const char* name, LuaIndexer getter, LuaIndexer setter, bool member) = 0;
     virtual int Finalize() = 0;
 };
 

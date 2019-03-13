@@ -35,8 +35,16 @@ namespace detail
     class GlobalVar
     {
         friend struct TypeDesc;
+    private:
+        GlobalVar();
+        ~GlobalVar();
+
     public:
-        static GlobalVar* GetInstance() { return instance_; }
+        static bool Startup();
+        static GlobalVar* GetInstance();
+
+        void Purge();
+
     public:
         ITypeDesc* AllocType(const char* name, const TypeInfo* super);
         const TypeInfo* GetTypeInfo(int index) const;
@@ -47,9 +55,6 @@ namespace detail
     private:
         //std::mutex mutex_;
         std::vector<TypeInfo*> types_;
-
-    private:
-        static GlobalVar* instance_;
     };
 } // namespace detail
 
