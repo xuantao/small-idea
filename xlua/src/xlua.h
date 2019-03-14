@@ -2,6 +2,12 @@
 #include <lua.hpp>
 #include "xlua_def.h"
 
+/* 扩展类型
+ * void xLuaPush(xlua::xLuaState* l, const Type& val)
+ * Type xLuaLoad(xlua::xLuaState* L, int index, xlua::Identity<Type>);
+ * const char* xLuaTypeName(xlua::Identity<Type>);
+*/
+
 XLUA_NAMESPACE_BEGIN
 
 namespace xlua_internal

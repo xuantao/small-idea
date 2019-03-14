@@ -170,3 +170,19 @@ namespace detail
 //}
 
 XLUA_NAMESPACE_END
+
+struct TestLuaExport
+{
+    int ia;
+    void test_call() {}
+};
+
+const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Indetity<TestLuaExport>)
+{
+    return nullptr;
+}
+
+namespace {
+    xlua::detail::TypeNode n(&xlua::detail::TypeInfoFunc<TestLuaExport>::GetInfo);
+}
+

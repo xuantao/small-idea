@@ -5,6 +5,8 @@
 
 XLUA_NAMESPACE_BEGIN
 
+typedef bool fnCastCheck(void* obj, const TypeInfo* type);
+
 struct MemberFunc
 {
     const char* name;
@@ -26,6 +28,7 @@ struct TypeInfo
     MemberVar* static_vars;
     MemberFunc* funcs;
     MemberFunc* static_funcs;
+    fnCastCheck fnCast;
 };
 
 namespace detail

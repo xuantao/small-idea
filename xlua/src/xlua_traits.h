@@ -3,12 +3,11 @@
 
 XLUA_NAMESPACE_BEGIN
 
+// std::indetity
 template <typename Ty>
 struct Indetity
 {
-    using Ty type;
+    typedef Ty type;
 };
-
-
 
 XLUA_NAMESPACE_END

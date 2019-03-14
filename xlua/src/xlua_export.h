@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "xlua_def.h"
+#include "xlua_traits.h"
 
 XLUA_NAMESPACE_BEGIN
 
@@ -7,10 +8,17 @@ namespace detail {
     typedef const TypeInfo* (*fnGetInfo)();
     class GlobalVar;
 
+    template <typename Ty>
+    struct TypeInfoFunc {
+        static const TypeInfo* GetInfo() {
+            return xLuaGetTypeInfo(xlua::Indetity<Ty>());
+        }
+    };
+
     class TypeNode
     {
         friend class GlobalVar;
-    protected:
+    public:
         TypeNode(fnGetInfo func);
         ~TypeNode();
 

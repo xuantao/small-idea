@@ -32,8 +32,11 @@ public:
     ObjectIndex() : index_(vals::kInvalidIndex) { }
     ~ObjectIndex();
 
-    ObjectIndex(const ObjectIndex&) = delete;
-    ObjectIndex& operator = (const ObjectIndex&) = delete;
+    /* 拷贝、赋值
+     * 一个index只用来确定自身对象的编号, 不受拷贝赋值影响
+    */
+    ObjectIndex(const ObjectIndex&) : index_(vals::kInvalidIndex) { }
+    inline ObjectIndex& operator = (const ObjectIndex&) { return *this; }
 
 private:
     int index_;
