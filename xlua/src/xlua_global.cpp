@@ -3,6 +3,12 @@
 
 XLUA_NAMESPACE_BEGIN
 
+namespace detail
+{
+    static NodeBase* s_node_head = nullptr;
+    static GlobalVar* s_global = nullptr;
+}
+
 ITypeDesc* AllocTypeInfo(const char* name, const TypeInfo* super)
 {
     return nullptr;
@@ -13,11 +19,14 @@ const TypeInfo* GetTypeInfo(int index)
     return nullptr;
 }
 
+ObjIndex::~ObjIndex()
+{
+    if (index_ != -1 && detail::s_global)
+        ;   //TODO: release
+}
+
 namespace detail
 {
-    static TypeNode* s_node_head = nullptr;
-    static GlobalVar* s_global = nullptr;
-
     struct TypeDesc : public ITypeDesc
     {
     public:
@@ -58,7 +67,7 @@ namespace detail
         std::vector<MemberVar> static_var_func_;
     };
 
-    TypeNode::TypeNode(fnGetInfo func) : func_(func), next_(nullptr)
+    NodeBase::NodeBase(NodeType type) : type_(type)
     {
         next_ = s_node_head;
         s_node_head = this;
@@ -69,9 +78,9 @@ namespace detail
         }
     }
 
-    TypeNode::~TypeNode()
+    NodeBase::~NodeBase()
     {
-        TypeNode* node = s_node_head;
+        NodeBase* node = s_node_head;
         while (node != this && node->next_ != this)
             node = node->next_;
 
@@ -171,18 +180,52 @@ namespace detail
 
 XLUA_NAMESPACE_END
 
+enum TestEnum
+{
+
+};
+
+enum class TestEnum2
+{
+
+};
+
 struct TestLuaExport
 {
     int ia;
     void test_call() {}
 };
 
+namespace {
+    xlua::detail::TypeNode n(&xlua::detail::TypeInfoFunc<TestLuaExport>::GetInfo);
+}
 const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Indetity<TestLuaExport>)
 {
     return nullptr;
 }
 
 namespace {
-    xlua::detail::TypeNode n(&xlua::detail::TypeInfoFunc<TestLuaExport>::GetInfo);
-}
+    static const xlua::ConstInfo* xLuaGetEnumInfo(xlua::Indetity<TestEnum>);
+    xlua::detail::ConstNode n2(xLuaGetEnumInfo(xlua::Indetity<TestEnum>()));
 
+    typedef TestEnum EnumType;
+    typedef TestEnum2 EnumType;
+    const xlua::ConstInfo* xLuaGetEnumInfo(xlua::Indetity<TestEnum>)
+    {
+        static xlua::ConstInfo info;
+        info.name = "";
+
+        static xlua::ConstValue values[] ={
+            //xlua::ConstValue("1", 1),
+            //xlua::ConstValue("2", 1.0f),
+            //xlua::ConstValue("3", "111"),
+
+            //TODO:
+
+            xlua::ConstValue()
+        };
+
+        info.values = values;
+        return &info;
+    }
+}
