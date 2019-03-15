@@ -9,12 +9,12 @@ namespace detail
     static GlobalVar* s_global = nullptr;
 }
 
-ITypeDesc* AllocTypeInfo(const char* name, const TypeInfo* super)
+ITypeDesc* AllocTypeInfo(const char* name, const TypeInfo* super, LuaCastCheck check)
 {
     return nullptr;
 }
 
-const TypeInfo* GetTypeInfo(int index)
+const TypeInfo* GetTypeInfo(const TypeKey& key)
 {
     return nullptr;
 }
@@ -51,10 +51,10 @@ namespace detail
                 member_var_.push_back(mv);
         }
 
-        int Finalize() override
+        TypeKey Finalize() override
         {
             if (GlobalVar::GetInstance() == nullptr)
-                return -1;
+                return TypeKey();
             return  GlobalVar::GetInstance()->AddTypeInfo(this);
         }
 
@@ -136,9 +136,9 @@ namespace detail
         return nullptr;
     }
 
-    int GlobalVar::AddTypeInfo(TypeDesc* desc)
+    TypeKey GlobalVar::AddTypeInfo(TypeDesc* desc)
     {
-        return -1;
+        return TypeKey();
     }
 
 } // namespace detail
@@ -182,12 +182,14 @@ XLUA_NAMESPACE_END
 
 enum TestEnum
 {
-
+    kValue1,
+    kValue2,
 };
 
 enum class TestEnum2
 {
-
+    kValue11,
+    kValue12,
 };
 
 struct TestLuaExport
@@ -199,18 +201,18 @@ struct TestLuaExport
 namespace {
     xlua::detail::TypeNode n(&xlua::detail::TypeInfoFunc<TestLuaExport>::GetInfo);
 }
-const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Indetity<TestLuaExport>)
+const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Identity<TestLuaExport>)
 {
     return nullptr;
 }
 
 namespace {
-    static const xlua::ConstInfo* xLuaGetEnumInfo(xlua::Indetity<TestEnum>);
-    xlua::detail::ConstNode n2(xLuaGetEnumInfo(xlua::Indetity<TestEnum>()));
+    static const xlua::ConstInfo* xLuaGetEnumInfo(xlua::Identity<TestEnum>);
+    xlua::detail::ConstNode n2(xLuaGetEnumInfo(xlua::Identity<TestEnum>()));
 
-    typedef TestEnum EnumType;
-    typedef TestEnum2 EnumType;
-    const xlua::ConstInfo* xLuaGetEnumInfo(xlua::Indetity<TestEnum>)
+    //typedef TestEnum EnumType;
+    //typedef TestEnum2 EnumType;
+    const xlua::ConstInfo* xLuaGetEnumInfo(xlua::Identity<TestEnum>)
     {
         static xlua::ConstInfo info;
         info.name = "";
@@ -229,3 +231,8 @@ namespace {
         return &info;
     }
 }
+
+XLUA_EXPORT_ENUM_BEGIN(TestEnum2)
+XLUA_EXPORT_ENUM_VAR(kValue11)
+XLUA_EXPORT_ENUM_VAR_AS(ttt, kValue12)
+XLUA_EXPORT_ENUM_END()

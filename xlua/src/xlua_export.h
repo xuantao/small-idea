@@ -16,7 +16,6 @@ struct MemberVar {
 };
 
 struct TypeInfo {
-    int index;
     const char* name;
     const TypeInfo* super;
     MemberVar* vars;
@@ -56,7 +55,7 @@ namespace detail {
     template <typename Ty>
     struct TypeInfoFunc {
         static const TypeInfo* GetInfo() {
-            return xLuaGetTypeInfo(xlua::Indetity<Ty>());
+            return xLuaGetTypeInfo(Identity<Ty>());
         }
     };
 
@@ -130,6 +129,8 @@ namespace detail {
         return cv;
     }
 
+    const char* PerifyTypeName(const char* name);
+
     /* 获取基类导出lua类 */
     template <typename Ty> inline const TypeInfo* GetSuper() { return Ty::LuaGetTypeInfo(); }
     template <> inline const TypeInfo* GetSuper<void>() { return nullptr; }
@@ -152,34 +153,48 @@ namespace detail {
             || std::is_member_pointer<Ry>::value || std::is_member_function_pointer<Ry>::value
                 );
     };
+
+    template <typename Ty, typename By>
+    struct CastCheck {
+        static bool Check(void* obj, const TypeInfo* obj_info, const TypeInfo* target_info) {
+            if (obj_info == target_info)
+                return true;
+            return target_info->super && target_info->super->fnCast(obj, obj_info, target_info->super) &&
+                dynamic_cast<Ty*>(static_cast<By*>(obj)) != nullptr;
+        }
+    };
+
+    template <typename Ty>
+    struct CastCheck<Ty, void> {
+        static bool Check(void*, const TypeInfo*, const TypeInfo*) { return false; }
+    };
 } // namespace detail
 
 XLUA_NAMESPACE_END
 
 /* 导出Lua类开始 */
-#define XLUA_EXPORT_BEGIN(ClassName)                                                            \
-    namespace {                                                                                 \
-        static int lua_##ClassName##_index_ = -1;                                               \
-        struct Lua##ClassName##Node : private xlua::detail::TypeNode {                          \
-            Lua##ClassName##Node()                                                              \
-                : xlua::detail::TypeNode(&ClassName::LuaGetTypeInfo) { }                        \
-            ~Lua##ClassName##Node() { lua_##ClassName##_index_ = -1; }                          \
-        } lua_##ClassName##_node_;                                                              \
-    }                                                                                           \
-    const xlua::TypeInfo* ClassName::LuaGetTypeInfo() {                                         \
-        if (lua_##ClassName##_index_ != -1)                                                     \
-            return xlua::GetTypeInfo(lua_##ClassName##_index_);                                 \
-        ITypeDesc* desc = xlua::AllocTypeInfo(                                                  \
-            #ClassName, xlua::detail::GetSupper<LuaDeclare::SuperType>());                      \
-        if (desc == nullptr)                                                                    \
-            return nullptr;                                                                     \
+#define XLUA_EXPORT_CLASS_BEGIN(ClassName)                                              \
+    namespace {                                                                         \
+        xlua::detail::TypeNode type_node_##__LINE__(&ClassName::xLuaGetTypeInfo);       \
+    } /* end namespace */                                                               \
+    const xlua::TypeInfo* ClassName::xLuaGetTypeInfo() {                                \
+        static xlua::TypeKey s_key;                                                     \
+        if (s_key.IsValid())                                                            \
+            return xlua::GetTypeInfo(s_key);                                            \
+        ITypeDesc* desc = xlua::AllocTypeInfo(                                          \
+            xlua::detail::PerifyTypeName(#ClassName),                                   \
+            xlua::detail::GetSupper<LuaDeclare::SuperType>(),                           \
+            &xlua::detail::CastCheck<ClassName, LuaDeclare::SuperType>::Check           \
+        );                                                                              \
+        if (desc == nullptr)                                                            \
+            return nullptr;                                                             \
         using ClassType = ClassName;
 
 
 /* 导出lua类结束 */
-#define XLUA_EXPORT_END()                                                                       \
-        lua_##ClassName##_index_ = desc->Finalize();                                            \
-        return xlua::GetTypeInfo(lua_##ClassName##_index_);                                     \
+#define XLUA_EXPORT_CLASS_END()                                                         \
+        s_key = desc->Finalize();                                                       \
+        return xlua::GetTypeInfo(s_key);                                                \
     }
 
 // 导出实现
@@ -187,9 +202,10 @@ XLUA_NAMESPACE_END
     static_assert(!std::is_null_pointer<decltype(Func)>::value,                         \
         "can not export func:"##Name##" with null pointer"                              \
     );                                                                                  \
+    int export_to_xlua_##Name = 0;                                                      \
     struct /* export */ Name {                                                          \
-        static int call(xLuaState* L, void* obj) {                                      \
-            return xlua::detail::MetaCall(L, obj Func);                                 \
+        static int call(xLuaState* L) {                                                 \
+            return xlua::detail::MetaCall(L, Func);                                     \
         }                                                                               \
     };                                                                                  \
     desc->AddFunc(#Name, &Name::call, std::is_member_function<decltype(Func)>::value);
@@ -199,6 +215,7 @@ XLUA_NAMESPACE_END
         xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::accept,           \
         "can not export var:"##Name##" to lua"                                          \
     );                                                                                  \
+    int export_to_xlua_##Name = 0;                                                      \
     struct /* export */ Name {                                                          \
         static void get(lua_State* L, void* obj) {                                      \
             xlua::detail::MetaGet(L, obj, GetOp);                                       \
@@ -218,19 +235,23 @@ XLUA_NAMESPACE_END
 //#define XLUA_EXPORT_
 
 /* 导出常量表 */
-#define XLUA_EXPORT_CONST_BEGIN(Name)                           \
+
+#define _XLUA_EXPORT_CONST_BEGIN(Name)                          \
     namespace {                                                 \
         static const xlua::ConstInfo* sGetConstInfo##Name();    \
-        xlua::detail::ConstNode const_node_##__line__(          \
+        xlua::detail::ConstNode const_node_##__LINE__(          \
             sGetConstInfo##Name());                             \
         const xlua::ConstInfo* sGetConstInfo##Name() {          \
         static xlua::ConstInfo info;                            \
-        info.name = #Name;                                      \
-        static xlua::ConstValue values[] =  {
+        info.name = #Name;
+
+#define XLUA_EXPORT_CONST_BEGIN(Name)                           \
+    _XLUA_EXPORT_CONST_BEGIN(Name)                              \
+            static xlua::ConstValue values[] = {
 
 #define XLUA_EXPORT_CONST_END()                                 \
                 xlua::detail::MakeConstValue()                  \
-            }                                                   \
+            };                                                  \
             info.values = values;                               \
             return &info;                                       \
         } /* end function */                                    \
@@ -240,8 +261,9 @@ XLUA_NAMESPACE_END
 
 /* 导出枚举表 */
 #define XLUA_EXPORT_ENUM_BEGIN_AS(Name, EnumType)               \
-    XLUA_EXPORT_CONST_BEGIN(Name)                               \
-    typedef EnumType Type;
+    _XLUA_EXPORT_CONST_BEGIN(Name)                              \
+        typedef EnumType Type;                                  \
+        static xlua::ConstValue values[] = {
 
 #define XLUA_EXPORT_ENUM_BEGIN(EnumType)    XLUA_EXPORT_ENUM_BEGIN_AS(EnumType, EnumType)
 #define XLUA_EXPORT_ENUM_END()              XLUA_EXPORT_CONST_END()
@@ -252,6 +274,6 @@ XLUA_NAMESPACE_END
 /* 导出预设脚本 */
 #define XLUA_EXPORT_SCRIPT(Str)                                 \
     namespace {                                                 \
-        xlua::detail::ScriptNode script_node_##__line__(Str);   \
+        xlua::detail::ScriptNode script_node_##__LINE__(Str);   \
     }
 

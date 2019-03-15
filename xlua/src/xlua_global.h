@@ -27,7 +27,7 @@ namespace detail
         const TypeInfo* GetTypeInfo(int index) const;
 
     private:
-        int AddTypeInfo(TypeDesc* desc);
+        TypeKey AddTypeInfo(TypeDesc* desc);
 
     private:
         //std::mutex mutex_;

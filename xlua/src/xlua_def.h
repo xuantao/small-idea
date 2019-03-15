@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <lua.hpp>
+#include <type_traits>
 
 #define XLUA_NAMESPACE_BEGIN    namespace xlua {
 #define XLUA_NAMESPACE_END      } // namespace xlua
@@ -13,9 +14,9 @@ namespace detail {
 struct xLuaState;
 struct TypeInfo;
 
-typedef int (*LuaFunction)(xLuaState*);
-typedef int (*LuaIndexer)(xLuaState*, void*);
-typedef bool (*LuaCastCheck)(void* obj, const TypeInfo* type);
+typedef int (*LuaFunction)(xLuaState* L);
+typedef int (*LuaIndexer)(xLuaState* L, void* obj);
+typedef bool (*LuaCastCheck)(void* obj, const TypeInfo* obj_info, const TypeInfo* target_info);
 
 template <typename Ty, typename... Bys>
 struct Declare {
@@ -38,19 +39,29 @@ struct Declare<Ty, By> {
 
 // std::indetity
 template <typename Ty>
-struct Indetity {
+struct Identity {
     typedef Ty type;
+};
+
+class TypeKey {
+    friend class detail::GlobalVar;
+public:
+    bool IsValid() const;
+
+private:
+    int index_ = -1;
+    int serial_ = 0;
 };
 
 struct ITypeDesc {
     virtual ~ITypeDesc() { }
     virtual void AddFunc(const char* name, LuaFunction func, bool member) = 0;
     virtual void AddVar(const char* name, LuaIndexer getter, LuaIndexer setter, bool member) = 0;
-    virtual const TypeInfo* Finalize() = 0;
+    virtual TypeKey Finalize() = 0;
 };
 
-ITypeDesc* AllocTypeInfo(const char* name, const TypeInfo* super);
-const TypeInfo* GetTypeInfo(int index);
+ITypeDesc* AllocTypeInfo(const char* name, const TypeInfo* super, LuaCastCheck check);
+const TypeInfo* GetTypeInfo(const TypeKey& key);
 
 class ObjIndex
 {
@@ -77,4 +88,4 @@ XLUA_NAMESPACE_END
 
 /* 声明导出外部类 */
 #define XLUA_DECLARE_EXPORT_EXTERNAL_CLASS(ClassName)           \
-    const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Indetity<ClassName>)
+    const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Identity<ClassName>)
