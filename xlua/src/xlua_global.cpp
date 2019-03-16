@@ -1,22 +1,28 @@
 ﻿#include "xlua_global.h"
 #include "xlua_export.h"
+#include <memory>
 
 XLUA_NAMESPACE_BEGIN
 
 namespace detail
 {
+    static int s_version = 0;
     static NodeBase* s_node_head = nullptr;
     static GlobalVar* s_global = nullptr;
 }
 
-ITypeDesc* AllocTypeInfo(const char* name, const TypeInfo* super, LuaCastCheck check)
+ITypeDesc* AllocTypeInfo(const char* name, const TypeInfo* super)
 {
-    return nullptr;
+    if (detail::s_global == nullptr)
+        return nullptr;
+    return detail::s_global->AllocType(name, super);
 }
 
 const TypeInfo* GetTypeInfo(const TypeKey& key)
 {
-    return nullptr;
+    if (detail::s_global == nullptr)
+        return nullptr;
+    return detail::s_global->GetTypeInfo(key);
 }
 
 ObjIndex::~ObjIndex()
@@ -25,17 +31,48 @@ ObjIndex::~ObjIndex()
         ;   //TODO: release
 }
 
+bool TypeKey::IsValid() const
+{
+    return detail::s_global && detail::s_global->IsValid(*this);
+}
+
 namespace detail
 {
+    static bool DummyCast(void*, const TypeInfo*, const TypeInfo*) { return false; }
+
+    const char* PerifyTypeName(const char* name)
+    {
+        if (name == nullptr || *name == 0)
+            return name;
+
+        size_t length = ::strlen(name);
+        char* buff = new char[length + 1];
+        strcpy_s(buff, length, name);
+
+        char* sub = nullptr;
+        char* str = const_cast<char*>(buff);
+        while ((sub = ::strstr(str, "::")) != nullptr)
+        {
+            ::memmove(sub, sub + 2, length - (sub - buff) - 2);
+            str = sub;
+        }
+        return name;
+    }
+
     struct TypeDesc : public ITypeDesc
     {
     public:
         TypeDesc(const char* name, const TypeInfo* super) : name_(name), super_(super) { }
         ~TypeDesc() { }
 
+        void SetCastCheck(LuaCastCheck cast_checker) override
+        {
+            cast_checker_ = cast_checker;
+        }
+
         void AddFunc(const char* name, LuaFunction func, bool global) override
         {
-            MemberFunc mf{ name, func };
+            TypeFunc mf{ name, func };
             if (global)
                 static_member_func_.push_back(mf);
             else
@@ -44,7 +81,7 @@ namespace detail
 
         void AddVar(const char* name, LuaIndexer getter, LuaIndexer setter, bool global) override
         {
-            MemberVar mv{ name, getter, setter };
+            TypeVar mv{ name, getter, setter };
             if (global)
                 static_var_func_.push_back(mv);
             else
@@ -53,18 +90,78 @@ namespace detail
 
         TypeKey Finalize() override
         {
-            if (GlobalVar::GetInstance() == nullptr)
+            std::auto_ptr<TypeDesc> ptr(this);  // auto free
+            if (s_global == nullptr)
                 return TypeKey();
-            return  GlobalVar::GetInstance()->AddTypeInfo(this);
+
+            void* buff = new char[sizeof(TypeInfo)
+                + sizeof(TypeFunc) * (member_func_.size() + static_member_func_.size() + 2)
+                + sizeof(TypeVar) * (member_var_.size() + static_var_func_.size() + 2)
+            ];
+            TypeInfo* info = static_cast<TypeInfo*>(buff);
+
+            info->name = PerifyTypeName(name_);
+            info->super = super_;
+            info->fnCast = cast_checker_ ? cast_checker_ : &DummyCast;
+
+            TypeFunc* func = reinterpret_cast<TypeFunc*>(&info[1]);
+
+            info->funcs = func;
+            for (const auto& f : member_func_)
+            {
+                *func = f;
+                ++func;
+            }
+            func->func = nullptr;
+            func->name = nullptr;
+            ++func;
+
+            info->static_funcs = func;
+            for (const auto& f : static_member_func_)
+            {
+                *func = f;
+                ++func;
+            }
+            func->func = nullptr;
+            func->name = nullptr;
+            ++func;
+
+            TypeVar* var = reinterpret_cast<TypeVar*>(func);
+            info->vars = var;
+            for (const auto& v : member_var_)
+            {
+                *var = v;
+                ++var;
+            }
+            var->name = nullptr;
+            var->getter = nullptr;
+            var->setter = nullptr;
+            ++var;
+
+            info->static_vars = var;
+            for (const auto& v : static_var_func_)
+            {
+                *var = v;
+                ++var;
+            }
+            var->name = nullptr;
+            var->getter = nullptr;
+            var->setter = nullptr;
+
+            TypeKey key = s_global->AddTypeInfo(info);
+            if (!key.IsValid())
+                delete[] reinterpret_cast<char*>(info);
+            return key;
         }
 
-        GlobalVar* global_;
+    private:
         const char* name_;
         const TypeInfo* super_;
-        std::vector<MemberFunc> member_func_;
-        std::vector<MemberFunc> static_member_func_;
-        std::vector<MemberVar> member_var_;
-        std::vector<MemberVar> static_var_func_;
+        LuaCastCheck cast_checker_;
+        std::vector<TypeFunc> member_func_;
+        std::vector<TypeFunc> static_member_func_;
+        std::vector<TypeVar> member_var_;
+        std::vector<TypeVar> static_var_func_;
     };
 
     NodeBase::NodeBase(NodeType type) : type_(type)
@@ -101,7 +198,7 @@ namespace detail
         if (s_global)
             return false;
 
-        s_global = new GlobalVar();
+        s_global = new GlobalVar(++s_version);
         return true;
     }
 
@@ -116,29 +213,41 @@ namespace detail
         s_global = nullptr;
     }
 
-    GlobalVar::GlobalVar()
+    GlobalVar::GlobalVar(int version) : version_(version_)
     {
-
     }
 
     GlobalVar::~GlobalVar()
     {
+    }
 
+    bool GlobalVar::IsValid(const TypeKey& key) const
+    {
+        return key.serial_ != version_
+            && key.index_ >= 0
+            && key.index_ < (int)types_.size();
     }
 
     ITypeDesc* GlobalVar::AllocType(const char* name, const TypeInfo* super)
     {
-        return nullptr;
+        return new TypeDesc(name, super);
     }
 
-    const TypeInfo* GlobalVar::GetTypeInfo(int index) const
+    const TypeInfo* GlobalVar::GetTypeInfo(const TypeKey& key) const
     {
-        return nullptr;
+        if (!IsValid(key))
+            return nullptr;
+
+        return types_[key.index_];
     }
 
-    TypeKey GlobalVar::AddTypeInfo(TypeDesc* desc)
+    TypeKey GlobalVar::AddTypeInfo(TypeInfo* info)
     {
-        return TypeKey();
+        TypeKey key;
+        key.serial_ = version_;
+        key.index_ = (int)types_.size();
+        types_.push_back(info);
+        return key;
     }
 
 } // namespace detail

@@ -13,7 +13,7 @@ namespace detail
     {
         friend struct TypeDesc;
     private:
-        GlobalVar();
+        GlobalVar(int version);
         ~GlobalVar();
 
     public:
@@ -23,14 +23,16 @@ namespace detail
         void Purge();
 
     public:
+        bool IsValid(const TypeKey& key) const;
         ITypeDesc* AllocType(const char* name, const TypeInfo* super);
-        const TypeInfo* GetTypeInfo(int index) const;
+        const TypeInfo* GetTypeInfo(const TypeKey& key) const;
 
     private:
-        TypeKey AddTypeInfo(TypeDesc* desc);
+        TypeKey AddTypeInfo(TypeInfo* desc);
 
     private:
         //std::mutex mutex_;
+        int version_;
         std::vector<TypeInfo*> types_;
     };
 } // namespace detail

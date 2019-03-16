@@ -4,7 +4,7 @@
 
 XLUA_NAMESPACE_BEGIN
 
-namespace detail{
+namespace detail {
     template<typename Ty>
     struct IsInternal {
         template <typename U> static auto Check(int)->decltype(std::declval<U>().xlua_obj_index_);
@@ -21,9 +21,26 @@ namespace detail{
         static constexpr bool value = decltype(Check<Ty>(1))::value;
     };
 
+    template <typename Ty>
+    struct IsExtendLoad {
+        template <typename U> static auto Check(int)->decltype(::xLuaLoad(std::declval<xLuaState*>(), (int)0, Identity<Ty>()), std::true_type());
+        template <typename U> static auto Check(...)->std::false_type;
+
+        static constexpr bool value = decltype(Check<Ty>(1))::value;
+    };
+
+    template <typename Ty>
+    struct IsExtendPush {
+        template <typename U> static auto Check(int)->decltype(::xLuaPush(std::declval<xLuaState*>(), std::declval<const Ty&>()), std::true_type());
+        template <typename U> static auto Check(...)->std::false_type;
+
+        static constexpr bool value = decltype(Check<Ty>(1))::value;
+    };
+
     struct tag_unknown {};
     struct tag_internal {};
     struct tag_external {};
+    struct tag_extend {};
 
     template <typename Ty>
     struct Dispatcher {
@@ -32,13 +49,18 @@ namespace detail{
     };
 
     template <typename Ty>
-    auto DoGetTypeInfo() -> typename std::enable_if<IsInternal<Ty>::value, const TypeInfo*>::type {
+    auto GetTypeInfo() -> typename std::enable_if<IsInternal<Ty>::value, const TypeInfo*>::type {
         return Ty::xLuaGetTypeInfo();
     }
 
     template <typename Ty>
-    auto DoGetTypeInfo() -> typename std::enable_if<IsExternal<Ty>::value, const TypeInfo*>::type {
+    auto GetTypeInfo() -> typename std::enable_if<IsExternal<Ty>::value, const TypeInfo*>::type {
         return xLuaGetTypeInfo(Identity<Ty>());
+    }
+
+    template <typename Ty>
+    auto GetTypeInfo() -> typename std::enable_if<std::is_void<Ty>::value, const TypeInfo*>::type {
+        return nullptr;
     }
 } // namespace detail
 
