@@ -1,224 +1,55 @@
 ﻿#pragma once
 #include "xlua_def.h"
-#include "xlua_traits.h"
+#include "detail/traits.h"
+#include "detail/export.h"
 
-XLUA_NAMESPACE_BEGIN
-
-struct TypeFunc {
-    const char* name;
-    LuaFunction func;
-};
-
-struct TypeVar {
-    const char* name;
-    LuaIndexer getter;
-    LuaIndexer setter;
-};
-
-struct TypeInfo {
-    const char* name;
-    const TypeInfo* super;
-    TypeVar* vars;
-    TypeVar* static_vars;
-    TypeFunc* funcs;
-    TypeFunc* static_funcs;
-    LuaCastCheck fnCast;
-};
-
-enum class ConstValueType {
-    kNone,
-    kInteger,
-    kFloat,
-    kString,
-};
-
-struct ConstValue {
-    ConstValueType type;
-    const char* name;
-
-    union {
-        int int_val;
-        float float_val;
-        const char* string_val;
-    };
-};
-
-struct ConstInfo {
-    const char* name;
-    const ConstValue* values;
-};
-
-namespace detail {
-    class GlobalVar;
-    typedef const TypeInfo* (*fnTypeInfo)();
-    typedef const ConstInfo* (*fnConstInfo)();
-
-    template <typename Ty>
-    struct TypeInfoFunc {
-        static const TypeInfo* GetInfo() {
-            return xLuaGetTypeInfo(Identity<Ty>());
-        }
-    };
-
-    enum class NodeType {
-        kType,
-        kConst,
-        kScript,
-    };
-
-    struct NodeBase {
-        NodeBase(NodeType type);
-        ~NodeBase();
-
-        NodeType type_;
-        NodeBase* next_;
-    };
-
-    struct TypeNode : NodeBase {
-        TypeNode(fnTypeInfo func)
-            : NodeBase(NodeType::kType)
-            , func_(func) {
-        }
-        const fnTypeInfo func_;
-    };
-
-    struct ConstNode : NodeBase {
-        ConstNode(fnConstInfo func)
-            : NodeBase(NodeType::kConst)
-            , func_(func) {
-        }
-        const fnConstInfo func_;
-    };
-
-    struct ScriptNode : NodeBase {
-        ScriptNode(const char* script)
-            : NodeBase(NodeType::kScript)
-            , script_(script) {
-        }
-        const char* const script_;
-    };
-
-    inline ConstValue MakeConstValue() {
-        ConstValue cv;
-        cv.type = ConstValueType::kNone;
-        cv.name = nullptr;
-        cv.int_val = 0;
-        return cv;
-    }
-
-    inline ConstValue MakeConstValue(const char* name, int val) {
-        ConstValue cv;
-        cv.type = ConstValueType::kInteger;
-        cv.name = name;
-        cv.int_val = val;
-        return cv;
-    }
-
-    inline ConstValue MakeConstValue(const char* name, float val) {
-        ConstValue cv;
-        cv.type = ConstValueType::kFloat;
-        cv.name = name;
-        cv.float_val = val;
-        return cv;
-    }
-
-    inline ConstValue MakeConstValue(const char* name, const char* val) {
-        ConstValue cv;
-        cv.type = ConstValueType::kString;
-        cv.name = name;
-        cv.string_val = val;
-        return cv;
-    }
-
-    /* 导出属性萃取 */
-    template <typename Ly, typename Ry>
-    struct IndexerTrait
-    {
-        static constexpr bool accept =
-            (std::is_null_pointer<Ly>::value != std::is_null_pointer<Ry>::value) &&
-            ((std::is_null_pointer<Ly>::value || std::is_null_pointer<Ry>::value)
-                ||
-                ((std::is_member_pointer<Ly>::value || std::is_member_function_pointer<Ly>::value)
-                    ==
-                    (std::is_member_pointer<Ry>::value || std::is_member_function_pointer<Ry>::value)
-                    ));
-
-        static constexpr bool member = (
-            std::is_member_pointer<Ly>::value || std::is_member_function_pointer<Ly>::value
-            || std::is_member_pointer<Ry>::value || std::is_member_function_pointer<Ry>::value
-                );
-    };
-
-    template <typename Ty, typename By>
-    struct CastCheck {
-        static bool Check(void* obj, const TypeInfo* obj_info, const TypeInfo* target_info) {
-            if (obj_info == target_info)
-                return true;
-
-            const TypeInfo* super = target_info->super;
-            return super && super->fnCast
-                && super->fnCast(obj, obj_info, super)
-                && dynamic_cast<Ty*>(static_cast<By*>(obj)) != nullptr;
-        }
-    };
-
-    template <typename Ty>
-    struct CastCheck<Ty, void> {
-        static bool Check(void*, const TypeInfo* obj_info, const TypeInfo* target_info) {
-            return obj_info == target_info;
-        }
-    };
-} // namespace detail
-
-XLUA_NAMESPACE_END
-
-
-#define _XLUA_SUPER_CLASS(...)  typename xlua::detail::BaseType<_VAR_ARGS_>::type
+#define _XLUA_SUPER_CLASS(...)  typename xlua::detail::BaseType<__VA_ARGS__>::type
 
 // 导出实现
-#define _XLUA_EXPORT_FUNCTION(Name, Func)                                               \
+#define _XLUA_EXPORT_FUNC(Name, Func)                                                   \
     static_assert(!std::is_null_pointer<decltype(Func)>::value,                         \
         "can not export func:"##Name##" with null pointer"                              \
     );                                                                                  \
     int export_to_xlua_##Name = 0;                                                      \
     (export_to_xlua_##Name);    /* used for check rename */                             \
-    struct Func_##Name {                                                                  \
-        static int call(xLuaState* L) {                                                 \
+    struct Func_##Name {                                                                \
+        static int call(xlua::xLuaState* L) {                                           \
             return xlua::detail::MetaCall(L, Func);                                     \
         }                                                                               \
     };                                                                                  \
-    desc->AddFunc(#Name, &Func_##Name::call, std::is_member_function<decltype(Func)>::value);
+    desc->AddMember(xlua::detail::MakeMember(#Name, &Func_##Name::call),                \
+        !std::is_member_function_pointer<decltype(Func)>::value);
 
 #define _XLUA_EXPORT_VAR(Name, GetOp, SetOp)                                            \
     static_assert(                                                                      \
-        xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::accept,           \
-        "can not export var:"##Name##" to lua"                                          \
+        xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::is_allow,         \
+        "can not export var:"#Name" to lua"                                             \
     );                                                                                  \
     int export_to_xlua_##Name = 0;                                                      \
-    (export_to_xlua_##Name);    /* used for check rename */                             \
+    (export_to_xlua_##Name);    /* used for check rename problem */                     \
     struct Var_##Name {                                                                 \
-        static void get(lua_State* L, void* obj) {                                      \
+        static void get(xlua::xLuaState* L, void* obj) {                                \
             xlua::detail::MetaGet(L, obj, GetOp);                                       \
         }                                                                               \
-        static void set(lua_State* L, void* obj) {                                      \
+        static void set(xlua::xLuaState* L, void* obj) {                                \
             xlua::detail::MetaSet(L, obj, SetOp);                                       \
         }                                                                               \
     };                                                                                  \
-    desc->AddVar(#Name,                                                                 \
+    desc->AddMember(xlua::detail::MakeMember(#Name,                                     \
         std::is_null_pointer<decltype(GetOp)>::value ? nullptr : &Var_##Name::get,      \
-        std::is_null_pointer<decltype(SetOp)>::value ? nullptr : &Var_##Name::set,      \
-        xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::member            \
+        std::is_null_pointer<decltype(SetOp)>::value ? nullptr : &Var_##Name::set),     \
+        !xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::is_member        \
     );
 
 /* 导出Lua类开始 */
 #define XLUA_EXPORT_CLASS_BEGIN(ClassName)                                              \
     static_assert(std::is_void<ClassName::LuaDeclare::super>::type                      \
         || std::is_base_of<ClassName::LuaDeclare::super, ClassName>::value,             \
-        "external class is not inherited"                                               \
+        "internal class is not inherited"                                               \
     );                                                                                  \
     static_assert(std::is_void<ClassName::LuaDeclare::super>::type                      \
-        || xlua::detail::IsInternal<ClassName::LuaDeclare::super, ClassName>::value     \
-        || xlua::detail::IsExternal<ClassName::LuaDeclare::super, ClassName>::value     \
+        || xlua::detail::IsInternal<ClassName::LuaDeclare::super>::value                \
+        || xlua::detail::IsExternal<ClassName::LuaDeclare::super>::value                \
         "base type is not declare to export to lua"                                     \
     );                                                                                  \
     namespace {                                                                         \
@@ -234,8 +65,9 @@ XLUA_NAMESPACE_END
         );                                                                              \
         if (desc == nullptr)                                                            \
             return nullptr;                                                             \
-        desc->SetCastCheck(                                                             \
-            &xlua::detail::CastCheck<ClassName, LuaDeclare::super>::Check               \
+        desc->SetConverter(                                                             \
+            &xlua::detail::CastCheck<ClassName, LuaDeclare::SuperType>::CastUp,         \
+            &xlua::detail::CastCheck<ClassName, LuaDeclare::SuperType>::CastDown        \
         );                                                                              \
         using class_type = ClassName;
 
@@ -248,13 +80,13 @@ XLUA_NAMESPACE_END
 
 /* 导出外部类 */
 #define XLUA_EXPORT_EXTERNAL_CLASS_BEGIN(ClassName, ...)                                \
-    static_assert(std::is_void<typename xlua::BaseType<_VAR_ARGS_>::type                \
-        || std::is_base_of<_XLUA_SUPER_CLASS(_VAR_ARGS_), ClassName>::value,            \
+    static_assert(std::is_void<_XLUA_SUPER_CLASS(__VA_ARGS__)>::value                   \
+        || std::is_base_of<_XLUA_SUPER_CLASS(__VA_ARGS__), ClassName>::value,           \
         "external class is not inherited"                                               \
     );                                                                                  \
-    static_assert(std::is_void<typename xlua::BaseType<_VAR_ARGS_>::type                \
-        || xlua::detail::IsInternal<_XLUA_SUPER_CLASS(_VAR_ARGS_), ClassName>::value    \
-        || xlua::detail::IsExternal<_XLUA_SUPER_CLASS(_VAR_ARGS_), ClassName>::value    \
+    static_assert(std::is_void<_XLUA_SUPER_CLASS(__VA_ARGS__)>::value                   \
+        || xlua::detail::IsInternal<_XLUA_SUPER_CLASS(__VA_ARGS__)>::value              \
+        || xlua::detail::IsExternal<_XLUA_SUPER_CLASS(__VA_ARGS__)>::value,             \
         "base type is not declare to export to lua"                                     \
     );                                                                                  \
     namespace {                                                                         \
@@ -267,14 +99,15 @@ XLUA_NAMESPACE_END
         static xlua::TypeKey s_key;                                                     \
         if (s_key.IsValid())                                                            \
             return xlua::GetTypeInfo(s_key);                                            \
-        ITypeDesc* desc = xlua::AllocTypeInfo(                                          \
+        xlua::ITypeDesc* desc = xlua::AllocTypeInfo(                                    \
             #ClassName,                                                                 \
-            xlua::detail::GetTypeInfo<typename BaseType<_VAR_ARGS_>::type>()            \
+            xlua::detail::GetTypeInfo<_XLUA_SUPER_CLASS(__VA_ARGS__)>()                 \
         );                                                                              \
         if (desc == nullptr)                                                            \
             return nullptr;                                                             \
-        desc->SetCastCheck(                                                             \
-            &xlua::detail::CastCheck<ClassName, LuaDeclare::SuperType>::Check           \
+        desc->SetConverter(                                                             \
+            &xlua::detail::CastCheck<ClassName, _XLUA_SUPER_CLASS(__VA_ARGS__)>::CastUp,   \
+            &xlua::detail::CastCheck<ClassName, _XLUA_SUPER_CLASS(__VA_ARGS__)>::CastDown  \
         );                                                                              \
         using class_type = ClassName;
 
@@ -288,7 +121,7 @@ XLUA_NAMESPACE_END
             static xlua::TypeKey s_key;                                                 \
             if (s_key.IsValid())                                                        \
                 return xlua::GetTypeInfo(s_key);                                        \
-            ITypeDesc* desc = xlua::AllocTypeInfo(#Name, nullptr);                      \
+            xlua::ITypeDesc* desc = xlua::AllocTypeInfo(#Name, nullptr);                \
             if (desc == nullptr)                                                        \
                 return nullptr;                                                         \
 
@@ -298,8 +131,10 @@ XLUA_NAMESPACE_END
         });                                                                             \
     }   /* end namespace*/
 
-#define XLUA_EXPORT_FUNC()
-#define XLUA_EXPORT_VAR()
+#define XLUA_EXPORT_MEMBER_FUNC(Func)   _XLUA_EXPORT_FUNC(Func, &class_type::Func)
+#define XLUA_EXPORT_MEMBER_VAR(Var)     _XLUA_EXPORT_VAR(Var, &class_type::Var, &class_type::Var)
+#define XLUA_EXPORT_GLOBAL_FUNC(Func)   _XLUA_EXPORT_FUNC(Func, &Func)
+#define XLUA_EXPORT_GLOBAL_VAR(Var)     _XLUA_EXPORT_VAR(Var, &Var, &Var)
 //#define XLUA_EXPORT_
 
 /* 导出常量表 */
@@ -307,7 +142,7 @@ XLUA_NAMESPACE_END
 #define _XLUA_EXPORT_CONST_BEGIN(Name)                          \
     namespace {                                                 \
         xlua::detail::ConstNode const_node_##__LINE__(          \
-        []() -> const ConstInfo* {                              \
+        []() -> const xlua::ConstInfo* {                        \
             static xlua::ConstInfo info;                        \
             info.name = #Name;
 

@@ -5,33 +5,48 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="src\internal">
-      <UniqueIdentifier>{45cd9c33-835d-4a58-92f4-23ad88543c2d}</UniqueIdentifier>
+    <Filter Include="src\detail">
+      <UniqueIdentifier>{3808315d-a8f9-4282-b753-35b82f3e3737}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\xlua.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\xlua_global.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\xlua_def.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\xlua_traits.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\src\xlua_export.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\detail\global.h">
+      <Filter>src\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\detail\traits.h">
+      <Filter>src\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\detail\export.h">
+      <Filter>src\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\detail\type_desc.h">
+      <Filter>src\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\detail\state.h">
+      <Filter>src\detail</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\xlua.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\xlua_global.cpp">
+    <ClCompile Include="..\src\main.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\detail\global.cpp">
+      <Filter>src\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\detail\type_desc.cpp">
+      <Filter>src\detail</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

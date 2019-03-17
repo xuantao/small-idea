@@ -1,7 +1,6 @@
 ﻿#pragma once
-#include "xlua_def.h"
+#include "../xlua_def.h"
 #include <vector>
-#include <mutex>
 
 XLUA_NAMESPACE_BEGIN
 
@@ -31,7 +30,6 @@ namespace detail
         TypeKey AddTypeInfo(TypeInfo* desc);
 
     private:
-        //std::mutex mutex_;
         int version_;
         std::vector<TypeInfo*> types_;
     };

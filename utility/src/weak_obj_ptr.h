@@ -1,6 +1,6 @@
 ﻿/*
  * weak_obj_ptr
-*/
+ */
 #pragma once
 #include "common.h"
 #include "weak_obj_array.h"
@@ -10,6 +10,7 @@ UTILITY_NAMESPACE_BEGIN
 
 namespace weak_obj_ptr_internal
 {
+    // some problem(multy inherited)
     class WeakObjPtrBase
     {
     public:

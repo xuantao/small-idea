@@ -10,18 +10,17 @@ XLUA_NAMESPACE_BEGIN
 namespace detail {
     class GlobalVar;
 
-    template <typename... Tys> struct BaseType;
+    template <typename... Tys> struct BaseType { static_assert(sizeof...(Tys) > 1, "not allow multy inherit"); };
     template <> struct BaseType<> { typedef void type; };
-    template <> struct BaseType<void> { typedef void type; };
     template <typename Ty> struct BaseType<Ty> { typedef Ty type; };
 }
 
-struct xLuaState;
+class xLuaState;
 struct TypeInfo;
 
 typedef int (*LuaFunction)(xLuaState* L);
-typedef int (*LuaIndexer)(xLuaState* L, void* obj);
-typedef bool (*LuaCastCheck)(void* obj, const TypeInfo* obj_info, const TypeInfo* target_info);
+typedef void (*LuaIndexer)(xLuaState* L, void* obj);
+typedef void* (*LuaConverter)(void* obj, const TypeInfo* src, const TypeInfo* dst);
 
 template <typename Ty, typename By>
 struct Declare {
@@ -45,11 +44,62 @@ private:
     int serial_ = 0;
 };
 
+enum class ConstValueType {
+    kNone,
+    kInteger,
+    kFloat,
+    kString,
+};
+
+struct ConstValue {
+    ConstValueType type;
+    const char* name;
+
+    union {
+        int int_val;
+        float float_val;
+        const char* string_val;
+    };
+};
+
+struct ConstInfo {
+    const char* name;
+    const ConstValue* values;
+};
+
+enum class MemberType {
+    kInvalid = 0,
+    kVariate,
+    kFunction,
+};
+
+struct TypeMember {
+    MemberType type;
+    const char* name;
+    union {
+        struct {
+            LuaFunction func;
+        };
+        struct {
+            LuaIndexer getter;
+            LuaIndexer setter;
+        };
+    };
+};
+
+struct TypeInfo {
+    const char* name;
+    const TypeInfo* super;
+    TypeMember* members;
+    TypeMember* globals;
+    LuaConverter convert_down;      // 基类转向子类指针
+    LuaConverter convert_up;        // 子类转向基类指针
+};
+
 struct ITypeDesc {
     virtual ~ITypeDesc() { }
-    virtual void SetCastCheck(LuaCastCheck cast_checker) = 0;
-    virtual void AddFunc(const char* name, LuaFunction func, bool member) = 0;
-    virtual void AddVar(const char* name, LuaIndexer getter, LuaIndexer setter, bool member) = 0;
+    virtual void SetConverter(LuaConverter up, LuaConverter down) = 0;
+    virtual void AddMember(TypeMember member, bool global) = 0;
     virtual TypeKey Finalize() = 0;
 };
 
