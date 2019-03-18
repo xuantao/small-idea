@@ -13,6 +13,13 @@
 
 XLUA_NAMESPACE_BEGIN
 
+namespace detail {
+    template <typename Ty> void DoPush(xLuaState* L, const Ty& val);
+    template <typename Ty> void DoPush(xLuaState* L, Ty* val);
+    template <typename Ty> struct Pusher;
+    template <typename Ty> struct Loader;
+}
+
 bool Startup();
 void Shutdown();
 
@@ -20,6 +27,7 @@ class xLuaTable { };
 class xLuaFunction { };
 
 class xLuaState {
+public:
     friend class detail::GlobalVar;
     xLuaState(lua_State* l, bool attach);
     ~xLuaState();
@@ -30,14 +38,13 @@ public:
 
 public:
     template <typename Ty>
-    inline void Push(Ty&& val) {
-        DoPush(val);
+    inline void Push(const Ty& val) {
+        detail::Pusher<typename std::decay<Ty>::type>::Do(this, val);
     }
 
     template <typename Ty>
     inline Ty Load(int index) {
-        using tag = typename std::conditional<std::is_pointer<Ty>::value, std::true_type, std::false_type>::type;
-        return DoLoad<Ty>(index, tag());
+        return detail::Loader<typename std::decay<Ty>::type>::Do(this, index);
     }
 
     inline void Push(bool val) { }
@@ -56,6 +63,7 @@ public:
     inline void Push(char* val) { }
     inline void Push(const char* val) { }
     inline void Push(const std::string& val) { }
+    inline void Push(std::nullptr_t) { }
     //void Push(const xLuaTable& val) { }
     //void Push(const xLuaFunction& val) { }
 
@@ -77,71 +85,6 @@ public:
     template<> inline const std::string Load<const std::string>(int index) { return false; }
 
 private:
-    template <typename Ty>
-    inline void DoPush(const Ty& val) {
-        using raw_ty = typename std::decay<Ty>::type;
-        static_assert(!std::is_pointer<raw_ty>::value, "not allow pointer to pointer");
-        static_assert(!detail::IsInternal<raw_ty>::value, "not allow push internal class value");
-        static_assert(detail::IsExternal<raw_ty>::value || detail::IsExtendPush<raw_ty>::value,
-            "only declare external or extend push type value can push to lua");
-        using tag = typename std::conditional<detail::IsExternal<raw_ty>::value,
-            detail::tag_external, detail::tag_extend>::type;
-        PushValue(val, tag());
-    }
-
-    template <typename Ty>
-    inline void DoPush(Ty* val) {
-        using raw_ty = typename std::decay<Ty>::type;
-        static_assert(!std::is_pointer<raw_ty>::value, "not allow pointer to pointer");
-        static_assert(!detail::IsExtendPush<raw_ty>::value, "can not push extend pointer to lua");
-        static_assert(detail::IsInternal<raw_ty>::value || detail::IsExternal<raw_ty>::value,
-            "only declare internal or external type pointer can push to lua");
-
-        if (val == nullptr) {
-            Push(nullptr);
-            return;
-        }
-
-        using tag = typename std::conditional<detail::IsWeakObjPtr<raw_ty>::value, detail::tag_weakobj,
-            typename std::conditional<detail::IsInternal<raw_ty>::value, detail::tag_internal, detail::tag_external>::type>::type;
-        PushPointer(val, tag());
-    }
-
-    template <typename Ty>
-    inline void PushValue(const Ty& val, detail::tag_external) {
-        printf("push external value\n");
-    }
-
-    template <typename Ty>
-    inline void PushValue(const Ty& val, detail::tag_extend) {
-        printf("push extend value\n");
-        ::xLuaPush(this, val);
-    }
-
-    template <typename Ty>
-    inline void PushPointer(Ty* val, detail::tag_weakobj) {
-        printf("push weak obj ptr\n");
-    }
-
-    template <typename Ty>
-    inline void PushPointer(Ty* val, detail::tag_internal) {
-        printf("push internal ptr\n");
-    }
-
-    template <typename Ty>
-    inline void PushPointer(Ty* val, detail::tag_external) {
-        printf("push external ptr\n");
-    }
-
-    template <typename Ty>
-    Ty DoLoad(int index, std::true_type) {
-
-    }
-
-    template <typename Ty>
-    Ty DoLoad(int index, std::false_type) {
-
-    }
 
 private:
     bool attach_;
@@ -153,61 +96,156 @@ private:
 };
 
 namespace detail {
-    template <typename Ty>
-    inline void PushValue(xLuaState* l, const Ty& val, tag_external) {
-        printf("push external value\n");
-    }
+    //template <typename Ty>
+    //inline void PushValue(xLuaState* l, const Ty& val, tag_external) {
+    //    printf("push external value\n");
+    //}
 
+    //template <typename Ty>
+    //inline void PushValue(xLuaState* l, const Ty& val, tag_extend) {
+    //    printf("push extend value\n");
+    //    ::xLuaPush(l, val);
+    //}
+
+    //template <typename Ty>
+    //inline void PushPointer(xLuaState* l, Ty* val, tag_internal) {
+    //    printf("push internal ptr\n");
+    //}
+
+    //template <typename Ty>
+    //inline void PushPointer(xLuaState* l, Ty* val, tag_external) {
+    //    printf("push external ptr\n");
+    //}
+
+    //template <typename Ty>
+    //inline void PushPointer(xLuaState* l, Ty* val, tag_weakobj) {
+    //    printf("push weak obj ptr\n");
+    //}
+
+    //template <typename Ty>
+    //inline void DoPush(xLuaState* l, const Ty& val) {
+    //    using raw_ty = typename std::decay<Ty>::type;
+    //    static_assert(!std::is_pointer<raw_ty>::value, "not allow pointer to pointer");
+    //    static_assert(!IsInternal<raw_ty>::value, "not allow push internal class value");
+    //    static_assert(IsExternal<raw_ty>::value || IsExtendPush<raw_ty>::value,
+    //        "only declare external or extend push type value can push to lua");
+    //    using tag = typename std::conditional<IsExternal<raw_ty>::value,
+    //        tag_external, tag_extend>::type;
+    //    PushValue(l, val, tag());
+    //}
+
+    //template <typename Ty>
+    //inline void DoPush(xLuaState* l, Ty* val) {
+    //    using raw_ty = typename std::decay<Ty>::type;
+    //    static_assert(!std::is_pointer<raw_ty>::value, "not allow pointer to pointer");
+    //    static_assert(!IsExtendPush<raw_ty>::value, "can not push extend pointer to lua");
+    //    static_assert(IsInternal<raw_ty>::value || IsExternal<raw_ty>::value,
+    //        "only declare internal or external type pointer can push to lua");
+
+    //    if (val == nullptr) {
+    //        l->Push(nullptr);
+    //        return;
+    //    }
+
+    //    using tag = typename std::conditional<IsWeakObjPtr<raw_ty>::value, tag_weakobj,
+    //        typename std::conditional<IsInternal<raw_ty>::value, tag_internal, tag_external>::type>::type;
+    //    PushPointer(l, val, tag());
+    //}
+
+    /* push operator */
     template <typename Ty>
-    inline void PushValue(xLuaState* l, const Ty& val, tag_extend) {
-        printf("push extend value\n");
+    inline void DoPush(xLuaState* l, const Ty& val, tag_extend) {
         ::xLuaPush(l, val);
     }
 
     template <typename Ty>
-    inline void PushPointer(xLuaState* l, Ty* val, tag_internal) {
-        printf("push internal ptr\n");
+    inline void DoPush(xLuaState* l, const Ty& val, tag_external) {
+        //TODO:
     }
 
     template <typename Ty>
-    inline void PushPointer(xLuaState* l, Ty* val, tag_external) {
-        printf("push external ptr\n");
-    }
+    struct Pusher {
+        static_assert(IsExternal<Ty>::value || IsExtendLoad<Ty>::value, "");
 
-    template <typename Ty>
-    inline void PushPointer(xLuaState* l, Ty* val, tag_weakobj) {
-        printf("push weak obj ptr\n");
-    }
-
-    template <typename Ty>
-    inline void DoPush(xLuaState* l, const Ty& val) {
-        using raw_ty = typename std::decay<Ty>::type;
-        static_assert(!std::is_pointer<raw_ty>::value, "not allow pointer to pointer");
-        static_assert(!IsInternal<raw_ty>::value, "not allow push internal class value");
-        static_assert(IsExternal<raw_ty>::value || IsExtendPush<raw_ty>::value,
-            "only declare external or extend push type value can push to lua");
-        using tag = typename std::conditional<IsExternal<raw_ty>::value,
-            tag_external, tag_extend>::type;
-        PushValue(l, val, tag());
-    }
-
-    template <typename Ty>
-    inline void DoPush(xLuaState* l, Ty* val) {
-        using raw_ty = typename std::decay<Ty>::type;
-        static_assert(!std::is_pointer<raw_ty>::value, "not allow pointer to pointer");
-        static_assert(!IsExtendPush<raw_ty>::value, "can not push extend pointer to lua");
-        static_assert(IsInternal<raw_ty>::value || IsExternal<raw_ty>::value,
-            "only declare internal or external type pointer can push to lua");
-
-        if (val == nullptr) {
-            l->Push(nullptr);
-            return;
+        static inline void Do(xLuaState* l, const Ty& val) {
+            DoPush(l, val, typename std::conditional<IsExternal<Ty>::value, tag_external, tag_extend>::type());
         }
+    };
 
-        using tag = typename std::conditional<IsWeakObjPtr<raw_ty>::value, tag_weakobj,
-            typename std::conditional<IsInternal<raw_ty>::value, tag_internal, tag_external>::type>::type;
-        PushPointer(l, val, tag());
+    template <typename Ty>
+    struct Pusher<Ty*> {
+        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
+
+        static inline void Do(xLuaState* l, Ty* val) {
+            //TODO:
+        }
+    };
+
+    template <typename Ty>
+    struct Pusher<std::shared_ptr<Ty>> {
+        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
+
+        static inline void Do(xLuaState* l, const std::shared_ptr<Ty>& ptr) {
+            //TODO:
+        }
+    };
+
+    template <typename Ty>
+    struct Pusher<std::unique_ptr<Ty>> {
+        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
+
+        static inline void Do(xLuaState* l, const std::unique_ptr<Ty>& ptr) {
+            //TODO:
+        }
+    };
+
+    /* load operator */
+    template <typename Ty>
+    inline auto DoLoad(xLuaState* l, int index) -> typename std::enable_if<IsExtendLoad<Ty>::value, Ty>::type {
+        return ::xLuaLoad(l, index, Identity<Ty>());
     }
+
+    template <typename Ty>
+    inline auto DoLoad(xLuaState* l, int index) -> typename std::enable_if<IsExternal<Ty>::value, Ty>::type {
+        //Ty val = std::declval<Ty>();
+        return Ty();
+    }
+
+    template <typename Ty>
+    struct Loader {
+        static_assert(IsExternal<Ty>::value || IsExtendLoad<Ty>::value, "");
+
+        static inline Ty Do(xLuaState* l, int index) {
+            return DoLoad<Ty>(l, index);
+        }
+    };
+
+    template <typename Ty>
+    struct Loader<Ty*> {
+        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
+
+        static inline Ty* Do(xLuaState* l, int index) {
+            return nullptr;
+        }
+    };
+
+    template <typename Ty>
+    struct Loader<std::shared_ptr<Ty>> {
+        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
+
+        static inline std::shared_ptr<Ty> Do(xLuaState* l, int index) {
+            return nullptr;
+        }
+    };
+
+    template <typename Ty>
+    struct Loader<std::unique_ptr<Ty>> {
+        static_assert(std::is_same<Ty, std::nullptr_t>::value, "not allow to load unique_ptr");
+
+        static inline std::unique_ptr<Ty> Do(xLuaState* l, int index) {
+            return nullptr;
+        }
+    };
 } // namespace detail
 
 XLUA_NAMESPACE_END

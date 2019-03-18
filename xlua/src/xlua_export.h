@@ -61,7 +61,7 @@
             return xlua::GetTypeInfo(s_key);                                            \
         ITypeDesc* desc = xlua::AllocTypeInfo(xlua::TypeCategory::kInternal,            \
             #ClassName,                                                                 \
-            xlua::detail::GetTypeInfo<LuaDeclare::super>()                              \
+            xlua::detail::GetTypeInfoImpl<LuaDeclare::super>()                          \
         );                                                                              \
         if (desc == nullptr)                                                            \
             return nullptr;                                                             \
@@ -103,7 +103,7 @@
             return xlua::GetTypeInfo(s_key);                                            \
         xlua::ITypeDesc* desc = xlua::AllocTypeInfo(xlua::TypeCategory::kExternal,      \
             false, #ClassName,                                                          \
-            xlua::detail::GetTypeInfo<super_type>()                                     \
+            xlua::detail::GetTypeInfoImpl<super_type>()                                 \
         );                                                                              \
         if (desc == nullptr)                                                            \
             return nullptr;                                                             \

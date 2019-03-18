@@ -13,4 +13,12 @@ void Shutdown() {
         global->Purge();
 }
 
+xLuaState::xLuaState(lua_State* l, bool attach) {
+
+}
+
+xLuaState::~xLuaState() {
+
+}
+
 XLUA_NAMESPACE_END

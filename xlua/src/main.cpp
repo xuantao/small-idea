@@ -27,123 +27,56 @@ namespace {
     };
 }
 
-struct TestValue {
-    virtual ~TestValue() { }
-    virtual bool SharedCast(void* ptr, const xlua::TypeInfo* dst) { return false; }
-    void* obj;
-    xlua::TypeInfo* info;
-};
-
-template <typename Ty>
-struct ValueImpl : TestValue
+enum TestEnum
 {
-    ValueImpl(const Ty& val) : val_(val) {
-        obj = &val_;
-    }
-
-    ~ValueImpl() {
-    }
-
-    Ty val_;
+    kValue1,
+    kValue2,
 };
 
-template <typename Ty>
-struct ValueImpl<std::shared_ptr<Ty>> : TestValue
+enum class TestEnum2
 {
-    ValueImpl(const std::shared_ptr<Ty>& val) : val_(val) {
-        obj = val_.get();
-    }
-
-    ~ValueImpl() {
-    }
-
-    virtual bool SharedCast(void* ptr, const xlua::TypeInfo* dst) {
-        //void* dst_ptr = info->convert_up(ptr, info, dst);
-        //if (dst_ptr == nullptr)
-        //    return false;
-
-        ////*(shared_ptr<Ty>*)(ptr) =
-        return false;
-    }
-
-    std::shared_ptr<Ty> val_;
+    kValue11,
+    kValue12,
 };
 
-template <typename Ty>
-struct ValueImpl<Ty*> : TestValue
+struct TestLuaExport
 {
-    ValueImpl(Ty* val) : val_(val) {
-        obj = val_;
-    }
-
-    ~ValueImpl() {
-    }
-
-    Ty* val_;
+    int ia;
+    void test_call() {}
 };
 
-template <typename Ty>
-TestValue* MakeValue(const Ty& val) {
-    return new ValueImpl<Ty>(val);
-}
+XLUA_EXPORT_ENUM_BEGIN(TestEnum2)
+XLUA_EXPORT_ENUM_VAR(kValue11)
+XLUA_EXPORT_ENUM_VAR_AS(ttt, kValue12)
+XLUA_EXPORT_ENUM_END()
 
-struct TestObj {
-    TestObj() { printf("TestObj constructed\n"); }
-    ~TestObj() { printf("TestObj destructed\n"); }
-};
+XLUA_DECLARE_EXTERNAL_CLASS(TestLuaExport);
 
-struct IBaseType1 {
-    virtual void print1() = 0;
-};
+XLUA_EXPORT_EXTERNAL_CLASS_BEGIN(TestLuaExport)
+XLUA_EXPORT_MEMBER_FUNC(test_call)
+XLUA_EXPORT_MEMBER_VAR(ia)
+XLUA_EXPORT_EXTERNAL_CLASS_END()
 
-struct IBaseType2 {
-    virtual void print2() = 0;
-};
-
-struct TestMulty : IBaseType1, IBaseType2 {
-    void print1() override { printf("1111\n"); }
-    void print2() override { printf("2222\n"); }
-};
 
 int main()
 {
-    //extend_member_var::Get()(nullptr,  nullptr);
-    //xlua::Startup();
-    //std::shared_ptr<TestObj> ptr(new TestObj());
-    //TestValue* val = MakeValue(ptr);
-    //
-    //const TestObj* obj = ptr.get();
+    xlua::xLuaState* l = new xlua::xLuaState(nullptr, false);
 
-    //TestValue* val1 = MakeValue(ptr.get());
-    ////TestValue* val2 = MakeValue(obj); // not allow const value
-    //TestValue* val3 = MakeValue(TestObj());
+    TestLuaExport* ptr = nullptr;
+    TestLuaExport obj;
 
-    ////std::make_shared
-    //delete val3;
-    ////delete val2;
-    //delete val1;
-    //delete val;
+    std::shared_ptr<TestLuaExport> ptr1;
+    std::unique_ptr<TestLuaExport> ptr2;
 
-    TestMulty obj;
-    TestMulty* obj_ptr = &obj;
-    IBaseType1* base_ptr1 = obj_ptr;
-    IBaseType2* base_ptr2 = obj_ptr;
+    l->Push(&obj);
+    l->Push(obj);
+    l->Push(ptr1);
+    l->Push(ptr2);
 
-    void* void_ptr1 = base_ptr1;
-    void* void_ptr2 = base_ptr2;
-    TestMulty* obj_ptr1 = static_cast<TestMulty*>(base_ptr1);
-    TestMulty* obj_ptr2 = static_cast<TestMulty*>(base_ptr2);
-
-    TestMulty* obj_ptr3 = static_cast<TestMulty*>(void_ptr1);
-    TestMulty* obj_ptr4 = static_cast<TestMulty*>(void_ptr2);
-
-    printf("obj_ptr   = 0x%p\n", obj_ptr);
-    printf("obj_ptr1  = 0x%p\n", obj_ptr1);
-    printf("obj_ptr2  = 0x%p\n", obj_ptr2);
-    printf("obj_ptr3  = 0x%p\n", obj_ptr3);
-    printf("obj_ptr4  = 0x%p\n", obj_ptr4);
-    printf("base_ptr1 = 0x%p\n", base_ptr1);
-    printf("base_ptr2 = 0x%p\n", base_ptr2);
+    ptr = l->Load<TestLuaExport*>(1);
+    obj = l->Load<TestLuaExport>(1);
+    ptr1 = l->Load<std::shared_ptr<TestLuaExport>>(1);
+    //ptr1 = l->Load<std::unique_ptr<TestLuaExport>>(1);
 
     system("pause");
     return 0;

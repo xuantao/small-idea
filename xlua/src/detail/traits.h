@@ -64,17 +64,17 @@ namespace detail {
     //};
 
     template <typename Ty>
-    auto GetTypeInfo() -> typename std::enable_if<IsInternal<Ty>::value, const TypeInfo*>::type {
+    auto GetTypeInfoImpl() -> typename std::enable_if<IsInternal<Ty>::value, const TypeInfo*>::type {
         return Ty::xLuaGetTypeInfo();
     }
 
     template <typename Ty>
-    auto GetTypeInfo() -> typename std::enable_if<IsExternal<Ty>::value, const TypeInfo*>::type {
+    auto GetTypeInfoImpl() -> typename std::enable_if<IsExternal<Ty>::value, const TypeInfo*>::type {
         return xLuaGetTypeInfo(Identity<Ty>());
     }
 
     template <typename Ty>
-    auto GetTypeInfo() -> typename std::enable_if<std::is_void<Ty>::value, const TypeInfo*>::type {
+    auto GetTypeInfoImpl() -> typename std::enable_if<std::is_void<Ty>::value, const TypeInfo*>::type {
         return nullptr;
     }
 } // namespace detail

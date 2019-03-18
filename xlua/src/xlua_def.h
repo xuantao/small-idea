@@ -125,7 +125,7 @@ struct ITypeDesc {
     virtual TypeKey Finalize() = 0;
 };
 
-ITypeDesc* AllocTypeInfo(const char* name, const TypeInfo* super);
+ITypeDesc* AllocTypeInfo(TypeCategory category, bool is_wak_obj, const char* name, const TypeInfo* super);
 const TypeInfo* GetTypeInfo(const TypeKey& key);
 
 class ObjIndex

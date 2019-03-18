@@ -169,34 +169,3 @@ namespace detail
 } // namespace detail
 
 XLUA_NAMESPACE_END
-
-enum TestEnum
-{
-    kValue1,
-    kValue2,
-};
-
-enum class TestEnum2
-{
-    kValue11,
-    kValue12,
-};
-
-struct TestLuaExport
-{
-    int ia;
-    void test_call() {}
-};
-
-
-XLUA_EXPORT_ENUM_BEGIN(TestEnum2)
-XLUA_EXPORT_ENUM_VAR(kValue11)
-XLUA_EXPORT_ENUM_VAR_AS(ttt, kValue12)
-XLUA_EXPORT_ENUM_END()
-
-XLUA_DECLARE_EXTERNAL_CLASS(TestLuaExport);
-
-XLUA_EXPORT_EXTERNAL_CLASS_BEGIN(TestLuaExport)
-XLUA_EXPORT_MEMBER_FUNC(test_call)
-XLUA_EXPORT_MEMBER_VAR(ia)
-XLUA_EXPORT_EXTERNAL_CLASS_END()
