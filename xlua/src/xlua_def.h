@@ -20,7 +20,9 @@ struct TypeInfo;
 
 typedef int (*LuaFunction)(xLuaState* L);
 typedef void (*LuaIndexer)(xLuaState* L, void* obj);
-typedef void* (*LuaConverter)(void* obj, const TypeInfo* src, const TypeInfo* dst);
+typedef void* (*LuaPointerConvert)(void* obj, const TypeInfo* src_type, const TypeInfo* dst_type);
+/* convert shared_ptr object */
+typedef bool (*LuaSharedPtrConvert)(void* obj_ptr, const TypeInfo* src_type, void* dst, const TypeInfo* dst_type);
 
 template <typename Ty, typename By>
 struct Declare {
@@ -87,18 +89,38 @@ struct TypeMember {
     };
 };
 
+/* 类型转换器
+ * 基础类型可以子类->基类，基类->子类
+ * std::shared_ptr<Ty> 只能子类->基类
+*/
+struct TypeConverter {
+    LuaPointerConvert convert_up;
+    LuaPointerConvert convert_down;
+    LuaSharedPtrConvert convert_shared_ptr;
+};
+
+enum class TypeCategory
+{
+    kInternal,
+    kExternal,
+    kGlobal,
+};
+
 struct TypeInfo {
+    TypeKey id;
+    TypeCategory category;
     const char* name;
+    bool is_weak_obj;           //
+    int external_index;         // 外部类型编号, 用于lightuserdata索引类型
     const TypeInfo* super;
     TypeMember* members;
     TypeMember* globals;
-    LuaConverter convert_down;      // 基类转向子类指针
-    LuaConverter convert_up;        // 子类转向基类指针
+    TypeConverter converter;
 };
 
 struct ITypeDesc {
     virtual ~ITypeDesc() { }
-    virtual void SetConverter(LuaConverter up, LuaConverter down) = 0;
+    virtual void SetConverter(LuaPointerConvert up, LuaPointerConvert down, LuaSharedPtrConvert shared_ptr) = 0;
     virtual void AddMember(TypeMember member, bool global) = 0;
     virtual TypeKey Finalize() = 0;
 };
@@ -124,12 +146,12 @@ private:
 XLUA_NAMESPACE_END
 
 /* 声明导出Lua类 */
-#define XLUA_DECLARE(ClassName, ...)                                    \
+#define XLUA_DECLARE_CLASS(ClassName, ...)                              \
     typedef xlua::Declare<ClassName,                                    \
         typename xlua::detail::BaseType<_VAR_ARGS_>::type> LuaDeclare;  \
     xlua::ObjIndex xlua_obj_index_;                                     \
     static const xlua::TypeInfo* xLuaGetTypeInfo()
 
 /* 声明导出外部类 */
-#define XLUA_DECLARE_EXPORT_EXTERNAL_CLASS(ClassName)                   \
+#define XLUA_DECLARE_EXTERNAL_CLASS(ClassName)                          \
     const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Identity<ClassName>)

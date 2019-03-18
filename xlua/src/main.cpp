@@ -29,8 +29,9 @@ namespace {
 
 struct TestValue {
     virtual ~TestValue() { }
-
+    virtual bool SharedCast(void* ptr, const xlua::TypeInfo* dst) { return false; }
     void* obj;
+    xlua::TypeInfo* info;
 };
 
 template <typename Ty>
@@ -54,6 +55,15 @@ struct ValueImpl<std::shared_ptr<Ty>> : TestValue
     }
 
     ~ValueImpl() {
+    }
+
+    virtual bool SharedCast(void* ptr, const xlua::TypeInfo* dst) {
+        //void* dst_ptr = info->convert_up(ptr, info, dst);
+        //if (dst_ptr == nullptr)
+        //    return false;
+
+        ////*(shared_ptr<Ty>*)(ptr) =
+        return false;
     }
 
     std::shared_ptr<Ty> val_;

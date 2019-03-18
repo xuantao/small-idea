@@ -23,11 +23,11 @@ namespace detail
 
     public:
         bool IsValid(const TypeKey& key) const;
-        ITypeDesc* AllocType(const char* name, const TypeInfo* super);
+        ITypeDesc* AllocType(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super);
         const TypeInfo* GetTypeInfo(const TypeKey& key) const;
 
     private:
-        TypeKey AddTypeInfo(TypeInfo* desc);
+        TypeKey AddTypeInfo(TypeInfo* info);
 
     private:
         int version_;

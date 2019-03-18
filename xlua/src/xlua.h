@@ -3,6 +3,7 @@
 #include "detail/traits.h"
 #include <lua.hpp>
 #include <string>
+#include <unordered_map>
 
 /* 扩展类型
  * void xLuaPush(xlua::xLuaState* l, const Type& val)
@@ -18,22 +19,8 @@ void Shutdown();
 class xLuaTable { };
 class xLuaFunction { };
 
-enum class LuaValueType
-{
-    kValue,
-    kPtr,
-    kSharedPtr,
-    kUniquePtr,
-};
-
-struct LuaValue
-{
-    LuaValueType type;
-    const TypeInfo* info;
-    void* obj;
-};
-
 class xLuaState {
+    friend class detail::GlobalVar;
     xLuaState(lua_State* l, bool attach);
     ~xLuaState();
 
@@ -53,24 +40,24 @@ public:
         return DoLoad<Ty>(index, tag());
     }
 
-    void Push(bool val) { }
-    void Push(char val) { }
-    void Push(unsigned char val) { }
-    void Push(short val) { }
-    void Push(unsigned short val) { }
-    void Push(int val) { }
-    void Push(unsigned int val) { }
-    void Push(long val) { }
-    void Push(unsigned long val) { }
-    void Push(long long val) { }
-    void Push(unsigned long long val) { }
-    void Push(float val) { }
-    void Push(double val) { }
-    void Push(char* val) { }
-    void Push(const char* val) { }
-    void Push(const std::string& val) { }
-    void Push(const xLuaTable& val) { }
-    void Push(const xLuaFunction& val) { }
+    inline void Push(bool val) { }
+    inline void Push(char val) { }
+    inline void Push(unsigned char val) { }
+    inline void Push(short val) { }
+    inline void Push(unsigned short val) { }
+    inline void Push(int val) { }
+    inline void Push(unsigned int val) { }
+    inline void Push(long val) { }
+    inline void Push(unsigned long val) { }
+    inline void Push(long long val) { }
+    inline void Push(unsigned long long val) { }
+    inline void Push(float val) { }
+    inline void Push(double val) { }
+    inline void Push(char* val) { }
+    inline void Push(const char* val) { }
+    inline void Push(const std::string& val) { }
+    //void Push(const xLuaTable& val) { }
+    //void Push(const xLuaFunction& val) { }
 
     template<> inline bool Load<bool>(int index) { return false; }
     template<> inline char Load<char>(int index) { return false; }
@@ -159,6 +146,68 @@ private:
 private:
     bool attach_;
     lua_State* state_;
+    int meta_table_index_;
+    int lua_obj_table_index_;
+    int user_data_table_index_;
+    std::unordered_map<void*, int> user_datas_;
 };
+
+namespace detail {
+    template <typename Ty>
+    inline void PushValue(xLuaState* l, const Ty& val, tag_external) {
+        printf("push external value\n");
+    }
+
+    template <typename Ty>
+    inline void PushValue(xLuaState* l, const Ty& val, tag_extend) {
+        printf("push extend value\n");
+        ::xLuaPush(l, val);
+    }
+
+    template <typename Ty>
+    inline void PushPointer(xLuaState* l, Ty* val, tag_internal) {
+        printf("push internal ptr\n");
+    }
+
+    template <typename Ty>
+    inline void PushPointer(xLuaState* l, Ty* val, tag_external) {
+        printf("push external ptr\n");
+    }
+
+    template <typename Ty>
+    inline void PushPointer(xLuaState* l, Ty* val, tag_weakobj) {
+        printf("push weak obj ptr\n");
+    }
+
+    template <typename Ty>
+    inline void DoPush(xLuaState* l, const Ty& val) {
+        using raw_ty = typename std::decay<Ty>::type;
+        static_assert(!std::is_pointer<raw_ty>::value, "not allow pointer to pointer");
+        static_assert(!IsInternal<raw_ty>::value, "not allow push internal class value");
+        static_assert(IsExternal<raw_ty>::value || IsExtendPush<raw_ty>::value,
+            "only declare external or extend push type value can push to lua");
+        using tag = typename std::conditional<IsExternal<raw_ty>::value,
+            tag_external, tag_extend>::type;
+        PushValue(l, val, tag());
+    }
+
+    template <typename Ty>
+    inline void DoPush(xLuaState* l, Ty* val) {
+        using raw_ty = typename std::decay<Ty>::type;
+        static_assert(!std::is_pointer<raw_ty>::value, "not allow pointer to pointer");
+        static_assert(!IsExtendPush<raw_ty>::value, "can not push extend pointer to lua");
+        static_assert(IsInternal<raw_ty>::value || IsExternal<raw_ty>::value,
+            "only declare internal or external type pointer can push to lua");
+
+        if (val == nullptr) {
+            l->Push(nullptr);
+            return;
+        }
+
+        using tag = typename std::conditional<IsWeakObjPtr<raw_ty>::value, tag_weakobj,
+            typename std::conditional<IsInternal<raw_ty>::value, tag_internal, tag_external>::type>::type;
+        PushPointer(l, val, tag());
+    }
+} // namespace detail
 
 XLUA_NAMESPACE_END

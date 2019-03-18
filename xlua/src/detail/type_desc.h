@@ -10,8 +10,10 @@ namespace detail
     {
         friend class GlobalVar;
     public:
-        TypeDesc(GlobalVar* mgr, const char* name, const TypeInfo* super)
+        TypeDesc(GlobalVar* mgr, TypeCategory category, bool is_wak_obj, const char* name, const TypeInfo* super)
             : mgr_(mgr)
+            , category_(category)
+            , is_weak_obj_(is_wak_obj)
             , name_(name)
             , super_(super) {
         }
@@ -19,9 +21,13 @@ namespace detail
         ~TypeDesc() { }
 
     public:
-        void SetConverter(LuaConverter up, LuaConverter down) override {
+        static void Free(TypeInfo* info);
+
+    public:
+        void SetConverter(LuaPointerConvert up, LuaPointerConvert down, LuaSharedPtrConvert shared_ptr) override {
             convert_up_ = up;
             convert_down_ = down;
+            convert_shared_ptr_ = shared_ptr;
         }
 
         void AddMember(TypeMember member, bool global) override {
@@ -35,10 +41,13 @@ namespace detail
 
     private:
         GlobalVar* mgr_;
+        TypeCategory category_;
+        bool is_weak_obj_;
         const char* name_;
         const TypeInfo* super_;
-        LuaConverter convert_up_;
-        LuaConverter convert_down_;
+        LuaPointerConvert convert_up_;
+        LuaPointerConvert convert_down_;
+        LuaSharedPtrConvert convert_shared_ptr_;
         std::vector<TypeMember> members_;
         std::vector<TypeMember> globals_;
     };

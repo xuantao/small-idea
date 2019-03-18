@@ -12,11 +12,11 @@ namespace detail
     static GlobalVar* s_global = nullptr;
 }
 
-ITypeDesc* AllocTypeInfo(const char* name, const TypeInfo* super)
+ITypeDesc* AllocTypeInfo(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super)
 {
     if (detail::s_global == nullptr)
         return nullptr;
-    return detail::s_global->AllocType(name, super);
+    return detail::s_global->AllocType(category, is_weak_obj, name, super);
 }
 
 const TypeInfo* GetTypeInfo(const TypeKey& key)
@@ -144,9 +144,9 @@ namespace detail
             && key.index_ < (int)types_.size();
     }
 
-    ITypeDesc* GlobalVar::AllocType(const char* name, const TypeInfo* super)
+    ITypeDesc* GlobalVar::AllocType(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super)
     {
-        return new TypeDesc(s_global, name, super);
+        return new TypeDesc(s_global,category, is_weak_obj , name, super);
     }
 
     const TypeInfo* GlobalVar::GetTypeInfo(const TypeKey& key) const
@@ -167,41 +167,6 @@ namespace detail
     }
 
 } // namespace detail
-//
-//struct LuaExpType
-//{
-//public:
-//    typedef Declare LuaDeclare;
-//    static const TypeInfo* LuaGetTypeInfo();
-//};
-//
-//namespace
-//{
-//    static int LuaExpType_Index = -1;
-//    struct LuaExpType_Node : private xlua_internal::TypeNode
-//    {
-//        LuaExpType_Node() : xlua_internal::TypeNode(&LuaExpType::LuaGetTypeInfo) { }
-//        ~LuaExpType_Node() { LuaExpType_Index = -1; }
-//    } LuaExpType_Node_;
-//}
-//
-//const TypeInfo* LuaExpType::LuaGetTypeInfo()
-//{
-//    //TODO:
-//    if (LuaExpType_Index != -1)
-//        return xlua_internal::GetTypeInfo(LuaExpType_Index);
-//
-//    ITypeDesc* desc = xlua_internal::AllocTypeInfo();
-//    if (desc == nullptr) return nullptr;
-//
-//    //TODO:
-//    desc->SetName("");
-//    desc->SetSupper(nullptr);
-//    desc->AddFunc("", nullptr, false);
-//
-//    LuaExpType_Index = desc->Finalize();
-//    return xlua_internal::GetTypeInfo(LuaExpType_Index);
-//}
 
 XLUA_NAMESPACE_END
 
@@ -229,7 +194,7 @@ XLUA_EXPORT_ENUM_VAR(kValue11)
 XLUA_EXPORT_ENUM_VAR_AS(ttt, kValue12)
 XLUA_EXPORT_ENUM_END()
 
-XLUA_DECLARE_EXPORT_EXTERNAL_CLASS(TestLuaExport);
+XLUA_DECLARE_EXTERNAL_CLASS(TestLuaExport);
 
 XLUA_EXPORT_EXTERNAL_CLASS_BEGIN(TestLuaExport)
 XLUA_EXPORT_MEMBER_FUNC(test_call)

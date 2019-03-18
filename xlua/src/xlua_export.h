@@ -59,15 +59,16 @@
         static xlua::TypeKey s_key;                                                     \
         if (s_key.IsValid())                                                            \
             return xlua::GetTypeInfo(s_key);                                            \
-        ITypeDesc* desc = xlua::AllocTypeInfo(                                          \
+        ITypeDesc* desc = xlua::AllocTypeInfo(xlua::TypeCategory::kInternal,            \
             #ClassName,                                                                 \
             xlua::detail::GetTypeInfo<LuaDeclare::super>()                              \
         );                                                                              \
         if (desc == nullptr)                                                            \
             return nullptr;                                                             \
         desc->SetConverter(                                                             \
-            &xlua::detail::CastCheck<ClassName, LuaDeclare::SuperType>::CastUp,         \
-            &xlua::detail::CastCheck<ClassName, LuaDeclare::SuperType>::CastDown        \
+            &xlua::detail::PtrCast<ClassName, LuaDeclare::SuperType>::CastUp,           \
+            &xlua::detail::PtrCast<ClassName, LuaDeclare::SuperType>::CastDown,         \
+            &xlua::detail::SharedPtrCast<ClassName, LuaDeclare::SuperType>::Cast        \
         );                                                                              \
         using class_type = ClassName;
 
@@ -96,18 +97,20 @@
     } /* end namespace */                                                               \
     const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Identity<ClassName>) {                  \
         using class_type = ClassName;                                                   \
+        using super_type = _XLUA_SUPER_CLASS(__VA_ARGS__);                              \
         static xlua::TypeKey s_key;                                                     \
         if (s_key.IsValid())                                                            \
             return xlua::GetTypeInfo(s_key);                                            \
-        xlua::ITypeDesc* desc = xlua::AllocTypeInfo(                                    \
-            #ClassName,                                                                 \
-            xlua::detail::GetTypeInfo<_XLUA_SUPER_CLASS(__VA_ARGS__)>()                 \
+        xlua::ITypeDesc* desc = xlua::AllocTypeInfo(xlua::TypeCategory::kExternal,      \
+            false, #ClassName,                                                          \
+            xlua::detail::GetTypeInfo<super_type>()                                     \
         );                                                                              \
         if (desc == nullptr)                                                            \
             return nullptr;                                                             \
         desc->SetConverter(                                                             \
-            &xlua::detail::CastCheck<ClassName, _XLUA_SUPER_CLASS(__VA_ARGS__)>::CastUp,   \
-            &xlua::detail::CastCheck<ClassName, _XLUA_SUPER_CLASS(__VA_ARGS__)>::CastDown  \
+            &xlua::detail::PtrCast<ClassName, super_type>::CastUp,                      \
+            &xlua::detail::PtrCast<ClassName, super_type>::CastDown,                    \
+            &xlua::detail::SharedPtrCast<ClassName, super_type>::Cast                   \
         );                                                                              \
         using class_type = ClassName;
 
@@ -121,7 +124,8 @@
             static xlua::TypeKey s_key;                                                 \
             if (s_key.IsValid())                                                        \
                 return xlua::GetTypeInfo(s_key);                                        \
-            xlua::ITypeDesc* desc = xlua::AllocTypeInfo(#Name, nullptr);                \
+            xlua::ITypeDesc* desc = xlua::AllocTypeInfo(xlua::TypeCategory::kGlobal,    \
+                false, #Name, nullptr);                                                 \
             if (desc == nullptr)                                                        \
                 return nullptr;                                                         \
 

@@ -7,10 +7,27 @@ XLUA_NAMESPACE_BEGIN
 
 namespace detail
 {
+    static void* DummyPtrCast(void*, const TypeInfo*, const TypeInfo*) { return nullptr; }
+    static bool DummySharedPtrCast(void*, const TypeInfo*, void*, const TypeInfo*) { return false; }
+
     TypeKey TypeDesc::Finalize() {
         std::unique_ptr<TypeDesc> ptr(this);  // auto free
-                                              //if (s_global == nullptr)
-        return TypeKey();
+        TypeKey id;
+
+        if (convert_down_ == nullptr)
+            convert_down_ = &DummyPtrCast;
+        if (convert_up_ == nullptr)
+            convert_up_ = &DummyPtrCast;
+        if (convert_shared_ptr_ == nullptr)
+            convert_shared_ptr_ = &DummySharedPtrCast;
+
+        TypeInfo* info = nullptr;// static_cast<TypeInfo*>(buff);
+
+
+        return GlobalVar::GetInstance()->AddTypeInfo(info);
+
+        //convert_up_ = convert_down_ ?
+
         /*
         void* buff = new char[sizeof(TypeInfo)
         + sizeof(TypeFunc) * (member_func_.size() + static_member_func_.size() + 2)

@@ -120,33 +120,54 @@ namespace detail
         static constexpr bool is_member = (is_get_member || is_set_member);
     };
 
-    /* 多继承指针偏移（是否要支持多继承？） 
-     * add cast mode for this problem
-    */
+    /* 多继承指针偏移, 这里一步步的执行转换 */
     template <typename Ty, typename By>
-    struct CastCheck {
+    struct PtrCast {
         static void* CastUp(void* obj, const TypeInfo* src, const TypeInfo* dst) {
             if (src == dst)
                 return obj;
-            return src->super->convert_up(static_cast<By*>((Ty*)obj), src->super, dst);
+            return src->super->converter.convert_up(static_cast<By*>((Ty*)obj), src->super, dst);
         }
 
         static void* CastDown(void* obj, const TypeInfo* src, const TypeInfo* dst) {
             if (src == dst)
                 return obj;
-            obj = dst->super->convert_down(obj, src, dst->super);
+            obj = dst->super->converter.convert_down(obj, src, dst->super);
             return obj ? dynamic_cast<Ty*>(static_cast<By*>(obj)) : nullptr;
         }
     };
 
     template <typename Ty>
-    struct CastCheck<Ty, void> {
+    struct PtrCast<Ty, void> {
         static void* CastUp(void* obj, const TypeInfo* src, const TypeInfo* dst) {
             return src == dst ? obj : nullptr;
         }
 
         static void* CastDown(void* obj, const TypeInfo* src, const TypeInfo* dst) {
             return src == dst ? obj : nullptr;
+        }
+    };
+
+    template <typename Ty, typename By>
+    struct SharedPtrCast {
+        static bool Cast(void* src, const TypeInfo* src_type, void* dst, const TypeInfo* dst_type) {
+            if (src_type == dst_type) {
+                *(std::shared_ptr<Ty>*)dst = *(std::shared_ptr<Ty>*)src;
+                return true;
+            }
+
+            std::shared_ptr<By> tmp = std::static_pointer_cast<By>(*(std::shared_ptr<Ty>*)src);
+            return src_type->super->converter.convert_shared_ptr(&tmp, src_type->super, dst, dst_type);
+        }
+    };
+
+    template <typename Ty>
+    struct SharedPtrCast<Ty, void> {
+        static bool Cast(void* src, const TypeInfo* src_type, void* dst, const TypeInfo* dst_type) {
+            if (src_type != dst_type)
+                return false;
+            *(std::shared_ptr<Ty>*)dst = *(std::shared_ptr<Ty>*)src;
+            return true;
         }
     };
 
