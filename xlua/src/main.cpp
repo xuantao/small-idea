@@ -57,9 +57,30 @@ XLUA_EXPORT_MEMBER_FUNC(test_call)
 XLUA_EXPORT_MEMBER_VAR(ia)
 XLUA_EXPORT_EXTERNAL_CLASS_END()
 
+#if 0
+
+#endif
+
+struct LightDataPtr {
+    union {
+        struct {
+            void* ptr_;
+        };
+        struct {
+            struct {
+                uint32_t serial_;
+            };
+            struct {
+                uint32_t index_ : 24;
+                uint32_t type_ : 8;
+            };
+        };
+    };
+};
 
 int main()
 {
+    constexpr size_t s = sizeof(LightDataPtr);
     xlua::xLuaState* l = new xlua::xLuaState(nullptr, false);
 
     TestLuaExport* ptr = nullptr;
@@ -71,12 +92,15 @@ int main()
     l->Push(&obj);
     l->Push(obj);
     l->Push(ptr1);
-    l->Push(ptr2);
+    //l->Push(ptr2);
 
     ptr = l->Load<TestLuaExport*>(1);
     obj = l->Load<TestLuaExport>(1);
     ptr1 = l->Load<std::shared_ptr<TestLuaExport>>(1);
     //ptr1 = l->Load<std::unique_ptr<TestLuaExport>>(1);
+
+    constexpr char ar[2] ={0, 1};
+    static_assert(ar[1] == 1, "222");
 
     system("pause");
     return 0;

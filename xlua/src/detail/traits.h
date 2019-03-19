@@ -47,7 +47,7 @@ namespace detail {
 
     template <typename Ty>
     struct IsWeakObjPtr {
-        static constexpr bool value = false;
+        static constexpr bool value = std::is_base_of<XLUA_WEAK_OBJ_BASE_TYPE, Ty>::value;
     };
 
     struct tag_unknown {};
@@ -55,13 +55,6 @@ namespace detail {
     struct tag_external {};
     struct tag_extend {};
     struct tag_weakobj {};
-
-    //template <typename Ty>
-    //struct Dispatcher {
-    //    typedef typename std::conditional<IsInternal<Ty>::value, tag_internal,
-    //        typename std::conditional<IsExternal<Ty>::value, tag_external, 
-    //            typename std::conditional<IsExtendLoad<Ty>::value || IsExtendPush<Ty>::value || IsExtendName<Ty>::value, tag_extend, tag_unknown>::type>::type type;
-    //};
 
     template <typename Ty>
     auto GetTypeInfoImpl() -> typename std::enable_if<IsInternal<Ty>::value, const TypeInfo*>::type {
@@ -77,6 +70,26 @@ namespace detail {
     auto GetTypeInfoImpl() -> typename std::enable_if<std::is_void<Ty>::value, const TypeInfo*>::type {
         return nullptr;
     }
+
+    template <typename Ty, typename By>
+    struct ObjIndexDetect
+    {
+        static ObjIndex& Dectect(Ty* obj) {
+            return ObjIndexDetect<By, Ty::LuaDeclare::SuperType>::Dectect(static_cast<By*>(obj));
+        }
+    };
+
+    template <typename Ty>
+    struct ObjIndexDetect<Ty, void>
+    {
+        static ObjIndex& Dectect(Ty* obj) {
+            return obj->xlua_obj_index_;
+        }
+    };
+
+    //template <typename Ty>
+    //auto GetObjIndex(Ty* val) -> st
+
 } // namespace detail
 
 XLUA_NAMESPACE_END
