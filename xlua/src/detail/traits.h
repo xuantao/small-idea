@@ -72,24 +72,18 @@ namespace detail {
     }
 
     template <typename Ty, typename By>
-    struct ObjIndexDetect
-    {
-        static ObjIndex& Dectect(Ty* obj) {
-            return ObjIndexDetect<By, Ty::LuaDeclare::SuperType>::Dectect(static_cast<By*>(obj));
+    struct ObjIndexDetect {
+        static ObjIndex& Detect(Ty* obj) {
+            return ObjIndexDetect<By, Ty::LuaDeclare::SuperType>::Detect(static_cast<By*>(obj));
         }
     };
 
     template <typename Ty>
-    struct ObjIndexDetect<Ty, void>
-    {
-        static ObjIndex& Dectect(Ty* obj) {
+    struct ObjIndexDetect<Ty, void> {
+        static ObjIndex& Detect(Ty* obj) {
             return obj->xlua_obj_index_;
         }
     };
-
-    //template <typename Ty>
-    //auto GetObjIndex(Ty* val) -> st
-
 } // namespace detail
 
 XLUA_NAMESPACE_END

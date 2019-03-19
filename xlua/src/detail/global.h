@@ -26,12 +26,16 @@ namespace detail
         ITypeDesc* AllocType(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super);
         const TypeInfo* GetTypeInfo(const TypeKey& key) const;
 
+        int AllocObjIndex(ObjIndex& index);
+        int GetObjSerialNum(int index);
+
     private:
         TypeKey AddTypeInfo(TypeInfo* info);
 
     private:
         int version_;
         std::vector<TypeInfo*> types_;
+        std::vector<int> obj_serial_nums_;
     };
 } // namespace detail
 

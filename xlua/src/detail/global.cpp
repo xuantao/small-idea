@@ -157,6 +157,42 @@ namespace detail
         return types_[key.index_];
     }
 
+    int GlobalVar::AllocObjIndex(ObjIndex& index) {
+        if (weak_index.index_ != vals::kInvalidIndex)
+            return weak_index.index_;
+
+        // 无可用元素，增加数组容量
+        if (free_index == vals::kInvalidIndex)
+        {
+            int old_size = (int)obj_.size();
+            int new_size = old_size + inc_;
+
+            free_index = old_size;
+            obj_.resize(new_size);
+            for (int i = old_size; i < new_size; ++i)
+            {
+                auto& o = obj_[i];
+                o.next_index = i + 1;
+                o.serial_num = 0;
+                o.obj = nullptr;
+            }
+            obj_.back().next_index = vals::kInvalidIndex;
+        }
+
+        auto index = free_index;
+        auto ary_obj = GetArrayObj(index);
+        free_index = ary_obj->next_index;
+
+        ary_obj->obj = obj;
+        ary_obj->serial_num = ++serial_num_gener_;
+        weak_index.index_ = index;
+        return index;
+    }
+
+    int GlobalVar::GetObjSerialNum(int index) {
+
+    }
+
     TypeKey GlobalVar::AddTypeInfo(TypeInfo* info)
     {
         TypeKey key;
