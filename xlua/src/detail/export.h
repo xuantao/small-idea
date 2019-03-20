@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "../xlua_def.h"
 #include "../xlua.h"
+#include "state.h"
+#include "global.h"
 #include "traits.h"
 
 XLUA_NAMESPACE_BEGIN
@@ -172,6 +174,36 @@ namespace detail
     };
 
     template <typename Ty>
+    inline Ty* GetMetaCallFullUserDataPtr(void* user_data, const TypeInfo* info) {
+        LuaUserData* ud = static_cast<LuaUserData*>(user_data);
+        if (ud->obj_ == nullptr) {
+            return nullptr;
+        } else if (!IsBaseOf(info, ud->info_)) {
+            return nullptr;
+        }
+        return static_assert<Ty*>(ud->info_->converter.convert_up(ud->obj_, ud->info_, info));
+    }
+
+    template <typename Ty>
+    inline Ty* GetMetaCallObj(xLuaState* l, const TypeInfo* info) {
+        void* user_data = l->GetUserDataPtr(1);
+        if (user_data == nullptr)
+            return nullptr;
+
+        switch (l->GetValueType(1))
+        {
+        case xlua::LuaValueType::kLightUserData:
+            return GetLightUserDataPtr<Ty>(l->GetUserDataPtr(1), info);
+        case xlua::LuaValueType::kFullUserData:
+            return GetMetaCallFullUserDataPtr(user_data, info);
+        default:
+            break;
+        }
+        //TODO: log
+        return nullptr;
+    }
+
+    template <typename Ty>
     inline int MetaCall(xLuaState* L, Ty f) {
         return 0;
     }
@@ -184,6 +216,130 @@ namespace detail
     template <typename Ty>
     inline int MetaSet(xLuaState* L, void* obj, Ty f) {
         return 0;
+    }
+
+    template<typename Rty, typename Cty, typename... Args, size_t... Idxs>
+    inline int _MetaCall(xLuaState* l, Cty* obj, Rty(Cty::*func)(Args...), index_sequence<Idxs...>)
+    {
+        l->Push(
+            (obj->*func)(l->Load<typename std::decay<Args>::type>(L, Idxs + 1)...)
+        );
+        return 1;
+    }
+
+    template<typename Rty, typename Cty, typename... Args, size_t... Idxs>
+    inline int _MetaCall(xLuaState* l, Cty* obj, Rty(Cty::*func)(Args...) const, index_sequence<Idxs...>)
+    {
+        l->Push(L,
+            (obj->*func)(l->Load<typename std::decay<Args>::type>(L, Idxs + 1)...)
+        );
+        return 1;
+    }
+
+    template <typename Cty, typename... Args, size_t... Idxs>
+    inline int _MetaCall(xLuaState* l, Cty* obj, void(Cty::*func)(Args...), index_sequence<Idxs...>)
+    {
+        (obj->*func)(l->Load<typename std::decay<Args>::type>(L, Idxs + 1)...);
+        return 0;
+    }
+
+    template <typename Cty, typename... Args, size_t... Idxs>
+    inline int _MetaCall(xLuaState* l, void* obj, void(Cty::*func)(Args...) const, index_sequence<Idxs...>)
+    {
+        (obj->*func)(l->Load<typename std::decay<Args>::type>(L, Idxs + 1)...);
+        return 0;
+    }
+
+    template <typename Cty, typename... Args, size_t... Idxs>
+    inline int _MetaCallEx(xLuaState* l, Cty* obj, void(*func)(Args...), index_sequence<Idxs...>)
+    {
+        //TODO:
+        using arg_tuple = std::tuple<Args...>;
+        func(obj, l->Load<typename std::decay<Args>::type>(L, Idxs + 2)...);
+        return 0;
+    }
+
+    template<typename Rty, typename Cty, typename... Args, size_t... Idxs>
+    inline int _MetaCallEx(xLuaState* l, Cty* obj, Rty(*func)(Args...) const, index_sequence<Idxs...>)
+    {
+        //TODO:
+        using arg_tuple = std::tuple<Args...>;
+        l->Push(func(obj, l->Load<typename std::decay<Args>::type>(L, Idxs + 2)...));
+        return 1;
+    }
+
+    template <typename Rty, typename Cty, typename... Args>
+    inline int MetaCall(xLuaState* l, Cty* obj, Rty(Cty::*func)(Args...))
+    {
+#ifdef _DEBUG
+        //MetaParamCheck<Args...>(L, 1);
+#endif // _DEBUG
+        return _MetaCall(l, obj, func, make_index_sequence_t<sizeof...(Args)>());
+    }
+
+    template <typename Rty, typename Cty, typename... Args>
+    inline int MetaCall(xLuaState* l, Cty* obj, Rty(Cty::*func)(Args...)const)
+    {
+#ifdef _DEBUG
+        //MetaParamCheck<Args...>(L, 1);
+#endif // _DEBUG
+        return _MetaCall(L, obj, func, make_index_sequence_t<sizeof...(Args)>());
+    }
+
+    template <typename Cty>
+    inline int MetaCall(xLuaState* l, Cty* obj, int(Cty::*func)(xLuaState*))
+    {
+        return (pObj->*func)(l);
+    }
+
+    template <typename Cty>
+    inline int MetaCall(xLuaState* l, Cty* obj, int(Cty::*func)(xLuaState*) const)
+    {
+        return (obj->*func)(l);
+    }
+
+    template <typename Cty>
+    inline int MetaCall(xLuaState* l, Cty* obj, void(Cty::*func)(xLuaState*))
+    {
+        (obj->*func)(l);
+        return 0;
+    }
+
+    template <typename Cty>
+    inline int MetaCall(xLuaState* l, void(Cty::*func)(xLuaState*) const) {
+        (obj->*func)(l);
+        return 0;
+    }
+
+    template <typename Cty>
+    inline int MetaCall(xLuaState* l, Cty* obj, int(Cty::*func)(lua_State*)) {
+        return (pObj->*func)(l->GetState());
+    }
+
+    template <typename Cty>
+    inline int MetaCall(xLuaState* l, Cty* obj, int(Cty::*func)(lua_State*) const) {
+        return (obj->*func)(l->GetState());
+    }
+
+    template <typename Cty>
+    inline int MetaCall(xLuaState* l, Cty* obj, void(Cty::*func)(lua_State*)) {
+        (obj->*func)(l->GetState());
+        return 0;
+    }
+
+    template <typename Cty>
+    inline int MetaCall(xLuaState* l, void(Cty::*func)(lua_State*) const) {
+        (obj->*func)(l->GetState());
+        return 0;
+    }
+
+    template <typename Rty, typename Cty, typename... Args>
+    inline int MetaCall(xLuaState* l, Cty* obj, Rty(*func)(Args...))
+    {
+#ifdef _DEBUG
+        //MetaParamCheck<Args...>(L, 1);
+#endif // _DEBUG
+        return _MetaCallEx(l, obj, func, make_index_sequence_t<sizeof...(Args) - 1>());
     }
 } // namespace detail
 

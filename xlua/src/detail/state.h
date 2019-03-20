@@ -191,6 +191,47 @@ namespace detail {
     inline LuaUserData* MakeUserData(std::unique_ptr<Ty> val, const TypeInfo* info) {
         return new LuaUserDataImpl<std::unique_ptr<Ty>>(val, info);
     }
+
+    template <typename Ty>
+    Ty* GetLightUserDataPtr(void* user_data, const TypeInfo* info) {
+#if XLUA_USE_LIGHT_USER_DATA
+        LightDataPtr ud = MakeLightPtr(user_data);
+        if (ud.type_ == 0) {
+            ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud.index_);
+            if (obj == nullptr || obj->serial_num_ != ud.serial_ || obj->obj_ == nullptr) {
+                //TODO: log type info not equal
+                return nullptr;
+            }
+
+            if (!IsBaseOf(info, obj->info_)) {
+                //TODO: log type info not equal
+                return nullptr;
+            }
+
+            return obj->info_->converter.convert_up(obj->obj_, obj->info_, info);
+        }
+        else {
+            const TypeInfo* dst_type = GlobalVar::GetInstance()->GetExternalInfo(ud.type_);
+            if (dst_type == nullptr || !IsBaseOf(info, dst_type)) {
+                //TODO: log type info not equal
+                return nullptr;
+            }
+
+            if (dst_type->is_weak_obj) {
+                void* obj = xLuaGetWeakObjPtr(ud.index_);
+                if (obj == nullptr || ud.serial_ != xLuaGetWeakObjSerialNum(ud.index_)) {
+                    //TODO:
+                    return nullptr;
+                }
+                return static_cast<Ty*>(static_cast<XLUA_WEAK_OBJ_BASE_TYPE*>(obj));
+            }
+            else {
+                return dst_type->converter.convert_up(ud.ToRawPtr(), dst_type, info);
+            }
+        }
+#endif // XLUA_USE_LIGHT_USER_DATA
+        return nullptr;
+    }
 } // namespace detail
 
 XLUA_NAMESPACE_END

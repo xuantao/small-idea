@@ -31,6 +31,11 @@ enum class ValueType
     kFullUserData,
 };
 
+enum class LuaValueType {
+    kLightUserData,
+    kFullUserData,
+};
+
 class xLuaState {
 public:
     friend class detail::GlobalVar;
@@ -97,7 +102,7 @@ public:
 
     const char* GetTypeName(int index) const;
 
-    ValueType GetType(int index) const;
+    LuaValueType GetValueType(int index) const;
 
 public:
     bool _TryPushSharedPtr(void* ptr) const;
