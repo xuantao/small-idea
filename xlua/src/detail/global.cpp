@@ -29,9 +29,7 @@ const TypeInfo* GetTypeInfo(const TypeKey& key)
 ObjIndex::~ObjIndex()
 {
     if (index_ != -1 && detail::s_global)
-    {
-        ;   //TODO: release
-    }
+        detail::s_global->FreeObjIndex(index_);
 }
 
 bool TypeKey::IsValid() const
@@ -157,41 +155,51 @@ namespace detail
         return types_[key.index_];
     }
 
-    int GlobalVar::AllocObjIndex(ObjIndex& index) {
-        if (weak_index.index_ != vals::kInvalidIndex)
-            return weak_index.index_;
-
-        // 无可用元素，增加数组容量
-        if (free_index == vals::kInvalidIndex)
-        {
-            int old_size = (int)obj_.size();
-            int new_size = old_size + inc_;
-
-            free_index = old_size;
-            obj_.resize(new_size);
-            for (int i = old_size; i < new_size; ++i)
-            {
-                auto& o = obj_[i];
-                o.next_index = i + 1;
-                o.serial_num = 0;
-                o.obj = nullptr;
+    int GlobalVar::AllocObjIndex(ObjIndex& obj_index, void* obj, const TypeInfo* info) {
+        if (obj_index.index_ != -1) {
+            // 总是存储子类指针
+            auto& ary_obj = obj_array_[obj_index.index_];
+            if (!IsBaseOf(info, ary_obj.info_)) {
+                ary_obj.obj_ = obj;
+                ary_obj.info_ = info;
             }
-            obj_.back().next_index = vals::kInvalidIndex;
+            return obj_index.index_;
+        } else {
+            // 无可用元素，增加数组容量
+            if (free_index_.empty()) {
+                size_t old_size = obj_array_.size();
+                size_t new_size = obj_array_.size() + 1024;
+                obj_array_.resize(new_size, ArrayObj{0, nullptr, nullptr});
+
+                if (free_index_.capacity() < 1024)
+                    free_index_.reserve(1024);
+
+                for (size_t i = new_size; i > old_size; --i)
+                    free_index_.push_back((int)i - 1);
+            }
+
+            auto index = free_index_.back();
+            auto& ary_obj = obj_array_[index];
+            free_index_.pop_back();
+
+            ary_obj.info_ = info;
+            ary_obj.obj_ = obj;
+            ary_obj.serial_num_ = ++serial_num_gener_;
+
+            obj_index.index_ = index;
+            return index;
         }
-
-        auto index = free_index;
-        auto ary_obj = GetArrayObj(index);
-        free_index = ary_obj->next_index;
-
-        ary_obj->obj = obj;
-        ary_obj->serial_num = ++serial_num_gener_;
-        weak_index.index_ = index;
-        return index;
     }
 
-    int GlobalVar::GetObjSerialNum(int index) {
-
+    ArrayObj* GlobalVar::GetArrayObj(int index) {
+        if (index < 0 || index >= (int)obj_array_.size())
+            return nullptr;
+        return &obj_array_[index];
     }
+
+    //int GlobalVar::GetObjSerialNum(int index) {
+    //    return 0;
+    //}
 
     TypeKey GlobalVar::AddTypeInfo(TypeInfo* info)
     {
@@ -200,6 +208,18 @@ namespace detail
         key.index_ = (int)types_.size();
         types_.push_back(info);
         return key;
+    }
+
+    void GlobalVar::FreeObjIndex(int index)
+    {
+        auto& ary_obj = obj_array_[index];
+        ary_obj.info_ = nullptr;
+        ary_obj.obj_ = nullptr;
+        ary_obj.serial_num_ = 0;
+
+        if ((free_index_.capacity() - free_index_.size()) == 0)
+            free_index_.reserve(free_index_.size() + 1024);
+        free_index_.push_back(index);
     }
 
 } // namespace detail

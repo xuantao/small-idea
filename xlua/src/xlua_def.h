@@ -21,10 +21,12 @@
 */
 #ifndef XLUA_WEAK_OBJ_BASE_TYPE
     #define XLUA_WEAK_OBJ_BASE_TYPE void
+    template <typename Ty> struct xLuaWeakObjPtr {};
     inline int xLuaAllocWeakObjIndex(void* val) { assert(false); return -1; }
     inline int xLuaGetWeakObjSerialNum(int index) { assert(false); return 0; }
     inline void* xLuaGetWeakObjPtr(int index) { assert(false); return nullptr; }
 #else // XLUA_WEAK_OBJ_BASE_TYPE
+    template <typename Ty> struct xLuaWeakObjPtr;
     int xLuaAllocWeakObjIndex(XLUA_WEAK_OBJ_BASE_TYPE* val);
     int xLuaGetWeakObjSerialNum(int index);
     XLUA_WEAK_OBJ_BASE_TYPE* xLuaGetWeakObjPtr(int index);

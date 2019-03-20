@@ -73,8 +73,9 @@ namespace detail {
 
     template <typename Ty, typename By>
     struct ObjIndexDetect {
+        typedef typename Ty::LuaDeclare Declare;
         static ObjIndex& Detect(Ty* obj) {
-            return ObjIndexDetect<By, Ty::LuaDeclare::SuperType>::Detect(static_cast<By*>(obj));
+            return ObjIndexDetect<By, typename Declare::super>::Detect(static_cast<By*>(obj));
         }
     };
 

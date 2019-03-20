@@ -78,6 +78,35 @@ struct LightDataPtr {
     };
 };
 
+namespace internal {
+    template <typename Ty>
+    struct FriendTest;
+}
+
+struct TestFriend {
+    template <typename Ty>
+    friend struct internal::FriendTest;
+
+    template <typename Ty>
+    void Do() {
+        internal::FriendTest<Ty>::Do(this);
+    }
+
+private:
+    void call() { printf("friend call\n"); }
+};
+
+namespace internal {
+    template <typename Ty>
+    struct FriendTest
+    {
+        static void Do(TestFriend* o) {
+            o->call();
+        }
+    };
+}
+
+
 int main()
 {
     constexpr size_t s = sizeof(LightDataPtr);
@@ -101,6 +130,9 @@ int main()
 
     constexpr char ar[2] ={0, 1};
     static_assert(ar[1] == 1, "222");
+
+    TestFriend tf;
+    tf.Do<int>();
 
     system("pause");
     return 0;

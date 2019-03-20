@@ -20,6 +20,12 @@ namespace detail {
         return info->converter.convert_up(ptr, info, root);
     }
 
+    inline bool IsBaseOf(const TypeInfo* base, const TypeInfo* info) {
+        while (info && info != base)
+            info = info->super;
+        return info == base;
+    }
+
     template <typename Ty>
     inline int AllocInternalIndex(Ty* ptr) {
         return 0;
@@ -27,6 +33,12 @@ namespace detail {
 
     inline int GetInternalSerialNum(int index) {
         return 0;
+    }
+
+    template <typename Ty>
+    inline ObjIndex& GetObjIndex(Ty* ptr) {
+        using declare = typename Ty::LuaDeclare;
+        return ObjIndexDetect<typename declare::self, typename declare::super>::Detect(ptr);
     }
 
 #ifdef XLUA_USE_LIGHT_USER_DATA
@@ -45,7 +57,17 @@ namespace detail {
                 };
             };
         };
+
+        inline void* ToRawPtr() const {
+            return (void*)(reinterpret_cast<uint64_t>(ptr_) & 0x00ffffffffffffff);
+        }
     };
+
+    inline LightDataPtr MakeLightPtr(void* ptr) {
+        LightDataPtr ud;
+        ud.ptr_ = ptr;
+        return ud;
+    }
 
     inline LightDataPtr MakeLightPtr(int type, int index, int serial_num) {
         assert((0xff000000 & index) == 0);
@@ -69,8 +91,9 @@ namespace detail {
     enum class LuaUserDataType {
         kValue,
         kRawPtr,
-        kUniquePtr,
         kSharedPtr,
+        kUniquePtr,
+        kLuaObjPtr,
         kWeakObjPtr,
     };
 

@@ -25,6 +25,12 @@ void Shutdown();
 class xLuaTable { };
 class xLuaFunction { };
 
+enum class ValueType
+{
+    kLightUserData,
+    kFullUserData,
+};
+
 class xLuaState {
 public:
     friend class detail::GlobalVar;
@@ -44,7 +50,7 @@ public:
     template <typename Ty>
     inline void Push(std::unique_ptr<Ty> ptr) {
         static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
-        _PushUniquePtr(detail::MakeUserData(ptr, detail::GetTypeInfoImpl<Ty>()));
+        _PushUniquePtr(MakeUserData(ptr, detail::GetTypeInfoImpl<Ty>()));
     }
 
     template <typename Ty>
@@ -91,6 +97,8 @@ public:
 
     const char* GetTypeName(int index) const;
 
+    ValueType GetType(int index) const;
+
 public:
     bool _TryPushSharedPtr(void* ptr) const;
     void _PushSharedPtr(void* root, detail::LuaUserData* user_data);
@@ -100,6 +108,8 @@ public:
     bool _TryPushRawPtr(void* root) const;
     void _PushRawPtr(void* root, detail::LuaUserData* user_data);
 
+    bool _IsLightUserData(int index) const { return false; }
+    bool _IsFullUserData(int index) const { return false; }
 
 #if XLUA_USE_LIGHT_USER_DATA
     void _PushLightPtr(detail::LightDataPtr ptr);
@@ -107,7 +117,25 @@ public:
     void _PushWeakObjPtr(const detail::LuaUserData user_data);
 #endif // XLUA_USE_LIGHT_USER_DATA
 
+    template <typename Ty>
+    inline detail::LuaUserData* MakeUserData(const Ty& val, const TypeInfo* info) {
+        using DataType = detail::LuaUserDataImpl<Ty>;
+        void* mem = AllocUserData(sizeof(DataType));
+        return new (mem) DataType(val, info);
+    }
+
+    template <typename Ty>
+    inline detail::LuaUserData* MakeUserData(std::unique_ptr<Ty> val, const TypeInfo* info) {
+        using DataType = detail::LuaUserDataImpl<std::unique_ptr<Ty>>;
+        void* mem = AllocUserData(sizeof(DataType));
+        return new (mem) DataType (val, info);
+    }
+
+    void* GetUserDataPtr(int index);
 private:
+
+    void* AllocUserData(size_t size) { return nullptr; }
+
 
 private:
     bool attach_;
@@ -143,8 +171,9 @@ namespace detail {
 
     template <typename Ty>
     inline void PushPointer(xLuaState* l, Ty* val, tag_internal) {
-        int index = AllocInternalIndex(val);
-        int serial_num = GetInternalSerialNum(index);
+        const TypeInfo* info = GetTypeInfoImpl<Ty>();
+        int index = GlobalVar::GetInstance()->AllocObjIndex(GetObjIndex(val), val, info);
+        int serial_num = GlobalVar::GetInstance()->GetObjSerialNum(index);
         l->_PushLightPtr(MakeLightPtr(0, index, serial_num));
     }
 
@@ -211,28 +240,50 @@ namespace detail {
                 const TypeInfo* info = GetTypeInfoImpl<Ty>();
                 void* root = GetRootPtr(ptr.get(), info);
                 if (!l->_TryPushSharedPtr(root))
-                    l->_PushSharedPtr(root, MakeUserData(ptr, info));
+                    l->_PushSharedPtr(root, l->MakeUserData(ptr, info));
             }
         }
     };
 
     /* load operator */
     template <typename Ty>
-    inline auto LoadValue(xLuaState* l, int index) -> typename std::enable_if<IsExtendLoad<Ty>::value, Ty>::type {
+    inline Ty LoadValue(xLuaState* l, int index, tag_extend) {
         return ::xLuaLoad(l, index, Identity<Ty>());
     }
 
     template <typename Ty>
-    inline auto LoadValue(xLuaState* l, int index) -> typename std::enable_if<IsExternal<Ty>::value, Ty>::type {
-        //Ty val = std::declval<Ty>();
+    inline Ty LoadValue(xLuaState* l, int index, tag_external) {
+        static_assert(!IsWeakObjPtr<Ty>::value, "not allow weak obj");
+        //LuaUserData* data = nullptr;
+        //switch (data->type_)
+        //{
+        //default:
+        //    break;
+        //}
         return Ty();
+    }
+
+    template <typename Ty>
+    inline Ty* LoadPointer(xLuaState* l, int index, tag_weakobj) {
+        return nullptr;
+    }
+
+    template <typename Ty>
+    inline Ty* LoadPointer(xLuaState* l, int index, tag_external) {
+        return nullptr;
+    }
+
+    template <typename Ty>
+    inline Ty* LoadPointer(xLuaState* l, int index, tag_internal) {
+        return nullptr;
     }
 
     template <typename Ty>
     struct Loader {
         static_assert(IsExternal<Ty>::value || IsExtendLoad<Ty>::value, "");
+        using tag = typename std::conditional<IsExternal<Ty>::value, tag_external, tag_extend>::type;
         static inline Ty Do(xLuaState* l, int index) {
-            return LoadValue<Ty>(l, index);
+            return LoadValue<Ty>(l, index, tag());
         }
     };
 
@@ -240,7 +291,74 @@ namespace detail {
     struct Loader<Ty*> {
         static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
         static inline Ty* Do(xLuaState* l, int index) {
-            return nullptr;
+            const TypeInfo* info = GetTypeInfoImpl<Ty>();
+            ValueType value_type = l->GetType(index);
+            void* user_data = l->GetUserDataPtr(index);
+            Ty* ret = nullptr;
+            if (user_data == nullptr)
+                return nullptr;
+
+            if (value_type == ValueType::kLightUserData) {
+                LightDataPtr ud = MakeLightPtr(user_data);
+                if (ud.type_ == 0) {
+                    ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud.index_);
+                    if (obj == nullptr || obj->serial_num_ != ud.serial_ || obj->obj_ == nullptr) {
+                        //TODO: log type info not equal
+                        return nullptr;
+                    }
+
+                    if (!IsBaseOf(info, obj->info_)) {
+                        //TODO: log type info not equal
+                        return nullptr;
+                    }
+
+                    return obj->info_->converter.convert_up(obj->obj_, obj->info_, info);
+                } else {
+                    const TypeInfo* dst_type = GlobalVar::GetInstance()->GetExternalInfo(ud.type_);
+                    if (dst_type == nullptr || !IsBaseOf(info, dst_type)) {
+                        //TODO: log type info not equal
+                        return nullptr;
+                    }
+
+                    if (dst_type->is_weak_obj) {
+                        void* obj = xLuaGetWeakObjPtr(ud.index_);
+                        if (obj == nullptr || ud.serial_ != xLuaGetWeakObjSerialNum(ud.index_)) {
+                            //TODO:
+                            return nullptr;
+                        }
+                        return static_cast<Ty*>(static_cast<XLUA_WEAK_OBJ_BASE_TYPE*>(obj));
+                    } else {
+                        return dst_type->converter.convert_up(ud.ToRawPtr(), dst_type, info);
+                    }
+                }
+            } else if (value_type == ValueType::kFullUserData) {
+                LuaUserData* ud = static_cast<LuaUserData*>(user_data);
+                if (ud->obj_ == nullptr) {
+                    return nullptr;
+                }
+                if (!IsBaseOf(info, ud->info_)) {
+                    return nullptr;
+                }
+
+                if (ud->type_ == LuaUserDataType::kRawPtr) {
+                    return ud->info_->converter.convert_up(ud->obj_, ud->info_, info);
+                } else if (ud->type_ == LuaUserDataType::kValue) {
+
+                } else if (ud->type_ == LuaUserDataType::kSharedPtr) {
+
+                } else if (ud->type_ == LuaUserDataType::kUniquePtr) {
+
+                } else if (ud->type_ == LuaUserDataType::kLuaObjPtr) {
+
+                } else if (ud->type_ == LuaUserDataType::kWeakObjPtr) {
+
+                } else {
+                    //TODO: log unknown obj type
+                    return nullptr;
+                }
+            }
+
+            return ret;
         }
     };
 
@@ -256,6 +374,7 @@ namespace detail {
     struct Loader<std::unique_ptr<Ty>> {
         static_assert(std::is_same<Ty, std::nullptr_t>::value, "not allow to load unique_ptr");
         static inline std::unique_ptr<Ty> Do(xLuaState* l, int index) {
+            /* can not load unique_ptr from xlua */
             return nullptr;
         }
     };
