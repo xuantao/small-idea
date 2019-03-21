@@ -37,7 +37,7 @@ namespace detail
                 members_.push_back(member);
         }
 
-        TypeKey Finalize() override;
+        const TypeInfo* Finalize() override;
 
     private:
         GlobalVar* mgr_;

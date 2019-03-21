@@ -10,7 +10,7 @@ namespace detail
     static void* DummyPtrCast(void*, const TypeInfo*, const TypeInfo*) { return nullptr; }
     static bool DummySharedPtrCast(void*, const TypeInfo*, void*, const TypeInfo*) { return false; }
 
-    TypeKey TypeDesc::Finalize() {
+    const TypeInfo* TypeDesc::Finalize() {
         std::unique_ptr<TypeDesc> ptr(this);  // auto free
         TypeKey id;
 
@@ -24,7 +24,8 @@ namespace detail
         TypeInfo* info = nullptr;// static_cast<TypeInfo*>(buff);
 
 
-        return GlobalVar::GetInstance()->AddTypeInfo(info);
+        return info;
+        //return GlobalVar::GetInstance()->AddTypeInfo(info);
 
         //convert_up_ = convert_down_ ?
 

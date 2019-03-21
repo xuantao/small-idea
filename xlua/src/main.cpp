@@ -16,7 +16,7 @@ namespace {
                     return self->a;
                 };
 
-                xlua::detail::MetaGet(L, &f, &decltype(f)::operator ());
+                //xlua::detail::MetaGet(L, &f, &decltype(f)::operator ());
             };
         }
 
@@ -133,6 +133,18 @@ int main()
 
     TestFriend tf;
     tf.Do<int>();
+
+    //struct TestInner
+    //{
+    //    static void Call() {
+
+    //    }
+
+    //    template <typename Ty>
+    //    int DoCall(Ty f) {
+    //        return 0;
+    //    }
+    //};
 
     system("pause");
     return 0;

@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "../xlua_def.h"
 #include "traits.h"
+#include "global.h"
 #include <memory>
 #include <unordered_map>
 
@@ -208,7 +209,7 @@ namespace detail {
                 return nullptr;
             }
 
-            return obj->info_->converter.convert_up(obj->obj_, obj->info_, info);
+            return (Ty*)obj->info_->converter.convert_up(obj->obj_, obj->info_, info);
         }
         else {
             const TypeInfo* dst_type = GlobalVar::GetInstance()->GetExternalInfo(ud.type_);
@@ -226,7 +227,7 @@ namespace detail {
                 return static_cast<Ty*>(static_cast<XLUA_WEAK_OBJ_BASE_TYPE*>(obj));
             }
             else {
-                return dst_type->converter.convert_up(ud.ToRawPtr(), dst_type, info);
+                return (Ty*)dst_type->converter.convert_up(ud.ToRawPtr(), dst_type, info);
             }
         }
 #endif // XLUA_USE_LIGHT_USER_DATA

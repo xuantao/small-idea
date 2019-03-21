@@ -53,9 +53,9 @@ public:
     }
 
     template <typename Ty>
-    inline void Push(std::unique_ptr<Ty> ptr) {
+    inline void Push(std::unique_ptr<Ty>&& ptr) {
         static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
-        _PushUniquePtr(MakeUserData(ptr, detail::GetTypeInfoImpl<Ty>()));
+        _PushUniquePtr(MakeUserData(std::move(ptr), detail::GetTypeInfoImpl<Ty>()));
     }
 
     template <typename Ty>
@@ -130,10 +130,10 @@ public:
     }
 
     template <typename Ty>
-    inline detail::LuaUserData* MakeUserData(std::unique_ptr<Ty> val, const TypeInfo* info) {
+    inline detail::LuaUserData* MakeUserData(std::unique_ptr<Ty>&& val, const TypeInfo* info) {
         using DataType = detail::LuaUserDataImpl<std::unique_ptr<Ty>>;
         void* mem = AllocUserData(sizeof(DataType));
-        return new (mem) DataType (val, info);
+        return new (mem) DataType (std::move(val), info);
     }
 
     void* GetUserDataPtr(int index);
@@ -297,13 +297,13 @@ namespace detail {
         static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
         static inline Ty* Do(xLuaState* l, int index) {
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
-            ValueType value_type = l->GetType(index);
+            LuaValueType value_type = l->GetValueType(index);
             void* user_data = l->GetUserDataPtr(index);
             Ty* ret = nullptr;
             if (user_data == nullptr)
                 return nullptr;
 
-            if (value_type == ValueType::kLightUserData) {
+            if (value_type == LuaValueType::kLightUserData) {
                 LightDataPtr ud = MakeLightPtr(user_data);
                 if (ud.type_ == 0) {
                     ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud.index_);
@@ -317,7 +317,7 @@ namespace detail {
                         return nullptr;
                     }
 
-                    return obj->info_->converter.convert_up(obj->obj_, obj->info_, info);
+                    return (Ty*)obj->info_->converter.convert_up(obj->obj_, obj->info_, info);
                 } else {
                     const TypeInfo* dst_type = GlobalVar::GetInstance()->GetExternalInfo(ud.type_);
                     if (dst_type == nullptr || !IsBaseOf(info, dst_type)) {
@@ -333,10 +333,10 @@ namespace detail {
                         }
                         return static_cast<Ty*>(static_cast<XLUA_WEAK_OBJ_BASE_TYPE*>(obj));
                     } else {
-                        return dst_type->converter.convert_up(ud.ToRawPtr(), dst_type, info);
+                        return (Ty*)dst_type->converter.convert_up(ud.ToRawPtr(), dst_type, info);
                     }
                 }
-            } else if (value_type == ValueType::kFullUserData) {
+            } else if (value_type == LuaValueType::kFullUserData) {
                 LuaUserData* ud = static_cast<LuaUserData*>(user_data);
                 if (ud->obj_ == nullptr) {
                     return nullptr;
@@ -346,7 +346,7 @@ namespace detail {
                 }
 
                 if (ud->type_ == LuaUserDataType::kRawPtr) {
-                    return ud->info_->converter.convert_up(ud->obj_, ud->info_, info);
+                    return (Ty*)ud->info_->converter.convert_up(ud->obj_, ud->info_, info);
                 } else if (ud->type_ == LuaUserDataType::kValue) {
 
                 } else if (ud->type_ == LuaUserDataType::kSharedPtr) {

@@ -149,7 +149,7 @@ struct ITypeDesc {
     virtual ~ITypeDesc() { }
     virtual void SetConverter(LuaPointerConvert up, LuaPointerConvert down, LuaSharedPtrConvert shared_ptr) = 0;
     virtual void AddMember(TypeMember member, bool global) = 0;
-    virtual TypeKey Finalize() = 0;
+    virtual const TypeInfo* Finalize() = 0;
 };
 
 ITypeDesc* AllocTypeInfo(TypeCategory category, bool is_wak_obj, const char* name, const TypeInfo* super);

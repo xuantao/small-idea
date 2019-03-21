@@ -5,39 +5,45 @@
 
 #define _XLUA_SUPER_CLASS(...)  typename xlua::detail::BaseType<__VA_ARGS__>::type
 
+struct Func_XX : xlua::detail::MetaType<Func_XX>
+{
+    Func_XX(xlua::ITypeDesc* desc) {
+        // desc->AddMember()
+    }
+    static int Call(xlua::xLuaState* l) {
+        return 0;
+    }
+};
+
 // 导出实现
-#define _XLUA_EXPORT_FUNC(Name, Func)                                                   \
+#define _XLUA_EXPORT_FUNC(Name, Func, Meta)                                             \
     static_assert(!std::is_null_pointer<decltype(Func)>::value,                         \
-        "can not export func:"##Name##" with null pointer"                              \
+        "can not export func:"#Name" with null pointer"                                 \
     );                                                                                  \
-    int export_to_xlua_##Name = 0;                                                      \
-    (export_to_xlua_##Name);    /* used for check rename */                             \
-    struct Func_##Name {                                                                \
-        static int call(xlua::xLuaState* L) {                                           \
-            return xlua::detail::MetaCall(L, Func);                                     \
+    struct Func_##__LINE__ {                                                            \
+        static int call(xlua::xLuaState* l) {                                           \
+            return xlua::detail::Meta<class_type>::Call(l, s_type_info, Func);          \
         }                                                                               \
     };                                                                                  \
-    desc->AddMember(xlua::detail::MakeMember(#Name, &Func_##Name::call),                \
+    desc->AddMember(xlua::detail::MakeMember(#Name, &Func_##__LINE__::call),            \
         !std::is_member_function_pointer<decltype(Func)>::value);
 
-#define _XLUA_EXPORT_VAR(Name, GetOp, SetOp)                                            \
+#define _XLUA_EXPORT_VAR(Name, GetOp, SetOp, Meta)                                      \
     static_assert(                                                                      \
         xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::is_allow,         \
         "can not export var:"#Name" to lua"                                             \
     );                                                                                  \
-    int export_to_xlua_##Name = 0;                                                      \
-    (export_to_xlua_##Name);    /* used for check rename problem */                     \
-    struct Var_##Name {                                                                 \
-        static void get(xlua::xLuaState* L, void* obj) {                                \
-            xlua::detail::MetaGet(L, obj, GetOp);                                       \
+    struct Var_##__LINE__ {                                                             \
+        static void Get(xlua::xLuaState* l, void* obj) {                                \
+            xlua::detail::Meta<class_type>::Get(l, (class_type*)obj, GetOp);            \
         }                                                                               \
-        static void set(xlua::xLuaState* L, void* obj) {                                \
-            xlua::detail::MetaSet(L, obj, SetOp);                                       \
+        static void Set(xlua::xLuaState* l, void* obj) {                                \
+            xlua::detail::Meta<class_type>::Set(l, (class_type*)obj, SetOp);            \
         }                                                                               \
     };                                                                                  \
     desc->AddMember(xlua::detail::MakeMember(#Name,                                     \
-        std::is_null_pointer<decltype(GetOp)>::value ? nullptr : &Var_##Name::get,      \
-        std::is_null_pointer<decltype(SetOp)>::value ? nullptr : &Var_##Name::set),     \
+        std::is_null_pointer<decltype(GetOp)>::value ? nullptr : &Var_##__LINE__::Get,  \
+        std::is_null_pointer<decltype(SetOp)>::value ? nullptr : &Var_##__LINE__::Set), \
         !xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::is_member        \
     );
 
@@ -56,9 +62,10 @@
         xlua::detail::TypeNode type_node_##__LINE__(&ClassName::xLuaGetTypeInfo);       \
     } /* end namespace */                                                               \
     const xlua::TypeInfo* ClassName::xLuaGetTypeInfo() {                                \
-        static xlua::TypeKey s_key;                                                     \
-        if (s_key.IsValid())                                                            \
-            return xlua::GetTypeInfo(s_key);                                            \
+        using class_type = ClassName;                                                   \
+        static const xlua::TypeInfo* s_type_info = nullptr;                             \
+        if (s_type_info)                                                                \
+            return s_type_info;                                                         \
         ITypeDesc* desc = xlua::AllocTypeInfo(xlua::TypeCategory::kInternal,            \
             #ClassName,                                                                 \
             xlua::detail::GetTypeInfoImpl<LuaDeclare::super>()                          \
@@ -69,14 +76,12 @@
             &xlua::detail::PtrCast<ClassName, LuaDeclare::SuperType>::CastUp,           \
             &xlua::detail::PtrCast<ClassName, LuaDeclare::SuperType>::CastDown,         \
             &xlua::detail::SharedPtrCast<ClassName, LuaDeclare::SuperType>::Cast        \
-        );                                                                              \
-        using class_type = ClassName;
-
+        );
 
 /* 导出lua类结束 */
 #define XLUA_EXPORT_CLASS_END()                                                         \
-        s_key = desc->Finalize();                                                       \
-        return xlua::GetTypeInfo(s_key);                                                \
+        s_type_info = desc->Finalize();                                                 \
+        return s_type_info;                                                             \
     }
 
 /* 导出外部类 */
@@ -98,9 +103,9 @@
     const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Identity<ClassName>) {                  \
         using class_type = ClassName;                                                   \
         using super_type = _XLUA_SUPER_CLASS(__VA_ARGS__);                              \
-        static xlua::TypeKey s_key;                                                     \
-        if (s_key.IsValid())                                                            \
-            return xlua::GetTypeInfo(s_key);                                            \
+        static const xlua::TypeInfo* s_type_info = nullptr;                             \
+        if (s_type_info)                                                                \
+            return s_type_info;                                                         \
         xlua::ITypeDesc* desc = xlua::AllocTypeInfo(xlua::TypeCategory::kExternal,      \
             false, #ClassName,                                                          \
             xlua::detail::GetTypeInfoImpl<super_type>()                                 \
@@ -111,8 +116,7 @@
             &xlua::detail::PtrCast<ClassName, super_type>::CastUp,                      \
             &xlua::detail::PtrCast<ClassName, super_type>::CastDown,                    \
             &xlua::detail::SharedPtrCast<ClassName, super_type>::Cast                   \
-        );                                                                              \
-        using class_type = ClassName;
+        );
 
 #define XLUA_EXPORT_EXTERNAL_CLASS_END()                                                \
     XLUA_EXPORT_CLASS_END()
@@ -121,24 +125,24 @@
 #define XLUA_EXPORT_GLOBAL_BEGIN(Name)                                                  \
     namespace {                                                                         \
         xlua::detail::TypeNode type_node_##__LINE__([]() -> const xlua::TypeInfo* {     \
-            static xlua::TypeKey s_key;                                                 \
-            if (s_key.IsValid())                                                        \
-                return xlua::GetTypeInfo(s_key);                                        \
+            static const xlua::TypeInfo* s_type_info = nullptr;                         \
+            if (s_type_info)                                                            \
+                return s_type_info;                                                     \
             xlua::ITypeDesc* desc = xlua::AllocTypeInfo(xlua::TypeCategory::kGlobal,    \
                 false, #Name, nullptr);                                                 \
             if (desc == nullptr)                                                        \
                 return nullptr;                                                         \
 
 #define XLUA_EXPORT_GLOBAL_END()                                                        \
-            s_key = desc->Finalize();                                                   \
-            return xlua::GetTypeInfo(s_key);                                            \
+            s_type_info = desc->Finalize();                                             \
+            return s_type_info;                                                         \
         });                                                                             \
     }   /* end namespace*/
 
-#define XLUA_EXPORT_MEMBER_FUNC(Func)   _XLUA_EXPORT_FUNC(Func, &class_type::Func)
-#define XLUA_EXPORT_MEMBER_VAR(Var)     _XLUA_EXPORT_VAR(Var, &class_type::Var, &class_type::Var)
-#define XLUA_EXPORT_GLOBAL_FUNC(Func)   _XLUA_EXPORT_FUNC(Func, &Func)
-#define XLUA_EXPORT_GLOBAL_VAR(Var)     _XLUA_EXPORT_VAR(Var, &Var, &Var)
+#define XLUA_EXPORT_MEMBER_FUNC(Func)   _XLUA_EXPORT_FUNC(Func, &class_type::Func, MetaFunc)
+#define XLUA_EXPORT_MEMBER_VAR(Var)     _XLUA_EXPORT_VAR(Var, &class_type::Var, &class_type::Var, MetaVar)
+#define XLUA_EXPORT_GLOBAL_FUNC(Func)   _XLUA_EXPORT_FUNC(Func, &Func, MetaFunc)
+#define XLUA_EXPORT_GLOBAL_VAR(Var)     _XLUA_EXPORT_VAR(Var, &Var, &Var, MetaVar)
 //#define XLUA_EXPORT_
 
 /* 导出常量表 */
