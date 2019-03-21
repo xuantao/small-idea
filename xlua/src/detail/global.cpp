@@ -135,6 +135,18 @@ namespace detail
     {
     }
 
+    xLuaState* GlobalVar::Create() {
+        return nullptr;
+    }
+
+    xLuaState* GlobalVar::Attach(lua_State* l) {
+        return nullptr;
+    }
+
+    void GlobalVar::Destory(xLuaState* l) {
+
+    }
+
     bool GlobalVar::IsValid(const TypeKey& key) const
     {
         return key.serial_ == version_

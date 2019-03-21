@@ -9,8 +9,26 @@ bool Startup() {
 
 void Shutdown() {
     auto global = detail::GlobalVar::GetInstance();
-    if (global)
-        global->Purge();
+    if (global == nullptr)
+        return;
+
+    global->Purge();
+}
+
+xLuaState* Create() {
+    auto global = detail::GlobalVar::GetInstance();
+    if (global == nullptr)
+        return;
+
+    return global->Create();
+}
+
+xLuaState* Attach(lua_State* l) {
+    auto global = detail::GlobalVar::GetInstance();
+    if (global == nullptr)
+        return;
+
+    return global->Attach(l);
 }
 
 xLuaState::xLuaState(lua_State* l, bool attach) {
@@ -19,6 +37,12 @@ xLuaState::xLuaState(lua_State* l, bool attach) {
 
 xLuaState::~xLuaState() {
 
+}
+
+void xLuaState::Release() {
+    auto global = detail::GlobalVar::GetInstance();
+    assert(global == nullptr);
+    global->Destory(this);
 }
 
 bool xLuaState::_TryPushSharedPtr(void* root) const {

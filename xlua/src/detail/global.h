@@ -28,6 +28,10 @@ namespace detail
         void Purge();
 
     public:
+        xLuaState* Create();
+        xLuaState* Attach(lua_State* l);
+        void Destory(xLuaState* l);
+
         bool IsValid(const TypeKey& key) const;
         ITypeDesc* AllocType(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super);
         const TypeInfo* GetTypeInfo(const TypeKey& key) const;

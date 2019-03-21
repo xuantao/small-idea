@@ -250,6 +250,22 @@ namespace detail
         *data = l->Load<typename std::decay<Ry>::type>(1);
     }
 
+    template <size_t N>
+    inline void MetaSet(xLuaState* l, char data[N]) {
+        //*data = l->Load<typename std::decay<Ry>::type>(1);
+        //TODO:
+    }
+
+    template <typename Ry>
+    inline void MetaGet(xLuaState* l, Ry (*data)()) {
+        l->Push(data());
+    }
+
+    template <typename Ry>
+    inline void MetaSet(xLuaState* l, void (*data)(Ry)) {
+        data(l->Load<typename std::decay<Ry>::type>(1));
+    }
+
     template <typename Ty, typename Ry>
     inline void MetaGet(xLuaState* l, Ty* obj, Ry Ty::* data) {
         l->Push(static_cast<Ry>(obj->*data));
