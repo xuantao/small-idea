@@ -32,9 +32,7 @@ namespace detail
         xLuaState* Attach(lua_State* l);
         void Destory(xLuaState* l);
 
-        bool IsValid(const TypeKey& key) const;
         ITypeDesc* AllocType(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super);
-        const TypeInfo* GetTypeInfo(const TypeKey& key) const;
         const TypeInfo* GetExternalInfo(int index) const { return nullptr; }
 
         int AllocObjIndex(ObjIndex& obj_index, void* obj, const TypeInfo* info);
@@ -45,7 +43,7 @@ namespace detail
         }
 
     private:
-        TypeKey AddTypeInfo(TypeInfo* info);
+        void* SerialAlloc(size_t size) { return nullptr; }
         void FreeObjIndex(int index);
 
     private:
