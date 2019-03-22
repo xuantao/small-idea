@@ -32,6 +32,10 @@
     XLUA_WEAK_OBJ_BASE_TYPE* xLuaGetWeakObjPtr(int index);
 #endif // XLUA_WEAK_OBJ_BASE_TYPE
 
+
+#define XLUA_MAX_TYPE_NAME_LENGTH   64
+#define XLUA_MAX_MEMBER_NAME_LENGTH 64
+
 XLUA_NAMESPACE_BEGIN
 
 namespace detail {
@@ -45,11 +49,13 @@ namespace detail {
 class xLuaState;
 struct TypeInfo;
 
+/* 导出到Lua类型 */
 typedef int (*LuaFunction)(xLuaState* L);
 typedef void (*LuaIndexer)(xLuaState* L, void* obj);
-typedef void* (*LuaPointerConvert)(void* obj, const TypeInfo* src_type, const TypeInfo* dst_type);
-/* convert shared_ptr object */
-typedef bool (*LuaSharedPtrConvert)(void* obj_ptr, const TypeInfo* src_type, void* dst, const TypeInfo* dst_type);
+
+/* convert to weak_obj_ptr */
+typedef void* (*ToWeakPtr)(void* obj);
+typedef void* (*PtrCast)(void* obj, const TypeInfo* src, const TypeInfo* dst);
 
 template <typename Ty, typename By>
 struct Declare {
@@ -61,16 +67,6 @@ struct Declare {
 template <typename Ty>
 struct Identity {
     typedef Ty type;
-};
-
-class TypeKey {
-    friend class detail::GlobalVar;
-public:
-    bool IsValid() const;
-
-private:
-    int index_ = -1;
-    int serial_ = 0;
 };
 
 enum class ConstValueType {
@@ -118,12 +114,11 @@ struct TypeMember {
 
 /* 类型转换器
  * 基础类型可以子类->基类，基类->子类
- * std::shared_ptr<Ty> 只能子类->基类
 */
-struct TypeConverter {
-    LuaPointerConvert convert_up;
-    LuaPointerConvert convert_down;
-    LuaSharedPtrConvert convert_shared_ptr;
+struct TypeCaster {
+    PtrCast to_super;       // 转为基类指针, static_cast
+    PtrCast to_derived;     // 转为派生类指针, dynamic_cast
+    ToWeakPtr to_weak_ptr;  // 弱对象指针
 };
 
 enum class TypeCategory
@@ -134,7 +129,6 @@ enum class TypeCategory
 };
 
 struct TypeInfo {
-    TypeKey id;
     TypeCategory category;
     const char* name;
     bool is_weak_obj;                   //
@@ -142,18 +136,18 @@ struct TypeInfo {
     const TypeInfo* super;
     TypeMember* members;
     TypeMember* globals;
-    TypeConverter converter;
+    TypeCaster caster;
 };
 
 struct ITypeDesc {
     virtual ~ITypeDesc() { }
-    virtual void SetConverter(LuaPointerConvert up, LuaPointerConvert down, LuaSharedPtrConvert shared_ptr) = 0;
-    virtual void AddMember(TypeMember member, bool global) = 0;
+    virtual void SetCaster(TypeCaster caster) = 0;
+    virtual void AddMember(const char* name, LuaFunction func, bool glboal) = 0;
+    virtual void AddMember(const char* name, LuaIndexer getter, LuaIndexer setter, bool glboal) = 0;
     virtual const TypeInfo* Finalize() = 0;
 };
 
-ITypeDesc* AllocTypeInfo(TypeCategory category, bool is_wak_obj, const char* name, const TypeInfo* super);
-const TypeInfo* GetTypeInfo(const TypeKey& key);
+ITypeDesc* AllocTypeInfo(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super);
 
 class ObjIndex
 {

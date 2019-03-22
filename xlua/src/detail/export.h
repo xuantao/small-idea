@@ -127,70 +127,53 @@ namespace detail
         static constexpr bool is_member = (is_get_member || is_set_member);
     };
 
-
     template <typename Ty>
-    struct MetaType {
-        typedef Ty this_type;
+    struct WeakObjPtrCast
+    {
+        static void* ToWeakObjPtr(void* obj) {
+            return static_cast<Ty*>(static_cast<XLUA_WEAK_OBJ_BASE_TYPE*>(obj))
+        }
     };
 
     /* 多继承指针偏移, 这里一步步的执行转换 */
     template <typename Ty, typename By>
-    struct PtrCast {
-        static void* CastUp(void* obj, const TypeInfo* src, const TypeInfo* dst) {
+    struct RawPtrCast {
+        static_assert(sizeof(std::shared_ptr<Ty>) == sizeof(std::shared_ptr<By>), "must be same size");
+        static_assert(sizeof(std::unique_ptr<Ty>) == sizeof(std::unique_ptr<By>), "must be same size");
+
+        static void* ToBase(void* obj, const TypeInfo* src, const TypeInfo* dst) {
             if (src == dst)
                 return obj;
-            return src->super->converter.convert_up(static_cast<By*>((Ty*)obj), src->super, dst);
+            return src->super->caster.to_super(static_cast<By*>((Ty*)obj), src->super, dst);
         }
 
-        static void* CastDown(void* obj, const TypeInfo* src, const TypeInfo* dst) {
+        static void* ToDerived(void* obj, const TypeInfo* src, const TypeInfo* dst) {
             if (src == dst)
                 return obj;
-            obj = dst->super->converter.convert_down(obj, src, dst->super);
+            obj = dst->super->caster.to_derived(obj, src, dst->super);
             return obj ? dynamic_cast<Ty*>(static_cast<By*>(obj)) : nullptr;
         }
     };
 
     template <typename Ty>
-    struct PtrCast<Ty, void> {
-        static void* CastUp(void* obj, const TypeInfo* src, const TypeInfo* dst) {
-            return src == dst ? obj : nullptr;
+    struct RawPtrCast<Ty, void> {
+        static void* ToBase(void* obj, const TypeInfo* src, const TypeInfo* dst) {
+            return obj;
         }
 
-        static void* CastDown(void* obj, const TypeInfo* src, const TypeInfo* dst) {
-            return src == dst ? obj : nullptr;
-        }
-    };
-
-    template <typename Ty, typename By>
-    struct SharedPtrCast {
-        static bool Cast(void* src, const TypeInfo* src_type, void* dst, const TypeInfo* dst_type) {
-            if (src_type == dst_type) {
-                *(std::shared_ptr<Ty>*)dst = *(std::shared_ptr<Ty>*)src;
-                return true;
-            }
-
-            std::shared_ptr<By> tmp = std::static_pointer_cast<By>(*(std::shared_ptr<Ty>*)src);
-            return src_type->super->converter.convert_shared_ptr(&tmp, src_type->super, dst, dst_type);
-        }
-    };
-
-    template <typename Ty>
-    struct SharedPtrCast<Ty, void> {
-        static bool Cast(void* src, const TypeInfo* src_type, void* dst, const TypeInfo* dst_type) {
-            if (src_type != dst_type)
-                return false;
-            *(std::shared_ptr<Ty>*)dst = *(std::shared_ptr<Ty>*)src;
-            return true;
+        static void* ToDerived(void* obj, const TypeInfo* src, const TypeInfo* dst) {
+            return obj;
         }
     };
 
     template <typename Ty, typename By>
-    struct ConverterTrait {
-        static TypeConverter Make() {
-
-        }
-    };
-
+    inline TypeCaster MakePtrCaster() {
+        return TypeCaster{
+            &RawPtrCast<Ty, By>::ToBase,
+            &RawPtrCast<Ty, By>::ToDerived,
+            &WeakObjPtrCast<Ty>::ToWeakObjPtr,
+        };
+    }
 
     template <typename Ty>
     inline Ty* GetMetaCallFullUserDataPtr(void* user_data, const TypeInfo* info) {
@@ -200,7 +183,7 @@ namespace detail
         } else if (!IsBaseOf(info, ud->info_)) {
             return nullptr;
         }
-        return static_cast<Ty*>(ud->info_->converter.convert_up(ud->obj_, ud->info_, info));
+        return static_cast<Ty*>(ud->info_->caster.to_super(ud->obj_, ud->info_, info));
     }
 
     template <typename Ty>

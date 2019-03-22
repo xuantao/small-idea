@@ -10,17 +10,18 @@ namespace detail
     static void* DummyPtrCast(void*, const TypeInfo*, const TypeInfo*) { return nullptr; }
     static bool DummySharedPtrCast(void*, const TypeInfo*, void*, const TypeInfo*) { return false; }
 
+    void TypeDesc::AddMember(const char* name, LuaFunction func, bool glboal)
+    {
+
+    }
+
+    void TypeDesc::AddMember(const char* name, LuaIndexer getter, LuaIndexer setter, bool glboal)
+    {
+
+    }
+
     const TypeInfo* TypeDesc::Finalize() {
         std::unique_ptr<TypeDesc> ptr(this);  // auto free
-        TypeKey id;
-
-        if (convert_down_ == nullptr)
-            convert_down_ = &DummyPtrCast;
-        if (convert_up_ == nullptr)
-            convert_up_ = &DummyPtrCast;
-        if (convert_shared_ptr_ == nullptr)
-            convert_shared_ptr_ = &DummySharedPtrCast;
-
         TypeInfo* info = nullptr;// static_cast<TypeInfo*>(buff);
 
 

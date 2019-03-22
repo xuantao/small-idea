@@ -19,12 +19,12 @@ ITypeDesc* AllocTypeInfo(TypeCategory category, bool is_weak_obj, const char* na
     return detail::s_global->AllocType(category, is_weak_obj, name, super);
 }
 
-const TypeInfo* GetTypeInfo(const TypeKey& key)
-{
-    if (detail::s_global == nullptr)
-        return nullptr;
-    return detail::s_global->GetTypeInfo(key);
-}
+//const TypeInfo* GetTypeInfo(const TypeKey& key)
+//{
+//    if (detail::s_global == nullptr)
+//        return nullptr;
+//    return detail::s_global->GetTypeInfo(key);
+//}
 
 ObjIndex::~ObjIndex()
 {
@@ -32,10 +32,10 @@ ObjIndex::~ObjIndex()
         detail::s_global->FreeObjIndex(index_);
 }
 
-bool TypeKey::IsValid() const
-{
-    return detail::s_global && detail::s_global->IsValid(*this);
-}
+//bool TypeKey::IsValid() const
+//{
+//    return detail::s_global && detail::s_global->IsValid(*this);
+//}
 
 namespace detail
 {

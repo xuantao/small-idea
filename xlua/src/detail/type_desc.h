@@ -24,19 +24,12 @@ namespace detail
         static void Free(TypeInfo* info);
 
     public:
-        void SetConverter(LuaPointerConvert up, LuaPointerConvert down, LuaSharedPtrConvert shared_ptr) override {
-            convert_up_ = up;
-            convert_down_ = down;
-            convert_shared_ptr_ = shared_ptr;
+        void SetCaster(TypeCaster caster) override {
+            caster_ = caster;
         }
 
-        void AddMember(TypeMember member, bool global) override {
-            if (global)
-                globals_.push_back(member);
-            else
-                members_.push_back(member);
-        }
-
+        void AddMember(const char* name, LuaFunction func, bool glboal) override;
+        void AddMember(const char* name, LuaIndexer getter, LuaIndexer setter, bool glboal) override;
         const TypeInfo* Finalize() override;
 
     private:
@@ -45,9 +38,7 @@ namespace detail
         bool is_weak_obj_;
         const char* name_;
         const TypeInfo* super_;
-        LuaPointerConvert convert_up_;
-        LuaPointerConvert convert_down_;
-        LuaSharedPtrConvert convert_shared_ptr_;
+        TypeCaster caster_;
         std::vector<TypeMember> members_;
         std::vector<TypeMember> globals_;
     };

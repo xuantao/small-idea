@@ -112,12 +112,9 @@ namespace detail {
             , serial_(serial) {
         }
 
-        virtual ~LuaUserData() {
-        }
+        virtual ~LuaUserData() {}
 
-        virtual bool ConvetSharedPtr(void* dst, const TypeInfo* dst_type) {
-            return false;
-        }
+        virtual void* GetDataPtr() { return nullptr; }
 
         LuaUserDataType type_;
         const TypeInfo* info_;
@@ -138,8 +135,9 @@ namespace detail {
             obj_ = &val_;
         }
 
-        virtual ~LuaUserDataImpl() {
-        }
+        virtual ~LuaUserDataImpl() { }
+
+        void* GetDataPtr() override { return &val_; }
 
         Ty val_;
     };
@@ -153,14 +151,15 @@ namespace detail {
 
     template <typename Ty>
     struct LuaUserDataImpl<std::unique_ptr<Ty>> : LuaUserData {
-        LuaUserDataImpl(std::unique_ptr<Ty>& val, const TypeInfo* info)
+        LuaUserDataImpl(std::unique_ptr<Ty>&& val, const TypeInfo* info)
             : LuaUserData(LuaUserDataType::kUniquePtr, nullptr, info)
-            , val_(val) {
+            , val_(std::move(val)) {
             obj_ = val_.get();
         }
 
-        virtual ~LuaUserDataImpl() {
-        }
+        virtual ~LuaUserDataImpl() {}
+
+        void* GetDataPtr() override { return &val_; }
 
         std::unique_ptr<Ty> val_;
     };
@@ -173,12 +172,9 @@ namespace detail {
             obj_ = val_.get();
         }
 
-        virtual ~LuaUserDataImpl() {
-        }
+        virtual ~LuaUserDataImpl() {}
 
-        virtual bool ConvetSharedPtr(void* dst, const TypeInfo* dst_type) {
-            return info_->converter.convert_shared_ptr(&val_, info_, dst, dst_type);
-        }
+        void* GetDataPtr() override { return &val_; }
 
         std::shared_ptr<Ty> val_;
     };
@@ -189,8 +185,8 @@ namespace detail {
     }
 
     template <typename Ty>
-    inline LuaUserData* MakeUserData(std::unique_ptr<Ty> val, const TypeInfo* info) {
-        return new LuaUserDataImpl<std::unique_ptr<Ty>>(val, info);
+    inline LuaUserData* MakeUserData(std::unique_ptr<Ty>&& val, const TypeInfo* info) {
+        return new LuaUserDataImpl<std::unique_ptr<Ty>>(std::move(val), info);
     }
 
     template <typename Ty>
