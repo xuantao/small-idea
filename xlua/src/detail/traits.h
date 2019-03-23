@@ -100,6 +100,17 @@ namespace detail {
             return obj->xlua_obj_index_;
         }
     };
+
+    template <typename Ty, typename By>
+    struct LuaRootType {
+        typedef typename By::LuaDeclare declare;
+        typedef typename LuaRootType<By, typename declare::super>::type type;
+    };
+
+    template <typename Ty>
+    struct LuaRootType<Ty, void> {
+        typedef Ty type;
+    };
 } // namespace detail
 
 XLUA_NAMESPACE_END

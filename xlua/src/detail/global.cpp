@@ -12,63 +12,18 @@ namespace detail
     static GlobalVar* s_global = nullptr;
 }
 
-ITypeDesc* AllocTypeInfo(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super)
-{
-    if (detail::s_global == nullptr)
-        return nullptr;
-    return detail::s_global->AllocType(category, is_weak_obj, name, super);
-}
-
-//const TypeInfo* GetTypeInfo(const TypeKey& key)
-//{
-//    if (detail::s_global == nullptr)
-//        return nullptr;
-//    return detail::s_global->GetTypeInfo(key);
-//}
-
 ObjIndex::~ObjIndex()
 {
     if (index_ != -1 && detail::s_global)
         detail::s_global->FreeObjIndex(index_);
 }
 
-//bool TypeKey::IsValid() const
-//{
-//    return detail::s_global && detail::s_global->IsValid(*this);
-//}
-
 namespace detail
 {
-    static void* DummyCast(void*, const TypeInfo*, const TypeInfo*) { return nullptr; }
-
-    const char* PerifyTypeName(const char* name)
-    {
-        if (name == nullptr || *name == 0)
-            return name;
-
-        size_t length = ::strlen(name);
-        char* buff = new char[length + 1];
-        strcpy_s(buff, length + 1, name);
-
-        char* sub = nullptr;
-        char* str = const_cast<char*>(buff);
-        while ((sub = ::strstr(str, "::")) != nullptr)
-        {
-            ::memmove(sub, sub + 2, length - (sub - buff) - 2);
-            str = sub;
-        }
-        return name;
-    }
-
     NodeBase::NodeBase(NodeType type) : type_(type)
     {
         next_ = s_node_head;
         s_node_head = this;
-
-        if (GlobalVar::GetInstance())
-        {
-            //TODO: 注册
-        }
     }
 
     NodeBase::~NodeBase()
@@ -82,11 +37,6 @@ namespace detail
         else
             node->next_ = next_;
         next_ = nullptr;
-
-        if (GlobalVar::GetInstance())
-        {
-            //TODO: 反注册
-        }
     }
 
     bool GlobalVar::Startup()
@@ -96,6 +46,7 @@ namespace detail
 
         s_global = new GlobalVar(++s_version);
 
+        /* 初始化静态数据 */
         NodeBase* node = s_node_head;
         while (node) {
             switch (node->type_) {
@@ -104,8 +55,6 @@ namespace detail
                 break;
             case NodeType::kConst:
                 static_cast<ConstNode*>(node)->func_();
-                break;
-            case NodeType::kScript:
                 break;
             default:
                 break;
@@ -129,6 +78,8 @@ namespace detail
 
     GlobalVar::GlobalVar(int version) : version_(version)
     {
+        types_.reserve(256);
+        types_.push_back(nullptr);
     }
 
     GlobalVar::~GlobalVar()
@@ -147,24 +98,18 @@ namespace detail
 
     }
 
-    bool GlobalVar::IsValid(const TypeKey& key) const
-    {
-        return key.serial_ == version_
-            && key.index_ >= 0
-            && key.index_ < (int)types_.size();
-    }
-
-    ITypeDesc* GlobalVar::AllocType(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super)
-    {
+    ITypeDesc* GlobalVar::AllocType(TypeCategory category,
+        bool is_weak_obj,
+        const char* name,
+        const TypeInfo* super) {
         return new TypeDesc(s_global,category, is_weak_obj , name, super);
     }
 
-    const TypeInfo* GlobalVar::GetTypeInfo(const TypeKey& key) const
-    {
-        if (!IsValid(key))
+    const TypeInfo* GlobalVar::GetExternalTypeInfo(int index) const {
+        assert(index < (int)types_.size());
+        if (index >= (int)types_.size())
             return nullptr;
-
-        return types_[key.index_];
+        return types_[index];
     }
 
     int GlobalVar::AllocObjIndex(ObjIndex& obj_index, void* obj, const TypeInfo* info) {
@@ -203,23 +148,16 @@ namespace detail
         }
     }
 
+    ArrayObj* GlobalVar::AllocLuaObj(ObjIndex& obj_index, void* obj, const TypeInfo* info)
+    {
+        int idx = AllocObjIndex(obj_index, obj, info);
+        return &obj_array_[idx];
+    }
+
     ArrayObj* GlobalVar::GetArrayObj(int index) {
         if (index < 0 || index >= (int)obj_array_.size())
             return nullptr;
         return &obj_array_[index];
-    }
-
-    //int GlobalVar::GetObjSerialNum(int index) {
-    //    return 0;
-    //}
-
-    TypeKey GlobalVar::AddTypeInfo(TypeInfo* info)
-    {
-        TypeKey key;
-        key.serial_ = version_;
-        key.index_ = (int)types_.size();
-        types_.push_back(info);
-        return key;
     }
 
     void GlobalVar::FreeObjIndex(int index)
@@ -234,6 +172,21 @@ namespace detail
         free_index_.push_back(index);
     }
 
+    void GlobalVar::AddTypeInfo(TypeInfo* info)
+    {
+        assert(types_.size() < 0xff);
+        if (info->category == TypeCategory::kExternal)
+            info->external_type_index = (int8_t)types_.size();
+        else
+            info->external_type_index = 0;
+        types_.push_back(info);
+    }
+
+    void* GlobalVar::SerialAlloc(size_t size)
+    {
+        //TODO: 需要优化
+        return new int8_t[size];
+    }
 } // namespace detail
 
 XLUA_NAMESPACE_END

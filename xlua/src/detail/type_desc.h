@@ -18,7 +18,7 @@ namespace detail
             , super_(super) {
         }
 
-        ~TypeDesc() { }
+        virtual ~TypeDesc() { }
 
     public:
         static void Free(TypeInfo* info);
@@ -28,9 +28,12 @@ namespace detail
             caster_ = caster;
         }
 
-        void AddMember(const char* name, LuaFunction func, bool glboal) override;
-        void AddMember(const char* name, LuaIndexer getter, LuaIndexer setter, bool glboal) override;
+        void AddMember(const char* name, LuaFunction func, bool global) override;
+        void AddMember(const char* name, LuaIndexer getter, LuaIndexer setter, bool global) override;
         const TypeInfo* Finalize() override;
+
+    private:
+        void PerifyTypeName(TypeInfo* info);
 
     private:
         GlobalVar* mgr_;

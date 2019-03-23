@@ -33,18 +33,17 @@ namespace detail
         void Destory(xLuaState* l);
 
         ITypeDesc* AllocType(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super);
-        const TypeInfo* GetExternalInfo(int index) const { return nullptr; }
+        const TypeInfo* GetExternalTypeInfo(int index) const;
 
         int AllocObjIndex(ObjIndex& obj_index, void* obj, const TypeInfo* info);
+        int GetSerialNum(int index) const { return 0; }
+        ArrayObj* AllocLuaObj(ObjIndex& obj_index, void* obj, const TypeInfo* info);
         ArrayObj* GetArrayObj(int index);
-        int GetObjSerialNum(int index) {
-            ArrayObj* obj = GetArrayObj(index);
-            return obj ? obj->serial_num_ : 0;
-        }
 
     private:
-        void* SerialAlloc(size_t size) { return nullptr; }
         void FreeObjIndex(int index);
+        void AddTypeInfo(TypeInfo*);
+        void* SerialAlloc(size_t size);
 
     private:
         int version_;

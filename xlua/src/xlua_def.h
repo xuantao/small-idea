@@ -130,13 +130,15 @@ enum class TypeCategory
 
 struct TypeInfo {
     TypeCategory category;
-    const char* name;
-    bool is_weak_obj;                   //
-    unsigned char light_index;          // 外部类型编号, 用于lightuserdata索引类型
+    const char* type_name;
+    const char* shared_ptr_name;
+    const char* unique_ptr_name;
+    bool is_weak_obj;
+    unsigned char external_type_index;  // 外部类型编号, 用于lightuserdata索引类型
     const TypeInfo* super;
+    TypeCaster caster;
     TypeMember* members;
     TypeMember* globals;
-    TypeCaster caster;
 };
 
 struct ITypeDesc {

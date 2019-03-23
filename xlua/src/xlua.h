@@ -34,8 +34,8 @@ enum class LuaValueType {
 };
 
 class xLuaState {
-    template <typename Ty> friend class detail::Loader;
-    template <typename Ty> friend class detail::Pusher;
+    template <typename Ty> friend struct detail::Loader;
+    template <typename Ty> friend struct detail::Pusher;
     friend struct detail::Caller;
     friend class detail::GlobalVar;
 public:
@@ -145,7 +145,7 @@ private:
         detail::LuaUserData* user_data_;
     };
 
-    void* AllocUserData(size_t size) { return nullptr; }
+    void* AllocUserData(size_t size);
     void PushCacheUd(UserDataCache& cache, void* ptr, const TypeInfo* info);
     void PushUd(UserDataCache& cache);
 
@@ -246,19 +246,20 @@ namespace detail {
             int index = xLuaAllocWeakObjIndex(val);
             int serial_num = xLuaGetWeakObjSerialNum(index);
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
-            l->_PushLightPtr(MakeLightPtr(info->light_index, index, serial_num));
+            l->_PushLightPtr(MakeLightPtr(info->type_index, index, serial_num));
         }
 
         static inline void PushPointer(xLuaState* l, Ty* val, tag_internal) {
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
-            int index = GlobalVar::GetInstance()->AllocObjIndex(GetObjIndex(val), val, info);
-            int serial_num = GlobalVar::GetInstance()->GetObjSerialNum(index);
+            auto* global = GlobalVar::GetInstance();
+            int index = global->AllocObjIndex(GetRootObjIndex(val), val, info);
+            int serial_num =global->GetSerialNum(index);
             l->_PushLightPtr(MakeLightPtr(0, index, serial_num));
         }
 
         static inline void PushPointer(xLuaState* l, Ty* val, tag_external) {
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
-            l->_PushLightPtr(MakeLightPtr(info->light_index, val));
+            l->_PushLightPtr(MakeLightPtr(info->external_type_index, val));
         }
 #else // XLUA_USE_LIGHT_USER_DATA
         //TODO:
@@ -311,7 +312,7 @@ namespace detail {
                     break;
 
                 // copy construct
-                return Ty(*static_cast<Ty*>(ud->info_->caster.to_super(ud->obj_, ud->info_, info));
+                return Ty(*static_cast<Ty*>(ud->info_->caster.to_super(ud->obj_, ud->info_, info)));
             } while (false);
 
             return Ty();
@@ -338,7 +339,7 @@ namespace detail {
                     return nullptr;
 
                 if (ud->type_ == LuaUserDataType::kRawPtr) {
-                    return (Ty*)ud->info_->converter.convert_up(ud->obj_, ud->info_, info);
+                    return (Ty*)ud->info_->caster.to_super(ud->obj_, ud->info_, info);
                 } else if (ud->type_ == LuaUserDataType::kLuaObjPtr) {
                     ArrayObj* ary_obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
                     if (ary_obj == nullptr || ary_obj->obj_ == nullptr || ary_obj->serial_num_ != ud->serial_)
@@ -376,7 +377,7 @@ namespace detail {
                 return nullptr;
 
             return std::shared_ptr<Ty>(*static_cast<std::shared_ptr<Ty>*>(ud->GetDataPtr()),
-                ud->info_->caster.to_super(ud->obj_, ud->info_, info);
+                (Ty*)ud->info_->caster.to_super(ud->obj_, ud->info_, info));
         }
     };
 

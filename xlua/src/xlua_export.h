@@ -5,16 +5,6 @@
 
 #define _XLUA_SUPER_CLASS(...)  typename xlua::detail::BaseType<__VA_ARGS__>::type
 
-struct Func_XX : xlua::detail::MetaType<Func_XX>
-{
-    Func_XX(xlua::ITypeDesc* desc) {
-        // desc->AddMember()
-    }
-    static int Call(xlua::xLuaState* l) {
-        return 0;
-    }
-};
-
 // 导出实现
 #define _XLUA_EXPORT_FUNC(Name, Func, Meta)                                             \
     static_assert(!std::is_null_pointer<decltype(Func)>::value,                         \
@@ -25,7 +15,7 @@ struct Func_XX : xlua::detail::MetaType<Func_XX>
             return xlua::detail::Meta<class_type>::Call(l, s_type_info, Func);          \
         }                                                                               \
     };                                                                                  \
-    desc->AddMember(xlua::detail::MakeMember(#Name, &Func_##__LINE__::call),            \
+    desc->AddMember(#Name, &Func_##__LINE__::call,                                      \
         !std::is_member_function_pointer<decltype(Func)>::value);
 
 #define _XLUA_EXPORT_VAR(Name, GetOp, SetOp, Meta)                                      \
@@ -41,9 +31,9 @@ struct Func_XX : xlua::detail::MetaType<Func_XX>
             xlua::detail::Meta<class_type>::Set(l, (class_type*)obj, SetOp);            \
         }                                                                               \
     };                                                                                  \
-    desc->AddMember(xlua::detail::MakeMember(#Name,                                     \
+    desc->AddMember(#Name,                                                              \
         std::is_null_pointer<decltype(GetOp)>::value ? nullptr : &Var_##__LINE__::Get,  \
-        std::is_null_pointer<decltype(SetOp)>::value ? nullptr : &Var_##__LINE__::Set), \
+        std::is_null_pointer<decltype(SetOp)>::value ? nullptr : &Var_##__LINE__::Set,  \
         !xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::is_member        \
     );
 
@@ -66,16 +56,17 @@ struct Func_XX : xlua::detail::MetaType<Func_XX>
         static const xlua::TypeInfo* s_type_info = nullptr;                             \
         if (s_type_info)                                                                \
             return s_type_info;                                                         \
-        ITypeDesc* desc = xlua::AllocTypeInfo(xlua::TypeCategory::kInternal,            \
+        xlua::detail::GlobalVar* global = xlua::detail::GlobalVar::GetInstance();       \
+        if (global == nullptr)                                                          \
+            return nullptr;                                                             \
+        ITypeDesc* desc = global->AllocType(xlua::TypeCategory::kInternal, false,       \
             #ClassName,                                                                 \
             xlua::detail::GetTypeInfoImpl<LuaDeclare::super>()                          \
         );                                                                              \
         if (desc == nullptr)                                                            \
             return nullptr;                                                             \
-        desc->SetConverter(                                                             \
-            &xlua::detail::PtrCast<ClassName, LuaDeclare::SuperType>::CastUp,           \
-            &xlua::detail::PtrCast<ClassName, LuaDeclare::SuperType>::CastDown,         \
-            &xlua::detail::SharedPtrCast<ClassName, LuaDeclare::SuperType>::Cast        \
+        desc->SetCaster(                                                                \
+            xlua::detail::MakePtrCaster<ClassName, LuaDeclare::SuperType>()             \
         );
 
 /* 导出lua类结束 */
@@ -106,16 +97,17 @@ struct Func_XX : xlua::detail::MetaType<Func_XX>
         static const xlua::TypeInfo* s_type_info = nullptr;                             \
         if (s_type_info)                                                                \
             return s_type_info;                                                         \
-        xlua::ITypeDesc* desc = xlua::AllocTypeInfo(xlua::TypeCategory::kExternal,      \
-            false, #ClassName,                                                          \
+        xlua::detail::GlobalVar* global = xlua::detail::GlobalVar::GetInstance();       \
+        if (global == nullptr)                                                          \
+            return nullptr;                                                             \
+        xlua::ITypeDesc* desc = global->AllocType(xlua::TypeCategory::kExternal,        \
+            xlua::detail::IsWeakObjPtr<ClassName>::value, #ClassName,                   \
             xlua::detail::GetTypeInfoImpl<super_type>()                                 \
         );                                                                              \
         if (desc == nullptr)                                                            \
             return nullptr;                                                             \
-        desc->SetConverter(                                                             \
-            &xlua::detail::PtrCast<ClassName, super_type>::CastUp,                      \
-            &xlua::detail::PtrCast<ClassName, super_type>::CastDown,                    \
-            &xlua::detail::SharedPtrCast<ClassName, super_type>::Cast                   \
+        desc->SetCaster(                                                                \
+            xlua::detail::MakePtrCaster<ClassName, super_type>()                        \
         );
 
 #define XLUA_EXPORT_EXTERNAL_CLASS_END()                                                \
@@ -128,7 +120,10 @@ struct Func_XX : xlua::detail::MetaType<Func_XX>
             static const xlua::TypeInfo* s_type_info = nullptr;                         \
             if (s_type_info)                                                            \
                 return s_type_info;                                                     \
-            xlua::ITypeDesc* desc = xlua::AllocTypeInfo(xlua::TypeCategory::kGlobal,    \
+            xlua::detail::GlobalVar* global = xlua::detail::GlobalVar::GetInstance();   \
+            if (global == nullptr)                                                      \
+                return nullptr;                                                         \
+            xlua::ITypeDesc* desc = global->AllocType(xlua::TypeCategory::kGlobal,      \
                 false, #Name, nullptr);                                                 \
             if (desc == nullptr)                                                        \
                 return nullptr;                                                         \

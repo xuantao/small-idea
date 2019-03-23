@@ -18,7 +18,7 @@ namespace detail {
         const TypeInfo* root = GetRootType(info);
         if (info == root)
             return ptr;
-        return info->converter.convert_up(ptr, info, root);
+        return info->caster.to_super(ptr, info, root);
     }
 
     inline bool IsBaseOf(const TypeInfo* base, const TypeInfo* info) {
@@ -28,18 +28,10 @@ namespace detail {
     }
 
     template <typename Ty>
-    inline int AllocInternalIndex(Ty* ptr) {
-        return 0;
-    }
-
-    inline int GetInternalSerialNum(int index) {
-        return 0;
-    }
-
-    template <typename Ty>
-    inline ObjIndex& GetObjIndex(Ty* ptr) {
+    inline ObjIndex& GetRootObjIndex(Ty* ptr) {
         using declare = typename Ty::LuaDeclare;
-        return ObjIndexDetect<typename declare::self, typename declare::super>::Detect(ptr);
+        using root_type = typename LuaRootType<Ty, typename declare::super>::type;
+        return static_cast<root_type*>(ptr)->xlua_obj_index_;
     }
 
 #ifdef XLUA_USE_LIGHT_USER_DATA
@@ -205,10 +197,10 @@ namespace detail {
                 return nullptr;
             }
 
-            return (Ty*)obj->info_->converter.convert_up(obj->obj_, obj->info_, info);
+            return (Ty*)obj->info_->caster.to_super(obj->obj_, obj->info_, info);
         }
         else {
-            const TypeInfo* dst_type = GlobalVar::GetInstance()->GetExternalInfo(ud.type_);
+            const TypeInfo* dst_type = GlobalVar::GetInstance()->GetExternalTypeInfo(ud.type_);
             if (dst_type == nullptr || !IsBaseOf(info, dst_type)) {
                 //TODO: log type info not equal
                 return nullptr;
@@ -223,7 +215,7 @@ namespace detail {
                 return static_cast<Ty*>(static_cast<XLUA_WEAK_OBJ_BASE_TYPE*>(obj));
             }
             else {
-                return (Ty*)dst_type->converter.convert_up(ud.ToRawPtr(), dst_type, info);
+                return (Ty*)dst_type->caster.to_super(ud.ToRawPtr(), dst_type, info);
             }
         }
 #endif // XLUA_USE_LIGHT_USER_DATA

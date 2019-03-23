@@ -18,7 +18,7 @@ void Shutdown() {
 xLuaState* Create() {
     auto global = detail::GlobalVar::GetInstance();
     if (global == nullptr)
-        return;
+        return nullptr;
 
     return global->Create();
 }
@@ -26,7 +26,7 @@ xLuaState* Create() {
 xLuaState* Attach(lua_State* l) {
     auto global = detail::GlobalVar::GetInstance();
     if (global == nullptr)
-        return;
+        return nullptr;
 
     return global->Attach(l);
 }
@@ -83,6 +83,10 @@ void xLuaState::_PushRawPtr(void* root, detail::LuaUserData* user_data) {
     cache.user_data_ = user_data;
     PushUd(cache);
 
+}
+
+void* xLuaState::AllocUserData(size_t size) {
+    return new int8_t[size];
 }
 
 void xLuaState::PushCacheUd(UserDataCache& cache, void* ptr, const TypeInfo* info) {

@@ -131,7 +131,7 @@ namespace detail
     struct WeakObjPtrCast
     {
         static void* ToWeakObjPtr(void* obj) {
-            return static_cast<Ty*>(static_cast<XLUA_WEAK_OBJ_BASE_TYPE*>(obj))
+            return static_cast<Ty*>(static_cast<XLUA_WEAK_OBJ_BASE_TYPE*>(obj));
         }
     };
 
