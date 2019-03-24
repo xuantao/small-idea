@@ -17,7 +17,7 @@ XLUA_NAMESPACE_BEGIN
 namespace detail {
     template <typename Ty> struct Pusher;
     template <typename Ty> struct Loader;
-    struct Caller;
+    struct MetaFuncs;
 }
 
 bool Startup();
@@ -28,15 +28,30 @@ xLuaState* Attach(lua_State* l);
 class xLuaTable { };
 class xLuaFunction { };
 
-enum class LuaValueType {
-    kLightUserData,
-    kFullUserData,
+struct StackGuard {
+    StackGuard(xLuaState* l) {}
+    StackGuard(xLuaState* l, int off) {}
+};
+
+enum class LuaValueType : int {
+    kNill = 0,
+    kBoolean = 1 << 0,
+    kNumber = 1 << 1,
+    kString = 1 << 2,
+
+    kLuaFunction = 1 << 3,
+    kCFunction = 1 << 4,
+    kFunction = kLuaFunction | kCFunction,
+
+    kLightUserData = 1 << 5,
+    kFullUserData = 1 << 6,
+    kUserData = kLightUserData | kFullUserData,
 };
 
 class xLuaState {
     template <typename Ty> friend struct detail::Loader;
     template <typename Ty> friend struct detail::Pusher;
-    friend struct detail::Caller;
+    friend struct detail::MetaFuncs;
     friend class detail::GlobalVar;
 public:
     xLuaState(lua_State* l, bool attach);
@@ -49,6 +64,82 @@ public:
     inline lua_State* GetState() const { return state_; }
 
 public:
+    int GetTopIndex() const;
+
+    void LogCallStack() const;
+    void GetCallStack(char* buf, size_t size) const;
+
+    const char* GetTypeName(int index) const;
+    LuaValueType GetValueType(int index) const { return LuaValueType::kFullUserData; }
+
+    xLuaTable CreateTable();
+
+    LuaValueType LoadGlobal(const char* path);
+    void SetGlobal(const char* path);
+
+    LuaValueType LoadTableField(int index, int field);
+    LuaValueType LoadTableField(int index, const char* field);
+    void SetTableField(int index, int field);
+    void SetTableField(int index, const char* field);
+
+    template <typename Ty>
+    inline Ty GetGlobal<Ty>(const char* path) {
+        StackGuard(this);
+        LoadGlobal(path);
+        return Load<Ty>(-1);
+    }
+
+    template <typename Ty>
+    inline void SetGlobal(const char* path, const Ty& val) {
+        StackGuard(this);
+        Push(val);
+        SetGlobal(path);
+    }
+
+    template <typename Ty>
+    inline void SetTableField(int index, int field, const Ty& val) {
+        Push(val);
+        SetTableField(index, field);
+    }
+
+    template <typename Ty>
+    inline void SetTableField(int index, const char* field, const Ty& val) {
+        Push(val);
+        SetTableField(index, field);
+    }
+
+    template <typename Ty>
+    inline Ty GetTableField(xLuaTable table, int field) {
+        StackGuard guard(this);
+        Push(table);
+        LoadTableField(-1, field);
+        return Load<Ty>(-1);
+    }
+
+    template <typename Ty>
+    inline Ty GetTableField(xLuaTable table, const char* field) {
+        StackGuard guard(this);
+        Push(table);
+        LoadTableField(-1, field);
+        return Load<Ty>(-1);
+    }
+
+    template <typename Ty>
+    inline void SetTableField(xLuaTable table, int field, const Ty& val) {
+        StackGuard guard(this);
+        Push(table);
+        Push(val);
+        SetableField(-2, field);
+    }
+
+    template <typename Ty>
+    inline void SetTableField(xLuaTable table, const char* field, const Ty& val) {
+        StackGuard guard(this);
+        Push(table);
+        Push(val);
+        SetableField(-2, field);
+    }
+
     template <typename Ty>
     inline void Push(const Ty& val) {
         detail::Pusher<typename std::decay<Ty>::type>::Do(this, val);
@@ -63,6 +154,17 @@ public:
     template <typename Ty>
     inline Ty Load(int index) {
         return detail::Loader<typename std::decay<Ty>::type>::Do(this, index);
+    }
+
+    template<typename... Ty>
+    inline void PushMul(Ty&&... vals) {
+        using ints = int[];
+        (void)ints {0, (Push(std::forward<Ty>(vals)), 0)...};
+    }
+
+    template <typename... Ty>
+    inline void LoadMul(std::tuple<Ty&...> tp, int index) {
+        DoLoadMul(tp, index, detail::make_index_sequence_t<sizeof...(Ty)>());
     }
 
     inline void Push(bool val) { }
@@ -82,8 +184,8 @@ public:
     inline void Push(const char* val) { }
     inline void Push(const std::string& val) { }
     inline void Push(std::nullptr_t) { }
-    //void Push(const xLuaTable& val) { }
-    //void Push(const xLuaFunction& val) { }
+    void Push(xLuaTable val) { }
+    void Push(xLuaFunction val) { }
 
     template<> inline bool Load<bool>(int index) { return false; }
     template<> inline char Load<char>(int index) { return false; }
@@ -102,11 +204,55 @@ public:
     template<> inline std::string Load<std::string>(int index) { return false; }
     //template<> inline const std::string Load<const std::string>(int index) { return false; }
 
-    const char* GetTypeName(int index) const;
+    template<typename... Rys, typename... Args>
+    inline bool Call(std::tuple<Rys&...> ret, Args&&... args) {
+        StackGuard guard(this, -1);
+        return DoCall(ret, std::forward<Args>(args)...);
+    }
 
-    LuaValueType GetValueType(int index) const { return LuaValueType::kFullUserData; }
+    template <typename... Rys, typename... Args>
+    inline bool Call(const char* global, std::tuple<Rys&...> ret, Args&&... args) {
+        StackGuard guard(this);
+        if (!GetGlobal(global))
+            return false;
+        return DoCall(ret, std::forward<Args>(args)...);
+    }
+
+    template <typename... Rys, typename... Args>
+    inline bool Call(xLuaFunction func, std::tuple<Rys&...> ret, Args&&... args) {
+        StackGuard guard(this);
+        Push(func);
+        return DoCall(ret, std::forward<Args>(args)...);
+    }
+
+    /* table call */
+    template <typename... Rys, typename... Args>
+    inline bool Call(xLuaTable table, const char* func , std::tuple<Rys&...> ret, Args&&... args) {
+        StackGuard guard(this);
+        GetTableField(table, func);
+        return DoCall(ret, table, std::forward<Args>(args)...);
+    }
 
 public:
+    template <typename... Ty, size_t... Idxs>
+    inline void DoLoadMul(std::tuple<Ty&...>& ret, int index, detail::index_sequence<Idxs...>)
+    {
+        using ints = int[];
+        (void)ints { 0, (std::get<Idxs>(ret) = Load<Ty>(nIdx++), 0)...};
+    }
+
+    template<typename... Rys, typename... Args>
+    inline bool DoCall(std::tuple<Rys&...>& ret, Args&&... args) {
+        int top = GetTopIndex();
+        if (!((int)GetValueType(top) & (int)LuaValueType::kFunction))
+            return false;
+
+        PushMul(std::forward<Args>(args)...);
+        //TODO: DoCall
+        DoLoadMul(ret, top, detail::make_index_sequence_t<sizeof...(Rys)>());
+        return true;
+    }
+
     bool _TryPushSharedPtr(void* root, void* ptr, const TypeInfo* info);
     void _PushSharedPtr(void* root, detail::LuaUserData* user_data);
     void _PushUniquePtr(detail::LuaUserData* user_data);
@@ -148,6 +294,8 @@ private:
     void* AllocUserData(size_t size);
     void PushCacheUd(UserDataCache& cache, void* ptr, const TypeInfo* info);
     void PushUd(UserDataCache& cache);
+    TypeMember* GetMetaMember();
+    void Gc(detail::LuaUserData* user_data);
 
 private:
     bool attach_;
@@ -155,6 +303,7 @@ private:
     int meta_table_index_;
     int lua_obj_table_index_;
     int user_data_table_index_;
+    std::vector<int> type_meta_ref_;
     std::unordered_map<void*, UserDataCache> raw_ptrs_;
     std::unordered_map<void*, UserDataCache> shared_ptrs_;
 };

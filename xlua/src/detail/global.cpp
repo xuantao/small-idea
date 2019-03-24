@@ -20,6 +20,10 @@ ObjIndex::~ObjIndex()
 
 namespace detail
 {
+    static bool StateCmp(const std::pair<lua_State*, xLuaState*>& l, const std::pair<lua_State*, xLuaState*>& r) {
+        return l.first < r.first;
+    }
+
     NodeBase::NodeBase(NodeType type) : type_(type)
     {
         next_ = s_node_head;
@@ -96,6 +100,15 @@ namespace detail
 
     void GlobalVar::Destory(xLuaState* l) {
 
+    }
+
+    xLuaState* GlobalVar::GetState(lua_State* l) const {
+        auto first = states_.cbegin();
+        auto last = states_.cend();
+        first = std::lower_bound(first, last, std::make_pair(l, (xLuaState*)nullptr), &StateCmp);
+        if (first == last || first->first != l)
+            return nullptr;
+        return first->second;
     }
 
     ITypeDesc* GlobalVar::AllocType(TypeCategory category,
@@ -175,11 +188,13 @@ namespace detail
     void GlobalVar::AddTypeInfo(TypeInfo* info)
     {
         assert(types_.size() < 0xff);
-        if (info->category == TypeCategory::kExternal)
-            info->external_type_index = (int8_t)types_.size();
-        else
-            info->external_type_index = 0;
+        info->index = (int)types_.size();
         types_.push_back(info);
+
+        if (info->category == TypeCategory::kExternal) {
+            info->external_type_index = (int8_t)external_types_.size();
+            external_types_.push_back(info);
+        }
     }
 
     void* GlobalVar::SerialAlloc(size_t size)

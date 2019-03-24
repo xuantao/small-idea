@@ -129,6 +129,7 @@ enum class TypeCategory
 };
 
 struct TypeInfo {
+    int index;
     TypeCategory category;
     const char* type_name;
     const char* shared_ptr_name;

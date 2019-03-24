@@ -135,6 +135,13 @@ int main()
     TestFriend tf;
     tf.Do<int>();
 
+    xlua::xLuaTable tab;
+    xlua::xLuaFunction func;
+    l->Call(std::tie(), 1, 1.0f, false, "xxx");
+    l->Call("Global.lua.xxx", std::tie(), 1, 1.0f, true);
+    l->Call(func, std::tie(), 1, 1.0f, true);
+    l->Call(tab, "xxxx", std::tie(), 1, 1.0f, true);
+
     //struct TestInner
     //{
     //    static void Call() {

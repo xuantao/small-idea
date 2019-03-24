@@ -31,6 +31,7 @@ namespace detail
         xLuaState* Create();
         xLuaState* Attach(lua_State* l);
         void Destory(xLuaState* l);
+        xLuaState* GetState(lua_State* l) const;
 
         ITypeDesc* AllocType(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super);
         const TypeInfo* GetExternalTypeInfo(int index) const;
@@ -49,8 +50,10 @@ namespace detail
         int version_;
         int serial_num_gener_ = 0;
         std::vector<TypeInfo*> types_;
+        std::vector<TypeInfo*> external_types_;
         std::vector<ArrayObj> obj_array_;
         std::vector<int> free_index_;
+        std::vector<std::pair<lua_State*, xLuaState*>> states_;
     };
 } // namespace detail
 
