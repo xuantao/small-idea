@@ -11,8 +11,10 @@
         "can not export func:"#Name" with null pointer"                                 \
     );                                                                                  \
     struct Func_##__LINE__ {                                                            \
-        static int call(xlua::xLuaState* l) {                                           \
-            return xlua::detail::Meta<class_type>::Call(l, s_type_info, Func);          \
+        static int call(lua_State* l) {                                                 \
+            xlua::xLuaState* xl = xlua::detail::GlobalVar::GetInstance()->GetState(l);  \
+            assert(xl);                                                                 \
+            return xlua::detail::Meta<class_type>::Call(xl, s_type_info, Func);         \
         }                                                                               \
     };                                                                                  \
     desc->AddMember(#Name, &Func_##__LINE__::call,                                      \

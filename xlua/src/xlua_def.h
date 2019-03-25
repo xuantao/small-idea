@@ -50,7 +50,7 @@ class xLuaState;
 struct TypeInfo;
 
 /* 导出到Lua类型 */
-typedef int (*LuaFunction)(xLuaState* L);
+typedef int (*LuaFunction)(lua_State* L);
 typedef void (*LuaIndexer)(xLuaState* L, void* obj);
 
 /* convert to weak_obj_ptr */

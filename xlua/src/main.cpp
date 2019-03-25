@@ -109,9 +109,9 @@ namespace internal {
 
 int main()
 {
-    xlua::Startup();
     constexpr size_t s = sizeof(LightDataPtr);
-    xlua::xLuaState* l = new xlua::xLuaState(nullptr, false);
+    xlua::Startup();
+    xlua::xLuaState* l = xlua::Create();
 
     TestLuaExport* ptr = nullptr;
     TestLuaExport obj;

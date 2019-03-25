@@ -53,10 +53,10 @@ class xLuaState {
     template <typename Ty> friend struct detail::Pusher;
     friend struct detail::MetaFuncs;
     friend class detail::GlobalVar;
-public:
+
     xLuaState(lua_State* l, bool attach);
     ~xLuaState();
-
+public:
     void Release();
 
 public:
@@ -72,7 +72,9 @@ public:
     const char* GetTypeName(int index) const;
     LuaValueType GetValueType(int index) const { return LuaValueType::kFullUserData; }
 
-    xLuaTable CreateTable();
+    bool DoString(const char* stream, const char* chunk = nullptr) { return false; }
+
+    //xLuaTable CreateTable() { return }
 
     LuaValueType LoadGlobal(const char* path);
     void SetGlobal(const char* path);
@@ -83,7 +85,7 @@ public:
     void SetTableField(int index, const char* field);
 
     template <typename Ty>
-    inline Ty GetGlobal<Ty>(const char* path) {
+    inline Ty GetGlobal(const char* path) {
         StackGuard(this);
         LoadGlobal(path);
         return Load<Ty>(-1);
@@ -129,7 +131,7 @@ public:
         StackGuard guard(this);
         Push(table);
         Push(val);
-        SetableField(-2, field);
+        SetTableField(-2, field);
     }
 
     template <typename Ty>
@@ -137,7 +139,7 @@ public:
         StackGuard guard(this);
         Push(table);
         Push(val);
-        SetableField(-2, field);
+        SetTableField(-2, field);
     }
 
     template <typename Ty>
@@ -213,7 +215,7 @@ public:
     template <typename... Rys, typename... Args>
     inline bool Call(const char* global, std::tuple<Rys&...> ret, Args&&... args) {
         StackGuard guard(this);
-        if (!GetGlobal(global))
+        if (((int)LoadGlobal(global) & (int)LuaValueType::kFunction) == 0)
             return false;
         return DoCall(ret, std::forward<Args>(args)...);
     }
@@ -229,7 +231,7 @@ public:
     template <typename... Rys, typename... Args>
     inline bool Call(xLuaTable table, const char* func , std::tuple<Rys&...> ret, Args&&... args) {
         StackGuard guard(this);
-        GetTableField(table, func);
+        //GetTableField(table, func);
         return DoCall(ret, table, std::forward<Args>(args)...);
     }
 
@@ -238,7 +240,7 @@ public:
     inline void DoLoadMul(std::tuple<Ty&...>& ret, int index, detail::index_sequence<Idxs...>)
     {
         using ints = int[];
-        (void)ints { 0, (std::get<Idxs>(ret) = Load<Ty>(nIdx++), 0)...};
+        (void)ints { 0, (std::get<Idxs>(ret) = Load<Ty>(index++), 0)...};
     }
 
     template<typename... Rys, typename... Args>
@@ -297,12 +299,19 @@ private:
     TypeMember* GetMetaMember();
     void Gc(detail::LuaUserData* user_data);
 
+    bool InitEnv();
+    void AddTypes(const std::vector<TypeInfo*>& types);
+    void AddConsts(const std::vector<const ConstInfo*>& consts);
+    void AddScritps(const std::vector<const char*>& scripts);
+
+    void CreateMeta(const TypeInfo* info);
+    void PushClosure(lua_CFunction func);
+
 private:
     bool attach_;
     lua_State* state_;
-    int meta_table_index_;
-    int lua_obj_table_index_;
-    int user_data_table_index_;
+    int meta_table_ref_;        // 导出元表应用索引
+    int user_data_table_ref_;
     std::vector<int> type_meta_ref_;
     std::unordered_map<void*, UserDataCache> raw_ptrs_;
     std::unordered_map<void*, UserDataCache> shared_ptrs_;

@@ -2,6 +2,7 @@
 #include "type_desc.h"
 #include "../xlua_export.h"
 #include <memory>
+#include <algorithm>
 
 XLUA_NAMESPACE_BEGIN
 
@@ -58,7 +59,10 @@ namespace detail
                 static_cast<TypeNode*>(node)->func_();
                 break;
             case NodeType::kConst:
-                static_cast<ConstNode*>(node)->func_();
+                s_global->const_infos_.push_back(static_cast<ConstNode*>(node)->func_());
+                break;
+            case NodeType::kScript:
+                s_global->scripts_.push_back(static_cast<ScriptNode*>(node)->script_);
                 break;
             default:
                 break;
@@ -84,6 +88,9 @@ namespace detail
     {
         types_.reserve(256);
         types_.push_back(nullptr);
+
+        external_types_.reserve(256);
+        external_types_.push_back(nullptr);
     }
 
     GlobalVar::~GlobalVar()
@@ -91,7 +98,16 @@ namespace detail
     }
 
     xLuaState* GlobalVar::Create() {
-        return nullptr;
+        lua_State* l = luaL_newstate();
+        xLuaState* xl = new xLuaState(l, false);
+        xl->InitEnv();
+        xl->AddTypes(types_);
+        xl->AddConsts(const_infos_);
+        xl->AddScritps(scripts_);
+
+        states_.push_back(std::make_pair(l, xl));
+        std::sort(states_.begin(), states_.end(), &StateCmp);
+        return xl;
     }
 
     xLuaState* GlobalVar::Attach(lua_State* l) {

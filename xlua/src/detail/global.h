@@ -46,12 +46,15 @@ namespace detail
         void AddTypeInfo(TypeInfo*);
         void* SerialAlloc(size_t size);
 
+
     private:
         int version_;
         int serial_num_gener_ = 0;
         std::vector<TypeInfo*> types_;
         std::vector<TypeInfo*> external_types_;
         std::vector<ArrayObj> obj_array_;
+        std::vector<const ConstInfo*> const_infos_;
+        std::vector<const char*> scripts_;
         std::vector<int> free_index_;
         std::vector<std::pair<lua_State*, xLuaState*>> states_;
     };
