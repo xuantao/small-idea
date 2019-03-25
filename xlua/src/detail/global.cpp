@@ -100,10 +100,11 @@ namespace detail
     xLuaState* GlobalVar::Create() {
         lua_State* l = luaL_newstate();
         xLuaState* xl = new xLuaState(l, false);
-        xl->InitEnv();
-        xl->AddTypes(types_);
-        xl->AddConsts(const_infos_);
-        xl->AddScritps(scripts_);
+        if (!xl->InitEnv(types_, const_infos_, scripts_)) {
+            lua_close(l);
+            delete xl;
+            return nullptr;
+        }
 
         states_.push_back(std::make_pair(l, xl));
         std::sort(states_.begin(), states_.end(), &StateCmp);

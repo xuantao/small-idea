@@ -150,7 +150,8 @@ public:
     template <typename Ty>
     inline void Push(std::unique_ptr<Ty>&& ptr) {
         static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
-        _PushUniquePtr(MakeUserData(std::move(ptr), detail::GetTypeInfoImpl<Ty>()));
+        //_PushUniquePtr(MakeUserData(std::move(ptr), detail::GetTypeInfoImpl<Ty>()));
+        // do not support unique_ptr
     }
 
     template <typename Ty>
@@ -256,6 +257,64 @@ public:
     }
 
     bool _TryPushSharedPtr(void* root, void* ptr, const TypeInfo* info);
+
+    template <typename Ty>
+    detail::LuaUserData* PushUserData(const Ty& val, const TypeInfo* info) {
+        using DataType = detail::LuaUserDataImpl<Ty>;
+        void* mem = lua_newuserdata(state_, sizeof(DataType));
+        auto* data = new (mem)DataType(ptr, info);
+
+        lua_rawgeti(state_, LUA_REGISTRYINDEX, meta_table_ref_);    // type metatable table
+        lua_rawgeti(state_, -1, info->index);   // metatable
+        lua_remove(state_, -2);     // remove type table
+        lua_setmetatable(state_, 2);
+
+        return data;
+    }
+
+    //template <typename Ty>
+    //void PushUserData(void* root, const Ty& val, const TypeInfo* info) {
+    //    auto it = raw_ptrs_.find(root);
+    //    if (it != raw_ptrs_.cend()) {
+    //        PushCacheUd(it->second, ptr, info);
+    //    }
+    //    else {
+    //        UserDataCache ud;
+    //        ud.user_data_ = PushUserData(ptr, info);
+
+    //        lua_pushvalue(state_, -2);
+    //        ud.lua_ref_ = luaL_ref(state_, -2);
+    //        lua_pop(state_, 1);
+
+    //        raw_ptrs_.insert(std::make_pair(root, ud));
+    //    }
+    //}
+
+    template <typename Ty>
+    void PushSharedPtr(void* root, const std::shared_ptr<Ty>& ptr, const TypeInfo* info) {
+        void* root = GetRootPtr(ptr.get(), info);
+        auto it = shared_ptrs_.find(root);
+        if (it != shared_ptrs_.cend()) {
+            PushCacheUd(it->second, ptr, info);
+        } else {
+            UserDataCache ud;
+            ud.user_data_ = PushUserData(ptr, info);
+
+            lua_pushvalue(state_, -2);
+            ud.lua_ref_ = luaL_ref(state_, -2);
+            lua_pop(state_, 1);
+
+            shared_ptrs_.insert(std::make_pair(root, ud));
+        }
+    }
+
+    template <typename Ty>
+    void PushUserData(void* root, const Ty& ptr, const TypeInfo* info) {
+        using DataType = detail::LuaUserDataImpl<Ty>;
+        //if ()
+    }
+
+
     void _PushSharedPtr(void* root, detail::LuaUserData* user_data);
     void _PushUniquePtr(detail::LuaUserData* user_data);
     void _PushValue(detail::LuaUserData* user_data);
@@ -267,24 +326,23 @@ public:
     bool _IsFullUserData(int index) const { return false; }
 
 #if XLUA_USE_LIGHT_USER_DATA
-    void _PushLightPtr(detail::LightDataPtr ptr);
 #else
     void _PushWeakObjPtr(const detail::LuaUserData user_data);
 #endif // XLUA_USE_LIGHT_USER_DATA
 
-    template <typename Ty>
-    inline detail::LuaUserData* MakeUserData(const Ty& val, const TypeInfo* info) {
-        using DataType = detail::LuaUserDataImpl<Ty>;
-        void* mem = AllocUserData(sizeof(DataType));
-        return new (mem) DataType(val, info);
-    }
+    //template <typename Ty>
+    //inline detail::LuaUserData* MakeUserData(const Ty& val, const TypeInfo* info) {
+    //    using DataType = detail::LuaUserDataImpl<Ty>;
+    //    void* mem = AllocUserData(sizeof(DataType));
+    //    return new (mem) DataType(val, info);
+    //}
 
-    template <typename Ty>
-    inline detail::LuaUserData* MakeUserData(std::unique_ptr<Ty>&& val, const TypeInfo* info) {
-        using DataType = detail::LuaUserDataImpl<std::unique_ptr<Ty>>;
-        void* mem = AllocUserData(sizeof(DataType));
-        return new (mem) DataType (std::move(val), info);
-    }
+    //template <typename Ty>
+    //inline detail::LuaUserData* MakeUserData(std::unique_ptr<Ty>&& val, const TypeInfo* info) {
+    //    using DataType = detail::LuaUserDataImpl<std::unique_ptr<Ty>>;
+    //    void* mem = AllocUserData(sizeof(DataType));
+    //    return new (mem) DataType (std::move(val), info);
+    //}
 
     void* GetUserDataPtr(int index) { return nullptr; }
 private:
@@ -299,19 +357,19 @@ private:
     TypeMember* GetMetaMember();
     void Gc(detail::LuaUserData* user_data);
 
-    bool InitEnv();
-    void AddTypes(const std::vector<TypeInfo*>& types);
+    bool InitEnv(const std::vector<TypeInfo*>& types,
+        const std::vector<const ConstInfo*>& consts,
+        const std::vector<const char*>& scripts
+    );
     void AddConsts(const std::vector<const ConstInfo*>& consts);
-    void AddScritps(const std::vector<const char*>& scripts);
-
     void CreateMeta(const TypeInfo* info);
     void PushClosure(lua_CFunction func);
 
 private:
     bool attach_;
     lua_State* state_;
-    int meta_table_ref_;        // 导出元表应用索引
-    int user_data_table_ref_;
+    int meta_table_ref_;        // 导出元表索引
+    int user_data_table_ref_;   // user data table
     std::vector<int> type_meta_ref_;
     std::unordered_map<void*, UserDataCache> raw_ptrs_;
     std::unordered_map<void*, UserDataCache> shared_ptrs_;
@@ -320,27 +378,6 @@ private:
 namespace detail {
     /* push operator */
 #if XLUA_USE_LIGHT_USER_DATA
-    //template <typename Ty>
-    //inline void PushPointer(xLuaState* l, Ty* val, tag_weakobj) {
-    //    int index = xLuaAllocWeakObjIndex(val);
-    //    int serial_num = xLuaGetWeakObjSerialNum(index);
-    //    const TypeInfo* info = GetTypeInfoImpl<Ty>();
-    //    l->_PushLightPtr(MakeLightPtr(info->light_index, index, serial_num));
-    //}
-
-    //template <typename Ty>
-    //inline void PushPointer(xLuaState* l, Ty* val, tag_internal) {
-    //    const TypeInfo* info = GetTypeInfoImpl<Ty>();
-    //    int index = GlobalVar::GetInstance()->AllocObjIndex(GetObjIndex(val), val, info);
-    //    int serial_num = GlobalVar::GetInstance()->GetObjSerialNum(index);
-    //    l->_PushLightPtr(MakeLightPtr(0, index, serial_num));
-    //}
-
-    //template <typename Ty>
-    //inline void PushPointer(xLuaState* l, Ty* val, tag_external) {
-    //    const TypeInfo* info = GetTypeInfoImpl<Ty>();
-    //    l->_PushLightPtr(MakeLightPtr(info->light_index, val));
-    //}
 #else // XLUA_USE_LIGHT_USER_DATA
     template <typename Ty>
     inline void PushPointer(xLuaState* l, Ty* val, tag_weakobj) {
@@ -383,7 +420,7 @@ namespace detail {
         template <typename Ty>
         static inline void PushValue(xLuaState* l, const Ty& val, tag_external) {
             static_assert(!IsWeakObjPtr<Ty>::value, "not allow push weak obj value");
-            l->_PushValue(l->MakeUserData(val, GetTypeInfoImpl<Ty>()));
+            l->PushUserData(val, GetTypeInfoImpl<Ty>());
         }
     };
 
@@ -401,23 +438,27 @@ namespace detail {
 
 #if XLUA_USE_LIGHT_USER_DATA
         static inline void PushPointer(xLuaState* l, Ty* val, tag_weakobj) {
-            int index = xLuaAllocWeakObjIndex(val);
-            int serial_num = xLuaGetWeakObjSerialNum(index);
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
-            l->_PushLightPtr(MakeLightPtr(info->type_index, index, serial_num));
+            auto ptr = MakeLightPtr(info->external_type_index,
+                xLuaAllocWeakObjIndex(val),
+                xLuaGetWeakObjSerialNum(index)
+            );
+            lua_pushlightuserdata(l->GetState(), ptr.ptr_);
         }
 
         static inline void PushPointer(xLuaState* l, Ty* val, tag_internal) {
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
             auto* global = GlobalVar::GetInstance();
             int index = global->AllocObjIndex(GetRootObjIndex(val), val, info);
-            int serial_num =global->GetSerialNum(index);
-            l->_PushLightPtr(MakeLightPtr(0, index, serial_num));
+            int serial_num = global->GetSerialNum(index);
+            auto ptr = MakeLightPtr(0, index, serial_num);
+            lua_pushlightuserdata(l->GetState(), ptr.ptr_);
         }
 
         static inline void PushPointer(xLuaState* l, Ty* val, tag_external) {
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
-            l->_PushLightPtr(MakeLightPtr(info->external_type_index, val));
+            auto ptr = MakeLightPtr(info->external_type_index, val);
+            lua_pushlightuserdata(l->GetState(), ptr.ptr_);
         }
 #else // XLUA_USE_LIGHT_USER_DATA
         //TODO:
@@ -431,10 +472,7 @@ namespace detail {
             if (!ptr) {
                 l->Push(nullptr);
             } else {
-                const TypeInfo* info = GetTypeInfoImpl<Ty>();
-                void* root = GetRootPtr(ptr.get(), info);
-                if (!l->_TryPushSharedPtr(root, ptr.get(), info))
-                    l->_PushSharedPtr(root, l->MakeUserData(ptr, info));
+                l->PushSharedPtr(ptr, GetTypeInfoImpl<Ty>());
             }
         }
     };
@@ -456,12 +494,11 @@ namespace detail {
         static inline U LoadValue(xLuaState* l, int index, tag_external) {
             static_assert(!IsWeakObjPtr<U>::value, "not allow weak obj");
             do {
-                LuaValueType value_type = l->GetValueType(index);
-                if (value_type != LuaValueType::kFullUserData)
+                if (lua_type(xl->GetState(), index) != LUA_TUSERDATA)
                     break;
 
-                void* ptr = l->GetUserDataPtr(index);
-                if (ptr == nullptr)
+                void* p = lua_touserdata(xl->GetState(), index);
+                if (p == nullptr)
                     break;
 
                 LuaUserData* ud = static_cast<LuaUserData*>(ptr);
@@ -480,38 +517,17 @@ namespace detail {
     template <typename Ty>
     struct Loader<Ty*> {
         static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
-        static Ty* Do(xLuaState* l, int index) {
+        static Ty* Do(xLuaState* xl, int index) {
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
-            void* user_data = l->GetUserDataPtr(index);
+            void* user_data = lua_touserdata(xl->GetState(), index);
             if (user_data == nullptr)
                 return nullptr;
 
-            LuaValueType value_type = l->GetValueType(index);
-            if (value_type == LuaValueType::kLightUserData) {
+            int ty = lua_type(xl->GetState(), index);
+            if (ty == LUA_TLIGHTUSERDATA) {
                 return GetLightUserDataPtr<Ty>(user_data, info);
-            } else if (value_type == LuaValueType::kFullUserData) {
-                LuaUserData* ud = static_cast<LuaUserData*>(user_data);
-                if (ud->obj_ == nullptr)
-                    return nullptr;
-                if (!IsBaseOf(info, ud->info_))
-                    return nullptr;
-
-                if (ud->type_ == LuaUserDataType::kRawPtr) {
-                    return (Ty*)ud->info_->caster.to_super(ud->obj_, ud->info_, info);
-                } else if (ud->type_ == LuaUserDataType::kLuaObjPtr) {
-                    ArrayObj* ary_obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
-                    if (ary_obj == nullptr || ary_obj->obj_ == nullptr || ary_obj->serial_num_ != ud->serial_)
-                        return nullptr;
-                    return (Ty*)ud->info_->caster.to_super(ary_obj->obj_, ud->info_, info);
-                } else if (ud->type_ == LuaUserDataType::kWeakObjPtr) {
-                    auto base = (XLUA_WEAK_OBJ_BASE_TYPE*)xLuaGetWeakObjPtr(ud->index_);
-                    if (base == nullptr || ud->serial_ != xLuaGetWeakObjSerialNum(ud->index_))
-                        return nullptr;
-                    return static_cast<Ty*>(base);
-                } else {
-                    //TODO: log unknown obj type
-                    return nullptr;
-                }
+            } else if (ty == LUA_TUSERDATA) {
+                return GetFullUserDataPtr<Ty>(user_data, info);
             } else {
                 return nullptr;
             }
@@ -522,15 +538,18 @@ namespace detail {
     struct Loader<std::shared_ptr<Ty>> {
         static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
         static inline std::shared_ptr<Ty> Do(xLuaState* l, int index) {
-            LuaValueType value_type = l->GetValueType(index);
-            void* ptr = l->GetUserDataPtr(index);
-            if (ptr == nullptr || value_type != LuaValueType::kFullUserData)
+            if (lua_type(xl->GetState(), index) != LUA_TUSERDATA)
+                return nullptr;
+
+            void* p = lua_touserdata(xl->GetState(), index);
+            if (p == nullptr)
+                return nullptr;
+
+            LuaUserData* ud = static_cast<LuaUserData*>(p);
+            if (ud->type_ != LuaUserDataType::kSharedPtr)
                 return nullptr;
 
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
-            LuaUserData* ud = static_cast<LuaUserData*>(ptr);
-            if (ud->type_ != LuaUserDataType::kSharedPtr)
-                return nullptr;
             if (!IsBaseOf(info, ud->info_))
                 return nullptr;
 

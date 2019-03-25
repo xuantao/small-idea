@@ -221,6 +221,36 @@ namespace detail {
 #endif // XLUA_USE_LIGHT_USER_DATA
         return nullptr;
     }
+
+    template <typename Ty>
+    Ty* GetFullUserDataPtr(void* p, const TypeInfo* info) {
+        LuaUserData* ud = static_cast<LuaUserData*>(p);
+        if (ud->obj_ == nullptr)
+            return nullptr;
+        if (!IsBaseOf(info, ud->info_))
+            return nullptr;
+
+        if (ud->type_ == LuaUserDataType::kRawPtr) {
+            return (Ty*)ud->info_->caster.to_super(ud->obj_, ud->info_, info);
+        }
+
+        if (ud->type_ == LuaUserDataType::kLuaObjPtr) {
+            ArrayObj* ary_obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
+            if (ary_obj == nullptr || ary_obj->obj_ == nullptr || ary_obj->serial_num_ != ud->serial_)
+                return nullptr;
+            return (Ty*)ud->info_->caster.to_super(ary_obj->obj_, ud->info_, info);
+        }
+
+        if (ud->type_ == LuaUserDataType::kWeakObjPtr) {
+            auto base = (XLUA_WEAK_OBJ_BASE_TYPE*)xLuaGetWeakObjPtr(ud->index_);
+            if (base == nullptr || ud->serial_ != xLuaGetWeakObjSerialNum(ud->index_))
+                return nullptr;
+            return static_cast<Ty*>(base);
+        }
+
+        //TODO: log unknown obj type
+        return nullptr;
+    }
 } // namespace detail
 
 XLUA_NAMESPACE_END

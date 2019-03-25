@@ -377,11 +377,18 @@ void xLuaState::PushCacheUd(UserDataCache& cache, void* ptr, const TypeInfo* inf
         cache.user_data_->info_ = info;
     }
 
+    lua_rawgeti(state_, LUA_REGISTRYINDEX, user_data_table_ref_);
+    lua_rawgeti(state_, -1, cache.lua_ref_);
+    lua_remove(state_, -2);
+
+    //lua_newuserdata()
     //TODO: push ref obj
 }
 
 void xLuaState::PushUd(UserDataCache& cache) {
-
+    lua_rawgeti(state_, LUA_REGISTRYINDEX, user_data_table_ref_);
+    lua_rawgeti(state_, -1, cache.lua_ref_);
+    lua_remove(state_, -2);
 }
 
 TypeMember* xLuaState::GetMetaMember() {
@@ -392,14 +399,20 @@ void xLuaState::Gc(detail::LuaUserData* user_data) {
 
 }
 
-bool xLuaState::InitEnv() {
+bool xLuaState::InitEnv(const std::vector<TypeInfo*>& types,
+    const std::vector<const ConstInfo*>& consts,
+    const std::vector<const char*>& scripts) {
+    // user data ref table (weak table)
     lua_createtable(state_, 1024, 0);
+    lua_createtable(state_, 0, 1);
+    lua_pushfstring(state_, "v");
+    lua_setfield(state_, 2, "__mode");
+    lua_setmetatable(state_, -2);
     user_data_table_ref_ = luaL_ref(state_, LUA_REGISTRYINDEX);
     assert(user_data_table_ref_);
-    return true;
-}
+    assert(lua_gettop(state_) == 0);
 
-void xLuaState::AddTypes(const std::vector<TypeInfo*>& types) {
+    // table of type metatable 
     lua_createtable(state_, (int)types.size(), 0);
     meta_table_ref_ = luaL_ref(state_, LUA_REGISTRYINDEX);
     assert(meta_table_ref_);
@@ -420,14 +433,21 @@ void xLuaState::AddTypes(const std::vector<TypeInfo*>& types) {
 
     lua_setmetatable(state_, -2);   // set light user data metatable
     lua_pop(state_, 1);             // light user data
-#endif // XLUA_USE_LIGHT_USER_DATA
-
     assert(lua_gettop(state_) == 0);
+#endif // XLUA_USE_LIGHT_USER_DATA
 
     for (const TypeInfo* info : types) {
         if (info)
             CreateMeta(info);
     }
+
+    AddConsts(consts);
+
+    for (const char* script : scripts) {
+        DoString(script, "InitEnv");
+    }
+
+    return true;
 }
 
 void xLuaState::AddConsts(const std::vector<const ConstInfo*>& consts) {
@@ -493,12 +513,6 @@ void xLuaState::AddConsts(const std::vector<const ConstInfo*>& consts) {
 
     lua_pop(state_, 1); // pop const meta table
     assert(lua_gettop(state_) == 0);
-}
-
-void xLuaState::AddScritps(const std::vector<const char*>& scripts) {
-    for (const char* script : scripts) {
-        DoString(script, "InitEnv");
-    }
 }
 
 void xLuaState::CreateMeta(const TypeInfo* info) {
@@ -607,10 +621,7 @@ void xLuaState::PushClosure(lua_CFunction func) {
 }
 
 #if XLUA_USE_LIGHT_USER_DATA
-void xLuaState::_PushLightPtr(detail::LightDataPtr ptr) {
-
-}
-#else
+#else // XLUA_USE_LIGHT_USER_DATA
 void xLuaState::_PushWeakObjPtr(const detail::LuaUserData user_data) {
 
 }
