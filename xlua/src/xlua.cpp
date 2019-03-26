@@ -356,7 +356,7 @@ bool xLuaState::_TryPushRawPtr(void* root, void* ptr, const TypeInfo* info) {
     if (it == raw_ptrs_.cend())
         return false;
 
-    PushCacheUd(it->second, ptr, info);
+    //PushCacheUd(it->second, ptr, info);
     return true;
 }
 
@@ -364,35 +364,6 @@ void xLuaState::_PushRawPtr(void* root, detail::LuaUserData* user_data) {
     auto& cache = raw_ptrs_[root];
     cache.user_data_ = user_data;
     PushUd(cache);
-
-}
-
-void* xLuaState::AllocUserData(size_t size) {
-    return new int8_t[size];
-}
-
-void xLuaState::PushCacheUd(UserDataCache& cache, void* ptr, const TypeInfo* info) {
-    if (!detail::IsBaseOf(info, cache.user_data_->info_)) {
-        cache.user_data_->obj_ = ptr;
-        cache.user_data_->info_ = info;
-    }
-
-    lua_rawgeti(state_, LUA_REGISTRYINDEX, user_data_table_ref_);
-    lua_rawgeti(state_, -1, cache.lua_ref_);
-    lua_remove(state_, -2);
-
-    //lua_newuserdata()
-    //TODO: push ref obj
-}
-
-void xLuaState::PushUd(UserDataCache& cache) {
-    lua_rawgeti(state_, LUA_REGISTRYINDEX, user_data_table_ref_);
-    lua_rawgeti(state_, -1, cache.lua_ref_);
-    lua_remove(state_, -2);
-}
-
-TypeMember* xLuaState::GetMetaMember() {
-    return nullptr;
 }
 
 void xLuaState::Gc(detail::LuaUserData* user_data) {
@@ -412,7 +383,7 @@ bool xLuaState::InitEnv(const std::vector<TypeInfo*>& types,
     assert(user_data_table_ref_);
     assert(lua_gettop(state_) == 0);
 
-    // table of type metatable 
+    // table of type metatable
     lua_createtable(state_, (int)types.size(), 0);
     meta_table_ref_ = luaL_ref(state_, LUA_REGISTRYINDEX);
     assert(meta_table_ref_);

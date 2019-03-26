@@ -135,6 +135,7 @@ namespace detail
         }
     };
 
+
     /* 多继承指针偏移, 这里一步步的执行转换 */
     template <typename Ty, typename By>
     struct RawPtrCast {
@@ -188,33 +189,49 @@ namespace detail
 
     template <typename Ty>
     inline Ty* GetMetaCallObj(xLuaState* l, const TypeInfo* info) {
-        void* user_data = l->GetUserDataPtr(1);
-        if (user_data == nullptr)
+        void* p = lua_touserdata(l->GetState(), 1);
+        if (p == nullptr)
             return nullptr;
 
-        switch (l->GetValueType(1))
+        switch (l->GetType(1))
         {
-        case xlua::LuaValueType::kLightUserData:
-            return GetLightUserDataPtr<Ty>(l->GetUserDataPtr(1), info);
-        case xlua::LuaValueType::kFullUserData:
-            return GetMetaCallFullUserDataPtr<Ty>(user_data, info);
-        default:
-            break;
+        case LUA_TLIGHTUSERDATA:
+            return GetLightUserDataPtr<Ty>(p, info);
+        case LUA_TUSERDATA:
+            return GetMetaCallFullUserDataPtr<Ty>(p, info);
         }
         //TODO: log
         return nullptr;
     }
 
+    template <typename Ty>
+    bool CheckMetaParam(xLuaState* l, int index, tag_unknown) {
+    }
+
+    template <typename Ty>
+    bool CheckMetaParam(xLuaState* l, int index, tag_internal) {
+    }
+
+    template <typename Ty>
+    bool CheckMetaParam(xLuaState* l, int index, tag_external) {
+    }
+
+    template <typename Ty>
+    bool CheckMetaParam(xLuaState* l, int index, tag_extend) {
+    }
+
     template <bool value, typename Ty = int>
     using EnableIfT = typename std::enable_if<value, int>::type;
 
+    /* global function */
     template <typename Ry, typename... Args>
     inline int MetaCall(xLuaState* l, Ry(*func)(Args...)) {
         return 0;
     }
 
+    /* extend member function */
     template <typename Ty, typename Ry, typename... Args>
-    inline int MetaCall(xLuaState* l, Ty* obj, Ry(*func)(Args...)) {
+    inline int MetaCall(xLuaState* l, Ty* obj, Ry(*func)(Ty*, Args...)) {
         return 0;
     }
 
