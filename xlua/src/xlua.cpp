@@ -332,7 +332,7 @@ bool xLuaState::_TryPushSharedPtr(void* root, void* ptr, const TypeInfo* info) {
     if (it == shared_ptrs_.cend())
         return false;
 
-    PushCacheUd(it->second, ptr, info);
+    //PushCacheUd(it->second, ptr, info);
     return true;
 }
 

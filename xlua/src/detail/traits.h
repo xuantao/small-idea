@@ -70,6 +70,8 @@ namespace detail {
     struct tag_external {};
     struct tag_extend {};
     struct tag_weakobj {};
+    struct tag_declared {};
+    struct tag_enum {};
 
     template <typename Ty>
     auto GetTypeInfoImpl() -> typename std::enable_if<IsInternal<Ty>::value, const TypeInfo*>::type {

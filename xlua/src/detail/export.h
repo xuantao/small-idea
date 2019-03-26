@@ -204,20 +204,140 @@ namespace detail
         return nullptr;
     }
 
-    template <typename Ty>
-    bool CheckMetaParam(xLuaState* l, int index, tag_unknown) {
+    struct UdInfo
+    {
+        bool is_ud;
+        bool is_nil;
+        bool is_ptr;
+        const TypeInfo* info;
+    };
+
+    inline UdInfo GetUdInfo(xLuaState* l, int index, bool check_nil) {
+        UdInfo  ud_info{ true, false, true, nullptr };
+        int l_ty = l->GetType(index);
+
+        if (l_ty == LUA_TNIL) {
+            ud_info.is_nil = true;
+        } else if (l_ty == LUA_TUSERDATA) {
+            LuaUserData* ud = static_cast<LuaUserData*>(lua_touserdata(l->GetState(), index));
+            ud_info.info = ud->info_;
+            if (!check_nil) {
+                if (ud->type_ == LuaUserDataType::kLuaObjPtr) {
+                    ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
+                    ud_info.is_nil = (obj == nullptr || obj->serial_num_ != obj->serial_num_);
+                } else if (ud->type_ == LuaUserDataType::kWeakObjPtr) {
+                    ud_info.is_nil = (ud->serial_ == xLuaGetWeakObjSerialNum(ud->index_));
+                } else if (ud->type_ == LuaUserDataType::kValue) {
+                    ud_info.is_ptr = false;
+                }
+            }
+        } else if (l_ty == LUA_TLIGHTUSERDATA) {
+#if XLUA_USE_LIGHT_USER_DATA
+            LightDataPtr ud = MakeLightPtr(lua_touserdata(l->GetState(), index));
+            if (ud.type_ == 0) {
+                ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud.index_);
+                if (obj)
+                    ud_info.info = obj->info_;
+                if (check_nil)
+                    ud_info.is_nil = (obj == nullptr || obj->serial_num_ != ud.serial_);
+            } else {
+                ud_info.info = GlobalVar::GetInstance()->GetExternalTypeInfo(ud.type_);
+                if (check_nil)
+                    ud_info.is_nil = (ud.serial_ == xLuaGetWeakObjSerialNum(ud.index_));
+            }
+#endif // XLUA_USE_LIGHT_USER_DATA
+        } else {
+            ud_info.is_ud = false;
+            ud_info.is_ptr = false;
+        }
+
+        return ud_info;
     }
 
     template <typename Ty>
-    bool CheckMetaParam(xLuaState* l, int index, tag_internal) {
-    }
+    struct ParamChecker {
+        static bool Do(xLuaState* l, int index, int param) {
+            using tag = typename std::conditional<IsInternal<Ty>::value || IsExternal<Ty>::value, tag_declared,
+                typename std::conditional<IsExtendLoad<Ty>::value, tag_extend, 
+                    typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_unknown>::type>::type>::type;
+            return Do(l, index, param, tag());
+        }
+
+        static bool Do(xLuaState* l, int index, int param, tag_unknown) {
+            return false;
+        }
+
+        static bool Do(xLuaState* l, int index, int param, tag_enum) {
+            return false;
+        }
+
+        static bool Do(xLuaState* l, int index, int param, tag_extend) {
+            return false;
+        }
+
+        static bool Do(xLuaState* l, int index, int param, tag_declared) {
+            const TypeInfo* info = GetTypeInfoImpl<Ty>();
+            UdInfo ud = GetUdInfo(l, index, true);
+            if (ud.is_nil) {
+                printf("param(%s) error, need:%s got:nil\n", param, info->type_name);
+                return false;
+            }
+            if (!IsBaseOf(info, ud.info)) {
+                printf("param(%s) error, need:%s* got:%s\n", param, info->type_name, l->GetTypeName(index));
+                return false;
+            }
+            return true;
+        }
+    };
 
     template <typename Ty>
-    bool CheckMetaParam(xLuaState* l, int index, tag_external) {
-    }
+    struct ParamChecker<Ty*> {
+        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "only declare export to lua types");
+        static bool Do(xLuaState* l, int index, int param) {
+            const TypeInfo* info = GetTypeInfoImpl<Ty>();
+            UdInfo ud = GetUdInfo(l, index, false);
+            if (ud.is_nil || IsBaseOf(ud.info, info))
+                return true;
+            printf("param(%s) error, need:%s* got:%s\n", param, info->type_name, l->GetTypeName(index));
+            return is_ok;
+        }
+    };
 
     template <typename Ty>
-    bool CheckMetaParam(xLuaState* l, int index, tag_extend) {
+    struct ParamChecker<std::shared_ptr<Ty>> {
+        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "only declare export to lua types");
+        static inline bool Do(xLuaState* l, int index, int param) {
+            int l_ty = l->GetType(index);
+            if (l_ty == LUA_TUSERDATA) {
+                const TypeInfo* info = GetTypeInfoImpl<Ty>();
+                LuaUserData* ud = static_cast<LuaUserData*>(lua_touserdata(l->GetState(), index));
+                if (ud->type_ == LuaUserDataType::kSharedPtr && IsBaseOf(info, ud->info_)) {
+                    return true;
+                }
+            } else if (l_ty == LUA_TNIL) {
+                return true;
+            }
+
+            printf("param(%s) error, need:std::shared_ptr<%s> got:%s\n", param, info->type_name, l->GetTypeName(index));
+            return false;
+        }
+    };
+
+    template <typename Ty>
+    inline bool CheckParam(xLuaState* l, int index, int param) {
+        return ParamChecker<typename std::decay<Ty>::type>::Do(l, index, param);
+    }
+
+    template <typename... Ty>
+    inline bool CheckParams(xLuaState* l, int index) {
+        size_t count = 0;
+        int param = 0;
+        using els = int[];
+        (void)els { 0, (count += CheckParam<Ty>(L, index++, param++) ? 1 : 0, 0)... };
+        if (count == sizeof...(Ty))
+            return true;
+        // log error
+        return false;
     }
 
     template <bool value, typename Ty = int>
@@ -226,17 +346,23 @@ namespace detail
     /* global function */
     template <typename Ry, typename... Args>
     inline int MetaCall(xLuaState* l, Ry(*func)(Args...)) {
+        if (!CheckParams<Args...>(l, 1))
+            return 0;
         return 0;
     }
 
     /* extend member function */
     template <typename Ty, typename Ry, typename... Args>
     inline int MetaCall(xLuaState* l, Ty* obj, Ry(*func)(Ty*, Args...)) {
+        if (!CheckParams<Args...>(l, 2))
+            return 0;
         return 0;
     }
 
     template <typename Ty, typename Ry, typename... Args>
     inline int MetaCall(xLuaState* l, Ty* obj, Ry(Ty::*func)(Args...)) {
+        if (!CheckParams<Args...>(l, 1))
+            return 0;
         return 0;
     }
 
