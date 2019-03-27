@@ -26,15 +26,16 @@
     inline int xLuaGetWeakObjSerialNum(int index) { assert(false); return 0; }
     inline void* xLuaGetWeakObjPtr(int index) { assert(false); return nullptr; }
 #else // XLUA_WEAK_OBJ_BASE_TYPE
-    template <typename Ty> struct xLuaWeakObjPtr;
+    template <typename Ty> using xLuaWeakObjPtr = xxx;
     int xLuaAllocWeakObjIndex(XLUA_WEAK_OBJ_BASE_TYPE* val);
     int xLuaGetWeakObjSerialNum(int index);
     XLUA_WEAK_OBJ_BASE_TYPE* xLuaGetWeakObjPtr(int index);
 #endif // XLUA_WEAK_OBJ_BASE_TYPE
 
+inline void xLuaLogError(const char* err) {
+    //printf
+}
 
-#define XLUA_MAX_TYPE_NAME_LENGTH   64
-#define XLUA_MAX_MEMBER_NAME_LENGTH 64
 
 XLUA_NAMESPACE_BEGIN
 
@@ -149,8 +150,6 @@ struct ITypeDesc {
     virtual void AddMember(const char* name, LuaIndexer getter, LuaIndexer setter, bool glboal) = 0;
     virtual const TypeInfo* Finalize() = 0;
 };
-
-ITypeDesc* AllocTypeInfo(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super);
 
 class ObjIndex
 {

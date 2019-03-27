@@ -436,14 +436,12 @@ namespace detail
                     ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud.index_);
                     if (obj && obj->serial_num_ == ud.serial_)
                         return obj->info_->caster.to_super(obj->obj_, obj->info_, info);
-                }
-                else {
+                } else {
                     const TypeInfo* src = GlobalVar::GetInstance()->GetExternalTypeInfo(ud.type_);
                     if (src->is_weak_obj) {
                         if (ud.serial_ == xLuaGetWeakObjSerialNum(ud.index_))
                             return info->caster.to_weak_ptr(xLuaGetWeakObjPtr(ud.index_));
-                    }
-                    else {
+                    } else {
                         return src->caster.to_super(ud.ToRawPtr(), src, info);
                     }
                 }

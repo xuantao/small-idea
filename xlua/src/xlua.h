@@ -31,21 +31,6 @@ struct StackGuard {
     StackGuard(xLuaState* l, int off) {}
 };
 
-enum class LuaValueType : int {
-    kNill = 0,
-    kBoolean = 1 << 0,
-    kNumber = 1 << 1,
-    kString = 1 << 2,
-
-    kLuaFunction = 1 << 3,
-    kCFunction = 1 << 4,
-    kFunction = kLuaFunction | kCFunction,
-
-    kLightUserData = 1 << 5,
-    kFullUserData = 1 << 6,
-    kUserData = kLightUserData | kFullUserData,
-};
-
 class xLuaState {
     template <typename Ty> friend struct detail::Loader;
     template <typename Ty> friend struct detail::Pusher;
@@ -63,13 +48,12 @@ public:
     inline lua_State* GetState() const { return state_; }
 
 public:
-    int GetTopIndex() const;
+    inline int GetTopIndex() const { return lua_gettop(state_); }
+    inline int GetType(int index) const { return lua_type(state_, index); }
+    const char* GetTypeName(int index);
 
     void LogCallStack() const;
     void GetCallStack(char* buf, size_t size) const;
-
-    int GetType(int index) { return lua_type(state_, index); }
-    const char* GetTypeName(int index) const;
     bool DoString(const char* stream, const char* chunk = nullptr);
 
     inline xLuaTable NewTable() {
@@ -237,7 +221,7 @@ public:
     template <typename... Rys, typename... Args>
     inline bool Call(const char* global, std::tuple<Rys&...> ret, Args&&... args) {
         StackGuard guard(this);
-        if (((int)LoadGlobal(global) & (int)LuaValueType::kFunction) == 0)
+        if (LoadGlobal(global) == LUA_TFUNCTION)
             return false;
         return DoCall(ret, std::forward<Args>(args)...);
     }
@@ -429,6 +413,7 @@ private:
     std::vector<int> type_meta_ref_;
     std::unordered_map<void*, UserDataCache> raw_ptrs_;
     std::unordered_map<void*, UserDataCache> shared_ptrs_;
+    char type_name_buf_[256];
 };
 
 namespace detail {
@@ -462,10 +447,17 @@ namespace detail {
 
     template <typename Ty>
     struct Pusher {
-        static_assert(IsExternal<Ty>::value || IsExtendLoad<Ty>::value || std::is_enum<Ty>::value, "not support to export");
+        static_assert(IsInternal<Ty>::value
+            || IsExternal<Ty>::value
+            || IsExtendLoad<Ty>::value
+            || std::is_enum<Ty>::value,
+            "not support to export"
+        );
+
         static inline void Do(xLuaState* l, const Ty& val) {
-            using tag = typename std::conditional<IsExternal<Ty>::value, tag_external,
-                typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_extend>::type>::type;
+            using tag = typename std::conditional<IsInternal<Ty>::value, tag_internal,
+                typename std::conditional<IsExternal<Ty>::value, tag_external,
+                    typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_extend>::type>::type>::type;
             PushValue<Ty>(l, val, tag());
         }
 
@@ -480,8 +472,12 @@ namespace detail {
         }
 
         template <typename U>
+        static inline void PushValue(xLuaState* l, const U& val, tag_internal) {
+            l->PushUserData(val, GetTypeInfoImpl<U>());
+        }
+
+        template <typename U>
         static inline void PushValue(xLuaState* l, const U& val, tag_external) {
-            static_assert(!IsWeakObjPtr<U>::value, "not allow push weak obj value");
             l->PushUserData(val, GetTypeInfoImpl<U>());
         }
     };
@@ -542,10 +538,17 @@ namespace detail {
 
     template <typename Ty>
     struct Loader {
-        static_assert(IsExternal<Ty>::value || IsExtendLoad<Ty>::value || std::is_enum<Ty>::value, "not support load");
+        static_assert(IsExternal<Ty>::value
+            || IsExternal<Ty>::value
+            || IsExtendLoad<Ty>::value
+            || std::is_enum<Ty>::value,
+            "not support load"
+        );
+
         static inline Ty Do(xLuaState* l, int index) {
-            using tag = typename std::conditional<IsExternal<Ty>::value, tag_external,
-                typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_extend>::type>::type;
+            using tag = typename std::conditional<IsInternal<Ty>::value, tag_internal,
+                typename std::conditional<IsExternal<Ty>::value, tag_external,
+                    typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_extend>::type>::type>::type;
             return LoadValue<Ty>(l, index, tag());
         }
 
@@ -560,6 +563,12 @@ namespace detail {
         }
 
         template <typename U>
+        static inline U LoadValue(xLuaState* l, int index, tag_internal) {
+            //TODO: pointer to value
+            return U();
+        }
+
+        template <typename U>
         static inline U LoadValue(xLuaState* l, int index, tag_external) {
             static_assert(!IsWeakObjPtr<U>::value, "not allow weak obj");
             do {
@@ -571,15 +580,15 @@ namespace detail {
                     break;
 
                 LuaUserData* ud = static_cast<LuaUserData*>(p);
-                const TypeInfo* info = GetTypeInfoImpl<Ty>();
+                const TypeInfo* info = GetTypeInfoImpl<U>();
                 if (!IsBaseOf(info, ud->info_))
                     break;
 
                 // copy construct
-                return Ty(*static_cast<Ty*>(ud->info_->caster.to_super(ud->obj_, ud->info_, info)));
+                return U(*static_cast<U*>(ud->info_->caster.to_super(ud->obj_, ud->info_, info)));
             } while (false);
 
-            return Ty();
+            return U();
         }
     };
 
@@ -624,15 +633,6 @@ namespace detail {
 
             return std::shared_ptr<Ty>(*static_cast<std::shared_ptr<Ty>*>(ud->GetDataPtr()),
                 (Ty*)ud->info_->caster.to_super(ud->obj_, ud->info_, info));
-        }
-    };
-
-    template <typename Ty>
-    struct Loader<std::unique_ptr<Ty>> {
-        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
-        static_assert(std::is_base_of<std::nullptr_t, Ty>::value, "can not load unique_ptr");
-        static inline std::unique_ptr<Ty> Do(xLuaState* l, int index) {
-            return nullptr;
         }
     };
 } // namespace detail

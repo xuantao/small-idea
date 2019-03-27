@@ -84,8 +84,8 @@ namespace detail {
     enum class LuaUserDataType {
         kValue,
         kRawPtr,
+        kObjPtr,
         kSharedPtr,
-        kUniquePtr,
         kLuaObjPtr,
         kWeakObjPtr,
     };

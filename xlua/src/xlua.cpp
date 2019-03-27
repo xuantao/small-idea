@@ -25,9 +25,6 @@ namespace detail {
 
             ++level;
         }
-
-        //if (dst != buf && len > 0)
-        //    dst[-1] = 0;    // remove last '\n'
     };
 
     static void LogCallStack(lua_State* l) {
@@ -94,12 +91,7 @@ namespace detail {
                 return 0;
             }
 
-            xLuaState* xl = _XLUA_GET_STATE(l);
-            if (xl == nullptr) {
-                // log err
-                return 0;
-            }
-
+            xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
             LuaUserData* ud = (LuaUserData*)lua_touserdata(l, 1);
             mem->getter(xl, ud->obj_);
             return 1;
@@ -124,18 +116,15 @@ namespace detail {
                 return 0;
             }
 
-            xLuaState* xl = _XLUA_GET_STATE(l);
-            if (xl == nullptr) {
-                // log err
-                return 0;
-            }
-
+            xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
             LuaUserData* ud = (LuaUserData*)lua_touserdata(l, 1);
             mem->setter(xl, ud->obj_);
             return 0;
         }
 
         static int LuaGc(lua_State* l) {
+            xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
+            xl->Gc(static_cast<LuaUserData*>(lua_touserdata(l, 1)));
             return 0;
         }
 
@@ -156,12 +145,7 @@ namespace detail {
             if (!GetLightPtrMetaMember(l, ptr))
                 return 0;
 
-            xLuaState* xl = _XLUA_GET_STATE(l);
-            if (xl == nullptr) {
-                // log err
-                return 0;
-            }
-
+            xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
             lua_rawgeti(l, LUA_REGISTRYINDEX, xl->meta_table_ref_);
             lua_rawgeti(l, -1, ptr.info->index);
             lua_pushvalue(l, -3);
@@ -190,12 +174,7 @@ namespace detail {
             if (!GetLightPtrMetaMember(l, ptr))
                 return 0;
 
-            xLuaState* xl = _XLUA_GET_STATE(l);
-            if (xl == nullptr) {
-                //TODO: log error
-                return 0;
-            }
-
+            xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
             lua_rawgeti(l, LUA_REGISTRYINDEX, xl->meta_table_ref_);
             lua_rawgeti(l, -1, ptr.info->index);
             lua_pushvalue(l, -3);
@@ -286,21 +265,52 @@ void xLuaState::Release() {
     global->Destory(this);
 }
 
-int xLuaState::GetTopIndex() const
-{
-    return 0;
-}
-
 void xLuaState::LogCallStack() const {
-
+    detail::LogCallStack(state_);
 }
 
 void xLuaState::GetCallStack(char* buf, size_t size) const {
-
+    detail::TraceCallStack(state_, buf, size);
 }
 
-const char* xLuaState::GetTypeName(int index) const {
-    return "";
+const char* xLuaState::GetTypeName(int index) {
+    *type_name_buf_ = 0;
+    int l_ty = GetType(index);
+    const char* ret = type_name_buf_;
+
+    if (l_ty == LUA_TLIGHTUSERDATA) {
+#if XLUA_USE_LIGHT_USER_DATA
+        detail::LightDataPtr ptr = detail::MakeLightPtr(lua_touserdata(state_, index));
+        if (ptr.type_ == 0) {
+            detail::ArrayObj* obj = detail::GlobalVar::GetInstance()->GetArrayObj(ptr.index_);
+            if (obj == nullptr)
+                snprintf(type_name_buf_, 256, "nullptr");
+            else
+                snprintf(type_name_buf_, 256, "%s*", obj->info_->type_name);
+        }
+#endif // XLUA_USE_LIGHT_USER_DATA
+    } else if (l_ty == LUA_TUSERDATA) {
+        detail::LuaUserData* ud = static_cast<detail::LuaUserData*>(lua_touserdata(state_, index));
+        switch (ud->type_)
+        {
+        case detail::LuaUserDataType::kValue:
+            ret = ud->info_->type_name;
+            break;
+        case detail::LuaUserDataType::kRawPtr:
+        case detail::LuaUserDataType::kObjPtr:
+            snprintf(type_name_buf_, 256, "%s*", ud->info_->type_name);
+            break;
+        case detail::LuaUserDataType::kSharedPtr:
+            snprintf(type_name_buf_, 256, "std::shared_ptr<%s>", ud->info_->type_name);
+            break;
+        default:
+            assert(false);
+            break;
+        }
+    } else {
+        ret = lua_typename(state_, index);
+    }
+    return ret;
 }
 
 bool xLuaState::DoString(const char* stream, const char* chunk) {
