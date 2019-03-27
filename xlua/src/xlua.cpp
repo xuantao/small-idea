@@ -303,20 +303,24 @@ const char* xLuaState::GetTypeName(int index) const {
     return "";
 }
 
-LuaValueType xLuaState::LoadGlobal(const char* path) {
-    return LuaValueType::kNill;
+bool xLuaState::DoString(const char* stream, const char* chunk) {
+    return true;
+}
+
+int xLuaState::LoadGlobal(const char* path) {
+    return 0;
 }
 
 void xLuaState::SetGlobal(const char* path) {
 
 }
 
-LuaValueType xLuaState::LoadTableField(int index, int field) {
-    return LuaValueType::kNill;
+int xLuaState::LoadTableField(int index, int field) {
+    return 0;
 }
 
-LuaValueType xLuaState::LoadTableField(int index, const char* field) {
-    return LuaValueType::kNill;
+int xLuaState::LoadTableField(int index, const char* field) {
+    return 0;
 }
 
 void xLuaState::SetTableField(int index, int field) {
@@ -387,6 +391,10 @@ bool xLuaState::InitEnv(const std::vector<TypeInfo*>& types,
     lua_createtable(state_, (int)types.size(), 0);
     meta_table_ref_ = luaL_ref(state_, LUA_REGISTRYINDEX);
     assert(meta_table_ref_);
+
+    lua_newtable(state_);
+    lua_obj_table_ref_ = luaL_ref(state_, LUA_REGISTRYINDEX);
+    assert(lua_obj_table_ref_);
 
 #if XLUA_USE_LIGHT_USER_DATA
     // light user data metatable
@@ -504,7 +512,8 @@ void xLuaState::CreateMeta(const TypeInfo* info) {
         for (const TypeMember* mem = info->members; mem->type!= MemberType::kInvalid; ++mem) {
             switch (mem->type) {
             case MemberType::kFunction:
-                lua_pushcfunction(state_, mem->func);
+                //lua_pushcfunction(state_, mem->func);
+                PushClosure(mem->func);
                 break;
             case MemberType::kVariate:
                 lua_pushlightuserdata(state_, const_cast<TypeMember*>(mem));
@@ -553,7 +562,8 @@ void xLuaState::CreateMeta(const TypeInfo* info) {
         lua_createtable(state_, 0, 0);
         for (const TypeMember* mem = info->members; mem->type!= MemberType::kInvalid; ++mem) {
             if (mem->type == MemberType::kFunction) {
-                lua_pushcfunction(state_, mem->func);
+                //lua_pushcfunction(state_, mem->func);
+                PushClosure(mem->func);
                 lua_setfield(state_, -2, mem->name);
             }
         }
@@ -587,8 +597,62 @@ void xLuaState::CreateMeta(const TypeInfo* info) {
 
 void xLuaState::PushClosure(lua_CFunction func) {
     lua_pushlightuserdata(state_, this);                        // upvalue(1):xLuaSate*
-    lua_rawgeti(state_, LUA_REGISTRYINDEX, meta_table_ref_);    // upvalue(2):meta table
+    //lua_rawgeti(state_, LUA_REGISTRYINDEX, meta_table_ref_);    // upvalue(2):meta table
     lua_pushcclosure(state_, func, 2);
+}
+
+int xLuaState::RefLuaObj(int index) {
+    if (next_free_lua_obj_ == -1) {
+        size_t o_s = lua_objs_.size();
+        size_t n_s = o_s + 1024;
+        lua_objs_.resize(n_s, LuaObjRef{-1, 0});
+
+        for (size_t i = o_s; i < n_s; ++i)
+            lua_objs_[i].next_free_ = i+1;
+        next_free_lua_obj_ = o_s;
+        lua_objs_.back().next_free_ = -1;
+    }
+
+    int ary_index = next_free_lua_obj_;
+    auto& ref = lua_objs_[ary_index];
+    next_free_lua_obj_ = ref.next_free_;
+
+    index = lua_absindex(state_, index);
+    lua_rawgeti(state_, LUA_REGISTRYINDEX, lua_obj_table_ref_);
+    lua_pushvalue(state_, index);
+    ref.lua_ref_ = luaL_ref(state_, -2);
+    ref.ref_count_ = 1;
+    lua_pop(state_, 1);
+
+    return ary_index;
+}
+
+void xLuaState::PushLuaObj(int ary_index) {
+    assert(ary_index >= 0 && ary_index < (int)lua_objs_.size());
+
+    lua_rawgeti(state_, LUA_REGISTRYINDEX, lua_obj_table_ref_);
+    lua_rawgeti(state_, -1, lua_objs_[ary_index].lua_ref_);
+    lua_remove(state_, -2);
+}
+
+void xLuaState::AddObjRef(int ary_index) {
+    assert(ary_index >= 0 && ary_index < (int)lua_objs_.size());
+    ++lua_objs_[ary_index].ref_count_;
+}
+
+void xLuaState::UnRefObj(int ary_index) {
+    assert(ary_index >= 0 && ary_index < (int)lua_objs_.size());
+    auto& ref = lua_objs_[ary_index];
+    -- ref.ref_count_;
+    if (ref.ref_count_ == 0) {
+        lua_rawgeti(state_, LUA_REGISTRYINDEX, lua_obj_table_ref_);
+        luaL_unref(state_, -1, ref.lua_ref_);
+        lua_pop(state_, 1);
+
+        int tmp = ref.next_free_;
+        ref.next_free_ = next_free_lua_obj_;
+        next_free_lua_obj_ = tmp;
+    }
 }
 
 #if XLUA_USE_LIGHT_USER_DATA

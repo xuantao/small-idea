@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "xlua_def.h"
+#include "xlua_obj.h"
 #include "detail/traits.h"
 #include "detail/state.h"
 #include <lua.hpp>
@@ -24,9 +25,6 @@ bool Startup();
 void Shutdown();
 xLuaState* Create();
 xLuaState* Attach(lua_State* l);
-
-class xLuaTable { };
-class xLuaFunction { };
 
 struct StackGuard {
     StackGuard(xLuaState* l) {}
@@ -53,6 +51,7 @@ class xLuaState {
     template <typename Ty> friend struct detail::Pusher;
     friend struct detail::MetaFuncs;
     friend class detail::GlobalVar;
+    friend class xLuaObjBase;
 
     xLuaState(lua_State* l, bool attach);
     ~xLuaState();
@@ -71,17 +70,19 @@ public:
 
     int GetType(int index) { return lua_type(state_, index); }
     const char* GetTypeName(int index) const;
-    LuaValueType GetValueType(int index) const { return LuaValueType::kFullUserData; }
+    bool DoString(const char* stream, const char* chunk = nullptr);
 
-    bool DoString(const char* stream, const char* chunk = nullptr) { return false; }
+    inline xLuaTable NewTable() {
+        StackGuard guard(this);
+        lua_newtable(state_);
+        return xLuaTable(this, RefLuaObj(-1));
+    }
 
-    //xLuaTable CreateTable() { return }
-
-    LuaValueType LoadGlobal(const char* path);
+    int LoadGlobal(const char* path);
     void SetGlobal(const char* path);
 
-    LuaValueType LoadTableField(int index, int field);
-    LuaValueType LoadTableField(int index, const char* field);
+    int LoadTableField(int index, int field);
+    int LoadTableField(int index, const char* field);
     void SetTableField(int index, int field);
     void SetTableField(int index, const char* field);
 
@@ -171,42 +172,61 @@ public:
         DoLoadMul(tp, index, detail::make_index_sequence_t<sizeof...(Ty)>());
     }
 
-    inline void Push(bool val) { }
-    inline void Push(char val) { }
-    inline void Push(unsigned char val) { }
-    inline void Push(short val) { }
-    inline void Push(unsigned short val) { }
-    inline void Push(int val) { }
-    inline void Push(unsigned int val) { }
-    inline void Push(long val) { }
-    inline void Push(unsigned long val) { }
-    inline void Push(long long val) { }
-    inline void Push(unsigned long long val) { }
-    inline void Push(float val) { }
-    inline void Push(double val) { }
-    inline void Push(char* val) { }
-    inline void Push(const char* val) { }
-    inline void Push(const std::string& val) { }
-    inline void Push(std::nullptr_t) { }
-    void Push(xLuaTable val) { }
-    void Push(xLuaFunction val) { }
+    inline void Push(bool val) { lua_pushboolean(state_, val); }
+    inline void Push(char val) { lua_pushnumber(state_, val); }
+    inline void Push(unsigned char val) { lua_pushnumber(state_, val); }
+    inline void Push(short val) { lua_pushnumber(state_, val); }
+    inline void Push(unsigned short val) { lua_pushnumber(state_, val); }
+    inline void Push(int val) { lua_pushnumber(state_, val); }
+    inline void Push(unsigned int val) { lua_pushnumber(state_, val); }
+    inline void Push(long val) { lua_pushnumber(state_, val); }
+    inline void Push(unsigned long val) { lua_pushnumber(state_, val); }
+    inline void Push(long long val) { lua_pushinteger(state_, val); }
+    inline void Push(unsigned long long val) { lua_pushinteger(state_, val); }
+    inline void Push(float val) { lua_pushnumber(state_, val); }
+    inline void Push(double val) { lua_pushnumber(state_, val); }
+    inline void Push(char* val) { lua_pushstring(state_, val); }
+    inline void Push(const char* val) { lua_pushstring(state_, val); }
+    inline void Push(const std::string& val) { lua_pushstring(state_, val.c_str()); }
+    inline void Push(std::nullptr_t) { lua_pushnil(state_); }
 
-    template<> inline bool Load<bool>(int index) { return false; }
-    template<> inline char Load<char>(int index) { return false; }
-    template<> inline unsigned char Load<unsigned char>(int index) { return false; }
-    template<> inline short Load<short>(int index) { return false; }
-    template<> inline unsigned short Load<unsigned short>(int index) { return false; }
-    template<> inline int Load<int>(int index) { return false; }
-    template<> inline unsigned int Load<unsigned int>(int index) { return false; }
-    template<> inline long Load<long>(int index) { return false; }
-    template<> inline unsigned long Load<unsigned long>(int index) { return false; }
-    template<> inline long long Load<long long>(int index) { return false; }
-    template<> inline unsigned long long Load<unsigned long long>(int index) { return false; }
-    template<> inline float Load<float>(int index) { return false; }
-    template<> inline double Load<double>(int index) { return false; }
-    template<> inline const char* Load<const char*>(int index) { return false; }
-    template<> inline std::string Load<std::string>(int index) { return false; }
-    //template<> inline const std::string Load<const std::string>(int index) { return false; }
+    inline void Push(const xLuaTable& val) {
+        assert(val.lua_ == this);
+        PushLuaObj(val.ary_index_);
+    }
+
+    inline void Push(const xLuaFunction& val) {
+        assert(val.lua_ == this);
+        PushLuaObj(val.ary_index_);
+    }
+
+    template<> inline bool Load<bool>(int index) { return lua_toboolean(state_, index); }
+    template<> inline char Load<char>(int index) { return (char)lua_tonumber(state_, index); }
+    template<> inline unsigned char Load<unsigned char>(int index) { return (unsigned char)lua_tonumber(state_, index); }
+    template<> inline short Load<short>(int index) { return (short)lua_tonumber(state_, index); }
+    template<> inline unsigned short Load<unsigned short>(int index) { return (unsigned short)lua_tonumber(state_, index); }
+    template<> inline int Load<int>(int index) { return (int)lua_tonumber(state_, index); }
+    template<> inline unsigned int Load<unsigned int>(int index) { return (int)lua_tonumber(state_, index); }
+    template<> inline long Load<long>(int index) { return (long)lua_tonumber(state_, index); }
+    template<> inline unsigned long Load<unsigned long>(int index) { return (unsigned long)lua_tonumber(state_, index); }
+    template<> inline long long Load<long long>(int index) { return (long long)lua_tointeger(state_, index); }
+    template<> inline unsigned long long Load<unsigned long long>(int index) { return (unsigned long long)lua_tointeger(state_, index); }
+    template<> inline float Load<float>(int index) { return (float)lua_tonumber(state_, index); }
+    template<> inline double Load<double>(int index) { return (double)lua_tonumber(state_, index); }
+    template<> inline const char* Load<const char*>(int index) { return lua_tostring(state_, index); }
+    template<> inline std::string Load<std::string>(int index) { return std::string(lua_tostring(state_, index)); }
+
+    template<> inline xLuaTable Load<xLuaTable>(int index) {
+        if (lua_type(state_, index) == LUA_TTABLE)
+            return xLuaTable(this, RefLuaObj(index));
+        return xLuaTable();
+    }
+
+    template<> inline xLuaFunction Load<xLuaFunction>(int index) {
+        if (lua_type(state_, index) == LUA_TFUNCTION)
+            return xLuaFunction(this, RefLuaObj(index));
+        return xLuaFunction();
+    }
 
     template<typename... Rys, typename... Args>
     inline bool Call(std::tuple<Rys&...> ret, Args&&... args) {
@@ -357,25 +377,17 @@ public:
     void _PushWeakObjPtr(const detail::LuaUserData user_data);
 #endif // XLUA_USE_LIGHT_USER_DATA
 
-    //template <typename Ty>
-    //inline detail::LuaUserData* MakeUserData(const Ty& val, const TypeInfo* info) {
-    //    using DataType = detail::LuaUserDataImpl<Ty>;
-    //    void* mem = AllocUserData(sizeof(DataType));
-    //    return new (mem) DataType(val, info);
-    //}
-
-    //template <typename Ty>
-    //inline detail::LuaUserData* MakeUserData(std::unique_ptr<Ty>&& val, const TypeInfo* info) {
-    //    using DataType = detail::LuaUserDataImpl<std::unique_ptr<Ty>>;
-    //    void* mem = AllocUserData(sizeof(DataType));
-    //    return new (mem) DataType (std::move(val), info);
-    //}
-
-    void* GetUserDataPtr(int index) { return nullptr; }
 private:
     struct UserDataCache {
         int lua_ref_;
         detail::LuaUserData* user_data_;
+    };
+    struct LuaObjRef {
+        union {
+            int lua_ref_;
+            int next_free_;
+        };
+        int ref_count_;
     };
 
     inline void UpdateCahce(UserDataCache& cache, void* ptr, const TypeInfo* info) {
@@ -401,11 +413,19 @@ private:
     void CreateMeta(const TypeInfo* info);
     void PushClosure(lua_CFunction func);
 
+    int RefLuaObj(int index);
+    void PushLuaObj(int ary_index);
+    void AddObjRef(int ary_index);
+    void UnRefObj(int ary_index);
+
 private:
     bool attach_;
     lua_State* state_;
-    int meta_table_ref_;        // 导出元表索引
-    int user_data_table_ref_;   // user data table
+    int meta_table_ref_ = 0;        // 导出元表索引
+    int user_data_table_ref_ = 0;   // user data table
+    int lua_obj_table_ref_ = 0;     // table, function
+    int next_free_lua_obj_ = -1;    // 下一个的lua对象表空闲槽
+    std::vector<LuaObjRef> lua_objs_;
     std::vector<int> type_meta_ref_;
     std::unordered_map<void*, UserDataCache> raw_ptrs_;
     std::unordered_map<void*, UserDataCache> shared_ptrs_;
@@ -442,21 +462,27 @@ namespace detail {
 
     template <typename Ty>
     struct Pusher {
-        static_assert(IsExternal<Ty>::value || IsExtendLoad<Ty>::value, "");
+        static_assert(IsExternal<Ty>::value || IsExtendLoad<Ty>::value || std::is_enum<Ty>::value, "not support to export");
         static inline void Do(xLuaState* l, const Ty& val) {
-            using tag = typename std::conditional<IsExternal<Ty>::value, tag_external, tag_extend>::type;
-            PushValue(l, val, tag());
+            using tag = typename std::conditional<IsExternal<Ty>::value, tag_external,
+                typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_extend>::type>::type;
+            PushValue<Ty>(l, val, tag());
         }
 
-        template <typename Ty>
-        static inline void PushValue(xLuaState* l, const Ty& val, tag_extend) {
+        template <typename U>
+        static inline void PushValue(xLuaState* l, const U& val, tag_extend) {
             ::xLuaPush(l, val);
         }
 
-        template <typename Ty>
-        static inline void PushValue(xLuaState* l, const Ty& val, tag_external) {
-            static_assert(!IsWeakObjPtr<Ty>::value, "not allow push weak obj value");
-            l->PushUserData(val, GetTypeInfoImpl<Ty>());
+        template <typename U>
+        static inline void PushValue(xLuaState* l, const U& val, tag_enum) {
+            l->Push(static_cast<int>(val));
+        }
+
+        template <typename U>
+        static inline void PushValue(xLuaState* l, const U& val, tag_external) {
+            static_assert(!IsWeakObjPtr<U>::value, "not allow push weak obj value");
+            l->PushUserData(val, GetTypeInfoImpl<U>());
         }
     };
 
@@ -516,15 +542,21 @@ namespace detail {
 
     template <typename Ty>
     struct Loader {
-        static_assert(IsExternal<Ty>::value || IsExtendLoad<Ty>::value, "");
-        using tag = typename std::conditional<IsExternal<Ty>::value, tag_external, tag_extend>::type;
+        static_assert(IsExternal<Ty>::value || IsExtendLoad<Ty>::value || std::is_enum<Ty>::value, "not support load");
         static inline Ty Do(xLuaState* l, int index) {
+            using tag = typename std::conditional<IsExternal<Ty>::value, tag_external,
+                typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_extend>::type>::type;
             return LoadValue<Ty>(l, index, tag());
         }
 
         template <typename U>
         static inline U LoadValue(xLuaState* l, int index, tag_extend) {
             return ::xLuaLoad(l, index, Identity<U>());
+        }
+
+        template <typename U>
+        static inline U LoadValue(xLuaState* l, int index, tag_enum) {
+            return (U)static_cast<int>(lua_tonumber(l->GetState(), index));
         }
 
         template <typename U>

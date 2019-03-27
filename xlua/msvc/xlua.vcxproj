@@ -27,12 +27,14 @@
     <ClInclude Include="..\src\xlua.h" />
     <ClInclude Include="..\src\xlua_def.h" />
     <ClInclude Include="..\src\xlua_export.h" />
+    <ClInclude Include="..\src\xlua_obj.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\detail\global.cpp" />
     <ClCompile Include="..\src\detail\type_desc.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\xlua.cpp" />
+    <ClCompile Include="..\src\xlua_obj.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

@@ -3,6 +3,11 @@
 #include "detail/traits.h"
 #include "detail/export.h"
 
+/* 匿名*/
+#define _XLUA_ANONYMOUS_2(line) Anonymous##line
+#define _XLUA_ANONYMOUS_1(line) _XLUA_ANONYMOUS_2(line)
+#define _XLUA_ANONYMOUS         _XLUA_ANONYMOUS_1(__LINE__)
+
 #define _XLUA_SUPER_CLASS(...)  typename xlua::detail::BaseType<__VA_ARGS__>::type
 
 // 导出实现
@@ -10,14 +15,14 @@
     static_assert(!std::is_null_pointer<decltype(Func)>::value,                         \
         "can not export func:"#Name" with null pointer"                                 \
     );                                                                                  \
-    struct Func_##__LINE__ {                                                            \
+    struct _XLUA_ANONYMOUS {                                                            \
         static int call(lua_State* l) {                                                 \
             xlua::xLuaState* xl = xlua::detail::GlobalVar::GetInstance()->GetState(l);  \
             assert(xl);                                                                 \
             return xlua::detail::Meta<class_type>::Call(xl, s_type_info, Func);         \
         }                                                                               \
     };                                                                                  \
-    desc->AddMember(#Name, &Func_##__LINE__::call,                                      \
+    desc->AddMember(#Name, &_XLUA_ANONYMOUS::call,                                      \
         !std::is_member_function_pointer<decltype(Func)>::value);
 
 #define _XLUA_EXPORT_VAR(Name, GetOp, SetOp, Meta)                                      \
@@ -25,7 +30,7 @@
         xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::is_allow,         \
         "can not export var:"#Name" to lua"                                             \
     );                                                                                  \
-    struct Var_##__LINE__ {                                                             \
+    struct _XLUA_ANONYMOUS {                                                            \
         static void Get(xlua::xLuaState* l, void* obj) {                                \
             xlua::detail::Meta<class_type>::Get(l, (class_type*)obj, GetOp);            \
         }                                                                               \
@@ -34,8 +39,8 @@
         }                                                                               \
     };                                                                                  \
     desc->AddMember(#Name,                                                              \
-        std::is_null_pointer<decltype(GetOp)>::value ? nullptr : &Var_##__LINE__::Get,  \
-        std::is_null_pointer<decltype(SetOp)>::value ? nullptr : &Var_##__LINE__::Set,  \
+        std::is_null_pointer<decltype(GetOp)>::value ? nullptr : &_XLUA_ANONYMOUS::Get, \
+        std::is_null_pointer<decltype(SetOp)>::value ? nullptr : &_XLUA_ANONYMOUS::Set, \
         !xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::is_member        \
     );
 
@@ -51,7 +56,7 @@
         "base type is not declare to export to lua"                                     \
     );                                                                                  \
     namespace {                                                                         \
-        xlua::detail::TypeNode type_node_##__LINE__(&ClassName::xLuaGetTypeInfo);       \
+        xlua::detail::TypeNode _XLUA_ANONYMOUS(&ClassName::xLuaGetTypeInfo);            \
     } /* end namespace */                                                               \
     const xlua::TypeInfo* ClassName::xLuaGetTypeInfo() {                                \
         using class_type = ClassName;                                                   \
@@ -89,7 +94,7 @@
         "base type is not declare to export to lua"                                     \
     );                                                                                  \
     namespace {                                                                         \
-        xlua::detail::TypeNode type_node_##__LINE__([]() -> const xlua::TypeInfo* {     \
+        xlua::detail::TypeNode _XLUA_ANONYMOUS([]() -> const xlua::TypeInfo* {          \
             return xLuaGetTypeInfo(xlua::Identity<ClassName>());                        \
         });                                                                             \
     } /* end namespace */                                                               \
@@ -118,7 +123,7 @@
 /* 导出全局表 */
 #define XLUA_EXPORT_GLOBAL_BEGIN(Name)                                                  \
     namespace {                                                                         \
-        xlua::detail::TypeNode type_node_##__LINE__([]() -> const xlua::TypeInfo* {     \
+        xlua::detail::TypeNode _XLUA_ANONYMOUS([]() -> const xlua::TypeInfo* {          \
             static const xlua::TypeInfo* s_type_info = nullptr;                         \
             if (s_type_info)                                                            \
                 return s_type_info;                                                     \
@@ -146,7 +151,7 @@
 
 #define _XLUA_EXPORT_CONST_BEGIN(Name)                          \
     namespace {                                                 \
-        xlua::detail::ConstNode const_node_##__LINE__(          \
+        xlua::detail::ConstNode _XLUA_ANONYMOUS(                \
         []() -> const xlua::ConstInfo* {                        \
             static xlua::ConstInfo info;                        \
             info.name = #Name;
@@ -180,6 +185,6 @@
 /* 导出预设脚本 */
 #define XLUA_EXPORT_SCRIPT(Str)                                 \
     namespace {                                                 \
-        xlua::detail::ScriptNode script_node_##__LINE__(Str);   \
+        xlua::detail::ScriptNode _XLUA_ANONYMOUS(Str);          \
     }
 

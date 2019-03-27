@@ -39,10 +39,16 @@ enum class TestEnum2
     kValue12,
 };
 
+struct TestNone
+{};
+
 struct TestLuaExport
 {
     int ia;
     void test_call() {}
+
+    void test_enum(TestEnum2) {}
+    TestNone GetNone() { return TestNone(); }
 };
 
 XLUA_EXPORT_ENUM_BEGIN(TestEnum2)
@@ -54,6 +60,8 @@ XLUA_DECLARE_EXTERNAL_CLASS(TestLuaExport);
 
 XLUA_EXPORT_EXTERNAL_CLASS_BEGIN(TestLuaExport)
 XLUA_EXPORT_MEMBER_FUNC(test_call)
+XLUA_EXPORT_MEMBER_FUNC(test_enum)
+//XLUA_EXPORT_MEMBER_FUNC(GetNone)
 XLUA_EXPORT_MEMBER_VAR(ia)
 XLUA_EXPORT_EXTERNAL_CLASS_END()
 

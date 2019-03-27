@@ -34,6 +34,9 @@
     <ClInclude Include="..\src\detail\state.h">
       <Filter>src\detail</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\xlua_obj.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\xlua.cpp">
@@ -47,6 +50,9 @@
     </ClCompile>
     <ClCompile Include="..\src\detail\type_desc.cpp">
       <Filter>src\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\xlua_obj.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
