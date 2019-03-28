@@ -1,4 +1,4 @@
-﻿#include "xlua.h"
+﻿#include "xlua_state.h"
 #include "detail/global.h"
 
 XLUA_NAMESPACE_BEGIN
@@ -222,34 +222,6 @@ namespace detail {
     };
 }
 
-bool Startup() {
-    return detail::GlobalVar::Startup();
-}
-
-void Shutdown() {
-    auto global = detail::GlobalVar::GetInstance();
-    if (global == nullptr)
-        return;
-
-    global->Purge();
-}
-
-xLuaState* Create() {
-    auto global = detail::GlobalVar::GetInstance();
-    if (global == nullptr)
-        return nullptr;
-
-    return global->Create();
-}
-
-xLuaState* Attach(lua_State* l) {
-    auto global = detail::GlobalVar::GetInstance();
-    if (global == nullptr)
-        return nullptr;
-
-    return global->Attach(l);
-}
-
 xLuaGuard::xLuaGuard(xLuaState* l) : l_(l) {
     top_ = l->GetTopIndex();
 }
@@ -387,6 +359,7 @@ bool xLuaState::SetGlobal(const char* path) {
     lua_rotate(state_, -3, 1);          // move target value to top
     lua_settable(state_, -3);           // set table field
     lua_pop(state_, 1);
+    return true;
 }
 
 bool xLuaState::_TryPushSharedPtr(void* root, void* ptr, const TypeInfo* info) {
@@ -650,8 +623,8 @@ int xLuaState::RefLuaObj(int index) {
         lua_objs_.resize(n_s, LuaObjRef{-1, 0});
 
         for (size_t i = o_s; i < n_s; ++i)
-            lua_objs_[i].next_free_ = i+1;
-        next_free_lua_obj_ = o_s;
+            lua_objs_[i].next_free_ = (int)(i + 1);
+        next_free_lua_obj_ = (int)o_s;
         lua_objs_.back().next_free_ = -1;
     }
 

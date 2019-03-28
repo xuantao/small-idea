@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include "xlua_def.h"
-#include "xlua_obj.h"
 #include "detail/traits.h"
 #include "detail/state.h"
+#include "xlua_def.h"
+#include "xlua_obj.h"
 #include <lua.hpp>
 #include <string>
 #include <unordered_map>
@@ -20,11 +20,6 @@ namespace detail {
     template <typename Ty> struct Loader;
     struct MetaFuncs;
 }
-
-bool Startup();
-void Shutdown();
-xLuaState* Create();
-xLuaState* Attach(lua_State* l);
 
 /* lua堆栈守卫 */
 class xLuaGuard {
@@ -262,7 +257,7 @@ private:
     template<typename... Rys, typename... Args>
     inline bool DoCall(std::tuple<Rys&...>& ret, Args&&... args) {
         int top = GetTopIndex();
-        if (!((int)GetValueType(top) & (int)LuaValueType::kFunction))
+        if (GetType(-1) != LUA_TFUNCTION)
             return false;
 
         PushMul(std::forward<Args>(args)...);

@@ -28,6 +28,7 @@
     <ClInclude Include="..\src\xlua_def.h" />
     <ClInclude Include="..\src\xlua_export.h" />
     <ClInclude Include="..\src\xlua_obj.h" />
+    <ClInclude Include="..\src\xlua_state.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\detail\global.cpp" />
@@ -35,6 +36,7 @@
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\xlua.cpp" />
     <ClCompile Include="..\src\xlua_obj.cpp" />
+    <ClCompile Include="..\src\xlua_state.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
