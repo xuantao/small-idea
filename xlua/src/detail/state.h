@@ -84,10 +84,8 @@ namespace detail {
     enum class LuaUserDataType {
         kValue,
         kRawPtr,
-        kObjPtr,
         kSharedPtr,
-        kLuaObjPtr,
-        kWeakObjPtr,
+        kObjPtr,
     };
 
     struct LuaUserData {
@@ -142,21 +140,6 @@ namespace detail {
     };
 
     template <typename Ty>
-    struct LuaUserDataImpl<std::unique_ptr<Ty>> : LuaUserData {
-        LuaUserDataImpl(std::unique_ptr<Ty>&& val, const TypeInfo* info)
-            : LuaUserData(LuaUserDataType::kUniquePtr, nullptr, info)
-            , val_(std::move(val)) {
-            obj_ = val_.get();
-        }
-
-        virtual ~LuaUserDataImpl() {}
-
-        void* GetDataPtr() override { return &val_; }
-
-        std::unique_ptr<Ty> val_;
-    };
-
-    template <typename Ty>
     struct LuaUserDataImpl<std::shared_ptr<Ty>> : LuaUserData {
         LuaUserDataImpl(const std::shared_ptr<Ty>& val, const TypeInfo* info)
             : LuaUserData(LuaUserDataType::kSharedPtr, nullptr, info)
@@ -170,16 +153,6 @@ namespace detail {
 
         std::shared_ptr<Ty> val_;
     };
-
-    template <typename Ty>
-    inline LuaUserData* MakeUserData(const Ty& val, const TypeInfo* info) {
-        return new LuaUserDataImpl<Ty>(val, info);
-    }
-
-    template <typename Ty>
-    inline LuaUserData* MakeUserData(std::unique_ptr<Ty>&& val, const TypeInfo* info) {
-        return new LuaUserDataImpl<std::unique_ptr<Ty>>(std::move(val), info);
-    }
 
     template <typename Ty>
     Ty* GetLightUserDataPtr(void* user_data, const TypeInfo* info) {
@@ -234,18 +207,18 @@ namespace detail {
             return (Ty*)ud->info_->caster.to_super(ud->obj_, ud->info_, info);
         }
 
-        if (ud->type_ == LuaUserDataType::kLuaObjPtr) {
-            ArrayObj* ary_obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
-            if (ary_obj == nullptr || ary_obj->obj_ == nullptr || ary_obj->serial_num_ != ud->serial_)
-                return nullptr;
-            return (Ty*)ud->info_->caster.to_super(ary_obj->obj_, ud->info_, info);
-        }
-
-        if (ud->type_ == LuaUserDataType::kWeakObjPtr) {
-            auto base = (XLUA_WEAK_OBJ_BASE_TYPE*)xLuaGetWeakObjPtr(ud->index_);
-            if (base == nullptr || ud->serial_ != xLuaGetWeakObjSerialNum(ud->index_))
-                return nullptr;
-            return static_cast<Ty*>(base);
+        if (ud->type_ == LuaUserDataType::kObjPtr) {
+            if (ud->info_->is_weak_obj) {
+                auto base = (XLUA_WEAK_OBJ_BASE_TYPE*)xLuaGetWeakObjPtr(ud->index_);
+                if (base == nullptr || ud->serial_ != xLuaGetWeakObjSerialNum(ud->index_))
+                    return nullptr;
+                return static_cast<Ty*>(base);
+            } else {
+                ArrayObj* ary_obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
+                if (ary_obj == nullptr || ary_obj->obj_ == nullptr || ary_obj->serial_num_ != ud->serial_)
+                    return nullptr;
+                return (Ty*)ud->info_->caster.to_super(ary_obj->obj_, ud->info_, info);
+            }
         }
 
         //TODO: log unknown obj type

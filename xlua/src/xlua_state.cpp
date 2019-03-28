@@ -346,8 +346,7 @@ bool xLuaState::SetGlobal(const char* path) {
             lua_pushlstring(state_, path, sub - path);
             lua_gettable(state_, -2);
             lua_remove(state_, -2);
-        }
-        else if (l_ty != LUA_TTABLE) {
+        } else if (l_ty != LUA_TTABLE) {
             lua_pop(state_, 2);
             return false;
         }
@@ -362,47 +361,42 @@ bool xLuaState::SetGlobal(const char* path) {
     return true;
 }
 
-bool xLuaState::_TryPushSharedPtr(void* root, void* ptr, const TypeInfo* info) {
-    auto it = shared_ptrs_.find(root);
-    if (it == shared_ptrs_.cend())
-        return false;
+void xLuaState::Gc(detail::LuaUserData* ud) {
+    switch (ud->type_)
+    {
+    case detail::LuaUserDataType::kValue:
+        break;
+    case detail::LuaUserDataType::kRawPtr:
+        {
+            auto it = raw_ptrs_.find(detail::GetRootPtr(ud->obj_, ud->info_));
+            UnRefCachce(it->second);
+            raw_ptrs_.erase(it);
+        }
+        break;
+    case detail::LuaUserDataType::kSharedPtr:
+        {
+            auto it = shared_ptrs_.find(detail::GetRootPtr(ud->obj_, ud->info_));
+            UnRefCachce(it->second);
+            shared_ptrs_.erase(it);
+        }
+        break;
+    case detail::LuaUserDataType::kObjPtr:
+        if (ud->info_->is_weak_obj) {
+            auto& udc = weak_obj_ptrs_[ud->index_];
+            if (ud == udc.user_data_)
+                UnRefCachce(udc);
+        } else {
+            auto& udc = lua_obj_ptrs_[ud->index_];
+            if (ud == udc.user_data_)
+                UnRefCachce(udc);
+        }
+        break;
+    default:
+        assert(false);
+        break;
+    }
 
-    //PushCacheUd(it->second, ptr, info);
-    return true;
-}
-
-void xLuaState::_PushSharedPtr(void* root, detail::LuaUserData* user_data) {
-    auto& cache = shared_ptrs_[root];
-    cache.user_data_ = user_data;
-    PushUd(cache);
-}
-
-void xLuaState::_PushUniquePtr(detail::LuaUserData* user_data) {
-    printf("push unique_ptr\n");
-    //TODO: real push to lua
-}
-
-void xLuaState::_PushValue(detail::LuaUserData* user_data) {
-
-}
-
-bool xLuaState::_TryPushRawPtr(void* root, void* ptr, const TypeInfo* info) {
-    auto it = raw_ptrs_.find(root);
-    if (it == raw_ptrs_.cend())
-        return false;
-
-    //PushCacheUd(it->second, ptr, info);
-    return true;
-}
-
-void xLuaState::_PushRawPtr(void* root, detail::LuaUserData* user_data) {
-    auto& cache = raw_ptrs_[root];
-    cache.user_data_ = user_data;
-    PushUd(cache);
-}
-
-void xLuaState::Gc(detail::LuaUserData* user_data) {
-
+    ud->~LuaUserData();
 }
 
 bool xLuaState::InitEnv(const std::vector<TypeInfo*>& types,
@@ -669,12 +663,5 @@ void xLuaState::UnRefObj(int ary_index) {
         next_free_lua_obj_ = tmp;
     }
 }
-
-#if XLUA_USE_LIGHT_USER_DATA
-#else // XLUA_USE_LIGHT_USER_DATA
-void xLuaState::_PushWeakObjPtr(const detail::LuaUserData user_data) {
-
-}
-#endif // XLUA_USE_LIGHT_USER_DATA
 
 XLUA_NAMESPACE_END

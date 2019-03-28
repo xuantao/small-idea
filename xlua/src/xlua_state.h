@@ -39,6 +39,19 @@ private:
 
 /* lua 状态机扩展 */
 class xLuaState {
+    struct UdCache {
+        int lua_ref_;
+        detail::LuaUserData* user_data_;
+    };
+
+    struct LuaObjRef {
+        union {
+            int lua_ref_;
+            int next_free_;
+        };
+        int ref_count_;
+    };
+
     template <typename Ty> friend struct detail::Loader;
     template <typename Ty> friend struct detail::Pusher;
     friend struct detail::MetaFuncs;
@@ -75,8 +88,8 @@ public:
     bool SetGlobal(const char* path);
 
     /* 将table成员加载到栈顶并返回数据类型 */
-    inline int LoadTableField(int index, int field) { lua_geti(state_, index, field); }
-    inline int LoadTableField(int index, const char* field) { lua_getfield(state_, index, field); }
+    inline int LoadTableField(int index, int field) { return lua_geti(state_, index, field); }
+    inline int LoadTableField(int index, const char* field) { return lua_getfield(state_, index, field); }
 
     /* 将栈顶元素设置为table成员 */
     inline void SetTableField(int index, int field) { lua_seti(state_, index, field); }
@@ -242,7 +255,8 @@ public:
     template <typename... Rys, typename... Args>
     inline bool Call(xLuaTable table, const char* func , std::tuple<Rys&...> ret, Args&&... args) {
         xLuaGuard guard(this);
-        //GetTableField(table, func);
+        Push(table);
+        LoadTableField(-1, func);
         return DoCall(ret, table, std::forward<Args>(args)...);
     }
 
@@ -261,12 +275,13 @@ private:
             return false;
 
         PushMul(std::forward<Args>(args)...);
-        //TODO: DoCall
+        if (lua_pcall(state_, sizeof...(Args), sizeof...(Rys), 0) != LUA_OK) {
+            // log err
+            return false;
+        }
         DoLoadMul(ret, top, detail::make_index_sequence_t<sizeof...(Rys)>());
         return true;
     }
-
-    bool _TryPushSharedPtr(void* root, void* ptr, const TypeInfo* info);
 
     detail::LuaUserData* PushUserData(const detail::LuaUserData& val) {
         using DataType = detail::LuaUserData;
@@ -277,7 +292,6 @@ private:
         lua_rawgeti(state_, -1, val.info_->index);   // metatable
         lua_remove(state_, -2);     // remove type table
         lua_setmetatable(state_, 2);
-
         return data;
     }
 
@@ -291,18 +305,37 @@ private:
         lua_rawgeti(state_, -1, info->index);   // metatable
         lua_remove(state_, -2);     // remove type table
         lua_setmetatable(state_, 2);
-
         return data;
     }
 
     void PushWeakObjPtr(const detail::LuaUserData& ud) {
-        assert(ud.type_ == detail::LuaUserDataType::kWeakObjPtr);
-        //TODO:
+        assert(ud.type_ == detail::LuaUserDataType::kObjPtr);
+        if (weak_obj_ptrs_.size() < ud.index_) {
+            weak_obj_ptrs_.resize((1 + ud.index_ / 1024) * 1024, UdCache{0, nullptr});
+        }
+
+        auto& udc = lua_obj_ptrs_[ud.index_];
+        if (udc.user_data_ != nullptr && udc.user_data_->serial_ == ud.serial_) {
+            UpdateCahce(udc, ud.obj_, ud.info_);
+            PushUd(udc);
+        } else {
+            udc = RefCache(PushUserData(ud));
+        }
     }
 
     void PushLuaObjPtr(const detail::LuaUserData& ud) {
-        assert(ud.type_ == detail::LuaUserDataType::kLuaObjPtr);
-        //TODO:
+        assert(ud.type_ == detail::LuaUserDataType::kObjPtr);
+        if (lua_obj_ptrs_.size() < ud.index_) {
+            lua_obj_ptrs_.resize((1 + ud.index_ / 1024) * 1024, UdCache{0, nullptr});
+        }
+
+        auto& udc = lua_obj_ptrs_[ud.index_];
+        if (udc.user_data_ != nullptr && udc.user_data_->serial_ == ud.serial_) {
+            UpdateCahce(udc, ud.obj_, ud.info_);
+            PushUd(udc);
+        } else {
+            udc = RefCache(PushUserData(ud));
+        }
     }
 
     void PushRawPtr(const detail::LuaUserData& ud) {
@@ -313,14 +346,7 @@ private:
             UpdateCahce(it->second, ud.obj_, ud.info_);
             PushUd(it->second);
         } else {
-            UserDataCache udc;
-            udc.user_data_ = PushUserData(ud);
-
-            lua_rawgeti(state_, LUA_REGISTRYINDEX, user_data_table_ref_);
-            lua_pushvalue(state_, -2);              // copy user data
-            udc.lua_ref_ = luaL_ref(state_, -2);    // cache
-            lua_pop(state_, 1);
-
+            UdCache udc = RefCache(PushUserData(ud));
             raw_ptrs_.insert(std::make_pair(root, udc));
         }
     }
@@ -333,63 +359,39 @@ private:
             UpdateCahce(it->second, ptr.get(), info);
             PushUd(it->second);
         } else {
-            UserDataCache ud;
-            ud.user_data_ = PushUserData(ptr, info);
-
-            lua_rawgeti(state_, LUA_REGISTRYINDEX, user_data_table_ref_);
-            lua_pushvalue(state_, -2);
-            ud.lua_ref_ = luaL_ref(state_, -2);
-            lua_pop(state_, 1);
-
-            shared_ptrs_.insert(std::make_pair(root, ud));
+            UdCache udc = RefCache(PushUserData(ptr, info));
+            shared_ptrs_.insert(std::make_pair(root, udc));
         }
     }
 
-    template <typename Ty>
-    void PushUserData(void* root, const Ty& ptr, const TypeInfo* info) {
-        using DataType = detail::LuaUserDataImpl<Ty>;
-        //if ()
-    }
-
-    void _PushSharedPtr(void* root, detail::LuaUserData* user_data);
-    void _PushUniquePtr(detail::LuaUserData* user_data);
-    void _PushValue(detail::LuaUserData* user_data);
-
-    bool _TryPushRawPtr(void* root, void* ptr, const TypeInfo* info);
-    void _PushRawPtr(void* root, detail::LuaUserData* user_data);
-
-    bool _IsLightUserData(int index) const { return false; }
-    bool _IsFullUserData(int index) const { return false; }
-
-#if XLUA_USE_LIGHT_USER_DATA
-#else
-    void _PushWeakObjPtr(const detail::LuaUserData user_data);
-#endif // XLUA_USE_LIGHT_USER_DATA
-
-private:
-    struct UserDataCache {
-        int lua_ref_;
-        detail::LuaUserData* user_data_;
-    };
-    struct LuaObjRef {
-        union {
-            int lua_ref_;
-            int next_free_;
-        };
-        int ref_count_;
-    };
-
-    inline void UpdateCahce(UserDataCache& cache, void* ptr, const TypeInfo* info) {
+    inline void UpdateCahce(UdCache& cache, void* ptr, const TypeInfo* info) {
         if (!detail::IsBaseOf(info, cache.user_data_->info_)) {
             cache.user_data_->obj_ = ptr;
             cache.user_data_->info_ = info;
         }
     }
 
-    inline void PushUd(UserDataCache& cache) {
+    inline void PushUd(UdCache& cache) {
         lua_rawgeti(state_, LUA_REGISTRYINDEX, user_data_table_ref_);
         lua_rawgeti(state_, -1, cache.lua_ref_);
         lua_remove(state_, -2);
+    }
+
+    inline UdCache RefCache(detail::LuaUserData* data) {
+        UdCache udc ={0, data};
+        lua_rawgeti(state_, LUA_REGISTRYINDEX, user_data_table_ref_);
+        lua_pushvalue(state_, -2);
+        udc.lua_ref_ = luaL_ref(state_, -2);
+        lua_pop(state_, 1);
+        return udc;
+    }
+
+    inline void UnRefCachce(UdCache& cache) {
+        lua_rawgeti(state_, LUA_REGISTRYINDEX, user_data_table_ref_);
+        luaL_unref(state_, -1, cache.lua_ref_);
+        lua_pop(state_, 1);
+        cache.lua_ref_ = 0;
+        cache.user_data_ = nullptr;
     }
 
     void Gc(detail::LuaUserData* user_data);
@@ -410,46 +412,21 @@ private:
 private:
     bool attach_;
     lua_State* state_;
+    char type_name_buf_[256];       // 输出类型名称缓存
     int meta_table_ref_ = 0;        // 导出元表索引
     int user_data_table_ref_ = 0;   // user data table
     int lua_obj_table_ref_ = 0;     // table, function
     int next_free_lua_obj_ = -1;    // 下一个的lua对象表空闲槽
     std::vector<LuaObjRef> lua_objs_;
     std::vector<int> type_meta_ref_;
-    std::unordered_map<void*, UserDataCache> raw_ptrs_;
-    std::unordered_map<void*, UserDataCache> shared_ptrs_;
-    char type_name_buf_[256];
+    std::vector<UdCache> lua_obj_ptrs_;
+    std::vector<UdCache> weak_obj_ptrs_;
+    std::unordered_map<void*, UdCache> raw_ptrs_;
+    std::unordered_map<void*, UdCache> shared_ptrs_;
 };
 
 namespace detail {
     /* push operator */
-#if XLUA_USE_LIGHT_USER_DATA
-#else // XLUA_USE_LIGHT_USER_DATA
-    template <typename Ty>
-    inline void PushPointer(xLuaState* l, Ty* val, tag_weakobj) {
-        int index = xLuaAllocWeakObjIndex(val);
-        int serial_num = xLuaGetWeakObjSerialNum(index);
-        const TypeInfo* info = GetTypeInfoImpl<Ty>();
-        l->_PushWeakObjPtr(LuaUserData(LuaUserDataType::kWeakObjPtr, index, serial_num, info));
-    }
-
-    template <typename Ty>
-    inline void PushPointer(xLuaState* l, Ty* val, tag_internal) {
-        int index = AllocInternalIndex(val);
-        int serial_num = GetInternalSerialNum(index);
-        const TypeInfo* info = GetTypeInfoImpl<Ty>();
-        l->_PushWeakObjPtr(LuaUserData(LuaUserDataType::kWeakObjPtr, index, serial_num, info));
-    }
-
-    template <typename Ty>
-    inline void PushPointer(xLuaState* l, Ty* val, tag_external) {
-        const TypeInfo* info = GetTypeInfoImpl<Ty>();
-        void* root = GetRootPtr(val, info);
-        if (!l->_TryPushRawPtr(root))
-            l->_PushRawPtr(root, l->MakeUserData(val, info));
-    }
-#endif // XLUA_USE_LIGHT_USER_DATA
-
     template <typename Ty>
     struct Pusher {
         static_assert(IsInternal<Ty>::value
@@ -525,7 +502,27 @@ namespace detail {
             lua_pushlightuserdata(l->GetState(), ptr.ptr_);
         }
 #else // XLUA_USE_LIGHT_USER_DATA
-        //TODO:
+        template <typename Ty>
+        inline void PushPointer(xLuaState* l, Ty* val, tag_weakobj) {
+            int index = xLuaAllocWeakObjIndex(val);
+            int serial_num = xLuaGetWeakObjSerialNum(index);
+            const TypeInfo* info = GetTypeInfoImpl<Ty>();
+            l->PushWeakObjPtr(LuaUserData(LuaUserDataType::kObjPtr, index, serial_num, info));
+        }
+
+        template <typename Ty>
+        inline void PushPointer(xLuaState* l, Ty* val, tag_internal) {
+            int index = AllocInternalIndex(val);
+            int serial_num = GetInternalSerialNum(index);
+            const TypeInfo* info = GetTypeInfoImpl<Ty>();
+            l->PushLuaObjPtr(LuaUserData(LuaUserDataType::kObjPtr, index, serial_num, info));
+        }
+
+        template <typename Ty>
+        inline void PushPointer(xLuaState* l, Ty* val, tag_external) {
+            const TypeInfo* info = GetTypeInfoImpl<Ty>();
+            l->PushRawPtr(LuaUserData(LuaUserDataType::kRawPtr, val, info));
+        }
 #endif // XLUA_USE_LIGHT_USER_DATA
     };
 

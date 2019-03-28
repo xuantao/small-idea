@@ -222,11 +222,13 @@ namespace detail
                 LuaUserData* ud = static_cast<LuaUserData*>(lua_touserdata(l->GetState(), index));
                 ud_info.info = ud->info_;
                 if (!check_nil) {
-                    if (ud->type_ == LuaUserDataType::kLuaObjPtr) {
-                        ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
-                        ud_info.is_nil = (obj == nullptr || obj->serial_num_ != obj->serial_num_);
-                    } else if (ud->type_ == LuaUserDataType::kWeakObjPtr) {
-                        ud_info.is_nil = (ud->serial_ == xLuaGetWeakObjSerialNum(ud->index_));
+                    if (ud->type_ == LuaUserDataType::kObjPtr) {
+                        if (ud->info_->is_weak_obj) {
+                            ud_info.is_nil = (ud->serial_ == xLuaGetWeakObjSerialNum(ud->index_));
+                        } else {
+                            ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
+                            ud_info.is_nil = (obj == nullptr || obj->serial_num_ != obj->serial_num_);
+                        }
                     } else if (ud->type_ == LuaUserDataType::kValue) {
                         ud_info.is_ptr = false;
                     }
@@ -419,13 +421,15 @@ namespace detail
             int l_ty = l->GetType(index);
             if (l_ty == LUA_TUSERDATA) {
                 LuaUserData* ud = static_cast<LuaUserData*>(lua_touserdata(l->GetState(), index));
-                if (ud->type_ == LuaUserDataType::kLuaObjPtr) {
-                    ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
-                    if (obj && obj->serial_num_ == ud->serial_)
-                        return obj->info_->caster.to_super(obj->obj_, obj->info_, info);
-                } else if (ud->type_ == LuaUserDataType::kWeakObjPtr) {
-                    if (ud->serial_ == xLuaGetWeakObjSerialNum(ud->index_))
-                        return info->caster.to_weak_ptr(xLuaGetWeakObjPtr(ud->index_));
+                if (ud->type_ == LuaUserDataType::kObjPtr) {
+                    if (ud->info_->is_weak_obj) {
+                        if (ud->serial_ == xLuaGetWeakObjSerialNum(ud->index_))
+                            return info->caster.to_weak_ptr(xLuaGetWeakObjPtr(ud->index_));
+                    } else {
+                        ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
+                        if (obj && obj->serial_num_ == ud->serial_)
+                            return obj->info_->caster.to_super(obj->obj_, obj->info_, info);
+                    }
                 } else if (ud->type_ == LuaUserDataType::kValue) {
                     return ud->info_->caster.to_super(ud->obj_, ud->info_, info);
                 }
