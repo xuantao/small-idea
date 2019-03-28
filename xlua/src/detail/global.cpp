@@ -25,6 +25,16 @@ namespace detail
         return l.first < r.first;
     }
 
+    void LogError(const char* fmt, ...) {
+        char buf[XLUA_MAX_BUFFER_CACHE];
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf(buf, XLUA_MAX_BUFFER_CACHE, fmt, args);
+        va_end(args);
+
+        xLuaLogError(buf);
+    }
+
     NodeBase::NodeBase(NodeType type) : type_(type)
     {
         next_ = s_node_head;
@@ -155,11 +165,11 @@ namespace detail
             // 无可用元素，增加数组容量
             if (free_index_.empty()) {
                 size_t old_size = obj_array_.size();
-                size_t new_size = obj_array_.size() + 1024;
+                size_t new_size = obj_array_.size() + XLUA_CONTAINER_INCREMENTAL;
                 obj_array_.resize(new_size, ArrayObj{0, nullptr, nullptr});
 
-                if (free_index_.capacity() < 1024)
-                    free_index_.reserve(1024);
+                if (free_index_.capacity() < XLUA_CONTAINER_INCREMENTAL)
+                    free_index_.reserve(XLUA_CONTAINER_INCREMENTAL);
 
                 for (size_t i = new_size; i > old_size; --i)
                     free_index_.push_back((int)i - 1);
@@ -198,7 +208,7 @@ namespace detail
         ary_obj.serial_num_ = 0;
 
         if ((free_index_.capacity() - free_index_.size()) == 0)
-            free_index_.reserve(free_index_.size() + 1024);
+            free_index_.reserve(free_index_.size() + XLUA_CONTAINER_INCREMENTAL);
         free_index_.push_back(index);
     }
 

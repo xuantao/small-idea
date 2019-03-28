@@ -28,66 +28,31 @@ namespace detail {
     };
 
     static void LogCallStack(lua_State* l) {
-        char buf[1024];
-        TraceCallStack(l, buf, 1024);
-        printf("%s", buf);
-    }
-
-    static bool GetLightPtrMetaMember(lua_State* l, LightPtrInfo& ret) {
-        LightDataPtr ptr = MakeLightPtr(lua_touserdata(l, 1));
-        if (ptr.ptr_ == nullptr) {
-            // log err
-            return false;
-        }
-
-        if (ptr.type_ == 0) {
-            ArrayObj* ary_obj = GlobalVar::GetInstance()->GetArrayObj(ptr.index_);
-            if (ary_obj->serial_num_ != ptr.serial_) {
-                // log err
-                return false;
-            }
-
-            ret.info = ary_obj->info_;
-            ret.obj = ary_obj->obj_;
-        } else {
-            ret.info = GlobalVar::GetInstance()->GetExternalTypeInfo(ptr.type_);
-            if (ret.info->is_weak_obj) {
-                if (ptr.serial_ != xLuaGetWeakObjSerialNum(ptr.index_)) {
-                    // log err
-                    return false;
-                }
-
-                ret.obj = xLuaGetWeakObjPtr(ptr.index_);
-            } else {
-                ret.obj = ptr.ToRawPtr();
-            }
-        }
-
-        return true;
+        char buf[XLUA_MAX_BUFFER_CACHE];
+        TraceCallStack(l, buf, XLUA_MAX_BUFFER_CACHE);
+        xLuaLogError(buf);
     }
 
     struct MetaFuncs {
         static int LuaIndex(lua_State* l) {
-            if (0 == lua_getmetatable(l, 1)) {
-                // log err
-                return 0;
-            }
-
+            lua_getmetatable(l, 1);
             lua_pushvalue(l, -2);
             int ty = lua_rawget(l, -2);
             if (ty == LUA_TFUNCTION)
                 return 1;
 
+            LuaUserData* ud = (LuaUserData*)lua_touserdata(l, 1);
             if (ty != LUA_TLIGHTUSERDATA) {
-                // log err
+                detail::LogError("type:[%s] member:[%s] is not exist", ud->info_->type_name, lua_tostring(l, 2));
+                LogCallStack(l);
                 return 0;
             }
 
             TypeMember* mem = (TypeMember*)lua_touserdata(l, -1);
             assert(mem->type == MemberType::kVariate);
-
             if (mem->getter == nullptr) {
-                // log err
+                detail::LogError("type:[%s] member:[%s] can not been read", ud->info_->type_name, lua_tostring(l, 2));
+                LogCallStack(l);
                 return 0;
             }
 
@@ -98,26 +63,25 @@ namespace detail {
         }
 
         static int LuaNewIndex(lua_State* l) {
-            if (0 == lua_getmetatable(l, 1)) {
-                // log err
-                return 0;
-            }
-
+            LuaUserData* ud = (LuaUserData*)lua_touserdata(l, 1);
+            lua_getmetatable(l, 1);
             lua_pushvalue(l, -2);           // copy key to top
             int ty = lua_rawget(l, -2);
             if (ty != LUA_TLIGHTUSERDATA) {
+                detail::LogError("type:[%s] member:[%s] is not exist", ud->info_->type_name, lua_tostring(l, 2));
+                LogCallStack(l);
                 return 0;
             }
 
             TypeMember* mem = (TypeMember*)lua_touserdata(l, -1);
             assert(mem->type == MemberType::kVariate);
             if (mem->setter == nullptr) {
-                // log err
+                detail::LogError("type:[%s] member:[%s] is read only", ud->info_->type_name, lua_tostring(l, 2));
+                LogCallStack(l);
                 return 0;
             }
 
             xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
-            LuaUserData* ud = (LuaUserData*)lua_touserdata(l, 1);
             mem->setter(xl, ud->obj_);
             return 0;
         }
@@ -140,60 +104,101 @@ namespace detail {
             return 0;
         }
 
+#if XLUA_USE_LIGHT_USER_DATA
+        static LightPtrInfo GetLightPtrInfo(lua_State* l) {
+            LightPtrInfo ret{ nullptr, nullptr };
+            LightDataPtr ptr = MakeLightPtr(lua_touserdata(l, 1));
+            if (ptr.ptr_ == nullptr)
+                return ret;
+
+            if (ptr.type_ == 0) {
+                ArrayObj* ary_obj = GlobalVar::GetInstance()->GetArrayObj(ptr.index_);
+                if (ary_obj->serial_num_ != ptr.serial_)
+                    return ret;
+
+                ret.info = ary_obj->info_;
+                ret.obj = ary_obj->obj_;
+            } else {
+                const TypeInfo* info = GlobalVar::GetInstance()->GetExternalTypeInfo(ptr.type_);
+                if (info->is_weak_obj) {
+                    if (ptr.serial_ != xLuaGetWeakObjSerialNum(ptr.index_))
+                        return ret;
+
+                    ret.obj = info->caster.to_weak_ptr(xLuaGetWeakObjPtr(ptr.index_));
+                } else {
+                    ret.obj = ptr.ToRawPtr();
+                }
+
+                ret.info = info;
+            }
+
+            return ret;
+        }
+
         static int LuaLightPtrIndex(lua_State* l) {
-            LightPtrInfo ptr;
-            if (!GetLightPtrMetaMember(l, ptr))
+            LightPtrInfo ptr_info = GetLightPtrInfo(l);
+            if (ptr_info.obj == nullptr) {
+                detail::LogError("light user data ptr is null");
+                LogCallStack(l);
                 return 0;
+            }
 
             xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
             lua_rawgeti(l, LUA_REGISTRYINDEX, xl->meta_table_ref_);
-            lua_rawgeti(l, -1, ptr.info->index);
+            lua_rawgeti(l, -1, ptr_info.info->index);
             lua_pushvalue(l, -3);
             int ty = lua_rawget(l, -2);
             if (ty == LUA_TFUNCTION)
                 return 1;   // function
 
             if (ty != LUA_TLIGHTUSERDATA) {
-                // log err
+                detail::LogError("type:[%s] member:[%s] is not exist", ptr_info.info->type_name, lua_tostring(l, 2));
+                LogCallStack(l);
                 return 0;
             }
 
             TypeMember* mem = (TypeMember*)lua_touserdata(l, -1);
             assert(mem->type == MemberType::kVariate);
             if (mem->getter == nullptr) {
-                // log err
+                detail::LogError("type:[%s] member:[%s] can not been read", ptr_info.info->type_name, lua_tostring(l, 2));
+                LogCallStack(l);
                 return 0;
             }
 
-            mem->getter(xl, ptr.obj);
+            mem->getter(xl, ptr_info.obj);
             return 1;
         }
 
         static int LuaLightPtrNewIndex(lua_State* l) {
-            LightPtrInfo ptr;
-            if (!GetLightPtrMetaMember(l, ptr))
+            LightPtrInfo ptr_info = GetLightPtrInfo(l);
+            if (ptr_info.obj == nullptr) {
+                detail::LogError("light user data ptr is null");
+                LogCallStack(l);
                 return 0;
+            }
 
             xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
             lua_rawgeti(l, LUA_REGISTRYINDEX, xl->meta_table_ref_);
-            lua_rawgeti(l, -1, ptr.info->index);
+            lua_rawgeti(l, -1, ptr_info.info->index);
             lua_pushvalue(l, -3);
             if (lua_rawget(l, -2) != LUA_TLIGHTUSERDATA) {
-                // log err
+                detail::LogError("type:[%s] member:[%s] can not been modify", ptr_info.info->type_name, lua_tostring(l, 2));
+                LogCallStack(l);
                 return 0;
             }
 
             TypeMember* mem = (TypeMember*)lua_touserdata(l, -1);
             assert(mem->type == MemberType::kVariate);
             if (mem->setter == nullptr) {
-                // log err
+                detail::LogError("type:[%s] member:[%s] is read only", ptr_info.info->type_name, lua_tostring(l, 2));
+                LogCallStack(l);
                 return 0;
             }
 
-            mem->setter(xl, ptr.obj);
+            mem->setter(xl, ptr_info.obj);
             return 0;
         }
-
+#endif
         static int LuaGlobalIndex(lua_State* l) {
             return 0;
         }
@@ -203,20 +208,22 @@ namespace detail {
         }
 
         static int LuaConstIndex(lua_State* l) {
-            //const char* pszKey = lua_tostring(L, 2);
-            //if (pszKey)
-            {
-                //TraceCallStack(L);
-            }
+            lua_pushstring(l, "__name");
+            if (lua_rawget(l, 1) != LUA_TSTRING)
+                return 0;
+
+            detail::LogError("const Type:[%s] member:[%s] does not exist", lua_tostring(l, 2), lua_tostring(l, -1));
+            LogCallStack(l);
             return 0;
         }
 
         static int LuaConstNewIndex(lua_State* l) {
-            //const char* pszKey = lua_tostring(L, 2);
-            //if (pszKey)
-            {
-                //TraceCallStack(L);
-            }
+            lua_pushstring(l, "__name");
+            if (lua_rawget(l, 1) != LUA_TSTRING)
+                return 0;
+
+            detail::LogError("const Type:[%s] member:[%s] can not been modify", lua_tostring(l, 2), lua_tostring(l, -1));
+            LogCallStack(l);
             return 0;
         }
     };
@@ -268,9 +275,9 @@ const char* xLuaState::GetTypeName(int index) {
         if (ptr.type_ == 0) {
             detail::ArrayObj* obj = detail::GlobalVar::GetInstance()->GetArrayObj(ptr.index_);
             if (obj == nullptr)
-                snprintf(type_name_buf_, 256, "nullptr");
+                snprintf(type_name_buf_, XLUA_MAX_TYPE_NAME_LENGTH, "nullptr");
             else
-                snprintf(type_name_buf_, 256, "%s*", obj->info_->type_name);
+                snprintf(type_name_buf_, XLUA_MAX_TYPE_NAME_LENGTH, "%s*", obj->info_->type_name);
         }
 #endif // XLUA_USE_LIGHT_USER_DATA
     } else if (l_ty == LUA_TUSERDATA) {
@@ -281,10 +288,10 @@ const char* xLuaState::GetTypeName(int index) {
             break;
         case detail::LuaUserDataType::kRawPtr:
         case detail::LuaUserDataType::kObjPtr:
-            snprintf(type_name_buf_, 256, "%s*", ud->info_->type_name);
+            snprintf(type_name_buf_, XLUA_MAX_TYPE_NAME_LENGTH, "%s*", ud->info_->type_name);
             break;
         case detail::LuaUserDataType::kSharedPtr:
-            snprintf(type_name_buf_, 256, "std::shared_ptr<%s>", ud->info_->type_name);
+            snprintf(type_name_buf_, XLUA_MAX_TYPE_NAME_LENGTH, "std::shared_ptr<%s>", ud->info_->type_name);
             break;
         default:
             assert(false);
@@ -403,7 +410,7 @@ bool xLuaState::InitEnv(const std::vector<TypeInfo*>& types,
     const std::vector<const ConstInfo*>& consts,
     const std::vector<const char*>& scripts) {
     // user data ref table (weak table)
-    lua_createtable(state_, 1024, 0);
+    lua_createtable(state_, XLUA_CONTAINER_INCREMENTAL, 0);
     lua_createtable(state_, 0, 1);
     lua_pushfstring(state_, "v");
     lua_setfield(state_, 2, "__mode");
@@ -467,27 +474,12 @@ void xLuaState::AddConsts(const std::vector<const ConstInfo*>& consts) {
         while (info->values[num].name)
             ++num;
 
-        const char* name = info->name;
-        lua_pushglobaltable(state_);
-        while (const char* sub = ::strchr(name, '.')) {
-            lua_pushlstring(state_, name, sub - name);
-            lua_gettable(state_, -2);
-            if (lua_isnil(state_, -1)) {
-                lua_pushlstring(state_, name, sub - name);
-                lua_newtable(state_);
-                lua_settable(state_, -3);
+        lua_createtable(state_, 0, num+1);
+        SetGlobal(info->name);
+        LoadGlobal(info->name);
 
-                lua_pushlstring(state_, name, sub - name);
-                lua_gettable(state_, -2);
-                lua_remove(state_, -2);
-            }
-
-            assert(lua_type(state_, -1) == LUA_TTABLE);
-            name = sub + 1;
-        }
-
-        lua_pushstring(state_, name);
-        lua_createtable(state_, num, 0);
+        lua_pushstring(state_, info->name);
+        lua_setfield(state_, -2, "__name");
 
         for (int i = 0; i < num; ++i) {
             const auto& val = info->values[i];
@@ -511,41 +503,40 @@ void xLuaState::AddConsts(const std::vector<const ConstInfo*>& consts) {
 
         lua_pushvalue(state_, -3);          // copy meta table to top stack
         lua_setmetatable(state_, -2);       // set metatable
-        lua_settable(state_, -3);           // set global
-        lua_pop(state_, 1);                 // pop global table
+        lua_pop(state_, 1);                 // pop table
     }
 
     lua_pop(state_, 1); // pop const meta table
     assert(lua_gettop(state_) == 0);
 }
 
-void xLuaState::CreateMeta(const TypeInfo* info) {
-    int member_num = 0;
-    int global_num = 0;
-    while (info->members[member_num].type != MemberType::kInvalid)
-        ++member_num;
-    while (info->globals[global_num].type != MemberType::kInvalid)
-        ++global_num;
+void xLuaState::SetTableMember(const TypeInfo* info, bool func, bool var) {
+    const TypeInfo* super = info->super;
+    while (super) {
+        SetTableMember(super, func, var);
+        super = super->super;
+    }
 
-    if (member_num > 0) {
+    for (const TypeMember* mem = info->members; mem->type != MemberType::kInvalid; ++mem) {
+        if (func && mem->type == MemberType::kFunction) {
+            PushClosure(mem->func);
+            lua_setfield(state_, -2, mem->name);
+        } else if (var && mem->type == MemberType::kVariate) {
+            lua_pushlightuserdata(state_, const_cast<TypeMember*>(mem));
+            lua_setfield(state_, -2, mem->name);
+        }
+    }
+}
+
+void xLuaState::CreateMeta(const TypeInfo* info) {
+    if (info->members[0].type != MemberType::kInvalid) {
         lua_rawgeti(state_, LUA_REGISTRYINDEX, meta_table_ref_);
-        lua_createtable(state_, 0, member_num + 4);
+        lua_newtable(state_);
         lua_rawseti(state_, -2, info->index);
         lua_rawgeti(state_, -1, info->index);
         lua_remove(state_, -2);
 
-        for (const TypeMember* mem = info->members; mem->type!= MemberType::kInvalid; ++mem) {
-            switch (mem->type) {
-            case MemberType::kFunction:
-                //lua_pushcfunction(state_, mem->func);
-                PushClosure(mem->func);
-                break;
-            case MemberType::kVariate:
-                lua_pushlightuserdata(state_, const_cast<TypeMember*>(mem));
-                break;
-            }
-            lua_setfield(state_, -2, mem->name);
-        }
+        SetTableMember(info, true, true);
 
         lua_pushstring(state_, info->type_name);
         lua_setfield(state_, -2, "__name");
@@ -563,7 +554,7 @@ void xLuaState::CreateMeta(const TypeInfo* info) {
         assert(lua_gettop(state_) == 0);
     }
 
-    if (global_num > 0) {
+    if (info->globals[0].type != MemberType::kInvalid) {
         const char* name = info->type_name;
         lua_newtable(state_);
         bool ok = SetGlobal(info->type_name);
@@ -572,22 +563,14 @@ void xLuaState::CreateMeta(const TypeInfo* info) {
         int l_ty = LoadGlobal(info->type_name);
         assert(l_ty == LUA_TTABLE);
 
-        for (const TypeMember* mem = info->members; mem->type!= MemberType::kInvalid; ++mem) {
-            if (mem->type == MemberType::kFunction) {
-                //lua_pushcfunction(state_, mem->func);
-                PushClosure(mem->func);
-                lua_setfield(state_, -2, mem->name);
-            }
-        }
+        lua_pushstring(state_, info->type_name);
+        lua_setfield(state_, -2, "__name");
+
+        SetTableMember(info, true, false);
 
         // meta table
         lua_createtable(state_, 0, 0);
-        for (const TypeMember* mem = info->members; mem->type!= MemberType::kInvalid; ++mem) {
-            if (mem->type == MemberType::kVariate) {
-                lua_pushlightuserdata(state_, const_cast<TypeMember*>(mem));
-                lua_setfield(state_, -2, mem->name);
-            }
-        }
+        SetTableMember(info, false, true);
 
         lua_pushstring(state_, info->type_name);
         lua_setfield(state_, -2, "__name");
@@ -613,7 +596,7 @@ void xLuaState::PushClosure(lua_CFunction func) {
 int xLuaState::RefLuaObj(int index) {
     if (next_free_lua_obj_ == -1) {
         size_t o_s = lua_objs_.size();
-        size_t n_s = o_s + 1024;
+        size_t n_s = o_s + XLUA_CONTAINER_INCREMENTAL;
         lua_objs_.resize(n_s, LuaObjRef{-1, 0});
 
         for (size_t i = o_s; i < n_s; ++i)

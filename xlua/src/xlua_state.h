@@ -7,12 +7,6 @@
 #include <string>
 #include <unordered_map>
 
-/* 扩展类型
- * void xLuaPush(xlua::xLuaState* l, const Type& val)
- * Type xLuaLoad(xlua::xLuaState* L, int index, xlua::Identity<Type>);
- * const char* xLuaTypeName(xlua::Identity<Type>);
-*/
-
 XLUA_NAMESPACE_BEGIN
 
 namespace detail {
@@ -58,8 +52,10 @@ class xLuaState {
     friend class detail::GlobalVar;
     friend class xLuaObjBase;
 
+private:
     xLuaState(lua_State* l, bool attach);
     ~xLuaState();
+
 public:
     void Release();
 
@@ -402,6 +398,7 @@ private:
     );
     void AddConsts(const std::vector<const ConstInfo*>& consts);
     void CreateMeta(const TypeInfo* info);
+    void SetTableMember(const TypeInfo* info, bool func, bool var);
     void PushClosure(lua_CFunction func);
 
     int RefLuaObj(int index);
@@ -412,7 +409,6 @@ private:
 private:
     bool attach_;
     lua_State* state_;
-    char type_name_buf_[256];       // 输出类型名称缓存
     int meta_table_ref_ = 0;        // 导出元表索引
     int user_data_table_ref_ = 0;   // user data table
     int lua_obj_table_ref_ = 0;     // table, function
@@ -423,6 +419,7 @@ private:
     std::vector<UdCache> weak_obj_ptrs_;
     std::unordered_map<void*, UdCache> raw_ptrs_;
     std::unordered_map<void*, UdCache> shared_ptrs_;
+    char type_name_buf_[XLUA_MAX_TYPE_NAME_LENGTH];       // 输出类型名称缓存
 };
 
 namespace detail {

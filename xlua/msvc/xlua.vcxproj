@@ -25,6 +25,7 @@
     <ClInclude Include="..\src\detail\traits.h" />
     <ClInclude Include="..\src\detail\type_desc.h" />
     <ClInclude Include="..\src\xlua.h" />
+    <ClInclude Include="..\src\xlua_config.h" />
     <ClInclude Include="..\src\xlua_def.h" />
     <ClInclude Include="..\src\xlua_export.h" />
     <ClInclude Include="..\src\xlua_obj.h" />

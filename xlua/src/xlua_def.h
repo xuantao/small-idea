@@ -1,50 +1,19 @@
 ﻿#pragma once
+#include "xlua_config.h"
 #include <lua.hpp>
 #include <type_traits>
 #include <cstdint>
 #include <cassert>
 
-#define XLUA_NAMESPACE_BEGIN    namespace xlua {
-#define XLUA_NAMESPACE_END      } // namespace xlua
-
-/* 64位系统开启LIGGHT_USER_DATA
- * 导出对象指针使用LightUserData代替FullUserData
-*/
-#if INTPTR_MAX == INT64_MAX
-#ifndef XLUA_USE_LIGHT_USER_DATA
-    #define XLUA_USE_LIGHT_USER_DATA 1
-#endif
-#endif
-
-/* 配置是否支持弱指针
- * 修改基类定义宏并实例化基础接口
-*/
-#ifndef XLUA_WEAK_OBJ_BASE_TYPE
-    #define XLUA_WEAK_OBJ_BASE_TYPE void
-    template <typename Ty> struct xLuaWeakObjPtr {};
-    inline int xLuaAllocWeakObjIndex(void* val) { assert(false); return -1; }
-    inline int xLuaGetWeakObjSerialNum(int index) { assert(false); return 0; }
-    inline void* xLuaGetWeakObjPtr(int index) { assert(false); return nullptr; }
-#else // XLUA_WEAK_OBJ_BASE_TYPE
-    template <typename Ty> using xLuaWeakObjPtr = xxx;
-    int xLuaAllocWeakObjIndex(XLUA_WEAK_OBJ_BASE_TYPE* val);
-    int xLuaGetWeakObjSerialNum(int index);
-    XLUA_WEAK_OBJ_BASE_TYPE* xLuaGetWeakObjPtr(int index);
-#endif // XLUA_WEAK_OBJ_BASE_TYPE
-
-inline void xLuaLogError(const char* err) {
-    //printf
-}
-
-
 XLUA_NAMESPACE_BEGIN
 
 namespace detail {
-    class GlobalVar;
-
     template <typename... Tys> struct BaseType { static_assert(sizeof...(Tys) > 1, "not allow multy inherit"); };
     template <> struct BaseType<> { typedef void type; };
     template <typename Ty> struct BaseType<Ty> { typedef Ty type; };
+
+    class GlobalVar;
+    void LogError(const char* fmt, ...);
 }
 
 class xLuaState;

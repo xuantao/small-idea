@@ -8,7 +8,7 @@
 #define _XLUA_ANONYMOUS_1(line) _XLUA_ANONYMOUS_2(line)
 #define _XLUA_ANONYMOUS         _XLUA_ANONYMOUS_1(__LINE__)
 
-#define _XLUA_SUPER_CLASS(...)  typename xlua::detail::BaseType<__VA_ARGS__>::type
+#define _XLUA_SUPER_CLASS(...)  typename XLUA_USE_NAMESPCE detail::BaseType<__VA_ARGS__>::type
 
 // 导出实现
 #define _XLUA_EXPORT_FUNC(Name, Func, Meta)                                             \
@@ -17,9 +17,10 @@
     );                                                                                  \
     struct _XLUA_ANONYMOUS {                                                            \
         static int call(lua_State* l) {                                                 \
-            xlua::xLuaState* xl = xlua::detail::GlobalVar::GetInstance()->GetState(l);  \
+            XLUA_USE_NAMESPCE xLuaState* xl =                                           \
+                XLUA_USE_NAMESPCE detail::GlobalVar::GetInstance()->GetState(l);        \
             assert(xl);                                                                 \
-            return xlua::detail::Meta<class_type>::Call(xl, s_type_info, Func);         \
+            return XLUA_USE_NAMESPCE detail::Meta<class_type>::Call(xl, s_type_info, Func); \
         }                                                                               \
     };                                                                                  \
     desc->AddMember(#Name, &_XLUA_ANONYMOUS::call,                                      \
@@ -27,21 +28,21 @@
 
 #define _XLUA_EXPORT_VAR(Name, GetOp, SetOp, Meta)                                      \
     static_assert(                                                                      \
-        xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::is_allow,         \
+        XLUA_USE_NAMESPCE detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::is_allow,         \
         "can not export var:"#Name" to lua"                                             \
     );                                                                                  \
     struct _XLUA_ANONYMOUS {                                                            \
-        static void Get(xlua::xLuaState* l, void* obj) {                                \
-            xlua::detail::Meta<class_type>::Get(l, (class_type*)obj, GetOp);            \
+        static void Get(XLUA_USE_NAMESPCE xLuaState* l, void* obj) {                                \
+            XLUA_USE_NAMESPCE detail::Meta<class_type>::Get(l, (class_type*)obj, GetOp);            \
         }                                                                               \
-        static void Set(xlua::xLuaState* l, void* obj) {                                \
-            xlua::detail::Meta<class_type>::Set(l, (class_type*)obj, SetOp);            \
+        static void Set(XLUA_USE_NAMESPCE xLuaState* l, void* obj) {                                \
+            XLUA_USE_NAMESPCE detail::Meta<class_type>::Set(l, (class_type*)obj, SetOp);            \
         }                                                                               \
     };                                                                                  \
     desc->AddMember(#Name,                                                              \
         std::is_null_pointer<decltype(GetOp)>::value ? nullptr : &_XLUA_ANONYMOUS::Get, \
         std::is_null_pointer<decltype(SetOp)>::value ? nullptr : &_XLUA_ANONYMOUS::Set, \
-        !xlua::detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::is_member        \
+        !XLUA_USE_NAMESPCE detail::IndexerTrait<decltype(GetOp), decltype(SetOp)>::is_member        \
     );
 
 /* 导出Lua类开始 */
@@ -51,29 +52,31 @@
         "internal class is not inherited"                                               \
     );                                                                                  \
     static_assert(std::is_void<ClassName::LuaDeclare::super>::type                      \
-        || xlua::detail::IsInternal<ClassName::LuaDeclare::super>::value                \
-        || xlua::detail::IsExternal<ClassName::LuaDeclare::super>::value                \
+        || XLUA_USE_NAMESPCE detail::IsInternal<ClassName::LuaDeclare::super>::value    \
+        || XLUA_USE_NAMESPCE detail::IsExternal<ClassName::LuaDeclare::super>::value    \
         "base type is not declare to export to lua"                                     \
     );                                                                                  \
     namespace {                                                                         \
-        xlua::detail::TypeNode _XLUA_ANONYMOUS(&ClassName::xLuaGetTypeInfo);            \
+        XLUA_USE_NAMESPCE detail::TypeNode _XLUA_ANONYMOUS(&ClassName::xLuaGetTypeInfo);\
     } /* end namespace */                                                               \
-    const xlua::TypeInfo* ClassName::xLuaGetTypeInfo() {                                \
+    const XLUA_USE_NAMESPCE TypeInfo* ClassName::xLuaGetTypeInfo() {                    \
         using class_type = ClassName;                                                   \
-        static const xlua::TypeInfo* s_type_info = nullptr;                             \
+        static const XLUA_USE_NAMESPCE TypeInfo* s_type_info = nullptr;                 \
         if (s_type_info)                                                                \
             return s_type_info;                                                         \
-        xlua::detail::GlobalVar* global = xlua::detail::GlobalVar::GetInstance();       \
+        XLUA_USE_NAMESPCE detail::GlobalVar* global =                                   \
+            XLUA_USE_NAMESPCE detail::GlobalVar::GetInstance();                         \
         if (global == nullptr)                                                          \
             return nullptr;                                                             \
-        ITypeDesc* desc = global->AllocType(xlua::TypeCategory::kInternal, false,       \
+        ITypeDesc* desc = global->AllocType(                                            \
+            XLUA_USE_NAMESPCE TypeCategory::kInternal, false,                           \
             #ClassName,                                                                 \
-            xlua::detail::GetTypeInfoImpl<LuaDeclare::super>()                          \
+            XLUA_USE_NAMESPCE detail::GetTypeInfoImpl<LuaDeclare::super>()              \
         );                                                                              \
         if (desc == nullptr)                                                            \
             return nullptr;                                                             \
         desc->SetCaster(                                                                \
-            xlua::detail::MakePtrCaster<ClassName, LuaDeclare::SuperType>()             \
+            XLUA_USE_NAMESPCE detail::MakePtrCaster<ClassName, LuaDeclare::SuperType>() \
         );
 
 /* 导出lua类结束 */
@@ -89,32 +92,32 @@
         "external class is not inherited"                                               \
     );                                                                                  \
     static_assert(std::is_void<_XLUA_SUPER_CLASS(__VA_ARGS__)>::value                   \
-        || xlua::detail::IsInternal<_XLUA_SUPER_CLASS(__VA_ARGS__)>::value              \
-        || xlua::detail::IsExternal<_XLUA_SUPER_CLASS(__VA_ARGS__)>::value,             \
+        || XLUA_USE_NAMESPCE detail::IsInternal<_XLUA_SUPER_CLASS(__VA_ARGS__)>::value  \
+        || XLUA_USE_NAMESPCE detail::IsExternal<_XLUA_SUPER_CLASS(__VA_ARGS__)>::value, \
         "base type is not declare to export to lua"                                     \
     );                                                                                  \
     namespace {                                                                         \
-        xlua::detail::TypeNode _XLUA_ANONYMOUS([]() -> const xlua::TypeInfo* {          \
-            return xLuaGetTypeInfo(xlua::Identity<ClassName>());                        \
+        XLUA_USE_NAMESPCE detail::TypeNode _XLUA_ANONYMOUS([]() -> const XLUA_USE_NAMESPCE TypeInfo* {  \
+            return xLuaGetTypeInfo(XLUA_USE_NAMESPCE Identity<ClassName>());                            \
         });                                                                             \
     } /* end namespace */                                                               \
-    const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Identity<ClassName>) {                  \
+    const XLUA_USE_NAMESPCE TypeInfo* xLuaGetTypeInfo(XLUA_USE_NAMESPCE Identity<ClassName>) {          \
         using class_type = ClassName;                                                   \
         using super_type = _XLUA_SUPER_CLASS(__VA_ARGS__);                              \
-        static const xlua::TypeInfo* s_type_info = nullptr;                             \
+        static const XLUA_USE_NAMESPCE TypeInfo* s_type_info = nullptr;                                 \
         if (s_type_info)                                                                \
             return s_type_info;                                                         \
-        xlua::detail::GlobalVar* global = xlua::detail::GlobalVar::GetInstance();       \
+        XLUA_USE_NAMESPCE detail::GlobalVar* global = XLUA_USE_NAMESPCE detail::GlobalVar::GetInstance();\
         if (global == nullptr)                                                          \
             return nullptr;                                                             \
-        xlua::ITypeDesc* desc = global->AllocType(xlua::TypeCategory::kExternal,        \
-            xlua::detail::IsWeakObjPtr<ClassName>::value, #ClassName,                   \
-            xlua::detail::GetTypeInfoImpl<super_type>()                                 \
+        XLUA_USE_NAMESPCE ITypeDesc* desc = global->AllocType(XLUA_USE_NAMESPCE TypeCategory::kExternal, \
+            XLUA_USE_NAMESPCE detail::IsWeakObjPtr<ClassName>::value, #ClassName,       \
+            XLUA_USE_NAMESPCE detail::GetTypeInfoImpl<super_type>()                     \
         );                                                                              \
         if (desc == nullptr)                                                            \
             return nullptr;                                                             \
         desc->SetCaster(                                                                \
-            xlua::detail::MakePtrCaster<ClassName, super_type>()                        \
+            XLUA_USE_NAMESPCE detail::MakePtrCaster<ClassName, super_type>()            \
         );
 
 #define XLUA_EXPORT_EXTERNAL_CLASS_END()                                                \
@@ -123,14 +126,14 @@
 /* 导出全局表 */
 #define XLUA_EXPORT_GLOBAL_BEGIN(Name)                                                  \
     namespace {                                                                         \
-        xlua::detail::TypeNode _XLUA_ANONYMOUS([]() -> const xlua::TypeInfo* {          \
-            static const xlua::TypeInfo* s_type_info = nullptr;                         \
+        XLUA_USE_NAMESPCE detail::TypeNode _XLUA_ANONYMOUS([]() -> const XLUA_USE_NAMESPCE TypeInfo* {          \
+            static const XLUA_USE_NAMESPCE TypeInfo* s_type_info = nullptr;             \
             if (s_type_info)                                                            \
                 return s_type_info;                                                     \
-            xlua::detail::GlobalVar* global = xlua::detail::GlobalVar::GetInstance();   \
+            XLUA_USE_NAMESPCE detail::GlobalVar* global = XLUA_USE_NAMESPCE detail::GlobalVar::GetInstance();   \
             if (global == nullptr)                                                      \
                 return nullptr;                                                         \
-            xlua::ITypeDesc* desc = global->AllocType(xlua::TypeCategory::kGlobal,      \
+            XLUA_USE_NAMESPCE ITypeDesc* desc = global->AllocType(XLUA_USE_NAMESPCE TypeCategory::kGlobal,      \
                 false, #Name, nullptr);                                                 \
             if (desc == nullptr)                                                        \
                 return nullptr;                                                         \
@@ -151,30 +154,30 @@
 
 #define _XLUA_EXPORT_CONST_BEGIN(Name)                          \
     namespace {                                                 \
-        xlua::detail::ConstNode _XLUA_ANONYMOUS(                \
-        []() -> const xlua::ConstInfo* {                        \
-            static xlua::ConstInfo info;                        \
+        XLUA_USE_NAMESPCE detail::ConstNode _XLUA_ANONYMOUS(    \
+        []() -> const XLUA_USE_NAMESPCE ConstInfo* {            \
+            static XLUA_USE_NAMESPCE ConstInfo info;            \
             info.name = #Name;
 
 #define XLUA_EXPORT_CONST_BEGIN(Name)                           \
     _XLUA_EXPORT_CONST_BEGIN(Name)                              \
-            static xlua::ConstValue values[] = {
+            static XLUA_USE_NAMESPCE ConstValue values[] = {
 
 #define XLUA_EXPORT_CONST_END()                                 \
-                xlua::detail::MakeConstValue()                  \
+                XLUA_USE_NAMESPCE detail::MakeConstValue()      \
             };                                                  \
             info.values = values;                               \
             return &info;                                       \
         }); /* end function */                                  \
     } /* end namespace*/
 
-#define XLUA_EXPORT_CONST_VAR(Name, Val) xlua::detail::MakeConstValue(#Name, Val),
+#define XLUA_EXPORT_CONST_VAR(Name, Val) XLUA_USE_NAMESPCE detail::MakeConstValue(#Name, Val),
 
 /* 导出枚举表 */
 #define XLUA_EXPORT_ENUM_BEGIN_AS(Name, EnumType)               \
     _XLUA_EXPORT_CONST_BEGIN(Name)                              \
             using enum_type = EnumType;                         \
-            static xlua::ConstValue values[] = {
+            static XLUA_USE_NAMESPCE ConstValue values[] = {
 
 #define XLUA_EXPORT_ENUM_BEGIN(EnumType)    XLUA_EXPORT_ENUM_BEGIN_AS(EnumType, EnumType)
 #define XLUA_EXPORT_ENUM_END()              XLUA_EXPORT_CONST_END()
@@ -183,8 +186,8 @@
 #define XLUA_EXPORT_ENUM_VAR(Val)           XLUA_EXPORT_ENUM_VAR_AS(Var, Val)
 
 /* 导出预设脚本 */
-#define XLUA_EXPORT_SCRIPT(Str)                                 \
-    namespace {                                                 \
-        xlua::detail::ScriptNode _XLUA_ANONYMOUS(Str);          \
+#define XLUA_EXPORT_SCRIPT(Str)                                     \
+    namespace {                                                     \
+        XLUA_USE_NAMESPCE detail::ScriptNode _XLUA_ANONYMOUS(Str);  \
     }
 
