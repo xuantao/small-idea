@@ -26,11 +26,23 @@ void Shutdown();
 xLuaState* Create();
 xLuaState* Attach(lua_State* l);
 
-struct StackGuard {
-    StackGuard(xLuaState* l) {}
-    StackGuard(xLuaState* l, int off) {}
+/* lua堆栈守卫 */
+class xLuaGuard {
+public:
+    xLuaGuard(xLuaState* l);
+    xLuaGuard(xLuaState* l, int off);
+    ~xLuaGuard();
+
+public:
+    xLuaGuard(const xLuaGuard&) = delete;
+    xLuaGuard& operator = (const xLuaGuard&) = delete;
+
+private:
+    int top_;
+    xLuaState* l_;
 };
 
+/* lua 状态机扩展 */
 class xLuaState {
     template <typename Ty> friend struct detail::Loader;
     template <typename Ty> friend struct detail::Pusher;
@@ -44,42 +56,47 @@ public:
     void Release();
 
 public:
-    inline bool IsAttach() const { return attach_; }
     inline lua_State* GetState() const { return state_; }
-
-public:
     inline int GetTopIndex() const { return lua_gettop(state_); }
     inline int GetType(int index) const { return lua_type(state_, index); }
     const char* GetTypeName(int index);
 
+    /* 当前lua 调用栈 */
     void LogCallStack() const;
     void GetCallStack(char* buf, size_t size) const;
+
     bool DoString(const char* stream, const char* chunk = nullptr);
 
+    /* 新建lua table */
     inline xLuaTable NewTable() {
-        StackGuard guard(this);
+        xLuaGuard guard(this);
         lua_newtable(state_);
         return xLuaTable(this, RefLuaObj(-1));
     }
 
+    /* 将全局变量加载到栈顶, 并返回lua type */
     int LoadGlobal(const char* path);
-    void SetGlobal(const char* path);
+    /* 栈顶元素设置为全局变量 */
+    bool SetGlobal(const char* path);
 
-    int LoadTableField(int index, int field);
-    int LoadTableField(int index, const char* field);
-    void SetTableField(int index, int field);
-    void SetTableField(int index, const char* field);
+    /* 将table成员加载到栈顶并返回数据类型 */
+    inline int LoadTableField(int index, int field) { lua_geti(state_, index, field); }
+    inline int LoadTableField(int index, const char* field) { lua_getfield(state_, index, field); }
+
+    /* 将栈顶元素设置为table成员 */
+    inline void SetTableField(int index, int field) { lua_seti(state_, index, field); }
+    inline void SetTableField(int index, const char* field) { lua_setfield(state_, index, field); }
 
     template <typename Ty>
     inline Ty GetGlobal(const char* path) {
-        StackGuard(this);
+        xLuaGuard(this);
         LoadGlobal(path);
         return Load<Ty>(-1);
     }
 
     template <typename Ty>
     inline void SetGlobal(const char* path, const Ty& val) {
-        StackGuard(this);
+        xLuaGuard(this);
         Push(val);
         SetGlobal(path);
     }
@@ -98,7 +115,7 @@ public:
 
     template <typename Ty>
     inline Ty GetTableField(xLuaTable table, int field) {
-        StackGuard guard(this);
+        xLuaGuard guard(this);
         Push(table);
         LoadTableField(-1, field);
         return Load<Ty>(-1);
@@ -106,7 +123,7 @@ public:
 
     template <typename Ty>
     inline Ty GetTableField(xLuaTable table, const char* field) {
-        StackGuard guard(this);
+        xLuaGuard guard(this);
         Push(table);
         LoadTableField(-1, field);
         return Load<Ty>(-1);
@@ -114,7 +131,7 @@ public:
 
     template <typename Ty>
     inline void SetTableField(xLuaTable table, int field, const Ty& val) {
-        StackGuard guard(this);
+        xLuaGuard guard(this);
         Push(table);
         Push(val);
         SetTableField(-2, field);
@@ -122,7 +139,7 @@ public:
 
     template <typename Ty>
     inline void SetTableField(xLuaTable table, const char* field, const Ty& val) {
-        StackGuard guard(this);
+        xLuaGuard guard(this);
         Push(table);
         Push(val);
         SetTableField(-2, field);
@@ -131,13 +148,6 @@ public:
     template <typename Ty>
     inline void Push(const Ty& val) {
         detail::Pusher<typename std::decay<Ty>::type>::Do(this, val);
-    }
-
-    template <typename Ty>
-    inline void Push(std::unique_ptr<Ty>&& ptr) {
-        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
-        //_PushUniquePtr(MakeUserData(std::move(ptr), detail::GetTypeInfoImpl<Ty>()));
-        // do not support unique_ptr
     }
 
     template <typename Ty>
@@ -214,13 +224,13 @@ public:
 
     template<typename... Rys, typename... Args>
     inline bool Call(std::tuple<Rys&...> ret, Args&&... args) {
-        StackGuard guard(this, -1);
+        xLuaGuard guard(this, -1);
         return DoCall(ret, std::forward<Args>(args)...);
     }
 
     template <typename... Rys, typename... Args>
     inline bool Call(const char* global, std::tuple<Rys&...> ret, Args&&... args) {
-        StackGuard guard(this);
+        xLuaGuard guard(this);
         if (LoadGlobal(global) == LUA_TFUNCTION)
             return false;
         return DoCall(ret, std::forward<Args>(args)...);
@@ -228,7 +238,7 @@ public:
 
     template <typename... Rys, typename... Args>
     inline bool Call(xLuaFunction func, std::tuple<Rys&...> ret, Args&&... args) {
-        StackGuard guard(this);
+        xLuaGuard guard(this);
         Push(func);
         return DoCall(ret, std::forward<Args>(args)...);
     }
@@ -236,12 +246,12 @@ public:
     /* table call */
     template <typename... Rys, typename... Args>
     inline bool Call(xLuaTable table, const char* func , std::tuple<Rys&...> ret, Args&&... args) {
-        StackGuard guard(this);
+        xLuaGuard guard(this);
         //GetTableField(table, func);
         return DoCall(ret, table, std::forward<Args>(args)...);
     }
 
-public:
+private:
     template <typename... Ty, size_t... Idxs>
     inline void DoLoadMul(std::tuple<Ty&...>& ret, int index, detail::index_sequence<Idxs...>)
     {

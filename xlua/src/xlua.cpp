@@ -250,6 +250,18 @@ xLuaState* Attach(lua_State* l) {
     return global->Attach(l);
 }
 
+xLuaGuard::xLuaGuard(xLuaState* l) : l_(l) {
+    top_ = l->GetTopIndex();
+}
+
+xLuaGuard::xLuaGuard(xLuaState* l, int off) : l_(l) {
+    top_ = l_->GetTopIndex() + off;
+}
+
+xLuaGuard::~xLuaGuard() {
+    lua_settop(l_->GetState(), top_);
+}
+
 xLuaState::xLuaState(lua_State* l, bool attach)
     : state_(l)
     , attach_(attach) {
@@ -291,8 +303,7 @@ const char* xLuaState::GetTypeName(int index) {
 #endif // XLUA_USE_LIGHT_USER_DATA
     } else if (l_ty == LUA_TUSERDATA) {
         detail::LuaUserData* ud = static_cast<detail::LuaUserData*>(lua_touserdata(state_, index));
-        switch (ud->type_)
-        {
+        switch (ud->type_) {
         case detail::LuaUserDataType::kValue:
             ret = ud->info_->type_name;
             break;
@@ -314,31 +325,68 @@ const char* xLuaState::GetTypeName(int index) {
 }
 
 bool xLuaState::DoString(const char* stream, const char* chunk) {
+    xLuaGuard guard(this);
+    if (luaL_loadbuffer(state_, stream, strlen(stream), chunk) != LUA_OK) {
+        // log err
+        return false;
+    }
+
+    if (lua_pcall(state_, 0, 0, 0) != LUA_OK) {
+        // log err
+        return false;
+    }
     return true;
 }
 
 int xLuaState::LoadGlobal(const char* path) {
-    return 0;
+    if (path == nullptr || *path == 0)
+        return LUA_TNIL;
+
+    lua_pushglobaltable(state_);
+    while (const char* sub = ::strchr(path, '.')) {
+        lua_pushlstring(state_, path, sub - path);
+        if (lua_gettable(state_, -2) != LUA_TTABLE)
+            return LUA_TNIL;
+
+        lua_remove(state_, -2);
+        path = sub + 1;
+    }
+
+    lua_pushstring(state_, path);
+    int l_ty = lua_gettable(state_, -2);
+    lua_remove(state_, -2);
+    return l_ty;
 }
 
-void xLuaState::SetGlobal(const char* path) {
+bool xLuaState::SetGlobal(const char* path) {
+    if (path == nullptr || *path == 0)
+        return false;
 
-}
+    lua_pushglobaltable(state_);
+    while (const char* sub = ::strchr(path, '.')) {
+        lua_pushlstring(state_, path, sub - path);
+        int l_ty = lua_gettable(state_, -2);
+        if (l_ty == lua_isnil(state_, -1)) {
+            lua_pushlstring(state_, path, sub - path);
+            lua_newtable(state_);
+            lua_settable(state_, -3);
 
-int xLuaState::LoadTableField(int index, int field) {
-    return 0;
-}
+            lua_pushlstring(state_, path, sub - path);
+            lua_gettable(state_, -2);
+            lua_remove(state_, -2);
+        }
+        else if (l_ty != LUA_TTABLE) {
+            lua_pop(state_, 2);
+            return false;
+        }
 
-int xLuaState::LoadTableField(int index, const char* field) {
-    return 0;
-}
+        path = sub + 1;
+    }
 
-void xLuaState::SetTableField(int index, int field) {
-
-}
-
-void xLuaState::SetTableField(int index, const char* field) {
-
+    lua_pushstring(state_, path);       // push key
+    lua_rotate(state_, -3, 1);          // move target value to top
+    lua_settable(state_, -3);           // set table field
+    lua_pop(state_, 1);
 }
 
 bool xLuaState::_TryPushSharedPtr(void* root, void* ptr, const TypeInfo* info) {
@@ -550,26 +598,13 @@ void xLuaState::CreateMeta(const TypeInfo* info) {
 
     if (global_num > 0) {
         const char* name = info->type_name;
-        lua_pushglobaltable(state_);
-        while (const char* sub = ::strchr(name, '.')) {
-            lua_pushlstring(state_, name, sub - name);
-            lua_gettable(state_, -2);
-            if (lua_isnil(state_, -1)) {
-                lua_pushlstring(state_, name, sub - name);
-                lua_newtable(state_);
-                lua_settable(state_, -3);
+        lua_newtable(state_);
+        bool ok = SetGlobal(info->type_name);
+        assert(ok);
 
-                lua_pushlstring(state_, name, sub - name);
-                lua_gettable(state_, -2);
-                lua_remove(state_, -2);
-            }
+        int l_ty = LoadGlobal(info->type_name);
+        assert(l_ty == LUA_TTABLE);
 
-            assert(lua_type(state_, -1) == LUA_TTABLE);
-            name = sub + 1;
-        }
-        lua_pushstring(state_, name);
-
-        lua_createtable(state_, 0, 0);
         for (const TypeMember* mem = info->members; mem->type!= MemberType::kInvalid; ++mem) {
             if (mem->type == MemberType::kFunction) {
                 //lua_pushcfunction(state_, mem->func);
@@ -596,9 +631,7 @@ void xLuaState::CreateMeta(const TypeInfo* info) {
         PushClosure(&detail::MetaFuncs::LuaGlobalNewIndex);
         lua_setfield(state_, -2, "__newindex");
 
-        lua_setmetatable(state_, -2);
-
-        lua_settable(state_, -3);
+        lua_setmetatable(state_, -2);   // set metatable
         lua_pop(state_, 1);
 
         assert(lua_gettop(state_) == 0);
@@ -606,8 +639,7 @@ void xLuaState::CreateMeta(const TypeInfo* info) {
 }
 
 void xLuaState::PushClosure(lua_CFunction func) {
-    lua_pushlightuserdata(state_, this);                        // upvalue(1):xLuaSate*
-    //lua_rawgeti(state_, LUA_REGISTRYINDEX, meta_table_ref_);    // upvalue(2):meta table
+    lua_pushlightuserdata(state_, this);    // upvalue(1):xLuaSate*
     lua_pushcclosure(state_, func, 2);
 }
 
