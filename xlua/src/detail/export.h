@@ -13,47 +13,47 @@ namespace detail
     typedef const TypeInfo* (*fnTypeInfo)();
     typedef const ConstInfo* (*fnConstInfo)();
 
-    enum class NodeType {
+    enum class NodeCategory {
         kType,
         kConst,
         kScript,
     };
 
     struct NodeBase {
-        NodeBase(NodeType type);
+        NodeBase(NodeCategory type);
         ~NodeBase();
 
-        NodeType type_;
-        NodeBase* next_;
+        NodeCategory category;
+        NodeBase* next;
     };
 
     struct TypeNode : NodeBase {
-        TypeNode(fnTypeInfo func)
-            : NodeBase(NodeType::kType)
-            , func_(func) {
+        TypeNode(fnTypeInfo fn)
+            : NodeBase(NodeCategory::kType)
+            , func(fn) {
         }
-        const fnTypeInfo func_;
+        const fnTypeInfo func;
     };
 
     struct ConstNode : NodeBase {
-        ConstNode(fnConstInfo func)
-            : NodeBase(NodeType::kConst)
-            , func_(func) {
+        ConstNode(fnConstInfo fn)
+            : NodeBase(NodeCategory::kConst)
+            , func_(fn) {
         }
         const fnConstInfo func_;
     };
 
     struct ScriptNode : NodeBase {
-        ScriptNode(const char* script)
-            : NodeBase(NodeType::kScript)
-            , script_(script) {
+        ScriptNode(const char* s)
+            : NodeBase(NodeCategory::kScript)
+            , script(s) {
         }
-        const char* const script_;
+        const char* const script;
     };
 
     inline ConstValue MakeConstValue() {
         ConstValue cv;
-        cv.type = ConstValueType::kNone;
+        cv.category = ConstCategory::kNone;
         cv.name = nullptr;
         cv.int_val = 0;
         return cv;
@@ -61,7 +61,7 @@ namespace detail
 
     inline ConstValue MakeConstValue(const char* name, int val) {
         ConstValue cv;
-        cv.type = ConstValueType::kInteger;
+        cv.category = ConstCategory::kInteger;
         cv.name = name;
         cv.int_val = val;
         return cv;
@@ -69,7 +69,7 @@ namespace detail
 
     inline ConstValue MakeConstValue(const char* name, float val) {
         ConstValue cv;
-        cv.type = ConstValueType::kFloat;
+        cv.category = ConstCategory::kFloat;
         cv.name = name;
         cv.float_val = val;
         return cv;
@@ -77,7 +77,7 @@ namespace detail
 
     inline ConstValue MakeConstValue(const char* name, const char* val) {
         ConstValue cv;
-        cv.type = ConstValueType::kString;
+        cv.category = ConstCategory::kString;
         cv.name = name;
         cv.string_val = val;
         return cv;
@@ -85,14 +85,14 @@ namespace detail
 
     inline TypeMember MakeMember() {
         TypeMember mem;
-        mem.type = MemberType::kInvalid;
+        mem.category = MemberCategory::kInvalid;
         mem.name = nullptr;
         return mem;
     }
 
     inline TypeMember MakeMember(const char* name, LuaFunction func) {
         TypeMember mem;
-        mem.type = MemberType::kFunction;
+        mem.category = MemberCategory::kFunction;
         mem.name = name;
         mem.func = func;
         return mem;
@@ -100,7 +100,7 @@ namespace detail
 
     inline TypeMember MakeMember(const char* name, LuaIndexer getter, LuaIndexer setter) {
         TypeMember mem;
-        mem.type = MemberType::kVariate;
+        mem.category = MemberCategory::kVariate;
         mem.name = name;
         mem.getter = getter;
         mem.setter = setter;
@@ -178,7 +178,7 @@ namespace detail
 
     template <typename Ty>
     inline Ty* GetMetaCallFullUserDataPtr(void* user_data, const TypeInfo* info) {
-        LuaUserData* ud = static_cast<LuaUserData*>(user_data);
+        FullUserData* ud = static_cast<FullUserData*>(user_data);
         if (ud->obj_ == nullptr) {
             return nullptr;
         } else if (!IsBaseOf(info, ud->info_)) {
@@ -219,23 +219,23 @@ namespace detail
             if (l_ty == LUA_TNIL) {
                 ud_info.is_nil = true;
             } else if (l_ty == LUA_TUSERDATA) {
-                LuaUserData* ud = static_cast<LuaUserData*>(lua_touserdata(l->GetState(), index));
+                FullUserData* ud = static_cast<FullUserData*>(lua_touserdata(l->GetState(), index));
                 ud_info.info = ud->info_;
                 if (!check_nil) {
-                    if (ud->type_ == LuaUserDataType::kObjPtr) {
+                    if (ud->type_ == UserDataCategory::kObjPtr) {
                         if (ud->info_->is_weak_obj) {
                             ud_info.is_nil = (ud->serial_ == xLuaGetWeakObjSerialNum(ud->index_));
                         } else {
                             ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
                             ud_info.is_nil = (obj == nullptr || obj->serial_num_ != obj->serial_num_);
                         }
-                    } else if (ud->type_ == LuaUserDataType::kValue) {
+                    } else if (ud->type_ == UserDataCategory::kValue) {
                         ud_info.is_ptr = false;
                     }
                 }
             } else if (l_ty == LUA_TLIGHTUSERDATA) {
 #if XLUA_USE_LIGHT_USER_DATA
-                LightDataPtr ud = MakeLightPtr(lua_touserdata(l->GetState(), index));
+                LightUserData ud = MakeLightPtr(lua_touserdata(l->GetState(), index));
                 if (ud.type_ == 0) {
                     ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud.index_);
                     if (obj)
@@ -271,7 +271,7 @@ namespace detail
 
             static bool Do(xLuaState* l, int index, int param, tag_enum) {
                 if (l->GetType(index) != LUA_TNUMBER) {
-                    printf("param(%d) error, need:enum(number) got:%s\n", param, l->GetTypeName(index));
+                    LogError("param(%d) error, need:enum(number) got:%s\n", param, l->GetTypeName(index));
                     return false;
                 }
                 return true;
@@ -285,11 +285,11 @@ namespace detail
                 const TypeInfo* info = GetTypeInfoImpl<Ty>();
                 UdInfo ud = GetUdInfo(l, index, true);
                 if (ud.is_nil) {
-                    printf("param(%d) error, need:%s got:nil\n", param, info->type_name);
+                    LogError("param(%d) error, need:%s got:nil\n", param, info->type_name);
                     return false;
                 }
                 if (!IsBaseOf(info, ud.info)) {
-                    printf("param(%d) error, need:%s got:%s\n", param, info->type_name, l->GetTypeName(index));
+                    LogError("param(%d) error, need:%s got:%s\n", param, info->type_name, l->GetTypeName(index));
                     return false;
                 }
                 return true;
@@ -304,7 +304,7 @@ namespace detail
                 UdInfo ud = GetUdInfo(l, index, false);
                 if (ud.is_nil || IsBaseOf(ud.info, info))
                     return true;
-                printf("param(%d) error, need:%s* got:%s\n", param, info->type_name, l->GetTypeName(index));
+                LogError("param(%d) error, need:%s* got:%s\n", param, info->type_name, l->GetTypeName(index));
                 return false;
             }
         };
@@ -316,23 +316,30 @@ namespace detail
                 int l_ty = l->GetType(index);
                 const TypeInfo* info = GetTypeInfoImpl<Ty>();
                 if (l_ty == LUA_TUSERDATA) {
-                    LuaUserData* ud = static_cast<LuaUserData*>(lua_touserdata(l->GetState(), index));
-                    if (ud->type_ == LuaUserDataType::kSharedPtr && IsBaseOf(info, ud->info_)) {
+                    FullUserData* ud = static_cast<FullUserData*>(lua_touserdata(l->GetState(), index));
+                    if (ud->type_ == UserDataCategory::kSharedPtr && IsBaseOf(info, ud->info_)) {
                         return true;
                     }
                 } else if (l_ty == LUA_TNIL) {
                     return true;
                 }
 
-                printf("param(%d) error, need:std::shared_ptr<%s> got:%s\n", param, info->type_name, l->GetTypeName(index));
+                LogError("param(%d) error, need:std::shared_ptr<%s> got:%s\n", param, info->type_name, l->GetTypeName(index));
                 return false;
+            }
+        };
+
+        template <typename Ty>
+        struct Checker<xLuaWeakObjPtr<Ty>> {
+            static bool Do(xLuaState* l, int index, int param) {
+                return Checker<Ty*>::Do(l, index, param);
             }
         };
 
         inline bool IsType_1(xLuaState* l, int index, int param, int ty, const char* need) {
             if (l->GetType(index) == ty)
                 return true;
-            printf("param(%d) error, need:%s got:%s\n", param, need, l->GetTypeName(index));
+            LogError("param(%d) error, need:%s got:%s\n", param, need, l->GetTypeName(index));
             return false;
         }
 
@@ -340,7 +347,7 @@ namespace detail
             int l_ty = l->GetType(index);
             if (l_ty == ty || l_ty == LUA_TNIL)
                 return true;
-            printf("param(%d) error, need:%s got:%s\n", param, need, l->GetTypeName(index));
+            LogError("param(%d) error, need:%s got:%s\n", param, need, l->GetTypeName(index));
             return false;
         }
 
@@ -420,8 +427,8 @@ namespace detail
         inline void* GetUdPtr(xLuaState* l, int index, const TypeInfo* info) {
             int l_ty = l->GetType(index);
             if (l_ty == LUA_TUSERDATA) {
-                LuaUserData* ud = static_cast<LuaUserData*>(lua_touserdata(l->GetState(), index));
-                if (ud->type_ == LuaUserDataType::kObjPtr) {
+                FullUserData* ud = static_cast<FullUserData*>(lua_touserdata(l->GetState(), index));
+                if (ud->type_ == UserDataCategory::kObjPtr) {
                     if (ud->info_->is_weak_obj) {
                         if (ud->serial_ == xLuaGetWeakObjSerialNum(ud->index_))
                             return info->caster.to_weak_ptr(xLuaGetWeakObjPtr(ud->index_));
@@ -430,12 +437,12 @@ namespace detail
                         if (obj && obj->serial_num_ == ud->serial_)
                             return obj->info_->caster.to_super(obj->obj_, obj->info_, info);
                     }
-                } else if (ud->type_ == LuaUserDataType::kValue) {
+                } else if (ud->type_ == UserDataCategory::kValue) {
                     return ud->info_->caster.to_super(ud->obj_, ud->info_, info);
                 }
             } else if (l_ty == LUA_TLIGHTUSERDATA) {
 #if XLUA_USE_LIGHT_USER_DATA
-                LightDataPtr ud = MakeLightPtr(lua_touserdata(l->GetState(), index));
+                LightUserData ud = MakeLightPtr(lua_touserdata(l->GetState(), index));
                 if (ud.type_ == 0) {
                     ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud.index_);
                     if (obj && obj->serial_num_ == ud.serial_)
@@ -474,6 +481,14 @@ namespace detail
         struct Laoder<std::shared_ptr<Ty>, Ry> {
             static Ry Do(xLuaState* l, int index) {
                 return l->Load<std::shared_ptr<Ty>>(index);
+            }
+        };
+
+        template <typename Ty, typename Ry>
+        struct Laoder<xLuaWeakObjPtr<Ty>, Ry> {
+            static Ry Do(xLuaState* l, int index) {
+                Ty* ptr = GetUdPtr(l, index, GetTypeInfoImpl<Ty>());
+                return xLuaWeakObjPtr<Ty>(ptr);
             }
         };
     } // namespace param

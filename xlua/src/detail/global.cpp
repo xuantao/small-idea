@@ -35,23 +35,23 @@ namespace detail
         xLuaLogError(buf);
     }
 
-    NodeBase::NodeBase(NodeType type) : type_(type)
+    NodeBase::NodeBase(NodeCategory type) : category(type)
     {
-        next_ = s_node_head;
+        next = s_node_head;
         s_node_head = this;
     }
 
     NodeBase::~NodeBase()
     {
         NodeBase* node = s_node_head;
-        while (node != this && node->next_ != this)
-            node = node->next_;
+        while (node != this && node->next != this)
+            node = node->next;
 
         if (node == this)
-            s_node_head = next_;
+            s_node_head = next;
         else
-            node->next_ = next_;
-        next_ = nullptr;
+            node->next = next;
+        next = nullptr;
     }
 
     bool GlobalVar::Startup()
@@ -64,21 +64,21 @@ namespace detail
         /* 初始化静态数据 */
         NodeBase* node = s_node_head;
         while (node) {
-            switch (node->type_) {
-            case NodeType::kType:
-                static_cast<TypeNode*>(node)->func_();
+            switch (node->category) {
+            case NodeCategory::kType:
+                static_cast<TypeNode*>(node)->func();
                 break;
-            case NodeType::kConst:
+            case NodeCategory::kConst:
                 s_global->const_infos_.push_back(static_cast<ConstNode*>(node)->func_());
                 break;
-            case NodeType::kScript:
-                s_global->scripts_.push_back(static_cast<ScriptNode*>(node)->script_);
+            case NodeCategory::kScript:
+                s_global->scripts_.push_back(static_cast<ScriptNode*>(node)->script);
                 break;
             default:
                 break;
             }
 
-            node = node->next_;
+            node = node->next;
         }
         return true;
     }

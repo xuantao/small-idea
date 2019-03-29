@@ -55,7 +55,7 @@ namespace detail
     }
 
     static void ZeroMember(TypeMember& mem) {
-        mem.type = MemberType::kInvalid;
+        mem.category = MemberCategory::kInvalid;
         mem.name = nullptr;
         mem.getter = nullptr;
         mem.setter = nullptr;
@@ -64,13 +64,13 @@ namespace detail
     void TypeDesc::AddMember(const char* name, LuaFunction func, bool global)
     {
         auto& vec = global ? globals_ : members_;
-        vec.push_back(TypeMember{MemberType::kFunction, PerifyMemberName(name), func});
+        vec.push_back(TypeMember{MemberCategory::kFunction, PerifyMemberName(name), func});
     }
 
     void TypeDesc::AddMember(const char* name, LuaIndexer getter, LuaIndexer setter, bool global)
     {
         auto& vec = global ? globals_ : members_;
-        TypeMember mem{MemberType::kVariate, PerifyMemberName(name), nullptr};
+        TypeMember mem{MemberCategory::kVariate, PerifyMemberName(name), nullptr};
         mem.getter = getter;
         mem.setter = setter;
         vec.push_back(mem);

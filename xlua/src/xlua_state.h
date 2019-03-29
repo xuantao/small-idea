@@ -35,7 +35,7 @@ private:
 class xLuaState {
     struct UdCache {
         int lua_ref_;
-        detail::LuaUserData* user_data_;
+        detail::FullUserData* user_data_;
     };
 
     struct LuaObjRef {
@@ -272,15 +272,15 @@ private:
 
         PushMul(std::forward<Args>(args)...);
         if (lua_pcall(state_, sizeof...(Args), sizeof...(Rys), 0) != LUA_OK) {
-            // log err
+            detail::LogError("excute lua function error:%s", lua_tostring(state_, -1));
             return false;
         }
         DoLoadMul(ret, top, detail::make_index_sequence_t<sizeof...(Rys)>());
         return true;
     }
 
-    detail::LuaUserData* PushUserData(const detail::LuaUserData& val) {
-        using DataType = detail::LuaUserData;
+    detail::FullUserData* PushUserData(const detail::FullUserData& val) {
+        using DataType = detail::FullUserData;
         void* mem = lua_newuserdata(state_, sizeof(DataType));
         auto* data = new (mem)DataType(val);
 
@@ -292,7 +292,7 @@ private:
     }
 
     template <typename Ty>
-    detail::LuaUserData* PushUserData(const Ty& val, const TypeInfo* info) {
+    detail::FullUserData* PushUserData(const Ty& val, const TypeInfo* info) {
         using DataType = detail::LuaUserDataImpl<Ty>;
         void* mem = lua_newuserdata(state_, sizeof(DataType));
         auto* data = new (mem)DataType(val, info);
@@ -304,8 +304,8 @@ private:
         return data;
     }
 
-    void PushWeakObjPtr(const detail::LuaUserData& ud) {
-        assert(ud.type_ == detail::LuaUserDataType::kObjPtr);
+    void PushWeakObjPtr(const detail::FullUserData& ud) {
+        assert(ud.type_ == detail::UserDataCategory::kObjPtr);
         if (weak_obj_ptrs_.size() < ud.index_) {
             weak_obj_ptrs_.resize((1 + ud.index_ / 1024) * 1024, UdCache{0, nullptr});
         }
@@ -319,8 +319,8 @@ private:
         }
     }
 
-    void PushLuaObjPtr(const detail::LuaUserData& ud) {
-        assert(ud.type_ == detail::LuaUserDataType::kObjPtr);
+    void PushLuaObjPtr(const detail::FullUserData& ud) {
+        assert(ud.type_ == detail::UserDataCategory::kObjPtr);
         if (lua_obj_ptrs_.size() < ud.index_) {
             lua_obj_ptrs_.resize((1 + ud.index_ / 1024) * 1024, UdCache{0, nullptr});
         }
@@ -334,8 +334,8 @@ private:
         }
     }
 
-    void PushRawPtr(const detail::LuaUserData& ud) {
-        assert(ud.type_ == detail::LuaUserDataType::kRawPtr);
+    void PushRawPtr(const detail::FullUserData& ud) {
+        assert(ud.type_ == detail::UserDataCategory::kRawPtr);
         void* root = detail::GetRootPtr(ud.obj_, ud.info_);
         auto it = raw_ptrs_.find(root);
         if (it != raw_ptrs_.cend()) {
@@ -373,7 +373,7 @@ private:
         lua_remove(state_, -2);
     }
 
-    inline UdCache RefCache(detail::LuaUserData* data) {
+    inline UdCache RefCache(detail::FullUserData* data) {
         UdCache udc ={0, data};
         lua_rawgeti(state_, LUA_REGISTRYINDEX, user_data_table_ref_);
         lua_pushvalue(state_, -2);
@@ -390,7 +390,7 @@ private:
         cache.user_data_ = nullptr;
     }
 
-    void Gc(detail::LuaUserData* user_data);
+    void Gc(detail::FullUserData* user_data);
 
     bool InitEnv(const std::vector<TypeInfo*>& types,
         const std::vector<const ConstInfo*>& consts,
@@ -430,13 +430,12 @@ namespace detail {
             || IsExternal<Ty>::value
             || IsExtendLoad<Ty>::value
             || std::is_enum<Ty>::value,
-            "not support to export"
-        );
+            "not support to push type value to lua"
+            );
 
         static inline void Do(xLuaState* l, const Ty& val) {
-            using tag = typename std::conditional<IsInternal<Ty>::value, tag_internal,
-                typename std::conditional<IsExternal<Ty>::value, tag_external,
-                    typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_extend>::type>::type>::type;
+            using tag = typename std::conditional<IsInternal<Ty>::value || IsExternal<Ty>::value, tag_declared,
+                typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_extend>::type>::type;
             PushValue<Ty>(l, val, tag());
         }
 
@@ -451,12 +450,7 @@ namespace detail {
         }
 
         template <typename U>
-        static inline void PushValue(xLuaState* l, const U& val, tag_internal) {
-            l->PushUserData(val, GetTypeInfoImpl<U>());
-        }
-
-        template <typename U>
-        static inline void PushValue(xLuaState* l, const U& val, tag_external) {
+        static inline void PushValue(xLuaState* l, const U& val, tag_declared) {
             l->PushUserData(val, GetTypeInfoImpl<U>());
         }
     };
@@ -504,7 +498,7 @@ namespace detail {
             int index = xLuaAllocWeakObjIndex(val);
             int serial_num = xLuaGetWeakObjSerialNum(index);
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
-            l->PushWeakObjPtr(LuaUserData(LuaUserDataType::kObjPtr, index, serial_num, info));
+            l->PushWeakObjPtr(FullUserData(UserDataCategory::kObjPtr, index, serial_num, info));
         }
 
         template <typename Ty>
@@ -512,13 +506,13 @@ namespace detail {
             int index = AllocInternalIndex(val);
             int serial_num = GetInternalSerialNum(index);
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
-            l->PushLuaObjPtr(LuaUserData(LuaUserDataType::kObjPtr, index, serial_num, info));
+            l->PushLuaObjPtr(FullUserData(UserDataCategory::kObjPtr, index, serial_num, info));
         }
 
         template <typename Ty>
         inline void PushPointer(xLuaState* l, Ty* val, tag_external) {
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
-            l->PushRawPtr(LuaUserData(LuaUserDataType::kRawPtr, val, info));
+            l->PushRawPtr(FullUserData(UserDataCategory::kRawPtr, val, info));
         }
 #endif // XLUA_USE_LIGHT_USER_DATA
     };
@@ -536,18 +530,29 @@ namespace detail {
     };
 
     template <typename Ty>
+    struct Pusher<xLuaWeakObjPtr<Ty>> {
+        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
+        static inline void Do(xLuaState* l, const xLuaWeakObjPtr<Ty>& ptr) {
+            if (ptr.Get() == nullptr) {
+                l->Push(nullptr);
+            } else {
+                l->Push(ptr.Get());
+            }
+        }
+    };
+
+    template <typename Ty>
     struct Loader {
-        static_assert(IsExternal<Ty>::value
+        static_assert(IsInternal<Ty>::value
             || IsExternal<Ty>::value
             || IsExtendLoad<Ty>::value
             || std::is_enum<Ty>::value,
-            "not support load"
+            "not support load type value"
         );
 
         static inline Ty Do(xLuaState* l, int index) {
-            using tag = typename std::conditional<IsInternal<Ty>::value, tag_internal,
-                typename std::conditional<IsExternal<Ty>::value, tag_external,
-                    typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_extend>::type>::type>::type;
+            using tag = typename std::conditional<IsInternal<Ty>::value || IsExternal<Ty>::value, tag_declared,
+                typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_extend>::type>::type;
             return LoadValue<Ty>(l, index, tag());
         }
 
@@ -562,14 +567,7 @@ namespace detail {
         }
 
         template <typename U>
-        static inline U LoadValue(xLuaState* l, int index, tag_internal) {
-            //TODO: pointer to value
-            return U();
-        }
-
-        template <typename U>
-        static inline U LoadValue(xLuaState* l, int index, tag_external) {
-            static_assert(!IsWeakObjPtr<U>::value, "not allow weak obj");
+        static inline U LoadValue(xLuaState* l, int index, tag_declared) {
             do {
                 if (lua_type(l->GetState(), index) != LUA_TUSERDATA)
                     break;
@@ -578,7 +576,7 @@ namespace detail {
                 if (p == nullptr)
                     break;
 
-                LuaUserData* ud = static_cast<LuaUserData*>(p);
+                FullUserData* ud = static_cast<FullUserData*>(p);
                 const TypeInfo* info = GetTypeInfoImpl<U>();
                 if (!IsBaseOf(info, ud->info_))
                     break;
@@ -587,13 +585,14 @@ namespace detail {
                 return U(*static_cast<U*>(ud->info_->caster.to_super(ud->obj_, ud->info_, info)));
             } while (false);
 
+            LogError("load value failed, type:[%s]", l->GetTypeName(index));
             return U();
         }
     };
 
     template <typename Ty>
     struct Loader<Ty*> {
-        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
+        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "only declared export to lua types");
         static Ty* Do(xLuaState* l, int index) {
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
             void* p = lua_touserdata(l->GetState(), index);
@@ -622,8 +621,8 @@ namespace detail {
             if (p == nullptr)
                 return nullptr;
 
-            LuaUserData* ud = static_cast<LuaUserData*>(p);
-            if (ud->type_ != LuaUserDataType::kSharedPtr)
+            FullUserData* ud = static_cast<FullUserData*>(p);
+            if (ud->type_ != UserDataCategory::kSharedPtr)
                 return nullptr;
 
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
@@ -632,6 +631,14 @@ namespace detail {
 
             return std::shared_ptr<Ty>(*static_cast<std::shared_ptr<Ty>*>(ud->GetDataPtr()),
                 (Ty*)ud->info_->caster.to_super(ud->obj_, ud->info_, info));
+        }
+    };
+
+    template <typename Ty>
+    struct Loader<xLuaWeakObjPtr<Ty>> {
+        static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "");
+        static inline xLuaWeakObjPtr<Ty> Do(xLuaState* l, int index) {
+            return xLuaWeakObjPtr<Ty>(l->Load<Ty*>(index));
         }
     };
 } // namespace detail

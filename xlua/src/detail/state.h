@@ -35,7 +35,7 @@ namespace detail {
     }
 
 #ifdef XLUA_USE_LIGHT_USER_DATA
-    struct LightDataPtr {
+    struct LightUserData {
         union {
             struct {
                 void* ptr_;
@@ -56,24 +56,24 @@ namespace detail {
         }
     };
 
-    inline LightDataPtr MakeLightPtr(void* ptr) {
-        LightDataPtr ud;
+    inline LightUserData MakeLightPtr(void* ptr) {
+        LightUserData ud;
         ud.ptr_ = ptr;
         return ud;
     }
 
-    inline LightDataPtr MakeLightPtr(int type, int index, int serial_num) {
+    inline LightUserData MakeLightPtr(int type, int index, int serial_num) {
         assert((0xff000000 & index) == 0);
-        LightDataPtr ptr;
+        LightUserData ptr;
         ptr.serial_ = serial_num;
         ptr.index_ = index;
         ptr.type_ = (unsigned char)type;
         return ptr;
     }
 
-    inline LightDataPtr MakeLightPtr(int type, void* p) {
+    inline LightUserData MakeLightPtr(int type, void* p) {
         assert((0xff00000000000000 & reinterpret_cast<uint64_t>(p)) == 0);
-        LightDataPtr ptr;
+        LightUserData ptr;
         ptr.ptr_ = p;
         ptr.type_ = (unsigned char)type;
         return ptr;
@@ -81,32 +81,32 @@ namespace detail {
 
 #endif // XLUA_USE_LIGHT_USER_DATA
 
-    enum class LuaUserDataType {
+    enum class UserDataCategory {
         kValue,
         kRawPtr,
         kSharedPtr,
         kObjPtr,
     };
 
-    struct LuaUserData {
-        LuaUserData(LuaUserDataType type, void* obj, const TypeInfo* info)
+    struct FullUserData {
+        FullUserData(UserDataCategory type, void* obj, const TypeInfo* info)
             : type_(type)
             , info_(info)
             , obj_(obj) {
         }
 
-        LuaUserData(LuaUserDataType type, int32_t index, int32_t serial, const TypeInfo* info)
+        FullUserData(UserDataCategory type, int32_t index, int32_t serial, const TypeInfo* info)
             : type_(type)
             , info_(info)
             , index_(index)
             , serial_(serial) {
         }
 
-        virtual ~LuaUserData() {}
+        virtual ~FullUserData() {}
 
         virtual void* GetDataPtr() { return nullptr; }
 
-        LuaUserDataType type_;
+        UserDataCategory type_;
         const TypeInfo* info_;
         union {
             void* obj_;
@@ -118,9 +118,9 @@ namespace detail {
     };
 
     template <typename Ty>
-    struct LuaUserDataImpl : LuaUserData {
+    struct LuaUserDataImpl : FullUserData {
         LuaUserDataImpl(const Ty& val, const TypeInfo* info)
-            : LuaUserData(LuaUserDataType::kValue, nullptr, info)
+            : FullUserData(UserDataCategory::kValue, nullptr, info)
             , val_(val) {
             obj_ = &val_;
         }
@@ -133,16 +133,16 @@ namespace detail {
     };
 
     template <typename Ty>
-    struct LuaUserDataImpl<Ty*> : LuaUserData {
+    struct LuaUserDataImpl<Ty*> : FullUserData {
         LuaUserDataImpl(Ty* val, const TypeInfo* info)
-            : LuaUserData(LuaUserDataType::kRawPtr, val, info) {
+            : FullUserData(UserDataCategory::kRawPtr, val, info) {
         }
     };
 
     template <typename Ty>
-    struct LuaUserDataImpl<std::shared_ptr<Ty>> : LuaUserData {
+    struct LuaUserDataImpl<std::shared_ptr<Ty>> : FullUserData {
         LuaUserDataImpl(const std::shared_ptr<Ty>& val, const TypeInfo* info)
-            : LuaUserData(LuaUserDataType::kSharedPtr, nullptr, info)
+            : FullUserData(UserDataCategory::kSharedPtr, nullptr, info)
             , val_(val) {
             obj_ = val_.get();
         }
@@ -157,7 +157,7 @@ namespace detail {
     template <typename Ty>
     Ty* GetLightUserDataPtr(void* user_data, const TypeInfo* info) {
 #if XLUA_USE_LIGHT_USER_DATA
-        LightDataPtr ud = MakeLightPtr(user_data);
+        LightUserData ud = MakeLightPtr(user_data);
         if (ud.type_ == 0) {
             ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud.index_);
             if (obj == nullptr || obj->serial_num_ != ud.serial_ || obj->obj_ == nullptr) {
@@ -197,17 +197,17 @@ namespace detail {
 
     template <typename Ty>
     Ty* GetFullUserDataPtr(void* p, const TypeInfo* info) {
-        LuaUserData* ud = static_cast<LuaUserData*>(p);
+        FullUserData* ud = static_cast<FullUserData*>(p);
         if (ud->obj_ == nullptr)
             return nullptr;
         if (!IsBaseOf(info, ud->info_))
             return nullptr;
 
-        if (ud->type_ == LuaUserDataType::kRawPtr) {
+        if (ud->type_ == UserDataCategory::kRawPtr) {
             return (Ty*)ud->info_->caster.to_super(ud->obj_, ud->info_, info);
         }
 
-        if (ud->type_ == LuaUserDataType::kObjPtr) {
+        if (ud->type_ == UserDataCategory::kObjPtr) {
             if (ud->info_->is_weak_obj) {
                 auto base = (XLUA_WEAK_OBJ_BASE_TYPE*)xLuaGetWeakObjPtr(ud->index_);
                 if (base == nullptr || ud->serial_ != xLuaGetWeakObjSerialNum(ud->index_))

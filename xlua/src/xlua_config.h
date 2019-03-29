@@ -19,14 +19,18 @@
 /* 配置是否支持弱指针
  * 修改基类定义宏并实例化基础接口
 */
-#ifndef XLUA_ENABLE_WEAKOBJ 
+#ifndef XLUA_ENABLE_WEAKOBJ
     #define XLUA_ENABLE_WEAKOBJ 0
 #endif
 
 /* 支持弱队像必要的一些实现 */
 #if !XLUA_ENABLE_WEAKOBJ
     #define XLUA_WEAK_OBJ_BASE_TYPE void
-    template <typename Ty> struct xLuaWeakObjPtr {};
+    template <typename Ty> struct xLuaWeakObjPtr {
+        xLuaWeakObjPtr(Ty*) {}
+        Ty* Get() const { return nullptr; }
+    };
+
     inline int xLuaAllocWeakObjIndex(void* val) { assert(false); return -1; }
     inline int xLuaGetWeakObjSerialNum(int index) { assert(false); return 0; }
     inline void* xLuaGetWeakObjPtr(int index) { assert(false); return nullptr; }
@@ -52,4 +56,5 @@ inline void xLuaLogError(const char* err) {
 #define XLUA_CONTAINER_INCREMENTAL  1024
 /* 类型名称最大字节数 */
 #define XLUA_MAX_TYPE_NAME_LENGTH   256
+/* 输出日志最大缓存字节数 */
 #define XLUA_MAX_BUFFER_CACHE       1024

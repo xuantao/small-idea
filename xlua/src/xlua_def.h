@@ -21,7 +21,7 @@ struct TypeInfo;
 
 /* 导出到Lua类型 */
 typedef int (*LuaFunction)(lua_State* L);
-typedef void (*LuaIndexer)(xLuaState* L, void* obj);
+typedef void (*LuaIndexer)(xLuaState* L, void* obj, const TypeInfo* info);
 
 /* convert to weak_obj_ptr */
 typedef void* (*ToWeakPtr)(void* obj);
@@ -39,7 +39,7 @@ struct Identity {
     typedef Ty type;
 };
 
-enum class ConstValueType {
+enum class ConstCategory {
     kNone,
     kInteger,
     kFloat,
@@ -47,7 +47,7 @@ enum class ConstValueType {
 };
 
 struct ConstValue {
-    ConstValueType type;
+    ConstCategory category;
     const char* name;
 
     union {
@@ -62,14 +62,14 @@ struct ConstInfo {
     const ConstValue* values;
 };
 
-enum class MemberType {
+enum class MemberCategory {
     kInvalid = 0,
     kVariate,
     kFunction,
 };
 
 struct TypeMember {
-    MemberType type;
+    MemberCategory category;
     const char* name;
     union {
         struct {
@@ -138,12 +138,12 @@ private:
 XLUA_NAMESPACE_END
 
 /* 声明导出Lua类 */
-#define XLUA_DECLARE_CLASS(ClassName, ...)                              \
-    typedef xlua::Declare<ClassName,                                    \
-        typename xlua::detail::BaseType<_VAR_ARGS_>::type> LuaDeclare;  \
-    xlua::ObjIndex xlua_obj_index_;                                     \
-    static const xlua::TypeInfo* xLuaGetTypeInfo()
+#define XLUA_DECLARE_CLASS(ClassName, ...)                                          \
+    typedef XLUA_USE_NAMESPCE Declare<ClassName,                                    \
+        typename XLUA_USE_NAMESPCE detail::BaseType<_VAR_ARGS_>::type> LuaDeclare;  \
+    XLUA_USE_NAMESPCE ObjIndex xlua_obj_index_;                                     \
+    static const XLUA_USE_NAMESPCE TypeInfo* xLuaGetTypeInfo()
 
 /* 声明导出外部类 */
-#define XLUA_DECLARE_EXTERNAL_CLASS(ClassName)                          \
-    const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Identity<ClassName>)
+#define XLUA_DECLARE_EXTERNAL_CLASS(ClassName)                                      \
+    const XLUA_USE_NAMESPCE TypeInfo* xLuaGetTypeInfo(XLUA_USE_NAMESPCE Identity<ClassName>)

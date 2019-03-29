@@ -10,7 +10,7 @@ struct TestType1
 namespace {
     struct extend_member_var {
         static xlua::LuaIndexer Get() {
-            return [](xlua::xLuaState* L, void* obj) {
+            return [](xlua::xLuaState* L, void* obj, const xlua::TypeInfo*) {
                 extend_member_var* self = nullptr;
                 auto f = [self]() {
                     return self->a;
