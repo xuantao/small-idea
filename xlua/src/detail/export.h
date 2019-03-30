@@ -618,8 +618,12 @@ namespace detail
 
     template <size_t N>
     inline void MetaSet(xLuaState* l, char data[N]) {
-        //*data = l->Load<typename std::decay<Ry>::type>(1);
-        //TODO:
+        static_assert(N > 0);
+        const char* s = l->Load<const char*>(3);    // 1:obj, 2:name, 3:value
+        if (s)
+            snprintf(data, N, s);
+        else
+            data[0] = 0;
     }
 
     template <typename Ry>
