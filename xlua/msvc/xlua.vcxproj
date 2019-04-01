@@ -40,6 +40,9 @@
     <ClCompile Include="..\src\xlua_obj.cpp" />
     <ClCompile Include="..\src\xlua_state.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{1F9C1EE9-6BFE-48C9-B03D-9AD8ADCD0358}</ProjectGuid>

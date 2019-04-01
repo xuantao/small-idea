@@ -105,6 +105,12 @@ public:
         SetGlobal(path);
     }
 
+    inline void SetGlobal(const char* path, std::nullptr_t) {
+        xLuaGuard(this);
+        lua_pushnil(state_);
+        SetGlobal(path);
+    }
+
     template <typename Ty>
     inline void SetTableField(int index, int field, const Ty& val) {
         Push(val);
@@ -114,6 +120,11 @@ public:
     template <typename Ty>
     inline void SetTableField(int index, const char* field, const Ty& val) {
         Push(val);
+        SetTableField(index, field);
+    }
+
+    inline void SetTableField(int index, const char* field, std::nullptr_t) {
+        lua_pushnil(state_);
         SetTableField(index, field);
     }
 
@@ -392,13 +403,15 @@ private:
 
     void Gc(detail::FullUserData* user_data);
 
-    bool InitEnv(const std::vector<TypeInfo*>& types,
-        const std::vector<const ConstInfo*>& consts,
+    bool InitEnv(const std::vector<const ConstInfo*>& consts,
+        const std::vector<TypeInfo*>& types,
         const std::vector<const char*>& scripts
     );
-    void AddConsts(const std::vector<const ConstInfo*>& consts);
-    void CreateMeta(const TypeInfo* info);
-    void SetTableMember(const TypeInfo* info, bool func, bool var);
+    void InitConsts(const std::vector<const ConstInfo*>& consts);
+    void CreateTypeMeta(const TypeInfo* info);
+    void CreateTypeGlobal(const TypeInfo* info);
+    void SetTypeMember(const TypeInfo* info);
+    void SetGlobalMember(const TypeInfo* info, bool func, bool var);
     void PushClosure(lua_CFunction func);
 
     int RefLuaObj(int index);
@@ -414,7 +427,7 @@ private:
     int lua_obj_table_ref_ = 0;     // table, function
     int next_free_lua_obj_ = -1;    // 下一个的lua对象表空闲槽
     std::vector<LuaObjRef> lua_objs_;
-    std::vector<int> type_meta_ref_;
+    //std::vector<int> type_meta_ref_;
     std::vector<UdCache> lua_obj_ptrs_;
     std::vector<UdCache> weak_obj_ptrs_;
     std::unordered_map<void*, UdCache> raw_ptrs_;

@@ -33,6 +33,15 @@ namespace detail {
         xLuaLogError(buf);
     }
 
+    static bool HasGlobal(const TypeInfo* info) {
+        while (info) {
+            if (info->globals[0].category != MemberCategory::kInvalid)
+                return true;
+            info = info->super;
+        }
+        return false;
+    }
+
     struct MetaFuncs {
         static int LuaIndex(lua_State* l) {
             lua_getmetatable(l, 1);     // 1: ud, 2: key, 3: metatable
@@ -273,6 +282,60 @@ namespace detail {
             LogCallStack(l);
             return 0;
         }
+
+        static int LuaCast(lua_State* l) {
+            xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
+            int l_ty = lua_type(l, 1);
+            if (l_ty == LUA_TLIGHTUSERDATA) {
+                return 0;
+            } else if (l_ty == LUA_TUSERDATA) {
+                return 0;
+            } else {
+                return 0;
+            }
+        }
+
+        static int LuaIsValid(lua_State* l) {
+            int l_ty = lua_type(l, 1);
+            if (l_ty == LUA_TLIGHTUSERDATA) {
+
+            } else if (l_ty == LUA_TUSERDATA) {
+
+            } else {
+                lua_pushboolean(l, false);
+            }
+            return 1;
+        }
+
+        static int LuaType(lua_State* l) {
+            int l_ty = lua_type(l, 1);
+            if (l_ty == LUA_TLIGHTUSERDATA) {
+
+            } else if (l_ty == LUA_TUSERDATA) {
+
+            } else {
+                lua_pushstring(l, lua_typename(l, 1));
+            }
+            return 1;
+        }
+
+        static int LuaGetTypeMeta(lua_State* l) {
+            const auto* info = GlobalVar::GetInstance()->GetTypeInfo(lua_tostring(l, 1));
+            if (info == nullptr || info->index == 0)
+                return 0;
+
+            xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
+            lua_rawgeti(l, LUA_REGISTRYINDEX, xl->meta_table_ref_);
+            lua_rawgeti(l, -1, info->index);
+            lua_remove(l, -2);
+            return 1;
+        }
+
+        static int LuaGetMetaList(lua_State* l) {
+            xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
+            lua_rawgeti(l, LUA_REGISTRYINDEX, xl->meta_table_ref_);
+            return 1;
+        }
     };
 }
 
@@ -453,8 +516,8 @@ void xLuaState::Gc(detail::FullUserData* ud) {
     ud->~FullUserData();
 }
 
-bool xLuaState::InitEnv(const std::vector<TypeInfo*>& types,
-    const std::vector<const ConstInfo*>& consts,
+bool xLuaState::InitEnv(const std::vector<const ConstInfo*>& consts,
+    const std::vector<TypeInfo*>& types,
     const std::vector<const char*>& scripts) {
     // user data ref table (weak table)
     lua_createtable(state_, XLUA_CONTAINER_INCREMENTAL, 0);
@@ -471,9 +534,24 @@ bool xLuaState::InitEnv(const std::vector<TypeInfo*>& types,
     meta_table_ref_ = luaL_ref(state_, LUA_REGISTRYINDEX);
     assert(meta_table_ref_);
 
+    // user data cache table
     lua_newtable(state_);
     lua_obj_table_ref_ = luaL_ref(state_, LUA_REGISTRYINDEX);
     assert(lua_obj_table_ref_);
+
+    // xlua table
+    lua_newtable(state_);
+    PushClosure(&detail::MetaFuncs::LuaCast);
+    lua_setfield(state_, -2, "Cast");
+    PushClosure(&detail::MetaFuncs::LuaIsValid);
+    lua_setfield(state_, -2, "IsValid");
+    PushClosure(&detail::MetaFuncs::LuaType);
+    lua_setfield(state_, -2, "Type");
+    PushClosure(&detail::MetaFuncs::LuaGetTypeMeta);
+    lua_setfield(state_, -2, "GetTypeMeta");
+    PushClosure(&detail::MetaFuncs::LuaGetMetaList);
+    lua_setfield(state_, -2, "GetMetaList");
+    lua_setglobal(state_, "xlua");
 
 #if XLUA_USE_LIGHT_USER_DATA
     // light user data metatable
@@ -494,12 +572,14 @@ bool xLuaState::InitEnv(const std::vector<TypeInfo*>& types,
     assert(lua_gettop(state_) == 0);
 #endif // XLUA_USE_LIGHT_USER_DATA
 
-    for (const TypeInfo* info : types) {
-        if (info)
-            CreateMeta(info);
-    }
+    InitConsts(consts);
 
-    AddConsts(consts);
+    for (const TypeInfo* info : types) {
+        if (info->category != TypeCategory::kGlobal)
+            CreateTypeMeta(info);
+        if (detail::HasGlobal(info))
+            CreateTypeGlobal(info);
+    }
 
     for (const char* script : scripts) {
         DoString(script, "InitEnv");
@@ -508,7 +588,7 @@ bool xLuaState::InitEnv(const std::vector<TypeInfo*>& types,
     return true;
 }
 
-void xLuaState::AddConsts(const std::vector<const ConstInfo*>& consts) {
+void xLuaState::InitConsts(const std::vector<const ConstInfo*>& consts) {
     lua_createtable(state_, 2, 0);  // const metatable
 
     lua_pushcfunction(state_, &detail::MetaFuncs::LuaConstIndex);
@@ -557,14 +637,32 @@ void xLuaState::AddConsts(const std::vector<const ConstInfo*>& consts) {
     assert(lua_gettop(state_) == 0);
 }
 
-void xLuaState::SetTableMember(const TypeInfo* info, bool func, bool var) {
+void xLuaState::SetTypeMember(const TypeInfo* info) {
     const TypeInfo* super = info->super;
     while (super) {
-        SetTableMember(super, func, var);
+        SetTypeMember(super);
         super = super->super;
     }
 
     for (const TypeMember* mem = info->members; mem->category != MemberCategory::kInvalid; ++mem) {
+        if (mem->category == MemberCategory::kFunction) {
+            PushClosure(mem->func);
+            lua_setfield(state_, -2, mem->name);
+        } else if (mem->category == MemberCategory::kVariate) {
+            lua_pushlightuserdata(state_, const_cast<TypeMember*>(mem));
+            lua_setfield(state_, -2, mem->name);
+        }
+    }
+}
+
+void xLuaState::SetGlobalMember(const TypeInfo* info, bool func, bool var) {
+    const TypeInfo* super = info->super;
+    while (super) {
+        SetGlobalMember(super, func, var);
+        super = super->super;
+    }
+
+    for (const TypeMember* mem = info->globals; mem->category != MemberCategory::kInvalid; ++mem) {
         if (func && mem->category == MemberCategory::kFunction) {
             PushClosure(mem->func);
             lua_setfield(state_, -2, mem->name);
@@ -575,64 +673,62 @@ void xLuaState::SetTableMember(const TypeInfo* info, bool func, bool var) {
     }
 }
 
-void xLuaState::CreateMeta(const TypeInfo* info) {
-    if (info->members[0].category != MemberCategory::kInvalid) {
-        lua_rawgeti(state_, LUA_REGISTRYINDEX, meta_table_ref_);
-        lua_newtable(state_);
-        lua_rawseti(state_, -2, info->index);
-        lua_rawgeti(state_, -1, info->index);
-        lua_remove(state_, -2);
+void xLuaState::CreateTypeMeta(const TypeInfo* info) {
+    lua_rawgeti(state_, LUA_REGISTRYINDEX, meta_table_ref_);
+    lua_newtable(state_);
+    lua_rawseti(state_, -2, info->index);
+    lua_rawgeti(state_, -1, info->index);
+    lua_remove(state_, -2);
 
-        SetTableMember(info, true, true);
+    SetTypeMember(info);
 
-        lua_pushstring(state_, info->type_name);
-        lua_setfield(state_, -2, "__name");
+    lua_pushstring(state_, info->type_name);
+    lua_setfield(state_, -2, "__name");
 
-        PushClosure(&detail::MetaFuncs::LuaIndex);
-        lua_setfield(state_, -2, "__index");
+    PushClosure(&detail::MetaFuncs::LuaIndex);
+    lua_setfield(state_, -2, "__index");
 
-        PushClosure(&detail::MetaFuncs::LuaNewIndex);
-        lua_setfield(state_, -2, "__newindex");
+    PushClosure(&detail::MetaFuncs::LuaNewIndex);
+    lua_setfield(state_, -2, "__newindex");
 
-        PushClosure(&detail::MetaFuncs::LuaGc);
-        lua_setfield(state_, -2, "__gc");
+    PushClosure(&detail::MetaFuncs::LuaGc);
+    lua_setfield(state_, -2, "__gc");
 
-        lua_pop(state_, 1);
-        assert(lua_gettop(state_) == 0);
-    }
+    lua_pop(state_, 1);
+    assert(lua_gettop(state_) == 0);
+}
 
-    if (info->globals[0].category != MemberCategory::kInvalid) {
-        const char* name = info->type_name;
-        lua_newtable(state_);
-        bool ok = SetGlobal(info->type_name);
-        assert(ok);
+void xLuaState::CreateTypeGlobal(const TypeInfo* info) {
+    const char* name = info->type_name;
+    lua_newtable(state_);
+    bool ok = SetGlobal(info->type_name);
+    assert(ok);
 
-        int l_ty = LoadGlobal(info->type_name);
-        assert(l_ty == LUA_TTABLE);
+    int l_ty = LoadGlobal(info->type_name);
+    assert(l_ty == LUA_TTABLE);
 
-        lua_pushstring(state_, info->type_name);
-        lua_setfield(state_, -2, "__name");
+    lua_pushstring(state_, info->type_name);
+    lua_setfield(state_, -2, "__name");
 
-        SetTableMember(info, true, false);
+    SetGlobalMember(info, true, false);
 
-        // meta table
-        lua_createtable(state_, 0, 0);
-        SetTableMember(info, false, true);
+    // meta table
+    lua_createtable(state_, 0, 0);
+    SetGlobalMember(info, false, true);
 
-        lua_pushstring(state_, info->type_name);
-        lua_setfield(state_, -2, "__name");
+    lua_pushstring(state_, info->type_name);
+    lua_setfield(state_, -2, "__name");
 
-        PushClosure(&detail::MetaFuncs::LuaGlobalIndex);
-        lua_setfield(state_, -2, "__index");
+    PushClosure(&detail::MetaFuncs::LuaGlobalIndex);
+    lua_setfield(state_, -2, "__index");
 
-        PushClosure(&detail::MetaFuncs::LuaGlobalNewIndex);
-        lua_setfield(state_, -2, "__newindex");
+    PushClosure(&detail::MetaFuncs::LuaGlobalNewIndex);
+    lua_setfield(state_, -2, "__newindex");
 
-        lua_setmetatable(state_, -2);   // set metatable
-        lua_pop(state_, 1);
+    lua_setmetatable(state_, -2);   // set metatable
+    lua_pop(state_, 1);
 
-        assert(lua_gettop(state_) == 0);
-    }
+    assert(lua_gettop(state_) == 0);
 }
 
 void xLuaState::PushClosure(lua_CFunction func) {

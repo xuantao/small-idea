@@ -18,7 +18,7 @@ namespace detail
         friend struct TypeDesc;
         friend class ObjIndex;
     private:
-        GlobalVar(int version);
+        GlobalVar();
         ~GlobalVar();
 
     public:
@@ -34,6 +34,7 @@ namespace detail
         xLuaState* GetState(lua_State* l) const;
 
         ITypeDesc* AllocType(TypeCategory category, bool is_weak_obj, const char* name, const TypeInfo* super);
+        const TypeInfo* GetTypeInfo(const char* name) const;
         const TypeInfo* GetExternalTypeInfo(int index) const;
 
         int AllocObjIndex(ObjIndex& obj_index, void* obj, const TypeInfo* info);
@@ -48,6 +49,7 @@ namespace detail
 
     private:
         int version_;
+        int type_index_gener_ = 0;
         int serial_num_gener_ = 0;
         std::vector<TypeInfo*> types_;
         std::vector<TypeInfo*> external_types_;

@@ -31,9 +31,9 @@
         Ty* Get() const { return nullptr; }
     };
 
-    inline int xLuaAllocWeakObjIndex(void* val) { assert(false); return -1; }
+    inline int xLuaAllocWeakObjIndex(XLUA_WEAK_OBJ_BASE_TYPE* val) { assert(false); return -1; }
     inline int xLuaGetWeakObjSerialNum(int index) { assert(false); return 0; }
-    inline void* xLuaGetWeakObjPtr(int index) { assert(false); return nullptr; }
+    inline XLUA_WEAK_OBJ_BASE_TYPE* xLuaGetWeakObjPtr(int index) { assert(false); return nullptr; }
 #else // XLUA_WEAK_OBJ_BASE_TYPE
     #define XLUA_WEAK_OBJ_BASE_TYPE
     template <typename Ty> using xLuaWeakObjPtr =;

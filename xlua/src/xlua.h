@@ -1,12 +1,7 @@
 ﻿#pragma once
-#include "detail/traits.h"
-#include "detail/state.h"
+#include "xlua_config.h"
 #include "xlua_def.h"
-#include "xlua_obj.h"
 #include "xlua_state.h"
-#include <lua.hpp>
-#include <string>
-#include <unordered_map>
 
 /* 扩展类型
  * void xLuaPush(xlua::xLuaState* l, const Type& val)

@@ -8,7 +8,6 @@ XLUA_NAMESPACE_BEGIN
 
 namespace detail
 {
-    static int s_version = 0;
     static NodeBase* s_node_head = nullptr;
     static GlobalVar* s_global = nullptr;
 }
@@ -59,7 +58,7 @@ namespace detail
         if (s_global)
             return false;
 
-        s_global = new GlobalVar(++s_version);
+        s_global = new GlobalVar();
 
         /* 初始化静态数据 */
         NodeBase* node = s_node_head;
@@ -83,34 +82,28 @@ namespace detail
         return true;
     }
 
-    GlobalVar* GlobalVar::GetInstance()
-    {
+    GlobalVar* GlobalVar::GetInstance() {
         return s_global;
     }
 
-    void GlobalVar::Purge()
-    {
+    void GlobalVar::Purge() {
         delete s_global;
         s_global = nullptr;
     }
 
-    GlobalVar::GlobalVar(int version) : version_(version)
-    {
+    GlobalVar::GlobalVar() {
         types_.reserve(256);
-        types_.push_back(nullptr);
-
         external_types_.reserve(256);
         external_types_.push_back(nullptr);
     }
 
-    GlobalVar::~GlobalVar()
-    {
+    GlobalVar::~GlobalVar() {
     }
 
     xLuaState* GlobalVar::Create() {
         lua_State* l = luaL_newstate();
         xLuaState* xl = new xLuaState(l, false);
-        if (!xl->InitEnv(types_, const_infos_, scripts_)) {
+        if (!xl->InitEnv(const_infos_, types_, scripts_)) {
             lua_close(l);
             delete xl;
             return nullptr;
@@ -143,6 +136,17 @@ namespace detail
         const char* name,
         const TypeInfo* super) {
         return new TypeDesc(s_global,category, is_weak_obj , name, super);
+    }
+
+    const TypeInfo* GlobalVar::GetTypeInfo(const char* name) const {
+        if (name == nullptr || *name == 0)
+            return nullptr;
+
+        for (const auto* info : types_) {
+            if (0 == strcmp(name, info->type_name))
+                return info;
+        }
+        return nullptr;
     }
 
     const TypeInfo* GlobalVar::GetExternalTypeInfo(int index) const {
@@ -215,12 +219,18 @@ namespace detail
     void GlobalVar::AddTypeInfo(TypeInfo* info)
     {
         assert(types_.size() < 0xff);
-        info->index = (int)types_.size();
         types_.push_back(info);
+
+        if (info->category != TypeCategory::kGlobal)
+            info->index = ++type_index_gener_;
+        else
+            info->index = 0;
 
         if (info->category == TypeCategory::kExternal) {
             info->external_type_index = (int8_t)external_types_.size();
             external_types_.push_back(info);
+        } else {
+            info->external_type_index = 0;
         }
     }
 

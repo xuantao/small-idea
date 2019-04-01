@@ -627,6 +627,11 @@ namespace detail
         return (obj->*func)(l);
     }
 
+    template <typename Ty>
+    inline int MetaCall(xLuaState* l, Ty* obj, int (Ty::*func)(xLuaState*) const) {
+        return (obj->*func)(l);
+    }
+
     template <typename Ry>
     inline void MetaGet(xLuaState* l, Ry* data) {
         l->Push(*data);
@@ -695,6 +700,21 @@ namespace detail
     template <typename Ty, typename Ry>
     inline void MetaSet(xLuaState* l, Ty* obj, void (*func)(Ty*, Ry)) {
         func(obj, l->Load<typename std::decay<Ry>::type>(1));
+    }
+
+    template <typename Ty>
+    inline void MetaGet(xLuaState* l, Ty* obj, int(Ty::*func)(xLuaState*)) {
+        (obj->*func)(l);
+    }
+
+    template <typename Ty>
+    inline void MetaGet(xLuaState* l, Ty* obj, int(Ty::*func)(xLuaState*) const) {
+        (obj->*func)(l);
+    }
+
+    template <typename Ty>
+    inline void MetaSet(xLuaState* l, Ty* obj, int(Ty::*func)(xLuaState*)) {
+        (obj->*func)(l);
     }
 
     template <typename Ty>
