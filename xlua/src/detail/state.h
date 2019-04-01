@@ -159,35 +159,30 @@ namespace detail {
 #if XLUA_USE_LIGHT_USER_DATA
         LightUserData ud = MakeLightPtr(user_data);
         if (ud.type_ == 0) {
-            ArrayObj* obj = GlobalVar::GetInstance()->GetArrayObj(ud.index_);
-            if (obj == nullptr || obj->serial_num_ != ud.serial_ || obj->obj_ == nullptr) {
-                //TODO: log type info not equal
+            ArrayObj* ary_obj = GlobalVar::GetInstance()->GetArrayObj(ud.index_);
+            if (ary_obj == nullptr || ary_obj->serial_num_ != ud.serial_) {
                 return nullptr;
             }
 
-            if (!IsBaseOf(info, obj->info_)) {
-                //TODO: log type info not equal
+            if (!IsBaseOf(info, ary_obj->info_)) {
+                LogError("can not get obj of type:[%s] from:[%s]", info->type_name, ary_obj->info_->type_name);
                 return nullptr;
             }
 
-            return (Ty*)obj->info_->caster.to_super(obj->obj_, obj->info_, info);
-        }
-        else {
+            return (Ty*)ary_obj->info_->caster.to_super(ary_obj->obj_, ary_obj->info_, info);
+        } else {
             const TypeInfo* dst_type = GlobalVar::GetInstance()->GetExternalTypeInfo(ud.type_);
-            if (dst_type == nullptr || !IsBaseOf(info, dst_type)) {
-                //TODO: log type info not equal
+            if (!IsBaseOf(info, dst_type)) {
+                LogError("can not get obj of type:[%s] from:[%s]", info->type_name, dst_type->type_name);
                 return nullptr;
             }
 
             if (dst_type->is_weak_obj) {
-                void* obj = xLuaGetWeakObjPtr(ud.index_);
-                if (obj == nullptr || ud.serial_ != xLuaGetWeakObjSerialNum(ud.index_)) {
-                    //TODO:
+                if (ud.serial_ != xLuaGetWeakObjSerialNum(ud.index_)) {
                     return nullptr;
                 }
-                return static_cast<Ty*>(static_cast<XLUA_WEAK_OBJ_BASE_TYPE*>(obj));
-            }
-            else {
+                return static_cast<Ty*>(xLuaGetWeakObjPtr(ud.index_));
+            } else {
                 return (Ty*)dst_type->caster.to_super(ud.ToRawPtr(), dst_type, info);
             }
         }

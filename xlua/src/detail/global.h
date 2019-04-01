@@ -46,7 +46,6 @@ namespace detail
         void AddTypeInfo(TypeInfo*);
         void* SerialAlloc(size_t size);
 
-
     private:
         int version_;
         int serial_num_gener_ = 0;

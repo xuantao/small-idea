@@ -49,7 +49,14 @@ struct TestLuaExport
 
     void test_enum(TestEnum2) {}
     TestNone GetNone() { return TestNone(); }
+
+    static void Print() { }
+
+    int TestLua(xlua::xLuaState* l) { return 0; }
 };
+
+bool TestExtend(TestLuaExport* o) { return false; }
+int TestExtend2(TestLuaExport* o, xlua::xLuaState* l) { return 0; }
 
 XLUA_EXPORT_ENUM_BEGIN(TestEnum2)
 XLUA_EXPORT_ENUM_VAR(kValue11)
@@ -62,6 +69,10 @@ XLUA_EXPORT_EXTERNAL_CLASS_BEGIN(TestLuaExport)
 XLUA_EXPORT_MEMBER_FUNC(test_call)
 XLUA_EXPORT_MEMBER_FUNC(test_enum)
 //XLUA_EXPORT_MEMBER_FUNC(GetNone)
+XLUA_EXPORT_MEMBER_FUNC(Print)
+XLUA_EXPORT_MEMBER_FUNC(TestLua)
+XLUA_EXPORT_MEMBER_FUNC_EXTEND(TestExtend, TestExtend)
+XLUA_EXPORT_MEMBER_FUNC_EXTEND(TestExtend2, TestExtend2)
 XLUA_EXPORT_MEMBER_VAR(ia)
 XLUA_EXPORT_EXTERNAL_CLASS_END()
 

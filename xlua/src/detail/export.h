@@ -179,10 +179,22 @@ namespace detail
     template <typename Ty>
     inline Ty* GetMetaCallFullUserDataPtr(void* user_data, const TypeInfo* info) {
         FullUserData* ud = static_cast<FullUserData*>(user_data);
-        if (ud->obj_ == nullptr) {
+        if (!IsBaseOf(info, ud->info_)) {
+            LogError("can not get obj of type:[%s] from:[%s]", info->type_name, ud->info_->type_name);
             return nullptr;
-        } else if (!IsBaseOf(info, ud->info_)) {
-            return nullptr;
+        }
+
+        if (ud->type_ == UserDataCategory::kObjPtr) {
+            if (ud->info_->is_weak_obj) {
+                if (ud->serial_ != xLuaGetWeakObjSerialNum(ud->index_))
+                    return nullptr;
+                return static_cast<Ty*>(xLuaGetWeakObjPtr(ud->index_));
+            } else {
+                auto ary_obj = GlobalVar::GetInstance()->GetArrayObj(ud->index_);
+                if (ary_obj->serial_num_ != ud->serial_)
+                    return nullptr;
+                return static_cast<Ty*>(ud->info_->caster.to_super(ud->obj_, ud->info_, info));
+            }
         }
         return static_cast<Ty*>(ud->info_->caster.to_super(ud->obj_, ud->info_, info));
     }
@@ -200,7 +212,6 @@ namespace detail
         case LUA_TUSERDATA:
             return GetMetaCallFullUserDataPtr<Ty>(p, info);
         }
-        //TODO: log
         return nullptr;
     }
 
@@ -578,6 +589,11 @@ namespace detail
         return 1;
     }
 
+    template <typename Ty>
+    inline int MetaCall(xLuaState* l, Ty* obj, int(*func)(Ty*, xLuaState*)) {
+        return func(obj, l);
+    }
+
     template <typename Ty, typename... Args>
     inline int MetaCall(xLuaState* l, Ty* obj, void (*func)(Ty*, Args...)) {
         if (!CheckParams<Args...>(l, 2))
@@ -604,6 +620,11 @@ namespace detail
         int index = 1;
         (obj->*func)(LoadParam<Args>(l, ++index)...);
         return 0;
+    }
+
+    template <typename Ty>
+    inline int MetaCall(xLuaState* l, Ty* obj, int (Ty::*func)(xLuaState*)) {
+        return (obj->*func)(l);
     }
 
     template <typename Ry>
@@ -647,9 +668,13 @@ namespace detail
     }
 
     template <typename Ty, size_t N>
-    inline void MetaGet(xLuaState* l, Ty* obj, char Ty::* data [N]) {
-        //l->Push(static_cast<Ry>(obj->*data));
-        //TODO:
+    inline void MetaSet(xLuaState* l, Ty* obj, char Ty::* data [N]) {
+        static_assert(N > 0);
+        const char* s = l->Load<const char*>(3);    // 1:obj, 2:name, 3:value
+        if (s)
+            snprintf((obj->*data), N, s);
+        else
+            (obj->*data)[0] = 0;
     }
 
     template <typename Ty, typename Ry>
@@ -672,6 +697,16 @@ namespace detail
         func(obj, l->Load<typename std::decay<Ry>::type>(1));
     }
 
+    template <typename Ty>
+    inline void MetaGet(xLuaState* l, Ty* obj, int(*func)(Ty*, xLuaState*)) {
+        func(obj, l);
+    }
+
+    template <typename Ty>
+    inline void MetaSet(xLuaState* l, Ty* obj, int(*func)(Ty*, xLuaState*)) {
+        func(obj, l);
+    }
+
     /* 支持类的成员函数, 静态函数 */
     template <typename Ty>
     struct MetaFunc {
@@ -680,7 +715,8 @@ namespace detail
             Ty* obj = GetMetaCallObj<Ty>(l, info);
             if (obj)
                 return MetaCall(l, obj, f);
-            //TODO: log err
+            LogError("call object is nill");
+            l->LogCallStack();
             return 0;
         }
 
@@ -697,7 +733,8 @@ namespace detail
             Ty* obj = GetMetaCallObj<Ty>(l, info);
             if (obj)
                 return MetaCall(l, obj, f);
-            //TODO: log err
+            LogError("call object is nill");
+            l->LogCallStack();
             return 0;
         }
     };
@@ -705,22 +742,22 @@ namespace detail
     template <typename Ty>
     struct MetaVar {
         template <typename Fy, typename EnableIfT<IsMember<Fy>::value, int> = 0>
-        static inline void Get(xLuaState* l, Ty* obj, Fy f) {
-            MetaGet(l, obj, f);
+        static inline void Get(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, Fy f) {
+            MetaGet(l, static_cast<Ty*>(src->caster.to_super(obj, src, dst)), f);
         }
 
         template <typename Fy, typename EnableIfT<IsMember<Fy>::value, int> = 0>
-        static inline void Set(xLuaState* l, Ty* obj, Fy f) {
-            MetaSet(l, obj, f);
+        static inline void Set(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, Fy f) {
+            MetaSet(l, static_cast<Ty*>(src->caster.to_super(obj, src, dst)), f);
         }
 
         template <typename Fy, typename EnableIfT<!IsMember<Fy>::value, int> = 0>
-        static inline void Get(xLuaState* l, Ty* obj, Fy f) {
+        static inline void Get(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, Fy f) {
             MetaGet(l, f);
         }
 
         template <typename Fy, typename EnableIfT<!IsMember<Fy>::value, int> = 0>
-        static inline void Set(xLuaState* l, Ty* obj, Fy f) {
+        static inline void Set(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, Fy f) {
             MetaSet(l, f);
         }
     };
@@ -728,154 +765,15 @@ namespace detail
     template <typename Ty>
     struct MetaVarEx {
         template <typename Fy>
-        static inline  void Get(xLuaState* l, Ty* obj, Fy f) {
-            MetaGet(l, obj, f);
+        static inline void Get(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, Fy f) {
+            MetaGet(l, static_cast<Ty*>(src->caster.to_super(obj, src, dst)), f);
         }
 
         template <typename Fy>
-        static inline void Set(xLuaState* l, Ty* obj, Fy f) {
-            MetaSet(l, obj, f);
+        static inline void Set(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, Fy f) {
+            MetaSet(l, static_cast<Ty*>(src->caster.to_super(obj, src, dst)), f);
         }
     };
-
-    //template <typename Ty>
-    //inline auto MetaCall(xLuaState* L, Ty f) -> typename std::enable_if<std::is_member_function_pointer<Ty>::value, int> {
-    //    return 0;
-    //}
-
-    //template <typename Ty>
-    //inline int MetaGet(xLuaState* L, void* obj, Ty f) {
-    //    return 0;
-    //}
-
-    //template <typename Ty>
-    //inline int MetaSet(xLuaState* L, void* obj, Ty f) {
-    //    return 0;
-    //}
-//
-//    template<typename Rty, typename Cty, typename... Args, size_t... Idxs>
-//    inline int _MetaCall(xLuaState* l, Cty* obj, Rty(Cty::*func)(Args...), index_sequence<Idxs...>)
-//    {
-//        l->Push(
-//            (obj->*func)(l->Load<typename std::decay<Args>::type>(L, Idxs + 1)...)
-//        );
-//        return 1;
-//    }
-//
-//    template<typename Rty, typename Cty, typename... Args, size_t... Idxs>
-//    inline int _MetaCall(xLuaState* l, Cty* obj, Rty(Cty::*func)(Args...) const, index_sequence<Idxs...>)
-//    {
-//        l->Push(L,
-//            (obj->*func)(l->Load<typename std::decay<Args>::type>(L, Idxs + 1)...)
-//        );
-//        return 1;
-//    }
-//
-//    template <typename Cty, typename... Args, size_t... Idxs>
-//    inline int _MetaCall(xLuaState* l, Cty* obj, void(Cty::*func)(Args...), index_sequence<Idxs...>)
-//    {
-//        (obj->*func)(l->Load<typename std::decay<Args>::type>(L, Idxs + 1)...);
-//        return 0;
-//    }
-//
-//    template <typename Cty, typename... Args, size_t... Idxs>
-//    inline int _MetaCall(xLuaState* l, void* obj, void(Cty::*func)(Args...) const, index_sequence<Idxs...>)
-//    {
-//        (obj->*func)(l->Load<typename std::decay<Args>::type>(L, Idxs + 1)...);
-//        return 0;
-//    }
-//
-//    template <typename Cty, typename... Args, size_t... Idxs>
-//    inline int _MetaCallEx(xLuaState* l, Cty* obj, void(*func)(Args...), index_sequence<Idxs...>)
-//    {
-//        //TODO:
-//        using arg_tuple = std::tuple<Args...>;
-//        func(obj, l->Load<typename std::decay<Args>::type>(L, Idxs + 2)...);
-//        return 0;
-//    }
-//
-//    template<typename Rty, typename Cty, typename... Args, size_t... Idxs>
-//    inline int _MetaCallEx(xLuaState* l, Cty* obj, Rty(*func)(Args...) const, index_sequence<Idxs...>)
-//    {
-//        //TODO:
-//        using arg_tuple = std::tuple<Args...>;
-//        l->Push(func(obj, l->Load<typename std::decay<Args>::type>(L, Idxs + 2)...));
-//        return 1;
-//    }
-//
-//    template <typename Rty, typename Cty, typename... Args>
-//    inline int MetaCall(xLuaState* l, Cty* obj, Rty(Cty::*func)(Args...))
-//    {
-//#ifdef _DEBUG
-//        //MetaParamCheck<Args...>(L, 1);
-//#endif // _DEBUG
-//        return _MetaCall(l, obj, func, make_index_sequence_t<sizeof...(Args)>());
-//    }
-//
-//    template <typename Rty, typename Cty, typename... Args>
-//    inline int MetaCall(xLuaState* l, Cty* obj, Rty(Cty::*func)(Args...)const)
-//    {
-//#ifdef _DEBUG
-//        //MetaParamCheck<Args...>(L, 1);
-//#endif // _DEBUG
-//        return _MetaCall(L, obj, func, make_index_sequence_t<sizeof...(Args)>());
-//    }
-//
-//    template <typename Cty>
-//    inline int MetaCall(xLuaState* l, Cty* obj, int(Cty::*func)(xLuaState*))
-//    {
-//        return (pObj->*func)(l);
-//    }
-//
-//    template <typename Cty>
-//    inline int MetaCall(xLuaState* l, Cty* obj, int(Cty::*func)(xLuaState*) const)
-//    {
-//        return (obj->*func)(l);
-//    }
-//
-//    template <typename Cty>
-//    inline int MetaCall(xLuaState* l, Cty* obj, void(Cty::*func)(xLuaState*))
-//    {
-//        (obj->*func)(l);
-//        return 0;
-//    }
-//
-//    template <typename Cty>
-//    inline int MetaCall(xLuaState* l, void(Cty::*func)(xLuaState*) const) {
-//        (obj->*func)(l);
-//        return 0;
-//    }
-//
-//    template <typename Cty>
-//    inline int MetaCall(xLuaState* l, Cty* obj, int(Cty::*func)(lua_State*)) {
-//        return (pObj->*func)(l->GetState());
-//    }
-//
-//    template <typename Cty>
-//    inline int MetaCall(xLuaState* l, Cty* obj, int(Cty::*func)(lua_State*) const) {
-//        return (obj->*func)(l->GetState());
-//    }
-//
-//    template <typename Cty>
-//    inline int MetaCall(xLuaState* l, Cty* obj, void(Cty::*func)(lua_State*)) {
-//        (obj->*func)(l->GetState());
-//        return 0;
-//    }
-//
-//    template <typename Cty>
-//    inline int MetaCall(xLuaState* l, void(Cty::*func)(lua_State*) const) {
-//        (obj->*func)(l->GetState());
-//        return 0;
-//    }
-//
-//    template <typename Rty, typename Cty, typename... Args>
-//    inline int MetaCall(xLuaState* l, Cty* obj, Rty(*func)(Args...))
-//    {
-//#ifdef _DEBUG
-//        //MetaParamCheck<Args...>(L, 1);
-//#endif // _DEBUG
-//        return _MetaCallEx(l, obj, func, make_index_sequence_t<sizeof...(Args) - 1>());
-//    }
 } // namespace detail
 
 XLUA_NAMESPACE_END

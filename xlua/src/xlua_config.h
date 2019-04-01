@@ -47,11 +47,6 @@ inline void xLuaLogError(const char* err) {
     printf("xlua_error:%s", err);
 }
 
-/* 名字空间配置 */
-#define XLUA_NAMESPACE_BEGIN    namespace xlua {
-#define XLUA_NAMESPACE_END      } // namespace xlua
-#define XLUA_USE_NAMESPCE       xlua::
-
 /* 容器容量增量 */
 #define XLUA_CONTAINER_INCREMENTAL  1024
 /* 类型名称最大字节数 */

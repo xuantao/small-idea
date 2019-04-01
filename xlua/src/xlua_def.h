@@ -5,6 +5,10 @@
 #include <cstdint>
 #include <cassert>
 
+/* 名字空间 */
+#define XLUA_NAMESPACE_BEGIN    namespace xlua {
+#define XLUA_NAMESPACE_END      } // namespace xlua
+
 XLUA_NAMESPACE_BEGIN
 
 namespace detail {
@@ -39,6 +43,7 @@ struct Identity {
     typedef Ty type;
 };
 
+/* 常量字段类型 */
 enum class ConstCategory {
     kNone,
     kInteger,
@@ -91,6 +96,7 @@ struct TypeCaster {
     ToWeakPtr to_weak_ptr;  // 弱对象指针
 };
 
+/* 类型枚举 */
 enum class TypeCategory
 {
     kInternal,
@@ -102,8 +108,6 @@ struct TypeInfo {
     int index;
     TypeCategory category;
     const char* type_name;
-    const char* shared_ptr_name;
-    const char* unique_ptr_name;
     bool is_weak_obj;
     unsigned char external_type_index;  // 外部类型编号, 用于lightuserdata索引类型
     const TypeInfo* super;
@@ -138,12 +142,12 @@ private:
 XLUA_NAMESPACE_END
 
 /* 声明导出Lua类 */
-#define XLUA_DECLARE_CLASS(ClassName, ...)                                          \
-    typedef XLUA_USE_NAMESPCE Declare<ClassName,                                    \
-        typename XLUA_USE_NAMESPCE detail::BaseType<_VAR_ARGS_>::type> LuaDeclare;  \
-    XLUA_USE_NAMESPCE ObjIndex xlua_obj_index_;                                     \
-    static const XLUA_USE_NAMESPCE TypeInfo* xLuaGetTypeInfo()
+#define XLUA_DECLARE_CLASS(ClassName, ...)                              \
+    typedef xlua::Declare<ClassName,                                    \
+        typename xlua::detail::BaseType<_VAR_ARGS_>::type> LuaDeclare;  \
+    xlua::ObjIndex xlua_obj_index_;                                     \
+    static const xlua::TypeInfo* xLuaGetTypeInfo()
 
 /* 声明导出外部类 */
-#define XLUA_DECLARE_EXTERNAL_CLASS(ClassName)                                      \
-    const XLUA_USE_NAMESPCE TypeInfo* xLuaGetTypeInfo(XLUA_USE_NAMESPCE Identity<ClassName>)
+#define XLUA_DECLARE_EXTERNAL_CLASS(ClassName)                          \
+    const xlua::TypeInfo* xLuaGetTypeInfo(xlua::Identity<ClassName>)

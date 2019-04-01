@@ -43,6 +43,9 @@
     <ClInclude Include="..\src\xlua_config.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\detail\extractor.h">
+      <Filter>src\detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\xlua.cpp">

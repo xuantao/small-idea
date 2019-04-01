@@ -209,7 +209,8 @@ namespace detail {
             lua_pushvalue(l, 2);
             int ty = lua_rawget(l, -2); // 4: table member
             if (ty != LUA_TLIGHTUSERDATA) {
-                //detail::LogError("type:[%s] member:[%s] is not exist", ud->info_->type_name, lua_tostring(l, 2));
+                lua_pushstring(l, "__name");
+                detail::LogError("type:[%s] member:[%s] is not exist", lua_rawget(l, 3), lua_tostring(l, 2));
                 LogCallStack(l);
                 return 0;
             }
@@ -217,7 +218,8 @@ namespace detail {
             TypeMember* mem = (TypeMember*)lua_touserdata(l, -1);
             assert(mem->category == MemberCategory::kVariate);
             if (mem->getter == nullptr) {
-               // detail::LogError("type:[%s] member:[%s] can not been read", ud->info_->type_name, lua_tostring(l, 2));
+                lua_pushstring(l, "__name");
+                detail::LogError("type:[%s] member:[%s] can not been read", lua_rawget(l, 3), lua_tostring(l, 2));
                 LogCallStack(l);
                 return 0;
             }
@@ -225,10 +227,30 @@ namespace detail {
             xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
             mem->getter(xl, nullptr, nullptr);
             return 1;
-
         }
 
         static int LuaGlobalNewIndex(lua_State* l) {
+            lua_getmetatable(l, 1);
+            lua_pushvalue(l, 2);
+            int ty = lua_rawget(l, -2); // 5: table member
+            if (ty != LUA_TLIGHTUSERDATA) {
+                lua_pushstring(l, "__name");
+                detail::LogError("type:[%s] member:[%s] is not exist", lua_rawget(l, 4), lua_tostring(l, 2));
+                LogCallStack(l);
+                return 0;
+            }
+
+            TypeMember* mem = (TypeMember*)lua_touserdata(l, -1);
+            assert(mem->category == MemberCategory::kVariate);
+            if (mem->setter == nullptr) {
+                lua_pushstring(l, "__name");
+                detail::LogError("type:[%s] member:[%s] can not been write", lua_rawget(l, 4), lua_tostring(l, 2));
+                LogCallStack(l);
+                return 0;
+            }
+
+            xLuaState* xl = static_cast<xLuaState*>(lua_touserdata(l, lua_upvalueindex(1)));
+            mem->setter(xl, nullptr, nullptr);
             return 0;
         }
 
