@@ -22,6 +22,7 @@
     <ClInclude Include="..\src\detail\export.h" />
     <ClInclude Include="..\src\detail\extractor.h" />
     <ClInclude Include="..\src\detail\global.h" />
+    <ClInclude Include="..\src\detail\serial_alloc.h" />
     <ClInclude Include="..\src\detail\state.h" />
     <ClInclude Include="..\src\detail\traits.h" />
     <ClInclude Include="..\src\detail\type_desc.h" />

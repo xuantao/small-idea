@@ -46,6 +46,9 @@
     <ClInclude Include="..\src\detail\extractor.h">
       <Filter>src\detail</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\detail\serial_alloc.h">
+      <Filter>src\detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\xlua.cpp">

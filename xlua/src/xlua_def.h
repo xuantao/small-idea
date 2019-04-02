@@ -67,24 +67,15 @@ struct ConstInfo {
     const ConstValue* values;
 };
 
-enum class MemberCategory {
-    kInvalid = 0,
-    kVariate,
-    kFunction,
+struct MemberFunc {
+    const char* name;
+    LuaFunction func;
 };
 
-struct TypeMember {
-    MemberCategory category;
+struct MemberVar {
     const char* name;
-    union {
-        struct {
-            LuaFunction func;
-        };
-        struct {
-            LuaIndexer getter;
-            LuaIndexer setter;
-        };
-    };
+    LuaIndexer getter;
+    LuaIndexer setter;
 };
 
 /* 类型转换器
@@ -112,8 +103,10 @@ struct TypeInfo {
     unsigned char external_type_index;  // 外部类型编号, 用于lightuserdata索引类型
     const TypeInfo* super;
     TypeCaster caster;
-    TypeMember* members;
-    TypeMember* globals;
+    MemberVar* vars;
+    MemberFunc* funcs;
+    MemberVar* global_vars;
+    MemberFunc* global_funcs;
 };
 
 struct ITypeDesc {
@@ -124,16 +117,16 @@ struct ITypeDesc {
     virtual const TypeInfo* Finalize() = 0;
 };
 
-class ObjIndex
+class xLuaIndex
 {
     friend class detail::GlobalVar;
 public:
-    ObjIndex() : index_(-1) { }
-    ~ObjIndex();
+    xLuaIndex() : index_(-1) { }
+    ~xLuaIndex();
 
 public:
-    ObjIndex(const ObjIndex&) { }
-    ObjIndex& operator = (const ObjIndex&) { }
+    xLuaIndex(const xLuaIndex&) { }
+    xLuaIndex& operator = (const xLuaIndex&) { }
 
 private:
     int index_;
@@ -145,7 +138,7 @@ XLUA_NAMESPACE_END
 #define XLUA_DECLARE_CLASS(ClassName, ...)                              \
     typedef xlua::Declare<ClassName,                                    \
         typename xlua::detail::BaseType<_VAR_ARGS_>::type> LuaDeclare;  \
-    xlua::ObjIndex xlua_obj_index_;                                     \
+    xlua::xLuaIndex xlua_obj_index_;                                    \
     static const xlua::TypeInfo* xLuaGetTypeInfo()
 
 /* 声明导出外部类 */

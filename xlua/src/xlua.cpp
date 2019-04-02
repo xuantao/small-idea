@@ -15,20 +15,20 @@ void Shutdown() {
     global->Purge();
 }
 
-xLuaState* Create() {
+xLuaState* Create(const char* export_module) {
     auto global = detail::GlobalVar::GetInstance();
     if (global == nullptr)
         return nullptr;
 
-    return global->Create();
+    return global->Create(export_module);
 }
 
-xLuaState* Attach(lua_State* l) {
+xLuaState* Attach(lua_State* l, const char* export_module) {
     auto global = detail::GlobalVar::GetInstance();
     if (global == nullptr)
         return nullptr;
 
-    return global->Attach(l);
+    return global->Attach(l, export_module);
 }
 
 XLUA_NAMESPACE_END

@@ -128,7 +128,7 @@ int main()
 {
     constexpr size_t s = sizeof(LightDataPtr);
     xlua::Startup();
-    xlua::xLuaState* l = xlua::Create();
+    xlua::xLuaState* l = xlua::Create(nullptr);
 
     TestLuaExport* ptr = nullptr;
     TestLuaExport obj;

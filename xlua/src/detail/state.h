@@ -28,7 +28,7 @@ namespace detail {
     }
 
     template <typename Ty>
-    inline ObjIndex& GetRootObjIndex(Ty* ptr) {
+    inline xLuaIndex& GetRootObjIndex(Ty* ptr) {
         using declare = typename Ty::LuaDeclare;
         using root_type = typename LuaRootType<Ty, typename declare::super>::type;
         return static_cast<root_type*>(ptr)->xlua_obj_index_;
@@ -53,6 +53,11 @@ namespace detail {
 
         inline void* ToRawPtr() const {
             return (void*)(reinterpret_cast<uint64_t>(ptr_) & 0x00ffffffffffffff);
+        }
+
+        inline void SetRawPtr(void* p) {
+            ptr_ = (void*)((reinterpret_cast<uint64_t>(ptr_) & 0xff000000000000)
+                | (reinterpret_cast<uint64_t>(p) & 0x00ffffffffffffff));
         }
     };
 

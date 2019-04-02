@@ -403,13 +403,14 @@ private:
 
     void Gc(detail::FullUserData* user_data);
 
-    bool InitEnv(const std::vector<const ConstInfo*>& consts,
+    bool InitEnv(const char* export_module,
+        const std::vector<const ConstInfo*>& consts,
         const std::vector<TypeInfo*>& types,
         const std::vector<const char*>& scripts
     );
-    void InitConsts(const std::vector<const ConstInfo*>& consts);
+    void InitConsts(const char* export_module, const std::vector<const ConstInfo*>& consts);
     void CreateTypeMeta(const TypeInfo* info);
-    void CreateTypeGlobal(const TypeInfo* info);
+    void CreateTypeGlobal(const char* export_module, const TypeInfo* info);
     void SetTypeMember(const TypeInfo* info);
     void SetGlobalMember(const TypeInfo* info, bool func, bool var);
     void PushClosure(lua_CFunction func);
@@ -427,7 +428,6 @@ private:
     int lua_obj_table_ref_ = 0;     // table, function
     int next_free_lua_obj_ = -1;    // 下一个的lua对象表空闲槽
     std::vector<LuaObjRef> lua_objs_;
-    //std::vector<int> type_meta_ref_;
     std::vector<UdCache> lua_obj_ptrs_;
     std::vector<UdCache> weak_obj_ptrs_;
     std::unordered_map<void*, UdCache> raw_ptrs_;
@@ -495,8 +495,8 @@ namespace detail {
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
             auto* global = GlobalVar::GetInstance();
             int index = global->AllocObjIndex(GetRootObjIndex(val), val, info);
-            int serial_num = global->GetSerialNum(index);
-            auto ptr = MakeLightPtr(0, index, serial_num);
+            auto* ary_obj = global->GetArrayObj(index);
+            auto ptr = MakeLightPtr(0, index, ary_obj->serial_num_);
             lua_pushlightuserdata(l->GetState(), ptr.ptr_);
         }
 
@@ -507,7 +507,7 @@ namespace detail {
         }
 #else // XLUA_USE_LIGHT_USER_DATA
         template <typename Ty>
-        inline void PushPointer(xLuaState* l, Ty* val, tag_weakobj) {
+        static inline void PushPointer(xLuaState* l, Ty* val, tag_weakobj) {
             int index = xLuaAllocWeakObjIndex(val);
             int serial_num = xLuaGetWeakObjSerialNum(index);
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
@@ -515,7 +515,7 @@ namespace detail {
         }
 
         template <typename Ty>
-        inline void PushPointer(xLuaState* l, Ty* val, tag_internal) {
+        static inline void PushPointer(xLuaState* l, Ty* val, tag_internal) {
             int index = AllocInternalIndex(val);
             int serial_num = GetInternalSerialNum(index);
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
@@ -523,7 +523,7 @@ namespace detail {
         }
 
         template <typename Ty>
-        inline void PushPointer(xLuaState* l, Ty* val, tag_external) {
+        static inline void PushPointer(xLuaState* l, Ty* val, tag_external) {
             const TypeInfo* info = GetTypeInfoImpl<Ty>();
             l->PushRawPtr(FullUserData(UserDataCategory::kRawPtr, val, info));
         }
@@ -549,7 +549,7 @@ namespace detail {
             if (ptr.Get() == nullptr) {
                 l->Push(nullptr);
             } else {
-                l->Push(ptr.Get());
+                l->Push(xLuaGetPtrByWeakObj(ptr));
             }
         }
     };

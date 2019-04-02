@@ -25,7 +25,7 @@ namespace detail {
         template <typename U> static auto Check(int)->decltype(std::declval<U>().xLuaGetTypeInfo());
         template <typename U> static auto Check(...)->std::false_type;
 
-        static constexpr bool value = std::is_same<decltype(Check<Ty>(0)), ObjIndex>::value;
+        static constexpr bool value = std::is_same<decltype(Check<Ty>(0)), xLuaIndex>::value;
     };
 
     template <typename Ty>
@@ -53,8 +53,8 @@ namespace detail {
     };
 
     template <typename Ty>
-    struct IsExtendName {
-        template <typename U> static auto Check(int)->decltype(::xLuaName(Identity<Ty>()), std::true_type());
+    struct IsExtendType {
+        template <typename U> static auto Check(int)->decltype(::xLuaIsType(std::declval<xLuaState*>(), (int)0, Identity<Ty>()), std::true_type());
         template <typename U> static auto Check(...)->std::false_type;
 
         static constexpr bool value = decltype(Check<Ty>(0))::value;
@@ -91,14 +91,14 @@ namespace detail {
     template <typename Ty, typename By>
     struct ObjIndexDetect {
         typedef typename Ty::LuaDeclare Declare;
-        static ObjIndex& Detect(Ty* obj) {
+        static xLuaIndex& Detect(Ty* obj) {
             return ObjIndexDetect<By, typename Declare::super>::Detect(static_cast<By*>(obj));
         }
     };
 
     template <typename Ty>
     struct ObjIndexDetect<Ty, void> {
-        static ObjIndex& Detect(Ty* obj) {
+        static xLuaIndex& Detect(Ty* obj) {
             return obj->xlua_obj_index_;
         }
     };

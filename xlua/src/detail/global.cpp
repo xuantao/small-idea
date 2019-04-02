@@ -12,7 +12,7 @@ namespace detail
     static GlobalVar* s_global = nullptr;
 }
 
-ObjIndex::~ObjIndex()
+xLuaIndex::~xLuaIndex()
 {
     if (index_ != -1 && detail::s_global)
         detail::s_global->FreeObjIndex(index_);
@@ -91,7 +91,8 @@ namespace detail
         s_global = nullptr;
     }
 
-    GlobalVar::GlobalVar() {
+    GlobalVar::GlobalVar()
+        : alloc_(4096) {
         types_.reserve(256);
         external_types_.reserve(256);
         external_types_.push_back(nullptr);
@@ -100,42 +101,42 @@ namespace detail
     GlobalVar::~GlobalVar() {
     }
 
-    xLuaState* GlobalVar::Create() {
+    xLuaState* GlobalVar::Create(const char* export_module) {
         lua_State* l = luaL_newstate();
         xLuaState* xl = new xLuaState(l, false);
-        if (!xl->InitEnv(const_infos_, types_, scripts_)) {
+        if (!xl->InitEnv(export_module, const_infos_, types_, scripts_)) {
             lua_close(l);
             delete xl;
-            return nullptr;
+            xl = nullptr;
+        } else {
+            states_.push_back(xl);
         }
-
-        states_.push_back(std::make_pair(l, xl));
-        std::sort(states_.begin(), states_.end(), &StateCmp);
         return xl;
     }
 
-    xLuaState* GlobalVar::Attach(lua_State* l) {
-        return nullptr;
+    xLuaState* GlobalVar::Attach(lua_State* l, const char* export_module) {
+        xLuaState* xl = new xLuaState(l, true);
+        if (!xl->InitEnv(export_module, const_infos_, types_, scripts_)) {
+            delete xl;
+            xl = nullptr;
+        } else {
+            states_.push_back(xl);
+        }
+        return xl;
     }
 
     void GlobalVar::Destory(xLuaState* l) {
-
-    }
-
-    xLuaState* GlobalVar::GetState(lua_State* l) const {
-        auto first = states_.cbegin();
-        auto last = states_.cend();
-        first = std::lower_bound(first, last, std::make_pair(l, (xLuaState*)nullptr), &StateCmp);
-        if (first == last || first->first != l)
-            return nullptr;
-        return first->second;
+        auto it = std::find(states_.begin(), states_.end(), l);
+        assert(it != states_.end());
+        states_.erase(it);
+        delete l;
     }
 
     ITypeDesc* GlobalVar::AllocType(TypeCategory category,
         bool is_weak_obj,
         const char* name,
         const TypeInfo* super) {
-        return new TypeDesc(s_global,category, is_weak_obj , name, super);
+        return new TypeDesc(s_global, category, is_weak_obj , name, super);
     }
 
     const TypeInfo* GlobalVar::GetTypeInfo(const char* name) const {
@@ -150,13 +151,13 @@ namespace detail
     }
 
     const TypeInfo* GlobalVar::GetExternalTypeInfo(int index) const {
-        assert(index < (int)types_.size());
-        if (index >= (int)types_.size())
+        assert(index < (int)external_types_.size());
+        if (index >= (int)external_types_.size())
             return nullptr;
-        return types_[index];
+        return external_types_[index];
     }
 
-    int GlobalVar::AllocObjIndex(ObjIndex& obj_index, void* obj, const TypeInfo* info) {
+    int GlobalVar::AllocObjIndex(xLuaIndex& obj_index, void* obj, const TypeInfo* info) {
         if (obj_index.index_ != -1) {
             // 总是存储子类指针
             auto& ary_obj = obj_array_[obj_index.index_];
@@ -192,20 +193,13 @@ namespace detail
         }
     }
 
-    ArrayObj* GlobalVar::AllocLuaObj(ObjIndex& obj_index, void* obj, const TypeInfo* info)
-    {
-        int idx = AllocObjIndex(obj_index, obj, info);
-        return &obj_array_[idx];
-    }
-
     ArrayObj* GlobalVar::GetArrayObj(int index) {
         if (index < 0 || index >= (int)obj_array_.size())
             return nullptr;
         return &obj_array_[index];
     }
 
-    void GlobalVar::FreeObjIndex(int index)
-    {
+    void GlobalVar::FreeObjIndex(int index) {
         auto& ary_obj = obj_array_[index];
         ary_obj.info_ = nullptr;
         ary_obj.obj_ = nullptr;
@@ -216,8 +210,7 @@ namespace detail
         free_index_.push_back(index);
     }
 
-    void GlobalVar::AddTypeInfo(TypeInfo* info)
-    {
+    void GlobalVar::AddTypeInfo(TypeInfo* info) {
         assert(types_.size() < 0xff);
         types_.push_back(info);
 
@@ -232,12 +225,6 @@ namespace detail
         } else {
             info->external_type_index = 0;
         }
-    }
-
-    void* GlobalVar::SerialAlloc(size_t size)
-    {
-        //TODO: 需要优化
-        return new int8_t[size];
     }
 } // namespace detail
 

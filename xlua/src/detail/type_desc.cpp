@@ -27,24 +27,14 @@ namespace detail
         return name;
     }
 
-    static void ZeroMember(TypeMember& mem) {
-        mem.category = MemberCategory::kInvalid;
-        mem.name = nullptr;
-        mem.getter = nullptr;
-        mem.setter = nullptr;
-    }
-
     void TypeDesc::AddMember(const char* name, LuaFunction func, bool global) {
-        auto& vec = global ? globals_ : members_;
-        vec.push_back(TypeMember{MemberCategory::kFunction, PerifyMemberName(name), func});
+        auto& vec = global ? global_funcs_ : funcs_;
+        vec.push_back(MemberFunc{PerifyMemberName(name), func});
     }
 
     void TypeDesc::AddMember(const char* name, LuaIndexer getter, LuaIndexer setter, bool global) {
-        auto& vec = global ? globals_ : members_;
-        TypeMember mem{MemberCategory::kVariate, PerifyMemberName(name), nullptr};
-        mem.getter = getter;
-        mem.setter = setter;
-        vec.push_back(mem);
+        auto& vec = global ? global_vars_ : vars_;
+        vec.push_back(MemberVar{PerifyMemberName(name), getter, setter});
     }
 
     const TypeInfo* TypeDesc::Finalize() {
@@ -56,16 +46,26 @@ namespace detail
         info->super = super_;
         info->is_weak_obj = is_weak_obj_;
         info->caster = caster_;
-        info->members = (TypeMember*)mgr_->SerialAlloc(sizeof(TypeMember) * (members_.size() + 1));
-        info->globals = (TypeMember*)mgr_->SerialAlloc(sizeof(TypeMember) * (globals_.size() + 1));
 
-        for (size_t i = 0; i < members_.size(); ++i)
-            info->members[i] = members_[i];
-        ZeroMember(info->members[members_.size()]);
+        vars_.push_back(MemberVar{nullptr, nullptr, nullptr});
+        info->vars = (MemberVar*)mgr_->SerialAlloc(sizeof(MemberVar) * vars_.size());
+        for (size_t i = 0; i < vars_.size(); ++i)
+            info->vars[i] = vars_[i];
 
-        for (size_t i = 0; i < globals_.size(); ++i)
-            info->globals[i] = globals_[i];
-        ZeroMember(info->globals[globals_.size()]);
+        funcs_.push_back(MemberFunc{nullptr, nullptr});
+        info->funcs = (MemberFunc*)mgr_->SerialAlloc(sizeof(MemberFunc) * funcs_.size());
+        for (size_t i = 0; i < funcs_.size(); ++i)
+            info->funcs[i] = funcs_[i];
+
+        global_vars_.push_back(MemberVar{nullptr, nullptr, nullptr});
+        info->global_vars = (MemberVar*)mgr_->SerialAlloc(sizeof(MemberVar) * global_vars_.size());
+        for (size_t i = 0; i < global_vars_.size(); ++i)
+            info->global_vars[i] = global_vars_[i];
+
+        global_funcs_.push_back(MemberFunc{nullptr, nullptr});
+        info->global_funcs = (MemberFunc*)mgr_->SerialAlloc(sizeof(MemberFunc) * global_funcs_.size());
+        for (size_t i = 0; i < global_funcs_.size(); ++i)
+            info->global_funcs[i] = global_funcs_[i];
 
         mgr_->AddTypeInfo(info);
         return info;

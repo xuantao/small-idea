@@ -83,30 +83,6 @@ namespace detail
         return cv;
     }
 
-    inline TypeMember MakeMember() {
-        TypeMember mem;
-        mem.category = MemberCategory::kInvalid;
-        mem.name = nullptr;
-        return mem;
-    }
-
-    inline TypeMember MakeMember(const char* name, LuaFunction func) {
-        TypeMember mem;
-        mem.category = MemberCategory::kFunction;
-        mem.name = name;
-        mem.func = func;
-        return mem;
-    }
-
-    inline TypeMember MakeMember(const char* name, LuaIndexer getter, LuaIndexer setter) {
-        TypeMember mem;
-        mem.category = MemberCategory::kVariate;
-        mem.name = name;
-        mem.getter = getter;
-        mem.setter = setter;
-        return mem;
-    }
-
     template <typename Ty>
     struct IsMember {
         static constexpr bool value = std::is_member_pointer<Ty>::value || std::is_member_function_pointer<Ty>::value;
@@ -268,19 +244,29 @@ namespace detail
         }
 
         template <typename Ty>
+        inline bool IsExtendTypeCheck(xLuaState* l, int index, std::true_type) {
+            return ::xLuaIsType(l, index, Identity<Ty>());
+        }
+
+        template <typename Ty>
+        inline bool IsExtendTypeCheck(xLuaState* l, int index, std::false_type) {
+            return true;
+        }
+
+        template <typename Ty>
         struct Checker {
-            static bool Do(xLuaState* l, int index, int param) {
+            static inline bool Do(xLuaState* l, int index, int param) {
                 using tag = typename std::conditional<IsInternal<Ty>::value || IsExternal<Ty>::value, tag_declared,
                     typename std::conditional<IsExtendLoad<Ty>::value, tag_extend,
                     typename std::conditional<std::is_enum<Ty>::value, tag_enum, tag_unknown>::type>::type>::type;
                 return Do(l, index, param, tag());
             }
 
-            static bool Do(xLuaState* l, int index, int param, tag_unknown) {
+            static inline bool Do(xLuaState* l, int index, int param, tag_unknown) {
                 return false;
             }
 
-            static bool Do(xLuaState* l, int index, int param, tag_enum) {
+            static inline bool Do(xLuaState* l, int index, int param, tag_enum) {
                 if (l->GetType(index) != LUA_TNUMBER) {
                     LogError("param(%d) error, need:enum(number) got:%s\n", param, l->GetTypeName(index));
                     return false;
@@ -288,11 +274,11 @@ namespace detail
                 return true;
             }
 
-            static bool Do(xLuaState* l, int index, int param, tag_extend) {
-                return true;    // extend value type
+            static inline bool Do(xLuaState* l, int index, int param, tag_extend) {
+                return IsExtendTypeCheck<Ty>(l, index, std::integral_constant<bool, IsExtendType<Ty>::value>());
             }
 
-            static bool Do(xLuaState* l, int index, int param, tag_declared) {
+            static inline bool Do(xLuaState* l, int index, int param, tag_declared) {
                 const TypeInfo* info = GetTypeInfoImpl<Ty>();
                 UdInfo ud = GetUdInfo(l, index, true);
                 if (ud.is_nil) {
@@ -310,7 +296,7 @@ namespace detail
         template <typename Ty>
         struct Checker<Ty*> {
             static_assert(IsInternal<Ty>::value || IsExternal<Ty>::value, "only declare export to lua types");
-            static bool Do(xLuaState* l, int index, int param) {
+            static inline bool Do(xLuaState* l, int index, int param) {
                 const TypeInfo* info = GetTypeInfoImpl<Ty>();
                 UdInfo ud = GetUdInfo(l, index, false);
                 if (ud.is_nil || IsBaseOf(ud.info, info))
@@ -342,7 +328,7 @@ namespace detail
 
         template <typename Ty>
         struct Checker<xLuaWeakObjPtr<Ty>> {
-            static bool Do(xLuaState* l, int index, int param) {
+            static inline bool Do(xLuaState* l, int index, int param) {
                 return Checker<Ty*>::Do(l, index, param);
             }
         };

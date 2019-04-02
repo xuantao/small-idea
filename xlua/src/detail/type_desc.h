@@ -42,8 +42,10 @@ namespace detail
         const char* name_;
         const TypeInfo* super_;
         TypeCaster caster_;
-        std::vector<TypeMember> members_;
-        std::vector<TypeMember> globals_;
+        std::vector<MemberVar> vars_;
+        std::vector<MemberFunc> funcs_;
+        std::vector<MemberVar> global_vars_;
+        std::vector<MemberFunc> global_funcs_;
     };
 } // namespace detail
 
