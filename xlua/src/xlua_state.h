@@ -84,12 +84,38 @@ public:
     bool SetGlobal(const char* path);
 
     /* 将table成员加载到栈顶并返回数据类型 */
-    inline int LoadTableField(int index, int field) { return lua_geti(state_, index, field); }
-    inline int LoadTableField(int index, const char* field) { return lua_getfield(state_, index, field); }
+    inline int LoadTableField(int index, int field) {
+        if (GetType(index) != LUA_TTABLE) {
+            detail::LogError("attend to get table field:[%d], target is not table", field);
+            return LUA_TNIL;
+        }
+        return lua_geti(state_, index, field);
+    }
+
+    inline int LoadTableField(int index, const char* field) {
+        if (GetType(index) != LUA_TTABLE) {
+            detail::LogError("attend to get table field:[%s], target is not table", field);
+            return LUA_TNIL;
+        }
+        return lua_getfield(state_, index, field);
+    }
 
     /* 将栈顶元素设置为table成员 */
-    inline void SetTableField(int index, int field) { lua_seti(state_, index, field); }
-    inline void SetTableField(int index, const char* field) { lua_setfield(state_, index, field); }
+    inline void SetTableField(int index, int field) {
+        if (GetType(index) != LUA_TTABLE) {
+            detail::LogError("attend to set table field:[%d], target is not table", field);
+            return;
+        }
+        lua_seti(state_, index, field);
+    }
+
+    inline void SetTableField(int index, const char* field) {
+        if (GetType(index) != LUA_TTABLE) {
+            detail::LogError("attend to set table field:[%s], target is not table", field);
+            return;
+        }
+        lua_setfield(state_, index, field);
+    }
 
     template <typename Ty>
     inline Ty GetGlobal(const char* path) {
@@ -200,13 +226,17 @@ public:
     inline void Push(std::nullptr_t) { lua_pushnil(state_); }
 
     inline void Push(const xLuaTable& val) {
-        assert(val.lua_ == this);
-        PushLuaObj(val.ary_index_);
+        if (val.lua_ != this)
+            Push(nullptr);
+        else
+            PushLuaObj(val.ary_index_);
     }
 
     inline void Push(const xLuaFunction& val) {
-        assert(val.lua_ == this);
-        PushLuaObj(val.ary_index_);
+        if (val.lua_ != this)
+            Push(nullptr);
+        else
+            PushLuaObj(val.ary_index_);
     }
 
     template<> inline bool Load<bool>(int index) { return lua_toboolean(state_, index); }
@@ -239,31 +269,45 @@ public:
 
     template<typename... Rys, typename... Args>
     inline bool Call(std::tuple<Rys&...> ret, Args&&... args) {
-        xLuaGuard guard(this, -1);
-        return DoCall(ret, std::forward<Args>(args)...);
+        if (GetType(-1) != LUA_TFUNCTION) {
+            detail::LogError("attend to call is not a function");
+            return false;
+        } else {
+            xLuaGuard guard(this, -1);
+            return DoCall(ret, std::forward<Args>(args)...);
+        }
     }
 
     template <typename... Rys, typename... Args>
     inline bool Call(const char* global, std::tuple<Rys&...> ret, Args&&... args) {
         xLuaGuard guard(this);
-        if (LoadGlobal(global) == LUA_TFUNCTION)
+        if (LoadGlobal(global) != LUA_TFUNCTION) {
+            detail::LogError("global var:[%s] is not a function", global);
             return false;
+        }
         return DoCall(ret, std::forward<Args>(args)...);
     }
 
     template <typename... Rys, typename... Args>
-    inline bool Call(xLuaFunction func, std::tuple<Rys&...> ret, Args&&... args) {
+    inline bool Call(const xLuaFunction& func, std::tuple<Rys&...> ret, Args&&... args) {
         xLuaGuard guard(this);
         Push(func);
+        if (GetType(-1) != LUA_TFUNCTION) {
+            detail::LogError("attend to call is not a function");
+            return false;
+        }
         return DoCall(ret, std::forward<Args>(args)...);
     }
 
     /* table call */
     template <typename... Rys, typename... Args>
-    inline bool Call(xLuaTable table, const char* func , std::tuple<Rys&...> ret, Args&&... args) {
+    inline bool Call(const xLuaTable& table, const char* func , std::tuple<Rys&...> ret, Args&&... args) {
         xLuaGuard guard(this);
         Push(table);
-        LoadTableField(-1, func);
+        if (LoadTableField(-1, func) != LUA_TFUNCTION) {
+            detail::LogError("can not get table function:[%s]", func);
+            return false;
+        }
         return DoCall(ret, table, std::forward<Args>(args)...);
     }
 
@@ -278,9 +322,6 @@ private:
     template<typename... Rys, typename... Args>
     inline bool DoCall(std::tuple<Rys&...>& ret, Args&&... args) {
         int top = GetTopIndex();
-        if (GetType(-1) != LUA_TFUNCTION)
-            return false;
-
         PushMul(std::forward<Args>(args)...);
         if (lua_pcall(state_, sizeof...(Args), sizeof...(Rys), 0) != LUA_OK) {
             detail::LogError("excute lua function error:%s", lua_tostring(state_, -1));
@@ -581,6 +622,8 @@ namespace detail {
 
         template <typename U>
         static inline U LoadValue(xLuaState* l, int index, tag_declared) {
+            const TypeInfo* info = GetTypeInfoImpl<U>();
+
             do {
                 if (lua_type(l->GetState(), index) != LUA_TUSERDATA)
                     break;
@@ -590,7 +633,6 @@ namespace detail {
                     break;
 
                 FullUserData* ud = static_cast<FullUserData*>(p);
-                const TypeInfo* info = GetTypeInfoImpl<U>();
                 if (!IsBaseOf(info, ud->info_))
                     break;
 
@@ -598,7 +640,7 @@ namespace detail {
                 return U(*static_cast<U*>(ud->info_->caster.to_super(ud->obj_, ud->info_, info)));
             } while (false);
 
-            LogError("load value failed, type:[%s]", l->GetTypeName(index));
+            LogError("load value:[%s] failed from type:[%s]", info->type_name, l->GetTypeName(index));
             return U();
         }
     };

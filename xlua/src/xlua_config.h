@@ -46,7 +46,7 @@
 
 /* 配置日志输出 */
 inline void xLuaLogError(const char* err) {
-    printf("xlua_error:%s", err);
+    printf("%s\n", err);
 }
 
 /* 容器容量增量 */

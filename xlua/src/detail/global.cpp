@@ -26,9 +26,11 @@ namespace detail
 
     void LogError(const char* fmt, ...) {
         char buf[XLUA_MAX_BUFFER_CACHE];
+        int n = snprintf(buf, XLUA_MAX_BUFFER_CACHE, "xlua_err: ");
+
         va_list args;
         va_start(args, fmt);
-        vsnprintf(buf, XLUA_MAX_BUFFER_CACHE, fmt, args);
+        vsnprintf(buf + n, XLUA_MAX_BUFFER_CACHE - n, fmt, args);
         va_end(args);
 
         xLuaLogError(buf);
@@ -103,6 +105,8 @@ namespace detail
 
     xLuaState* GlobalVar::Create(const char* export_module) {
         lua_State* l = luaL_newstate();
+        luaL_openlibs(l);
+
         xLuaState* xl = new xLuaState(l, false);
         if (!xl->InitEnv(export_module, const_infos_, types_, scripts_)) {
             lua_close(l);

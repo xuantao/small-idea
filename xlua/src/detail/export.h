@@ -618,14 +618,55 @@ namespace detail
         return (obj->*func)(l);
     }
 
+    inline void MetaSetArray(xLuaState* l, char* buf, size_t sz) {
+        const char* s = l->Load<const char*>(3);    // 1:obj, 2:name, 3:value
+        if (s)
+            snprintf(buf, sz, s);
+        else
+            buf[0] = 0;
+    }
+
+    template <size_t N>
+    inline void MetaSetArray(xLuaState* l, char buf[N]) {
+    }
+
+    template <typename Ty, size_t N>
+    inline void MetaSetArray(xLuaState* l, Ty buf[N]) {
+        //static_assert<>()
+        const char* s = l->Load<const char*>(3);    // 1:obj, 2:name, 3:value
+        if (s)
+            snprintf(buf, N, s);
+        else
+            buf[0] = 0;
+    }
+
+    //template <typename Ty>
+    //inline void MetaSetArray(xLuaState* l, Ty* buf, size_t sz) {
+    //    static_assert(std::is_same<char, Ty>::value, "only support char array");
+    //}
+
     template <typename Ry>
     inline void MetaGet(xLuaState* l, Ry* data) {
         l->Push(*data);
     }
 
     template <typename Ry>
-    inline void MetaSet(xLuaState* l, Ry* data) {
+    inline void MetaSet_(xLuaState* l, Ry* data, std::true_type) {
+        static_assert(std::extent<Ry>::value > 0, "array size must greater than 0");
+        MetaSetArray<Ry, std::extent<Ry>::value>(l, data);
+        //MetaSetArray(l, &(*data), std::extent<Ry>::value);
+    }
+
+    template <typename Ry>
+    inline void MetaSet_(xLuaState* l, Ry* data, std::false_type) {
         *data = l->Load<typename std::decay<Ry>::type>(1);
+    }
+
+    template <typename Ry>
+    inline void MetaSet(xLuaState* l, Ry* data) {
+        using tag = typename std::conditional<std::is_array<Ry>::value,
+            std::true_type, std::false_type>::type;
+        MetaSet_(l, data, tag());
     }
 
     template <size_t N>
@@ -654,18 +695,21 @@ namespace detail
     }
 
     template <typename Ty, typename Ry>
-    inline void MetaSet(xLuaState* l, Ty* obj, Ry Ty::*data) {
+    inline void MetaSet_(xLuaState* l, Ty* obj, Ry Ty::*data, std::true_type) {
+        static_assert(std::extent<Ry>::value > 0, "array size must greater than 0");
+        MetaSetArray(l , obj->*data, std::extent<Ry>::value);
+    }
+
+    template <typename Ty, typename Ry>
+    inline void MetaSet_(xLuaState* l, Ty* obj, Ry Ty::*data, std::false_type) {
         obj->*data = l->Load<typename std::decay<Ry>::type>(1);
     }
 
-    template <typename Ty, size_t N>
-    inline void MetaSet(xLuaState* l, Ty* obj, char Ty::* data [N]) {
-        static_assert(N > 0);
-        const char* s = l->Load<const char*>(3);    // 1:obj, 2:name, 3:value
-        if (s)
-            snprintf((obj->*data), N, s);
-        else
-            (obj->*data)[0] = 0;
+    template <typename Ty, typename Ry>
+    inline void MetaSet(xLuaState* l, Ty* obj, Ry Ty::*data) {
+        using tag = typename std::conditional<std::is_array<Ry>::value,
+            std::true_type, std::false_type>::type;
+        MetaSet_(l, obj, data, tag());
     }
 
     template <typename Ty, typename Ry>

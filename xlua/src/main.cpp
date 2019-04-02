@@ -45,6 +45,8 @@ struct TestNone
 struct TestLuaExport
 {
     int ia;
+    char name[64]={0};
+    static char buf[64];
     void test_call() {}
 
     void test_enum(TestEnum2) {}
@@ -56,6 +58,8 @@ struct TestLuaExport
     int TestLua(xlua::xLuaState* l) { return 0; }
     int TestLua(xlua::xLuaState* l) const { return 0; }
 };
+
+char TestLuaExport::buf[64] ={0};
 
 bool TestExtend(TestLuaExport* o) { return false; }
 int TestExtend2(TestLuaExport* o, xlua::xLuaState* l) { return 0; }
@@ -77,7 +81,15 @@ XLUA_EXPORT_MEMBER_FUNC(TestLua)
 XLUA_EXPORT_MEMBER_FUNC_EXTEND(TestExtend, TestExtend)
 XLUA_EXPORT_MEMBER_FUNC_EXTEND(TestExtend2, TestExtend2)
 XLUA_EXPORT_MEMBER_VAR(ia)
+XLUA_EXPORT_MEMBER_VAR(name)
+XLUA_EXPORT_MEMBER_VAR(buf)
 XLUA_EXPORT_EXTERNAL_CLASS_END()
+
+XLUA_EXPORT_SCRIPT("    \
+function call_test()    \
+    print('test call')  \
+end                     \
+");
 
 struct LightDataPtr {
     union {
@@ -133,44 +145,39 @@ int main()
     TestLuaExport* ptr = nullptr;
     TestLuaExport obj;
 
-    std::shared_ptr<TestLuaExport> ptr1;
-    std::unique_ptr<TestLuaExport> ptr2;
+    std::shared_ptr<TestLuaExport> ptr1 = std::make_shared<TestLuaExport>();
 
     l->Push(&obj);
     l->Push(obj);
     l->Push(ptr1);
-    //l->Push(ptr2);
+
+    printf("active1 top:%d\n", l->GetTopIndex());
 
     ptr = l->Load<TestLuaExport*>(1);
     obj = l->Load<TestLuaExport>(1);
-    ptr1 = l->Load<std::shared_ptr<TestLuaExport>>(1);
-    //ptr1 = l->Load<std::unique_ptr<TestLuaExport>>(1);
+    auto obj2 = l->Load<TestLuaExport>(2);
+    auto ptr2 = l->Load<std::shared_ptr<TestLuaExport>>(3);
 
     constexpr char ar[2] ={0, 1};
     static_assert(ar[1] == 1, "222");
 
-    TestFriend tf;
-    tf.Do<int>();
-
     xlua::xLuaTable tab;
     xlua::xLuaFunction func;
+    printf("active2.1 top:%d\n", l->GetTopIndex());
+
     l->Call(std::tie(), 1, 1.0f, false, "xxx");
+    printf("active2.2 top:%d\n", l->GetTopIndex());
     l->Call("Global.lua.xxx", std::tie(), 1, 1.0f, true);
+    printf("active2.3 top:%d\n", l->GetTopIndex());
     l->Call(func, std::tie(), 1, 1.0f, true);
+    printf("active2.4 top:%d\n", l->GetTopIndex());
     l->Call(tab, "xxxx", std::tie(), 1, 1.0f, true);
 
-    //struct TestInner
-    //{
-    //    static void Call() {
+    printf("active2 top:%d\n", l->GetTopIndex());
 
-    //    }
+    l->Call("call_test", std::tie());
+    l->Call("print", std::tie(), 1, 1.0f, false, "xxx", func, tab);
 
-    //    template <typename Ty>
-    //    int DoCall(Ty f) {
-    //        return 0;
-    //    }
-    //};
-
-    system("pause");
+    printf("active3 top:%d\n", l->GetTopIndex());
     return 0;
 }

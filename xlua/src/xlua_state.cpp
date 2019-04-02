@@ -17,6 +17,9 @@ namespace detail {
         int level = 1;
         lua_Debug dbg;
 
+        if (size)
+            *buf = 0;
+
         while (len > 0 && lua_getstack(L, level, &dbg)) {
             lua_getinfo(L, "Sl", &dbg);
             int l = snprintf(dst, len, "%s:%d\n", dbg.source, dbg.currentline);
@@ -629,13 +632,19 @@ const char* xLuaState::GetTypeName(int index) {
 
     if (l_ty == LUA_TLIGHTUSERDATA) {
 #if XLUA_USE_LIGHT_USER_DATA
-        detail::LightUserData ptr = detail::MakeLightPtr(lua_touserdata(state_, index));
-        if (ptr.type_ == 0) {
-            detail::ArrayObj* obj = detail::GlobalVar::GetInstance()->GetArrayObj(ptr.index_);
+        detail::LightUserData ud = detail::MakeLightPtr(lua_touserdata(state_, index));
+        if (ud.type_ == 0) {
+            detail::ArrayObj* obj = detail::GlobalVar::GetInstance()->GetArrayObj(ud.index_);
             if (obj == nullptr)
                 snprintf(type_name_buf_, XLUA_MAX_TYPE_NAME_LENGTH, "nullptr");
             else
                 snprintf(type_name_buf_, XLUA_MAX_TYPE_NAME_LENGTH, "%s*", obj->info_->type_name);
+        } else {
+            const TypeInfo* info = detail::GlobalVar::GetInstance()->GetExternalTypeInfo(ud.type_);
+            if (info == nullptr)
+                snprintf(type_name_buf_, XLUA_MAX_TYPE_NAME_LENGTH, "nullptr");
+            else
+                snprintf(type_name_buf_, XLUA_MAX_TYPE_NAME_LENGTH, "%s*", info->type_name);
         }
 #endif // XLUA_USE_LIGHT_USER_DATA
     } else if (l_ty == LUA_TUSERDATA) {
