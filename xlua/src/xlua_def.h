@@ -16,7 +16,9 @@ namespace detail {
     template <> struct BaseType<> { typedef void type; };
     template <typename Ty> struct BaseType<Ty> { typedef Ty type; };
 
+    /* 全局数据 */
     class GlobalVar;
+    /* 日志输出 */
     void LogError(const char* fmt, ...);
 }
 
@@ -51,6 +53,7 @@ enum class ConstCategory {
     kString,
 };
 
+/* 常量数据 */
 struct ConstValue {
     ConstCategory category;
     const char* name;
@@ -62,6 +65,7 @@ struct ConstValue {
     };
 };
 
+/* 常量信息 */
 struct ConstInfo {
     const char* name;
     const ConstValue* values;
@@ -88,37 +92,40 @@ struct TypeCaster {
 };
 
 /* 类型枚举 */
-enum class TypeCategory
-{
+enum class TypeCategory {
     kInternal,
     kExternal,
     kGlobal,
 };
 
+/* 导出类型信息 */
 struct TypeInfo {
     int index;
     TypeCategory category;
     const char* type_name;
     bool is_weak_obj;
-    unsigned char external_type_index;  // 外部类型编号, 用于lightuserdata索引类型
-    const TypeInfo* super;
-    TypeCaster caster;
-    MemberVar* vars;
-    MemberFunc* funcs;
-    MemberVar* global_vars;
-    MemberFunc* global_funcs;
+    int8_t external_type_index; // 外部类型编号, 用于lightuserdata索引类型
+    const TypeInfo* super;      // 父类信息
+    TypeCaster caster;          // 类型转换器
+    MemberVar* vars;            // 成员变量
+    MemberFunc* funcs;          // 成员函数
+    MemberVar* global_vars;     // 全局(静态)变量
+    MemberFunc* global_funcs;   // 全局(静态)函数
 };
 
+/* 类型描述, 用于构建导出类型信息 */
 struct ITypeDesc {
     virtual ~ITypeDesc() { }
     virtual void SetCaster(TypeCaster caster) = 0;
-    virtual void AddMember(const char* name, LuaFunction func, bool glboal) = 0;
-    virtual void AddMember(const char* name, LuaIndexer getter, LuaIndexer setter, bool glboal) = 0;
+    virtual void AddMember(const char* name, LuaFunction func, bool global) = 0;
+    virtual void AddMember(const char* name, LuaIndexer getter, LuaIndexer setter, bool global) = 0;
     virtual const TypeInfo* Finalize() = 0;
 };
 
-class xLuaIndex
-{
+/* xlua弱引用编号
+ * 管理导出对象生命周期
+*/
+class xLuaIndex {
     friend class detail::GlobalVar;
 public:
     xLuaIndex() : index_(-1) { }
@@ -134,7 +141,12 @@ private:
 
 XLUA_NAMESPACE_END
 
-/* 声明导出Lua类 */
+/* 声明导出Lua类, 在类中插入xlua相关信息
+ * 可变宏参数用于设置基类类型(不支持多基类)
+ * 1. 关联父、子类关系
+ * 2. 添加导出引用编号成员变量
+ * 3. 添加获取类型信息的静态成员函数
+*/
 #define XLUA_DECLARE_CLASS(ClassName, ...)                              \
     typedef xlua::Declare<ClassName,                                    \
         typename xlua::detail::BaseType<_VAR_ARGS_>::type> LuaDeclare;  \

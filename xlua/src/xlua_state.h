@@ -86,7 +86,7 @@ public:
     /* 将table成员加载到栈顶并返回数据类型 */
     inline int LoadTableField(int index, int field) {
         if (GetType(index) != LUA_TTABLE) {
-            detail::LogError("attend to get table field:[%d], target is not table", field);
+            detail::LogError("attempt to get table field:[%d], target is not table", field);
             return LUA_TNIL;
         }
         return lua_geti(state_, index, field);
@@ -94,7 +94,7 @@ public:
 
     inline int LoadTableField(int index, const char* field) {
         if (GetType(index) != LUA_TTABLE) {
-            detail::LogError("attend to get table field:[%s], target is not table", field);
+            detail::LogError("attempt to get table field:[%s], target is not table", field);
             return LUA_TNIL;
         }
         return lua_getfield(state_, index, field);
@@ -103,7 +103,7 @@ public:
     /* 将栈顶元素设置为table成员 */
     inline void SetTableField(int index, int field) {
         if (GetType(index) != LUA_TTABLE) {
-            detail::LogError("attend to set table field:[%d], target is not table", field);
+            detail::LogError("attempt to set table field:[%d], target is not table", field);
             return;
         }
         lua_seti(state_, index, field);
@@ -111,7 +111,7 @@ public:
 
     inline void SetTableField(int index, const char* field) {
         if (GetType(index) != LUA_TTABLE) {
-            detail::LogError("attend to set table field:[%s], target is not table", field);
+            detail::LogError("attempt to set table field:[%s], target is not table", field);
             return;
         }
         lua_setfield(state_, index, field);
@@ -270,7 +270,7 @@ public:
     template<typename... Rys, typename... Args>
     inline bool Call(std::tuple<Rys&...> ret, Args&&... args) {
         if (GetType(-1) != LUA_TFUNCTION) {
-            detail::LogError("attend to call is not a function");
+            detail::LogError("attempt to call is not a function");
             return false;
         } else {
             xLuaGuard guard(this, -1);
@@ -293,7 +293,7 @@ public:
         xLuaGuard guard(this);
         Push(func);
         if (GetType(-1) != LUA_TFUNCTION) {
-            detail::LogError("attend to call is not a function");
+            detail::LogError("attempt to call is not a function");
             return false;
         }
         return DoCall(ret, std::forward<Args>(args)...);
@@ -339,7 +339,7 @@ private:
         lua_rawgeti(state_, LUA_REGISTRYINDEX, meta_table_ref_);    // type metatable table
         lua_rawgeti(state_, -1, val.info_->index);   // metatable
         lua_remove(state_, -2);     // remove type table
-        lua_setmetatable(state_, 2);
+        lua_setmetatable(state_, -2);
         return data;
     }
 
@@ -351,8 +351,8 @@ private:
 
         lua_rawgeti(state_, LUA_REGISTRYINDEX, meta_table_ref_);    // type metatable table
         lua_rawgeti(state_, -1, info->index);   // metatable
-        lua_remove(state_, -2);     // remove type table
-        lua_setmetatable(state_, 2);
+        lua_remove(state_, -2);                 // remove type table
+        lua_setmetatable(state_, -2);
         return data;
     }
 

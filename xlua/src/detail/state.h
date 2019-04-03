@@ -108,7 +108,6 @@ namespace detail {
         }
 
         virtual ~FullUserData() {}
-
         virtual void* GetDataPtr() { return nullptr; }
 
         UserDataCategory type_;
@@ -131,7 +130,6 @@ namespace detail {
         }
 
         virtual ~LuaUserDataImpl() { }
-
         void* GetDataPtr() override { return &val_; }
 
         Ty val_;
@@ -153,7 +151,6 @@ namespace detail {
         }
 
         virtual ~LuaUserDataImpl() {}
-
         void* GetDataPtr() override { return &val_; }
 
         std::shared_ptr<Ty> val_;

@@ -10,36 +10,24 @@ namespace detail
     {
         friend class GlobalVar;
     public:
-        TypeDesc(GlobalVar* mgr, TypeCategory category, bool is_wak_obj, const char* name, const TypeInfo* super)
-            : mgr_(mgr)
-            , category_(category)
-            , is_weak_obj_(is_wak_obj)
-            , name_(name)
-            , super_(super) {
-        }
-
+        TypeDesc(GlobalVar* mgr, TypeCategory category, bool is_wak_obj, const char* name, const TypeInfo* super);
         virtual ~TypeDesc() { }
 
     public:
-        static void Free(TypeInfo* info);
-
-    public:
-        void SetCaster(TypeCaster caster) override {
-            caster_ = caster;
-        }
-
+        void SetCaster(TypeCaster caster) override { caster_ = caster; }
         void AddMember(const char* name, LuaFunction func, bool global) override;
         void AddMember(const char* name, LuaIndexer getter, LuaIndexer setter, bool global) override;
         const TypeInfo* Finalize() override;
 
     private:
-        void PerifyTypeName(TypeInfo* info);
+        bool CheckRename(const char* name, bool global) const;
 
     private:
         GlobalVar* mgr_;
         TypeCategory category_;
+        std::string name_;
         bool is_weak_obj_;
-        const char* name_;
+        //const char* name_;
         const TypeInfo* super_;
         TypeCaster caster_;
         std::vector<MemberVar> vars_;

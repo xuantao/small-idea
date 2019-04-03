@@ -42,110 +42,99 @@ enum class TestEnum2
 struct TestNone
 {};
 
-struct TestLuaExport
-{
-    int ia;
-    char name[64]={0};
-    static char buf[64];
-    void test_call() {}
+namespace test_lua {
+    struct TestLuaExport
+    {
+        int ia;
+        char name[64]={0};
+        static char buf[64];
+        void test_call() {}
 
-    void test_enum(TestEnum2) {}
-    void test_enum(int) {}
-    TestNone GetNone() { return TestNone(); }
+        void test_enum(TestEnum2) {}
+        void test_enum(int) {}
+        TestNone GetNone() { return TestNone(); }
 
-    static void Print() { }
+        static void Print() { }
 
-    int TestLua(xlua::xLuaState* l) { return 0; }
-    int TestLua(xlua::xLuaState* l) const { return 0; }
-};
+        int TestConst() { return 0; }
+        int TestConst() const { return 0; }
 
-char TestLuaExport::buf[64] ={0};
+        int TestLua(xlua::xLuaState* l) { return 0; }
+        int TestLua(xlua::xLuaState* l) const { return 0; }
+    };
 
-bool TestExtend(TestLuaExport* o) { return false; }
-int TestExtend2(TestLuaExport* o, xlua::xLuaState* l) { return 0; }
+    char TestLuaExport::buf[64] ={0};
+}
+
+bool TestExtend(test_lua::TestLuaExport* o) {
+    printf("bool TestExtend(test_lua::TestLuaExport* o)\n");
+    return false;
+}
+int TestExtend2(test_lua::TestLuaExport* o, xlua::xLuaState* l) {
+    printf("int TestExtend2(test_lua::TestLuaExport* o, xlua::xLuaState* l)\n");
+    l->Push("true");
+    return 1;
+}
+
+void TestExtend3(test_lua::TestLuaExport* o, bool value) {
+    printf("int TestExtend2(test_lua::TestLuaExport* o, xlua::xLuaState* l)\n");
+    //l->Push("true");
+}
 
 XLUA_EXPORT_ENUM_BEGIN(TestEnum2)
 XLUA_EXPORT_ENUM_VAR(kValue11)
 XLUA_EXPORT_ENUM_VAR_AS(ttt, kValue12)
 XLUA_EXPORT_ENUM_END()
 
-XLUA_DECLARE_EXTERNAL_CLASS(TestLuaExport);
+XLUA_DECLARE_EXTERNAL_CLASS(test_lua::TestLuaExport);
 
-XLUA_EXPORT_EXTERNAL_CLASS_BEGIN(TestLuaExport)
+XLUA_EXPORT_EXTERNAL_CLASS_BEGIN(test_lua::TestLuaExport)
 XLUA_EXPORT_MEMBER_FUNC(test_call)
 XLUA_EXPORT_MEMBER_FUNC_AS(test_enum_e, test_enum, TestEnum2)
 XLUA_EXPORT_MEMBER_FUNC_AS(test_enum_i, test_enum, int)
 //XLUA_EXPORT_MEMBER_FUNC(GetNone)
 XLUA_EXPORT_MEMBER_FUNC(Print)
+XLUA_EXPORT_MEMBER_FUNC(TestConst)
 XLUA_EXPORT_MEMBER_FUNC(TestLua)
 XLUA_EXPORT_MEMBER_FUNC_EXTEND(TestExtend, TestExtend)
 XLUA_EXPORT_MEMBER_FUNC_EXTEND(TestExtend2, TestExtend2)
 XLUA_EXPORT_MEMBER_VAR(ia)
 XLUA_EXPORT_MEMBER_VAR(name)
 XLUA_EXPORT_MEMBER_VAR(buf)
+XLUA_EXPORT_MEMBER_VAR_EXTEND_R(GetBool, TestExtend)
+XLUA_EXPORT_MEMBER_VAR_EXTEND_W(SetInt, TestExtend3)
 XLUA_EXPORT_EXTERNAL_CLASS_END()
+
+XLUA_EXPORT_GLOBAL_BEGIN(Global.Test)
+XLUA_EXPORT_GLOBAL_FUNC(TestExtend)
+XLUA_EXPORT_GLOBAL_VAR(test_lua::TestLuaExport::buf)
+XLUA_EXPORT_GLOBAL_END()
 
 XLUA_EXPORT_SCRIPT("    \
 function call_test()    \
     print('test call')  \
 end                     \
+function call_extend_1(obj)     \
+    print(obj:TestExtend())     \
+    obj.name = \"xuantao\"      \
+    Global.Test.TestExtend(obj) \
+    Global.Test.buf = \"world\" \
+end                             \
+function call_extend_2(obj)     \
+    print(obj:TestExtend2())    \
+    test_lua.TestLuaExport.buf = \"test_lua.TestLuaExport\" \
+end                             \
 ");
-
-struct LightDataPtr {
-    union {
-        struct {
-            void* ptr_;
-        };
-        struct {
-            struct {
-                uint32_t serial_;
-            };
-            struct {
-                uint32_t index_ : 24;
-                uint32_t type_ : 8;
-            };
-        };
-    };
-};
-
-namespace internal {
-    template <typename Ty>
-    struct FriendTest;
-}
-
-struct TestFriend {
-    template <typename Ty>
-    friend struct internal::FriendTest;
-
-    template <typename Ty>
-    void Do() {
-        internal::FriendTest<Ty>::Do(this);
-    }
-
-private:
-    void call() { printf("friend call\n"); }
-};
-
-namespace internal {
-    template <typename Ty>
-    struct FriendTest
-    {
-        static void Do(TestFriend* o) {
-            o->call();
-        }
-    };
-}
 
 int main()
 {
-    constexpr size_t s = sizeof(LightDataPtr);
     xlua::Startup();
     xlua::xLuaState* l = xlua::Create(nullptr);
 
-    TestLuaExport* ptr = nullptr;
-    TestLuaExport obj;
+    test_lua::TestLuaExport* ptr = nullptr;
+    test_lua::TestLuaExport obj;
 
-    std::shared_ptr<TestLuaExport> ptr1 = std::make_shared<TestLuaExport>();
+    auto ptr1 = std::make_shared<test_lua::TestLuaExport>();
 
     l->Push(&obj);
     l->Push(obj);
@@ -153,13 +142,10 @@ int main()
 
     printf("active1 top:%d\n", l->GetTopIndex());
 
-    ptr = l->Load<TestLuaExport*>(1);
-    obj = l->Load<TestLuaExport>(1);
-    auto obj2 = l->Load<TestLuaExport>(2);
-    auto ptr2 = l->Load<std::shared_ptr<TestLuaExport>>(3);
-
-    constexpr char ar[2] ={0, 1};
-    static_assert(ar[1] == 1, "222");
+    ptr = l->Load<test_lua::TestLuaExport*>(1);
+    obj = l->Load<test_lua::TestLuaExport>(1);
+    auto obj2 = l->Load<test_lua::TestLuaExport>(2);
+    auto ptr2 = l->Load<std::shared_ptr<test_lua::TestLuaExport>>(3);
 
     xlua::xLuaTable tab;
     xlua::xLuaFunction func;
@@ -179,5 +165,13 @@ int main()
     l->Call("print", std::tie(), 1, 1.0f, false, "xxx", func, tab);
 
     printf("active3 top:%d\n", l->GetTopIndex());
+
+    l->Call("call_extend_1", std::tie(), obj);
+    l->Call("call_extend_1", std::tie(), &obj);
+
+    l->Call("call_extend_2", std::tie(), obj);
+    l->Call("call_extend_2", std::tie(), &obj);
+
+    printf("active4 top:%d\n", l->GetTopIndex());
     return 0;
 }

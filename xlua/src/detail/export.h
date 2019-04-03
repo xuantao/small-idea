@@ -111,7 +111,6 @@ namespace detail
         }
     };
 
-
     /* 多继承指针偏移, 这里一步步的执行转换 */
     template <typename Ty, typename By>
     struct RawPtrCast {
@@ -503,10 +502,10 @@ namespace detail
         size_t count = 0;
         int param = 0;
         using els = int[];
-        (void)els { 0, (count += CheckParam<Ty>(l, index++, param++) ? 1 : 0, 0)... };
+        (void)els { 0, (count += CheckParam<Ty>(l, index++, ++param) ? 1 : 0, 0)... };
         if (count == sizeof...(Ty))
             return true;
-        // log error
+        l->LogCallStack();
         return false;
     }
 
@@ -599,8 +598,26 @@ namespace detail
         return 1;
     }
 
+    template <typename Ty, typename Ry, typename... Args>
+    inline int MetaCall(xLuaState* l, Ty* obj, Ry(Ty::*func)(Args...) const) {
+        if (!CheckParams<Args...>(l, 2))
+            return 0;
+        int index = 1;
+        l->Push((obj->*func)(LoadParam<Args>(l, ++index)...));
+        return 1;
+    }
+
     template <typename Ty, typename... Args>
     inline int MetaCall(xLuaState* l, Ty* obj, void (Ty::*func)(Args...)) {
+        if (!CheckParams<Args...>(l, 2))
+            return 0;
+        int index = 1;
+        (obj->*func)(LoadParam<Args>(l, ++index)...);
+        return 0;
+    }
+
+    template <typename Ty, typename... Args>
+    inline int MetaCall(xLuaState* l, Ty* obj, void (Ty::*func)(Args...) const) {
         if (!CheckParams<Args...>(l, 2))
             return 0;
         int index = 1;
@@ -618,6 +635,7 @@ namespace detail
         return (obj->*func)(l);
     }
 
+    /* 设置字符串数组 */
     inline void MetaSetArray(xLuaState* l, char* buf, size_t sz) {
         const char* s = l->Load<const char*>(3);    // 1:obj, 2:name, 3:value
         if (s)
@@ -626,24 +644,11 @@ namespace detail
             buf[0] = 0;
     }
 
-    template <size_t N>
-    inline void MetaSetArray(xLuaState* l, char buf[N]) {
+    /* 暂不支持其它类型数组 */
+    template <typename Ty>
+    inline void MetaSetArray(xLuaState* l, Ty* buf, size_t sz) {
+        static_assert(std::is_same<char, Ty>::value, "only support char array");
     }
-
-    template <typename Ty, size_t N>
-    inline void MetaSetArray(xLuaState* l, Ty buf[N]) {
-        //static_assert<>()
-        const char* s = l->Load<const char*>(3);    // 1:obj, 2:name, 3:value
-        if (s)
-            snprintf(buf, N, s);
-        else
-            buf[0] = 0;
-    }
-
-    //template <typename Ty>
-    //inline void MetaSetArray(xLuaState* l, Ty* buf, size_t sz) {
-    //    static_assert(std::is_same<char, Ty>::value, "only support char array");
-    //}
 
     template <typename Ry>
     inline void MetaGet(xLuaState* l, Ry* data) {
@@ -653,8 +658,7 @@ namespace detail
     template <typename Ry>
     inline void MetaSet_(xLuaState* l, Ry* data, std::true_type) {
         static_assert(std::extent<Ry>::value > 0, "array size must greater than 0");
-        MetaSetArray<Ry, std::extent<Ry>::value>(l, data);
-        //MetaSetArray(l, &(*data), std::extent<Ry>::value);
+        MetaSetArray(l, *data, std::extent<Ry>::value);
     }
 
     template <typename Ry>
@@ -664,19 +668,7 @@ namespace detail
 
     template <typename Ry>
     inline void MetaSet(xLuaState* l, Ry* data) {
-        using tag = typename std::conditional<std::is_array<Ry>::value,
-            std::true_type, std::false_type>::type;
-        MetaSet_(l, data, tag());
-    }
-
-    template <size_t N>
-    inline void MetaSet(xLuaState* l, char data[N]) {
-        static_assert(N > 0);
-        const char* s = l->Load<const char*>(3);    // 1:obj, 2:name, 3:value
-        if (s)
-            snprintf(data, N, s);
-        else
-            data[0] = 0;
+        MetaSet_(l, data, std::is_array<Ry>());
     }
 
     template <typename Ry>
@@ -707,9 +699,7 @@ namespace detail
 
     template <typename Ty, typename Ry>
     inline void MetaSet(xLuaState* l, Ty* obj, Ry Ty::*data) {
-        using tag = typename std::conditional<std::is_array<Ry>::value,
-            std::true_type, std::false_type>::type;
-        MetaSet_(l, obj, data, tag());
+        MetaSet_(l, obj, data, std::is_array<Ry>());
     }
 
     template <typename Ty, typename Ry>
@@ -748,12 +738,22 @@ namespace detail
     }
 
     template <typename Ty>
+    inline void MetaSet(xLuaState* l, Ty* obj, void(Ty::*func)(xLuaState*)) {
+        (obj->*func)(l);
+    }
+
+    template <typename Ty>
     inline void MetaGet(xLuaState* l, Ty* obj, int(*func)(Ty*, xLuaState*)) {
         func(obj, l);
     }
 
     template <typename Ty>
     inline void MetaSet(xLuaState* l, Ty* obj, int(*func)(Ty*, xLuaState*)) {
+        func(obj, l);
+    }
+
+    template <typename Ty>
+    inline void MetaSet(xLuaState* l, Ty* obj, void(*func)(Ty*, xLuaState*)) {
         func(obj, l);
     }
 
@@ -810,6 +810,14 @@ namespace detail
         static inline void Set(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, Fy f) {
             MetaSet(l, f);
         }
+
+        static inline void Get(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, std::nullptr_t) {
+            assert(false);
+        }
+
+        static inline void Set(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, std::nullptr_t) {
+            assert(false);
+        }
     };
 
     template <typename Ty>
@@ -822,6 +830,14 @@ namespace detail
         template <typename Fy>
         static inline void Set(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, Fy f) {
             MetaSet(l, static_cast<Ty*>(src->caster.to_super(obj, src, dst)), f);
+        }
+
+        static inline void Get(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, std::nullptr_t) {
+            assert(false);
+        }
+
+        static inline void Set(xLuaState* l, void* obj, const TypeInfo* src, const TypeInfo* dst, std::nullptr_t) {
+            assert(false);
         }
     };
 } // namespace detail

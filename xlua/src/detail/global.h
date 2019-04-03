@@ -15,6 +15,10 @@ namespace detail
         const TypeInfo* info_;
     };
 
+    /* 全局数据
+     * 管理、维护系统中使用的全局数据
+     * TODO: 这块要考虑支持多线程
+    */
     class GlobalVar
     {
         friend struct TypeDesc;

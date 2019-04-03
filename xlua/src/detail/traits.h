@@ -74,31 +74,31 @@ namespace detail {
     struct tag_enum {};
 
     template <typename Ty>
-    auto GetTypeInfoImpl() -> typename std::enable_if<IsInternal<Ty>::value, const TypeInfo*>::type {
+    inline auto GetTypeInfoImpl() -> typename std::enable_if<IsInternal<Ty>::value, const TypeInfo*>::type {
         return Ty::xLuaGetTypeInfo();
     }
 
     template <typename Ty>
-    auto GetTypeInfoImpl() -> typename std::enable_if<IsExternal<Ty>::value, const TypeInfo*>::type {
-        return xLuaGetTypeInfo(Identity<Ty>());
+    inline auto GetTypeInfoImpl() -> typename std::enable_if<IsExternal<Ty>::value, const TypeInfo*>::type {
+        return ::xLuaGetTypeInfo(Identity<Ty>());
     }
 
     template <typename Ty>
-    auto GetTypeInfoImpl() -> typename std::enable_if<std::is_void<Ty>::value, const TypeInfo*>::type {
+    inline auto GetTypeInfoImpl() -> typename std::enable_if<std::is_void<Ty>::value, const TypeInfo*>::type {
         return nullptr;
     }
 
     template <typename Ty, typename By>
     struct ObjIndexDetect {
         typedef typename Ty::LuaDeclare Declare;
-        static xLuaIndex& Detect(Ty* obj) {
+        static inline xLuaIndex& Detect(Ty* obj) {
             return ObjIndexDetect<By, typename Declare::super>::Detect(static_cast<By*>(obj));
         }
     };
 
     template <typename Ty>
     struct ObjIndexDetect<Ty, void> {
-        static xLuaIndex& Detect(Ty* obj) {
+        static inline xLuaIndex& Detect(Ty* obj) {
             return obj->xlua_obj_index_;
         }
     };
