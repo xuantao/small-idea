@@ -69,7 +69,8 @@ public:
     void LogCallStack() const;
     void GetCallStack(char* buf, size_t size) const;
 
-    bool DoString(const char* stream, const char* chunk = nullptr);
+    /* 执行一段字符串 */
+    bool DoString(const char* buff, const char* chunk = nullptr);
 
     /* 新建lua table */
     inline xLuaTable NewTable() {
@@ -267,6 +268,7 @@ public:
         return xLuaFunction();
     }
 
+    /* 调用栈顶的Lua函数 */
     template<typename... Rys, typename... Args>
     inline bool Call(std::tuple<Rys&...> ret, Args&&... args) {
         if (GetType(-1) != LUA_TFUNCTION) {
@@ -278,6 +280,7 @@ public:
         }
     }
 
+    /* 调用全局Lua函数 */
     template <typename... Rys, typename... Args>
     inline bool Call(const char* global, std::tuple<Rys&...> ret, Args&&... args) {
         xLuaGuard guard(this);
@@ -288,6 +291,7 @@ public:
         return DoCall(ret, std::forward<Args>(args)...);
     }
 
+    /* 调用执行Lua函数 */
     template <typename... Rys, typename... Args>
     inline bool Call(const xLuaFunction& func, std::tuple<Rys&...> ret, Args&&... args) {
         xLuaGuard guard(this);
@@ -299,7 +303,7 @@ public:
         return DoCall(ret, std::forward<Args>(args)...);
     }
 
-    /* table call */
+    /* table call, table函数是冒号调用的 table:Call(xxx) */
     template <typename... Rys, typename... Args>
     inline bool Call(const xLuaTable& table, const char* func , std::tuple<Rys&...> ret, Args&&... args) {
         xLuaGuard guard(this);

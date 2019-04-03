@@ -716,9 +716,9 @@ const char* xLuaState::GetTypeName(int index) {
     return ret;
 }
 
-bool xLuaState::DoString(const char* stream, const char* chunk) {
+bool xLuaState::DoString(const char* buff, const char* chunk) {
     xLuaGuard guard(this);
-    if (luaL_loadbuffer(state_, stream, strlen(stream), chunk) != LUA_OK) {
+    if (luaL_loadbuffer(state_, buff, strlen(buff), chunk) != LUA_OK) {
         const char* err = lua_tostring(state_, -1);
         detail::LogError("DoString failed chunk:%s err:%s", chunk ? chunk : "", err ? err : "");
         return false;
