@@ -100,6 +100,9 @@
     <ClInclude Include="..\src\weak_obj_array.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\compact_list.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\async.cpp">

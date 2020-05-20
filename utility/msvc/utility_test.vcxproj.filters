@@ -65,6 +65,9 @@
     <ClCompile Include="..\test\test_weak_obj_array.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\test\test_compact_list.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\test\test.h">

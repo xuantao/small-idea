@@ -9,16 +9,17 @@
 
 int main(int argc, char* argv[])
 {
-    //test_serial_allocator();
-    //test_stack_allocator();
-    //test_scope_guard();
-    //test_to_string();
-    //test_logger();
-    //test_step_excutor();
-    //test_async();
-    //test_com_obj_ptr();
+    test_serial_allocator();
+    test_stack_allocator();
+    test_scope_guard();
+    test_to_string();
+    test_logger();
+    test_step_excutor();
+    test_async();
+    test_com_obj_ptr();
     test_shared_obj_array();
     test_weak_obj_array();
+    test_compact_list();
     system("pause");
 
     _CrtDumpMemoryLeaks();

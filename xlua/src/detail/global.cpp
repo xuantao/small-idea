@@ -6,20 +6,17 @@
 
 XLUA_NAMESPACE_BEGIN
 
-namespace detail
-{
+namespace detail {
     static NodeBase* s_node_head = nullptr;
     static GlobalVar* s_global = nullptr;
 }
 
-xLuaIndex::~xLuaIndex()
-{
+xLuaIndex::~xLuaIndex() {
     if (index_ != -1 && detail::s_global)
         detail::s_global->FreeObjIndex(index_);
 }
 
-namespace detail
-{
+namespace detail {
     static bool StateCmp(const std::pair<lua_State*, xLuaState*>& l, const std::pair<lua_State*, xLuaState*>& r) {
         return l.first < r.first;
     }
@@ -36,14 +33,12 @@ namespace detail
         xLuaLogError(buf);
     }
 
-    NodeBase::NodeBase(NodeCategory type) : category(type)
-    {
+    NodeBase::NodeBase(NodeCategory type) : category(type) {
         next = s_node_head;
         s_node_head = this;
     }
 
-    NodeBase::~NodeBase()
-    {
+    NodeBase::~NodeBase() {
         NodeBase* node = s_node_head;
         while (node != this && node->next != this)
             node = node->next;
@@ -55,8 +50,7 @@ namespace detail
         next = nullptr;
     }
 
-    bool GlobalVar::Startup()
-    {
+    bool GlobalVar::Startup() {
         if (s_global)
             return false;
 

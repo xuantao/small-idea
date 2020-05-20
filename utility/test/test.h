@@ -15,3 +15,4 @@ void test_async();
 void test_com_obj_ptr();
 void test_shared_obj_array();
 void test_weak_obj_array();
+void test_compact_list();

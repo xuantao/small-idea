@@ -147,6 +147,7 @@
     <ClInclude Include="..\src\allocator_adapter.h" />
     <ClInclude Include="..\src\async.h" />
     <ClInclude Include="..\src\common.h" />
+    <ClInclude Include="..\src\compact_list.h" />
     <ClInclude Include="..\src\com_obj_ptr.h" />
     <ClInclude Include="..\src\data_pipe.h" />
     <ClInclude Include="..\src\detail\alloc_internal.h" />

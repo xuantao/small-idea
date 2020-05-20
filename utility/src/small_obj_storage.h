@@ -74,4 +74,57 @@ private:
     };
 };
 
+
+template <typename Ty>
+struct ObjStorage {
+    ObjStorage() = default;
+    ObjStorage(const ObjStorage& other) { *this = other; }
+    ObjStorage(ObjStorage&& other) { *this = std::move(other); }
+
+    template <typename... Args>
+    ObjStorage(Args&&... args) {
+        obj_ = new (space_) Ty(std::forward<Args>(args)...);
+    }
+
+    ~ObjStorage() { Release(); }
+
+    inline ObjStorage& operator=(const ObjStorage& other) {
+        Release();
+        if (other)
+            Construct(*other.Get());
+        return *this;
+    }
+
+    inline ObjStorage& operator=(ObjStorage&& other) {
+        Release();
+        if (other) {
+            Construct(std::move(*other.Get()));
+            other.Release();
+        }
+        return *this;
+    }
+
+public:
+    inline explicit operator bool() const { return obj_ != nullptr; }
+    inline Ty& operator*() const { return *Get(); }
+    inline Ty* Get() const { return obj_; }
+
+    template <typename... Args>
+    inline void Construct(Args&&... args) {
+        assert(obj_ == nullptr);
+        obj_ = new (space_) Ty(std::forward<Args>(args)...);
+    }
+
+    inline void Release() {
+        if (obj_) {
+            obj_->~Ty();
+            obj_ = nullptr;
+        }
+    }
+
+private:
+    Ty* obj_ = nullptr;
+    char space_[sizeof(Ty)];
+};
+
 UTILITY_NAMESPACE_END
